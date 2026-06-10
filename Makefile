@@ -147,10 +147,10 @@ SHELL := bash -o pipefail
 # Set flags for tools
 ASFLAGS := -mcpu=arm7tdmi -march=armv4t -meabi=5 --defsym MODERN=1 --defsym $(GAME_VERSION)=1
 
-INCLNUDE_DIRS := $(CURDIR)/include
-INCLUDES_C_DIRS := INCLNUDE_DIRS $(CURDIR)/src
+INCLUDE_DIRS := include
+INCLUDES_C_DIRS := $(INCLUDE_DIRS) include/audio include/backpack include/battle include/field include/field/effects include/field/scripts include/mainmenu include/menus include/minigames include/pokemon include/pokenav include/test include/trade include/trainers include/util include/gba src 
 INCLUDE_CPP_ARGS := $(INCLUDES_C_DIRS:%=-iquote %)
-INCLUDE_SCANINC_ARGS := $(INCLUDES_C_DIRS:%=-I %)
+INCLUDE_SCANINC_ARGS := $(INCLUDES_C_DIRS:%=-I%)
 
 ifeq ($(DEBUG),1)
 O_LEVEL ?= g
@@ -168,7 +168,7 @@ ARMCC := $(PREFIX)gcc
 PATH_ARMCC := PATH="$(PATH)" $(ARMCC)
 CC1 := $(shell $(PATH_ARMCC) --print-prog-name=cc1) -quiet
 
-override CFLAGS += -I$(CURDIR)/src -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -mthumb -mthumb-interwork -O$(O_LEVEL) -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -std=gnu17 -Werror -Wall -Wno-strict-aliasing -Wno-attribute-alias -Woverride-init -Wnonnull -Wenum-conversion
+override CFLAGS += $(INCLUDES_C_DIRS:%=-I %) -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -mthumb -mthumb-interwork -O$(O_LEVEL) -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -std=gnu17 -Werror -Wall -Wno-strict-aliasing -Wno-attribute-alias -Woverride-init -Wnonnull -Wenum-conversion
 
 ifneq ($(LTO),0)
   ifneq ($(TEST),1)
@@ -249,12 +249,12 @@ WILD_ENCOUNTERS_TOOL_DIR := $(TOOLS_DIR)/wild_encounters
 AUTO_GEN_TARGETS += $(DATA_SRC_SUBDIR)/wild_encounters.h
 
 MISC_TOOL_DIR := $(TOOLS_DIR)/misc
-AUTO_GEN_TARGETS +=  $(INCLNUDE_DIRS)/constants/script_commands.h
+AUTO_GEN_TARGETS +=  $(INCLUDE_DIRS)/constants/script_commands.h
 
-$(DATA_SRC_SUBDIR)/wild_encounters.h: $(DATA_SRC_SUBDIR)/wild_encounters.json $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py $(INCLNUDE_DIRS)/config/overworld.h $(INCLNUDE_DIRS)/config/dexnav.h
+$(DATA_SRC_SUBDIR)/wild_encounters.h: $(DATA_SRC_SUBDIR)/wild_encounters.json $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py $(INCLUDE_DIRS)/config/overworld.h $(INCLUDE_DIRS)/config/dexnav.h
 	python3 $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py
 
-$(INCLNUDE_DIRS)/constants/script_commands.h: $(MISC_TOOL_DIR)/make_scr_cmd_constants.py $(DATA_ASM_SUBDIR)/script_cmd_table.inc
+$(INCLUDE_DIRS)/constants/script_commands.h: $(MISC_TOOL_DIR)/make_scr_cmd_constants.py $(DATA_ASM_SUBDIR)/script_cmd_table.inc
 	python3  $(MISC_TOOL_DIR)/make_scr_cmd_constants.py
 
 PERL := perl
@@ -471,7 +471,7 @@ $(C_BUILDDIR)/pokemon/pokemon.o: $(C_SUBDIR)/pokemon/pokemon.c $(DATA_SRC_SUBDIR
 
 $(C_BUILDDIR)/%.o: $(C_SUBDIR)/%.c
 ifneq ($(KEEP_TEMPS),1)
-	@echo "$(CC1) <flags> -o $@ $<"
+	@echo "$(CC1) $(CFLAGS) -o $@ $<"
 	@$(CPP) $(CPPFLAGS) $< | $(PREPROC) -i -g $(ASSETS_DIR_NAME) $< charmap.txt | $(CC1) $(CFLAGS) -o - - | cat - <(echo -e ".text\n\t.align\t2, 0") | $(AS) $(ASFLAGS) -o $@ -
 else
 	@$(CPP) $(CPPFLAGS) $< -o $(C_BUILDDIR)/$*.i
@@ -540,7 +540,7 @@ $(OBJ_DIR)/sym_common.ld: sym_common.txt $(C_OBJS) $(wildcard common_syms/*.txt)
 $(OBJ_DIR)/sym_ewram.ld: sym_ewram.txt
 	$(RAMSCRGEN) ewram_data $< ENGLISH > $@
 
-TEACHABLE_DEPS := $(ALL_LEARNABLES_JSON) $(INCLNUDE_DIRS)/constants/tms_hms.h $(INCLNUDE_DIRS)/config/pokemon.h $(DATA_SRC_SUBDIR)/pokemon/special_movesets.json $(INCLNUDE_DIRS)/config/pokedex_plus_hgss.h $(LEARNSET_HELPERS_DIR)/make_teachables.py
+TEACHABLE_DEPS := $(ALL_LEARNABLES_JSON) $(INCLUDE_DIRS)/constants/tms_hms.h $(INCLUDE_DIRS)/config/pokemon.h $(DATA_SRC_SUBDIR)/pokemon/special_movesets.json $(INCLUDE_DIRS)/config/pokedex_plus_hgss.h $(LEARNSET_HELPERS_DIR)/make_teachables.py
 
 $(LEARNSET_HELPERS_BUILD_DIR):
 	@mkdir -p $@

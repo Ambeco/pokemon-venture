@@ -56,7 +56,7 @@ SECTIONS {
         src/gba/rom_header.o(.text*);
         KEEP(*.o(.text.header_gf));
         KEEP(*.o(.text.header_rhh));
-        src/crt0.o(.text);
+        src/gba/crt0.o(.text);
         *libagbsyscall.a:*.o(.text*);
         *libgcc.a:*.o(.text*);
         *libc.a:*.o(.text*);
