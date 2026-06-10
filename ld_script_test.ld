@@ -74,7 +74,7 @@ SECTIONS {
     .text :
     ALIGN(4)
     {
-        src/rom_header.o(.text);
+        src/gba/rom_header.o(.text);
         KEEP(*.o(.text.header_gf));
         KEEP(*.o(.text.header_rhh));
         KEEP(*.o(.text.consts));

@@ -53,7 +53,7 @@ SECTIONS {
     .text ORIGIN(ROM) :
     ALIGN(4)
     {
-        src/rom_header.o(.text*);
+        src/gba/rom_header.o(.text*);
         KEEP(*.o(.text.header_gf));
         KEEP(*.o(.text.header_rhh));
         src/crt0.o(.text);
