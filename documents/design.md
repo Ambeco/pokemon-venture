@@ -4,7 +4,14 @@ Current state of the design for the mod. Organized by topic; describes what the 
 
 ## Overview
 
-_Not yet described. The overall concept, scope, and goals of the mod go here as they're decided._
+The mod procedurally generates a Pokémon world rather than using a fixed map. (The user describes the idea as "overly ambitious"; the full concept is still being collected.)
+
+## World generation
+
+- The world map is a grid of roughly 6x4 "counties".
+- Each county is procedurally assigned a terrain type, a biome, a population, and a special location.
+- A "story order" over the counties is generated, which sometimes designates McGuffin "keys" and the "lock" counties they open.
+- One county's city is picked as the "capital".
 
 ## Base codebase
 
