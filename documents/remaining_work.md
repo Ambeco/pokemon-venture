@@ -7,4 +7,5 @@
 - Clarify route rules: tie-breaking and duplicate-route handling when several adjacency rules apply to the same county pair.
 - Define the special-location catalog (inside-city vs outside-city lists, how a location is chosen for a county, relation to terrain/biome/story order).
 - Decide how to integrate the underground tunnels around Saffron (Underground Path) into the world model; keep Red/Blue map reproducibility as a design check.
-- Define the 5x5 biome grid (axis values, the 25 biomes, which 16 each 4x4 subset yields), the population-level thresholds for the 2-bit encoding, and whether the world is regenerated on demand vs cached in RAM (cost of regeneration; player ID is the seed, so check it is stable across the whole game, e.g. vs. trainer ID rerolls in the debug menu).
+- Define the 5x5 biome grid (axis values, the 25 biomes, which 16 each 4x4 subset yields), the population-level thresholds for the 2-bit encoding, and whether the world is regenerated on demand vs cached in RAM (cost of regeneration).
+- Remove the debug menu's trainer ID reroll option, so the player ID (the world seed) is stable for the whole game.
