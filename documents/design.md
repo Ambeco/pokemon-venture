@@ -27,8 +27,10 @@ The goal of the world generation below is a game world map with cities, routes, 
 
 Special locations are either inside a city or outside one (mirroring mainline games, with Red/Blue as the reference).
 
-- Outside cities: Viridian Forest, Mt. Moon, Bill's House, Dark Tunnel (Diglett's Cave), Power Plant, S.S. Anne, Safari Zone, Whirl Islands (Seafoam Islands), Victory Road tunnel.
+- Outside cities: Viridian Forest, Mt. Moon, Bill's House, Dark Tunnel (Rock Tunnel), Power Plant, S.S. Anne, Safari Zone, Whirlpool Islands (Seafoam Islands), Victory Road tunnel.
 - Inside cities: Museum, burgled house, Pokémon Tower, Game Corner, Celadon Mall, Mansion, Silph Co. tower.
+
+The design is intended to be able, in principle, to generate the Red/Blue world map. How to represent the underground tunnels around Saffron (the Underground Path, not Diglett's Cave) is TBD.
 
 ### Route generation
 
