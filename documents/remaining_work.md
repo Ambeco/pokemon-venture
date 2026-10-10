@@ -15,3 +15,4 @@
 - Species<->biome mapping: pick the hardcoded stride and inverse; verify the math (biome = (idx*stride + playerID) mod 16 needs an odd stride for uniform biomes; ~63 species/biome implies ~1008 species and species of one biome being 16 indices apart; check whether the stride must be coprime to the species count, to 16, or both); handle the other-trainer-ID biome subset.
 - Define per-species "commonness" scores and the level-plausibility filter (using evolution levels), plus the starter/legendary/pseudo-legendary exclusion lists.
 - Define the 25-biome type affinity tables (18 types, log-scale encoding).
+- Budget CPU: profile/estimate the cost of regenerating world data, species mapping, encounter filtering, and move picks on GBA hardware; decide what to cache.
