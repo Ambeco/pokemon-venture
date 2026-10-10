@@ -99,6 +99,8 @@ Moves are generated procedurally per species, from per-species anatomy and per-m
 - At a learn level, the candidate range is wider than one level's ~20 moves, and exactly one move is guaranteed to be picked.
 - Candidates are filtered out if the species lacks the required appendages. Moves whose type does not match the species' types are dropped with high probability, as are moves whose associated stat does not match the species' stat ratios.
 - Levels 1 and 6 are always learn levels (at least one move each).
+- TMs and tutors use the same validity filter as level-up, except instead of randomly picking one valid move, they only check whether a given move is valid for the species at all.
+- Egg moves (tentative, pending research into how breeding works): pick a move the child species could learn by TM that a different-species parent learns naturally, chosen randomly.
 
 ## Base codebase
 
