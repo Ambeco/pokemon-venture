@@ -60,6 +60,35 @@ Routes are placed after all cities and special locations are placed.
 - GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (16 biomes), population in 2 bits (roughly logarithmic).
 - Map generation uses a PRNG seeded from the player ID. The generated world therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every player ID yields a completely different map.
 
+## Procedural species types and wild encounters
+
+Species types and move pools are procedurally generated, and wild Pokémon on a route should match the route's biome, like a real game.
+
+### Biome type affinity
+
+Each biome has a hardcoded table of how often each of the 18 Pokémon types occurs there. Possible encoding: 3 bits per type on a log scale, 54 bits (7 bytes) per biome.
+
+### Species <-> biome mapping
+
+A species' biome must be findable quickly without walking the generated map data, and so must the species list of a biome. This uses a two-way coprime-stride (modular multiplicative) mapping between species and biomes:
+
+- A stride coprime to the species count, and its modular inverse, are hardcoded.
+- Species to biome: `(baseSpeciesIndex * stride + playerID) mod 16`.
+- The species' two types are then chosen by random selection seeded from species + player ID, weighted by that biome's type affinity.
+- Biome to species: compute the first species of the biome via the inverse, then the rest follow at a fixed index distance from each other (derived from the inverse).
+- Each biome ends up with ~63 species.
+- A Pokémon whose trainer ID differs from the player's may use a different 16 of the 25 biomes, so the mapping depends on which 4x4 subset applies to that Pokémon's trainer ID.
+
+### Route encounter selection
+
+Many routes share a biome but sit at very different levels. To pick a route's species, iterate over the biome's ~63 species and:
+
+- filter out species whose evolve-to/evolve-from levels make them unlikely at the route's level,
+- filter out starters, legendaries, and pseudo-legendaries,
+- randomly filter out some more, seeded from player ID.
+
+Each species has a "commonness" score that sets the encounter ratios among the survivors.
+
 ## Base codebase
 
 - Built on [rh-hideout/pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) 1.16.1 (itself built on pret/pokeemerald). Remote `upstream` points there; `origin` is `Ambeco/pokemon-venture`.

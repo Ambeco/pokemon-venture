@@ -10,3 +10,8 @@
 - Define the 5x5 biome grid (axis values, the 25 biomes, which 16 each 4x4 subset yields), the meaning of each 2-bit population level (0 = none, 1 = village, 2 = town, 3 = city; how it relates to terrain/biome), and whether the world is regenerated on demand vs cached in RAM (cost of regeneration).
 - Remove the debug menu's trainer ID reroll option, so the player ID (the world seed) is stable for the whole game.
 - Design the three settlement generation algorithms (village, town, city): building footprints, path layout, how they map onto GBA map layouts/metatiles, and how gyms/Pokémon Centers/Marts get placed in each.
+- Species typing: species whose sprite strongly implies an element always keep that element; base forms get one type and evolutions gain the second (algorithm needed); decide interactions with abilities.
+- Move pools: design procedural move-pool generation (only types/biomes discussed so far).
+- Species<->biome mapping: pick the hardcoded stride and inverse; verify the math (biome = (idx*stride + playerID) mod 16 needs an odd stride for uniform biomes; ~63 species/biome implies ~1008 species and species of one biome being 16 indices apart; check whether the stride must be coprime to the species count, to 16, or both); handle the other-trainer-ID biome subset.
+- Define per-species "commonness" scores and the level-plausibility filter (using evolution levels), plus the starter/legendary/pseudo-legendary exclusion lists.
+- Define the 25-biome type affinity tables (18 types, log-scale encoding).
