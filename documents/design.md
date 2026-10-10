@@ -108,6 +108,28 @@ Moves are generated procedurally per species, from per-species anatomy and per-m
 - RAM is scarce (hence the bitpacking and regeneration from the player-ID seed).
 - CPU time is the bigger hurdle: on-demand regeneration of the world, species mapping, encounter filtering, and learn-level move picks must be cheap enough for a GBA.
 
+## Story and subplots
+
+The story is expected to be the biggest hurdle, and most of the ROM space saved by dropping maps is expected to go to subplot content.
+
+### Main story arcs
+
+- A handful of hand-designed story arcs; each game picks one at random based on trainer ID.
+- Reference points: Red/Blue (take down Rocket bases, then the leader) and Black/White (N and Ghetsis). The arcs should be deeper than Red/Blue.
+- Story points are sprinkled across the counties according to their generated story indices.
+
+### Subplots
+
+- Each special location has a hardcoded, thin subplot.
+- A number of city subplots are authored; each city randomly selects one.
+- Subplots are modeled after Pokémon TV-show episodes. Ideally the player meets each gym leader during a subplot before battling them.
+- Each subplot is linear. Each stage has ~2 NPC hints of the form "I heard something is happening at [city/location]", ~2 of the form "I saw something happening at [building]", plus story-state texts.
+
+### NPC dialogue
+
+- Each named building has a short list of NPC talking points.
+- Each gym type has a short list of NPC talking points, parameterized by city name and gym leader name.
+
 ## Base codebase
 
 - Built on [rh-hideout/pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) 1.16.1 (itself built on pret/pokeemerald). Remote `upstream` points there; `origin` is `Ambeco/pokemon-venture`.

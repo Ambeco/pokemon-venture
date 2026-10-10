@@ -16,3 +16,8 @@
 - Define per-species "commonness" scores and the level-plausibility filter (using evolution levels), plus the starter/legendary/pseudo-legendary exclusion lists.
 - Define the 25-biome type affinity tables (18 types, log-scale encoding).
 - Budget CPU: profile/estimate the cost of regenerating world data, species mapping, encounter filtering, and move picks on GBA hardware; decide what to cache.
+- Design the main story arcs (a handful, deeper than Red/Blue) and how their beats map onto county story indices.
+- Design subplot data format (linear stages, hint texts, story-state texts) and author the special-location and city subplots (TV-episode style, introducing gym leaders before their battles).
+- Design a generic mechanism for triggering subplot stage-advancement cutscenes (no plan yet).
+- Write NPC talking points for named buildings and per gym type, with parameterized city/leader names.
+- Estimate ROM budget for subplot text/script data.
