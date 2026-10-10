@@ -18,10 +18,18 @@ The goal of the world generation below is a game world map with cities, routes, 
 ### County layout
 
 - Each county is ~5x5 "world tiles". A world tile is one GBA tile on the world map; the map looks to be ~30x20 tiles today (user's eyeball estimate), so the county grid must be adjusted to match the actual world-map tile grid.
-- If a county's population is above a threshold, it places a city at a random position within its middle 3x3 world tiles.
+- If a county's population is above zero, it places a settlement at a random position within its middle 3x3 world tiles. Population is 0-3 (2 bits); population 0 never generates a city.
 - Every county always has a special location, whether or not it has a city.
 - With a city, the special location is placed either in or adjacent to the city (50%), or on a random non-adjacent world tile (50%).
-- Without a city (population below the threshold), the special location is necessarily not in a city, and it is what routes attach to.
+- Without a city (population 0), the special location is necessarily not in a city, and it is what routes attach to.
+
+### Settlement types
+
+Population selects one of three generation algorithms:
+
+- 1 = village: buildings never touch each other, and paths run everywhere intrinsically.
+- 2 = town: a few specific paths run through it; buildings often touch each other, and the layout is not very organized.
+- 3 = city: paths are mostly straight horizontal or vertical lines, and buildings mostly fill the grid.
 
 ### Special locations
 

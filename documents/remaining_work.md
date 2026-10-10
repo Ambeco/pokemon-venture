@@ -7,5 +7,6 @@
 - Clarify route rules: tie-breaking and duplicate-route handling when several adjacency rules apply to the same county pair.
 - Define the special-location catalog (inside-city vs outside-city lists, how a location is chosen for a county, relation to terrain/biome/story order).
 - Decide how to integrate the underground tunnels around Saffron (Underground Path) into the world model; keep Red/Blue map reproducibility as a design check.
-- Define the 5x5 biome grid (axis values, the 25 biomes, which 16 each 4x4 subset yields), the population-level thresholds for the 2-bit encoding, and whether the world is regenerated on demand vs cached in RAM (cost of regeneration).
+- Define the 5x5 biome grid (axis values, the 25 biomes, which 16 each 4x4 subset yields), the meaning of each 2-bit population level (0 = none, 1 = village, 2 = town, 3 = city; how it relates to terrain/biome), and whether the world is regenerated on demand vs cached in RAM (cost of regeneration).
 - Remove the debug menu's trainer ID reroll option, so the player ID (the world seed) is stable for the whole game.
+- Design the three settlement generation algorithms (village, town, city): building footprints, path layout, how they map onto GBA map layouts/metatiles, and how gyms/Pokémon Centers/Marts get placed in each.
