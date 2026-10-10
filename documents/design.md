@@ -89,6 +89,17 @@ Many routes share a biome but sit at very different levels. To pick a route's sp
 
 Each species has a "commonness" score that sets the encounter ratios among the survivors.
 
+### Move pools
+
+Moves are generated procedurally per species, from per-species anatomy and per-move requirements.
+
+- Each species has a bitfield of appendages (e.g. mouth). Each move has a field of required appendages and an associated stat. "Roar" needs a mouth; "Tackle" needs nothing.
+- The ~1000 moves are roughly sorted by power, with ~20 moves associated with each level.
+- Learn levels are generated per species (a procedurally generated list of levels at which it learns a move). This guarantees no Pokémon goes long without learning something, which a per-level chance would not.
+- At a learn level, the candidate range is wider than one level's ~20 moves, and exactly one move is guaranteed to be picked.
+- Candidates are filtered out if the species lacks the required appendages. Moves whose type does not match the species' types are dropped with high probability, as are moves whose associated stat does not match the species' stat ratios.
+- Levels 1 and 6 are always learn levels (at least one move each).
+
 ## Base codebase
 
 - Built on [rh-hideout/pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) 1.16.1 (itself built on pret/pokeemerald). Remote `upstream` points there; `origin` is `Ambeco/pokemon-venture`.
