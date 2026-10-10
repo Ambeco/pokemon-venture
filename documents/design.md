@@ -42,6 +42,16 @@ Routes are placed after all cities and special locations are placed.
 - If no adjacent county is the capital or has an adjacent story index, the county routes to whichever adjacent county has the highest story index.
 - Counties only ever route to adjacent counties.
 
+## Biomes
+
+- Biomes form a 5x5 grid: one axis is precipitation, the other is temperature.
+- Each game randomly selects one of the four 4x4 subsets of that grid and uses those 16 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct.
+
+## Data representation and determinism
+
+- GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (16 biomes), population in 2 bits (roughly logarithmic).
+- Map generation uses a PRNG seeded from the player ID. The generated world therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every player ID yields a completely different map.
+
 ## Base codebase
 
 - Built on [rh-hideout/pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) 1.16.1 (itself built on pret/pokeemerald). Remote `upstream` points there; `origin` is `Ambeco/pokemon-venture`.
