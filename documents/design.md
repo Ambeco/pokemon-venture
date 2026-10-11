@@ -51,6 +51,33 @@ Routes are placed after all cities and special locations are placed.
 - If no adjacent county is the capital or has an adjacent story index, the county routes to whichever adjacent county has the highest story index.
 - Counties only ever route to adjacent counties.
 
+## Geography
+
+County-level terrain is laid out like a typical Pokémon region:
+
+- The outer ring of counties is bordered by mountains on 1-2 sides and by ocean on 2-3 sides: first mark a continuous stretch of the outer ring as mountainous, and most of the rest as ocean.
+- A stretch of mountain and a stretch of ocean each extend toward the middle.
+- Cities and special locations placed in the ocean automatically form islands.
+
+Climate gradients:
+
+- Counties near the outer ocean are very humid, so humidity needs a rapid gradient across the map to guarantee some low-humidity zones at all.
+- Temperature is assumed to be mostly a north-south (or south-north) gradient.
+- The gradients must be designed so that the most desert-like biome is likely to occur at least once on non-mountain terrain. This is expected to be tricky.
+
+Biome granularity:
+
+- Routes and cities are not locked to their county's biome. The gradients extend to the world-tile level, and each route or city is based on its own world tile.
+- A single route or city has a single biome, with no gradient within it.
+
+### Landforms and cave variants
+
+A route can additionally be marked as a landform within its biome, which also breaks up the monotony of routes sharing a biome: beach, volcano, farmland, sandbars, fjords, salt flats, mesas, river basin.
+
+Caves and tunnels get distinct characteristics too: underground river, bioluminescence, crystals, sinkholes, magma, ice.
+
+For reference, the Pokémon Snap courses were beach, tunnel, volcano, river, cave, valley, clouds, meadow, jungle, forest, desert, reef, ocean, snow, tundra, and ruins. The biome grid already covers meadow, jungle, forest, desert, ocean, snow and tundra; tunnel, cave and ruins are special locations; the rest are landforms.
+
 ## Biomes
 
 - Biomes form a 5x5 grid: one axis is precipitation, the other is temperature.
@@ -94,6 +121,17 @@ A species' biome must be findable quickly without walking the generated map data
 - Biome to species: compute the first species of the biome via the inverse, then the rest follow at a fixed index distance from each other (derived from the inverse).
 - Each biome ends up with ~63 species.
 - A Pokémon whose trainer ID differs from the player's may use a different 16 of the 25 biomes, so the mapping depends on which 4x4 subset applies to that Pokémon's trainer ID.
+
+### Species metadata
+
+Per-species fields used for encounters and trading (field widths are tentative):
+
+- Minimum requirements: flags for a required habitat. Fish-looking species require water (surfing or fishing) and are almost certainly Water type; land-looking species such as Pikachu (a mouse) require land. These two flags may be the only ones.
+- Habitat bias: flags biasing a species toward or away from habitats. They are based on the species' image, never its type: types are randomized, each biome should have a general mix of types, and a habitat such as volcano should be neither only fire nor the only home of fire Pokémon. Example: Pikachu looks like a mouse, so it prefers tunnel, cave, valley, forest and ruins, and avoids beach, clouds, reef, ocean, snow and tundra.
+- Domestication (2-3 bits): 0 is fully wild (Pinsir, Kangaskhan, Tauros, Dratini, legendaries), biased toward the map edges and Safari Zones; the maximum is fully domestic (Hitmonlee, Hitmonchan, Meowth, Porygon).
+- Base evolution: a reference to the species' base form, so that all evolutions share the base's type generation.
+- Normal level range: a 3-bit enum for the low end (2, 7, 10, 17, 25, 34, 43, 55); the high end comes from the evolution data.
+- Commonness (2 bits): 0 = legendary (never wild; NPCs never have or trade them); 1 = baby, trade-evolved, item-evolved and fossil Pokémon (never wild; NPCs rarely have them, but trade normally); 2 = starters and other super-rare Pokémon such as Chansey and Tauros (super rare in the wild; NPCs rarely have them, but trade regularly); 3 = normal (encounter ratios based on catch rate; NPCs regularly have and trade them).
 
 ### Route encounter selection
 
