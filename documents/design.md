@@ -80,8 +80,9 @@ For reference, the Pokémon Snap courses were beach, tunnel, volcano, river, cav
 
 ## Biomes
 
-- Biomes form a 5x5 grid: one axis is precipitation, the other is temperature.
-- Each game randomly selects one of the four 4x4 subsets of that grid and uses those 16 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct.
+- There are 25 possible biomes, forming a 5x5 grid: one axis is precipitation, the other is temperature. Every species is associated with one of all 25 biomes.
+- A given region/world map is limited to one of the four 4x4 subsets of that grid, chosen randomly per game: 16 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct.
+- Species associated with the other 9 biomes cannot be encountered in the wild in that playthrough, but NPCs can still have and trade them as normal.
 
 The 25 biomes. Columns run from hottest (left) to coldest (right); rows are humidity levels.
 
@@ -100,7 +101,7 @@ Biome terrain and art:
 
 ## Data representation and determinism
 
-- GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (16 biomes), population in 2 bits (roughly logarithmic).
+- GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (a world uses only 16 of the 25 biomes), population in 2 bits (roughly logarithmic).
 - Map generation uses a PRNG seeded from the player ID. The generated world therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every player ID yields a completely different map.
 
 ## Procedural species types and wild encounters
