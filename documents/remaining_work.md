@@ -38,3 +38,4 @@
 - Define trainer team generation: the trainer classes (ordinary, boss, low-level grunt), how route-story-index maps to trainer and wild levels and hidden items, and tune the grunt catch-rate cutoff (starts at 255).
 - Define the theme catalog (requirements, sprite sets, gym types, NPC texts) and how the world layer assigns themes to spread gym types; define how placement tendencies (Elite Four corner, start near it, capital far, coast/mountain city nudges) are implemented within the layering principle.
 - Decide how strongly gym assignment follows the average gym-order table (soft bias strength, Elite Four preference for late types) alongside theme requirements.
+- Content roadmap: Emerald rival arc and story arc first (preserving cutscene text), then the Kanto story arc and Red/Blue/Yellow rival arc, then other mainline games; subplots from Emerald, then RBY and others, and eventually TV-episode subplots.

@@ -287,12 +287,41 @@ The story is expected to be the biggest hurdle, and most of the ROM space saved 
 - Reference points: Red/Blue (take down Rocket bases, then the leader) and Black/White (N and Ghetsis). The arcs should be deeper than Red/Blue.
 - Story points are sprinkled across the counties according to their generated story indices.
 
+### Rival arcs
+
+The first version always uses the Emerald rival arc, preserving the cutscene text as much as possible:
+
+- You scare off a Pokémon, the professor gives you two Pokémon, then May/Brendan battles you.
+- On a route just before the first gym, the rival shows up and battles again, then again on a route between the second and third gyms, on a route between the fourth and fifth gyms, and in some side area between the sixth and seventh gyms.
+- A secondary rival, Wally, challenges you just before the third gym and as the Victory Road champion.
+
+Later versions add the Red/Blue/Yellow rival arc as an alternative the game can pick, then rival arcs from the other mainline games as far as possible.
+
+### Story arc content
+
+The first version always uses the Emerald story arc: two eco-terrorist factions, Magma and Aqua, argue industrial progress versus environmental preservation. They awaken the Ground and Sea legendary Pokémon and lose control of them. Then a Flying legendary arrives from a tower landmark and pacifies them, and Magma and Aqua learn the error of their ways.
+
+Next comes the Kanto arc: Team Rocket pushes human exploitation of nature versus harmony with it, and tragically creates a man-made legendary it cannot control. They treat Pokémon as commodities, tools, and weapons. Beats include a Mt. Moon heist, a Lavender Town tragedy, and a corporate takeover. Giovanni is the 8th gym leader, and the player dismantles Rocket.
+
+Arcs from the other mainline games are added as far as possible.
+
 ### Subplots
 
 - Each special location has a hardcoded, thin subplot.
 - A number of city subplots are authored; each city randomly selects one.
 - Subplots are modeled after Pokémon TV-show episodes. Ideally the player meets each gym leader during a subplot before battling them.
 - Each subplot is linear. Each stage has ~2 NPC hints of the form "I heard something is happening at [city/location]", ~2 of the form "I saw something happening at [building]", plus story-state texts.
+
+Initial subplot content comes from Emerald, for example:
+
+- A man in sunglasses teaches you Cut.
+- Mr. Briney's Wingull is stolen.
+- You can't enter Devon Corp until you reclaim the Devon Goods from a tunnel.
+- Answering questions earns the Old Rod.
+- Granite Cave requires Flash.
+- Delivering the Devon Goods to Captain Stern.
+
+More follow from Red/Blue/Yellow, then other games. In the far future, more subplots are modeled after TV show episodes.
 
 ### NPC dialogue
 
