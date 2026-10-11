@@ -46,6 +46,14 @@ Population selects one of three generation algorithms:
 - 2 = town: a few specific paths run through it; buildings often touch each other, and the layout is not very organized.
 - 3 = city: paths are mostly straight horizontal or vertical lines, and buildings mostly fill the grid.
 
+### City themes
+
+Some towns and cities have a theme.
+
+- Themes often have requirements, such as being on an island, being far from the capital, being low level, or being ocean-adjacent.
+- A theme affects which sprites the settlement uses and its gym type, and carries its own NPC texts so NPCs talk about their town appropriately.
+- Themes are picked at the world layer(s), so gym types can be distributed well across the map.
+
 ### Special locations
 
 Special locations are either inside a city or outside one (mirroring mainline games, with Red/Blue as the reference).
@@ -88,6 +96,13 @@ County-level terrain is laid out like a typical Pokémon region:
 - The outer ring of counties is bordered by mountains on 1-2 sides and by ocean on 2-3 sides: first mark a continuous stretch of the outer ring as mountainous, and most of the rest as ocean.
 - A stretch of mountain and a stretch of ocean each extend toward the middle.
 - Cities and special locations placed in the ocean automatically form islands.
+
+Placement tendencies:
+
+- The Elite Four is generally in a mountainous corner of the map.
+- County-story-index 0 (where the player starts) is vaguely near the Elite Four, and the capital is vaguely far from it.
+- Within a county, mountains and coasts nudge city placement toward them, since most cities are on coasts and mountain passes.
+- The capital always has the maximum population (3).
 
 Climate gradients:
 
