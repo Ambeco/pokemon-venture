@@ -22,3 +22,4 @@
 - Write NPC talking points for named buildings and per gym type, with parameterized city/leader names.
 - Estimate ROM budget for subplot text/script data.
 - Decide whether towns get a Mart, define the per-bag-category city stores, and the daily trader generation (daily seeding, trader count by population, catch-rate similarity and level-overlap rules).
+- Implement type icons before Pokémon names in all text: needs a font/charmap glyph per type (18 glyphs), handling of name buffers and text width, and nickname/name-entry screens.
