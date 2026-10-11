@@ -388,6 +388,8 @@ Stages, each leaving the game playable:
 
 Random Pokémon types and move sets can be implemented at virtually any point in this order.
 
+The work for each step is broken into milestones 0-12 in `remaining_work.md`. Milestone 0 covers the hardcoded foundation (stages 1-4); the milestones then follow the order: shuffled NPC texts, shuffled subplots, non-fixed arc cutscenes, random types, encounters, moves, trainers, procedural buildings and terrain, shuffled McGuffins, randomized city placement, procedural story indices, procedural terrain and biomes.
+
 ### McGuffins
 
 A McGuffin key is whatever gates progress until a condition is met: an NPC blocking the way until a subplot reaches a certain state, an HM needed to pass an obstacle, or a special plot item such as the Poké Flute to wake a sleeping Pokémon.
