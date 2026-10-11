@@ -55,12 +55,12 @@ Routes are placed after all cities and special locations are placed.
 
 Each route, city, and special location also gets a route-story-index, derived from the county-story-indices of the places a route connects. Route-story-indices start at 4 * county-story-index, which leaves room for several steps inside one county.
 
-Within a county:
+Within a county, the "first" city/location is the one the main route into the county connects to. That route comes from the adjacent county with the highest story index (below this county's); any other city/location in the county is the "second". Indices are then:
 
-- The first route and city/location entered have route-story-index 4 * county-story-index.
-- If the county has a city and an external special location, the route between them is 4 * county-story-index + 2 by default, and whichever of the two is "second" gets that same index.
-- A special location inside a city gets the city's route-story-index + 1.
-- A city or special location with no routes to lower county-story-indices gets county-story-index + 3 (as 4 * county-story-index + 3 in the scheme above).
+- 4 * county-story-index + 0: the main route into this county, and the first city or location.
+- +1: a special location inside the first, if the first is a city.
+- +2: the second city or location (if any), and the route connecting the first and second (if any).
+- +3: a special location inside the second, if the second is a city.
 
 Between counties:
 
