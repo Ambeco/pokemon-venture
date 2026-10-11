@@ -18,7 +18,11 @@
 
 ## Folders branch test status
 
-- Moving files breaks path-keyed build config. Fixed: `ld_script_test.ld` (`src/audio/m4a.o`, `src/util/libisagbprn.o`) and the Makefile per-file flag rule for `src/util/librfu_intr.c` (it needs ARM-mode flags; a stale `gba/` path silently compiled it wrong and the test ROM executed garbage). After any further file move, grep `Makefile` and `ld_script*.ld` for the old path.
-- `make check -j` with all 12 cores runs WSL (7.9 GB) out of memory when the ROM misbehaves (runner buffers output unboundedly). Use `-j4` and `ulimit -v`; helper scripts live outside the repo in `~/decomps/.*.sh`.
-- Upstream `master` passes `make check TESTS=Spikes` (4/4). `Folders` still fails 2/4 (`Spikes damage on switch in`, `Spikes do not damage airborne Pokemon`, reported only as "src/pokenav/config_changes.c:121: 108 bytes not freed"); symbol sizes now match upstream, and preprocessed sources differ only in `__FILE__` path strings. Cause not yet found; suspect something path-dependent in the test runner.
-- A clean upstream worktree for comparison is at `~/decomps/pv-master` (outside the repo).
+`make check` passes on `Folders` (4780 passed, 0 failed). Moving files broke path-keyed config in four places; after any further move, grep for the old path in `Makefile`, `ld_script*.ld`, and `test/`:
+
+- `ld_script_test.ld` named `src/m4a.o` and `src/libisagbprn.o`.
+- The Makefile per-file flags rule for `librfu_intr.c` (needs ARM-mode flags; a stale path silently compiled it wrong and the ROM ran garbage).
+- `test/test_runner.c` exempts `src/pokenav/config_changes.c` from the leak check by path; a stale path failed every PARAMETRIZE battle test.
+- Link order: the Makefile links `src/` objects sorted by basename, as when `src/` was flat. In directory order, the Z-Move animation test crashes (a latent upstream memory-layout bug, root cause not found). If it reappears after other layout changes, suspect a buffer overrun in the animation code.
+
+Running tests: use `make check -j4` (all 12 cores plus a misbehaving ROM exhausts WSL's 7.9 GB; add `ulimit -v`). Upstream worktree for comparison: `~/decomps/pv-master` (outside the repo).

@@ -154,7 +154,7 @@ void TestRunner_CheckMemory(void)
                 const char *location = MemBlockLocation(block);
                 if (location)
                 {
-                    const char cmpString[] = "src/config_changes.c";
+                    const char cmpString[] = "src/pokenav/config_changes.c";
                     if (strncmp(cmpString, location, sizeof(cmpString) - 1) != 0)
                     {
                         Test_MgbaPrintf("%s: %d bytes not freed", location, block->size);
