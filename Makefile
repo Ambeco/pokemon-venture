@@ -451,7 +451,7 @@ clean-teachables: clean-teachables_intermediates
 	rm -f $(ALL_LEARNABLES_JSON)
 	@touch $(C_SUBDIR)/pokemon/pokemon.c
 
-$(C_BUILDDIR)/gba/librfu_intr.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast
+$(C_BUILDDIR)/util/librfu_intr.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast
 $(C_BUILDDIR)/backpack/berry_crush.o: override CFLAGS += -Wno-address-of-packed-member
 $(C_BUILDDIR)/gba/agb_flash.o: override CFLAGS += -fno-toplevel-reorder
 $(C_BUILDDIR)/pokemon/pokedex_plus_hgss.o: CFLAGS := -mthumb -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -std=gnu17 -Werror -Wall -Wno-strict-aliasing -Wno-attribute-alias -Woverride-init

@@ -50,7 +50,7 @@ SECTIONS {
         *libgcc.a:*.o(.bss*);
         *libnosys.a:*.o(.bss*);
 
-        src/m4a.o(.bss.code);
+        src/audio/m4a.o(.bss.code);
 
         src/*.o(common_data);
         src/*.o(COMMON);
@@ -121,7 +121,7 @@ SECTIONS {
         *libgcc.a:*.o(.rodata*);
         *libc.a:*.o(.rodata*);
         *libc.a:*.o(.data*);
-        src/libisagbprn.o(.rodata);
+        src/util/libisagbprn.o(.rodata);
     } > ROM =0
 
     .data.iwram :
