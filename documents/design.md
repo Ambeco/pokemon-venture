@@ -115,12 +115,13 @@ Each biome has a hardcoded table of how often each of the 18 Pokémon types occu
 
 A species' biome must be findable quickly without walking the generated map data, and so must the species list of a biome. This uses a two-way coprime-stride (modular multiplicative) mapping between species and biomes:
 
-- A stride coprime to the species count, and its modular inverse, are hardcoded.
-- Species to biome: `(baseSpeciesIndex * stride + playerID) mod 16`.
+- The mapping operates on the ~541 evolutionary lines (via each species' base evolution), and associates every line with one of all 25 biomes, not just a game's 16.
+- A stride coprime to 25 (not divisible by 5), and its modular inverse, are hardcoded.
+- Species to biome: `(baseSpeciesIndex * stride + playerID) mod 25`.
 - The species' two types are then chosen by random selection seeded from species + player ID, weighted by that biome's type affinity.
 - Biome to species: compute the first species of the biome via the inverse, then the rest follow at a fixed index distance from each other (derived from the inverse).
-- Each biome ends up with ~63 species.
-- A Pokémon whose trainer ID differs from the player's may use a different 16 of the 25 biomes, so the mapping depends on which 4x4 subset applies to that Pokémon's trainer ID.
+- Each biome ends up with ~22 evolutionary lines.
+- A Pokémon whose trainer ID differs from the player's maps through that trainer ID, so it may land in a different biome and get different types.
 
 ### Species metadata
 
@@ -135,19 +136,35 @@ Per-species fields used for encounters and trading (field widths are tentative):
 
 ### Route encounter selection
 
-The species-to-biome stride mapping only determines types. A route's encounters are built separately from the species correlated with the route's biome (~63). Many routes share a biome but sit at very different levels, so the species are filtered, then weighted:
+The species-to-biome stride mapping only determines types. A route's encounters are built separately from the evolutionary lines correlated with the route's biome (~22 per biome). Many routes share a biome but sit at very different levels, so the species are filtered, then weighted:
 
 - by commonness: legendaries, babies, fossils, and trade/item-evolved Pokémon are never wild, and starters and other super-rare Pokémon are very rare,
 - by domestication, relative to how close the route is to the map edge or a Safari Zone,
 - by habitat: minimum requirements (e.g. water for fish) and image-based habitat biases,
 - by level: species whose evolve-to/evolve-from levels make them unlikely at the route's level are dropped,
+- by time of day and weather,
 - by a random filter that drops some of the rest.
 
-The survivors' encounter ratios are proportional to their catch rates.
+Roughly half of the ~22 lines are expected to be filtered out, leaving ~11. The survivors' encounter ratios are proportional to their catch rates.
 
-All of this, including the randomness, is derived from the trainer ID, so each play-through is fully deterministic.
+All of this, including the randomness, is derived from the trainer ID, so each play-through is fully deterministic. Tables are deterministic, not fixed: they are recalculated when the time of day or weather changes.
 
 A species whose habitat strongly opposes the biome may not appear at all in a play-through. This is intended, like Sandshrew, Vulpix, Meowth, Bellsprout, Magmar, and Pinsir never appearing in Pokémon Red.
+
+Table size and ratios:
+
+- Tables are built on the fly and never stored in ROM, so Emerald's 12-slot land cap (probably there to keep ROM tables small) can be dropped, as can its hardcoded slot ratios, if the encounter code allows dynamic sizes and ratios.
+- If a table still needs to be capped, species are dropped randomly until it fits.
+
+Encounter methods:
+
+- Each encounter method gets its own table (PokeAPI's `encounter_methods.csv` lists many: walk, surf, old/good/super rod, rock smash, dark grass, headbutt, spots, roaming, and others).
+- Most are not needed. Walk, surf, grass, dark grass, and other common methods are calculated eagerly; item and object interactions (rods, headbutt, berry trees, "spots") are calculated lazily.
+
+Evolution levels:
+
+- Level-based evolutions define a line's level range, which normally keeps multiple stages of one line off the same route. Occasional overlap is fine, as in mainline games.
+- Non-level evolutions use hardcoded estimated levels for encounter-table purposes only (e.g. stone evolutions at ~29, since Red's Celadon sells stones and its gym leader's ace is level 29). The Pokémon still evolves only by its real method.
 
 ### Move pools
 

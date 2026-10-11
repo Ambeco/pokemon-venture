@@ -12,7 +12,7 @@
 - Design the three settlement generation algorithms (village, town, city): building footprints, path layout, how they map onto GBA map layouts/metatiles, and how gyms/Pokémon Centers/Marts get placed in each.
 - Species typing: species whose sprite strongly implies an element always keep that element; base forms get one type and evolutions gain the second (algorithm needed); decide interactions with abilities.
 - Move pools: define the appendage bitfield vocabulary, per-move requirement/stat tagging for ~1000 moves, the power-sorted level bucketing, the learn-level list generator, and filter probabilities (type match, stat match); research how egg moves work in mainline games and finalize the egg move rule.
-- Species<->biome mapping: pick the hardcoded stride and inverse; verify the math (biome = (idx*stride + playerID) mod 16 needs an odd stride for uniform biomes; ~63 species/biome implies ~1008 species and species of one biome being 16 indices apart; check whether the stride must be coprime to the species count, to 16, or both); handle the other-trainer-ID biome subset.
+- Species<->biome mapping: pick the hardcoded stride (coprime to 25) and inverse over the ~541 evolutionary lines; verify that species of one biome end up evenly spaced and that traded Pokémon (other trainer ID) map sensibly.
 - Define the route species filters (level-plausibility using evolution levels, domestication by edge distance, habitat, random drop), the random-drop rate, any further filters, and the catch-rate-proportional encounter table; plus the starter/legendary/pseudo-legendary exclusion lists.
 - Define the 25-biome type affinity tables (18 types, log-scale encoding).
 - Budget CPU: profile/estimate the cost of regenerating world data, species mapping, encounter filtering, and move picks on GBA hardware; decide what to cache.
@@ -30,3 +30,6 @@
 - Design the geography generator: outer-ring mountain/ocean stretches, inland mountain and ocean extensions, island formation, and humidity/temperature gradients at world-tile granularity that guarantee a non-mountain desert-like biome.
 - Define the landform list (beach, volcano, farmland, sandbars, fjords, salt flats, mesas, river basin) and cave variants (underground river, bioluminescence, crystals, sinkholes, magma, ice), and how each biases tiles, encounters and layouts.
 - Define the species metadata fields (habitat requirements/biases from sprite appearance, domestication, base evolution, level-range enum, commonness) and tag all ~1000 species; reconcile image-based habitat biases with the species-to-biome stride mapping that decides types (the mapping decides a species' types; habitat flags decide where it appears).
+- Check why Emerald caps land encounters at 12 slots and fixed slot ratios, and whether the encounter code can take dynamic table sizes and ratios.
+- Define the per-method encounter tables (eager: walk, surf, grass, dark grass; lazy: rods, rock smash, headbutt, berry trees, spots), time-of-day and weather filters, and table recalculation when time or weather changes.
+- Hardcode estimated encounter levels for non-level evolutions (stones ~29, trade, friendship, etc.).
