@@ -54,6 +54,33 @@ Some towns and cities have a theme.
 - A theme affects which sprites the settlement uses and its gym type, and carries its own NPC texts so NPCs talk about their town appropriately.
 - Themes are picked at the world layer(s), so gym types can be distributed well across the map.
 
+### Gym type order
+
+Gym types follow a general but subtle pattern in the mainline games: some types tend to be early gyms and some late, and the Elite Four generally prefers types toward the late end. Gym assignment (including theme-driven types) should respect this as a soft bias, not a rule.
+
+Average gym order in the mainline games (earliest first):
+
+| Type | Average order |
+|---|---|
+| Bug | 2.0 |
+| Rock | 2.2 |
+| Grass | 2.4 |
+| Normal | 2.8 |
+| Fighting | 3.4 |
+| Poison | 3.5 |
+| Fire | 3.8 |
+| Water | 4.2 |
+| Flying | 4.3 |
+| Ghost | 4.3 |
+| Electric | 4.6 |
+| Fairy | 5.5 |
+| Steel | 6.0 |
+| Ground | 6.5 |
+| Psychic | 6.7 |
+| Ice | 7.0 |
+| Dark | 7.0 |
+| Dragon | 8.0 |
+
 ### Special locations
 
 Special locations are either inside a city or outside one (mirroring mainline games, with Red/Blue as the reference).
