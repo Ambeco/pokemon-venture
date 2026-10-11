@@ -83,6 +83,7 @@ For reference, the Pokémon Snap courses were beach, tunnel, volcano, river, cav
 - There are 25 possible biomes, forming a 5x5 grid: one axis is precipitation, the other is temperature. Every species is associated with one of all 25 biomes.
 - A given region/world map is limited to one of the four 4x4 subsets of that grid, chosen randomly per game: 16 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct.
 - Species associated with the other 9 biomes cannot be encountered in the wild in that playthrough, but NPCs can still have and trade them as normal.
+- Players can therefore expect to encounter about 346 of the ~541 evolutionary lines in the wild (16/25). Pokémon storage has 420 slots (14 boxes of 30), so this is already a lot.
 
 The 25 biomes. Columns run from hottest (left) to coldest (right); rows are humidity levels.
 
@@ -270,3 +271,16 @@ Cons:
 - Story progression can't be tested without NPC hints, which need subplot/city metadata the generator would have to produce first.
 - Everything must work before anything is playable.
 - Random layouts make bugs hard to reproduce.
+
+### Two biomes per species
+
+Associate each species with two biomes: only the first determines types, but the species can spawn in either.
+
+Pros:
+- Players could encounter ~470 of the 541 lines, so far fewer species are locked out of a playthrough.
+
+Cons:
+- 470 exceeds the 420 box slots, and even 346 already seems like a lot to collect.
+- Needs a second mapping and more bookkeeping for the species-to-biome lookup.
+
+Not planned; may be revisited depending on player feedback.
