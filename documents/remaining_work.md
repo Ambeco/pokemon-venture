@@ -35,4 +35,4 @@
 - Hardcode estimated encounter levels for non-level evolutions (stones ~29, trade, friendship, etc.).
 - Pin down route-story-index edge cases: a county with no lower-index neighbors (the start), several adjacent lower-index counties, and what "highest story index" means for choosing the main route into a county.
 - Audit existing rules against the layering principle (design.md "Layered generation"): e.g. route-story-index rules must depend only on county-story-indices and connectivity, and species/encounter generation must not need generated map data.
-- Define trainer team generation: the trainer classes (ordinary, boss, low-level grunt), the "very high catch rate" threshold, how "adjacent biomes" and "domestication steps" are measured, and how route-story-index maps to trainer and wild levels and hidden items.
+- Define trainer team generation: the trainer classes (ordinary, boss, low-level grunt), how route-story-index maps to trainer and wild levels and hidden items, and tune the grunt catch-rate cutoff (starts at 255).

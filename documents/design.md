@@ -161,7 +161,7 @@ Per-species fields used for encounters and trading (field widths are tentative):
 
 - Minimum requirements: flags for a required habitat. Fish-looking species require water (surfing or fishing) and are almost certainly Water type; land-looking species such as Pikachu (a mouse) require land. These two flags may be the only ones.
 - Habitat bias: flags biasing a species toward or away from habitats. They are based on the species' image, never its type: types are randomized, each biome should have a general mix of types, and a habitat such as volcano should be neither only fire nor the only home of fire Pokémon. Example: Pikachu looks like a mouse, so it prefers tunnel, cave, valley, forest and ruins, and avoids beach, clouds, reef, ocean, snow and tundra.
-- Domestication (2-3 bits): 0 is fully wild (Pinsir, Kangaskhan, Tauros, Dratini, legendaries), biased toward the map edges and Safari Zones; the maximum is fully domestic (Hitmonlee, Hitmonchan, Meowth, Porygon).
+- Domestication (2 bits, 0-3): 0 is fully wild (Pinsir, Kangaskhan, Tauros, Dratini, legendaries), biased toward the map edges and Safari Zones; 3 is fully domestic (Hitmonlee, Hitmonchan, Meowth, Porygon).
 - Base evolution: a reference to the species' base form, so that all evolutions share the base's type generation.
 - Normal level range: a 3-bit enum for the low end (2, 7, 10, 17, 25, 34, 43, 55); the high end comes from the evolution data.
 - Commonness (2 bits): 0 = legendary (never wild; NPCs never have or trade them); 1 = baby, trade-evolved, item-evolved and fossil Pokémon (never wild; NPCs rarely have them, but trade normally); 2 = starters and other super-rare Pokémon such as Chansey and Tauros (super rare in the wild; NPCs rarely have them, but trade regularly); 3 = normal (encounter ratios based on catch rate; NPCs regularly have and trade them).
@@ -203,9 +203,9 @@ Evolution levels:
 Route-story-indices determine wild Pokémon levels, trainer levels, hidden item choices, and similar progression-scaled content. Trainer species are chosen as follows:
 
 - Trainers in counties with story index 1-2 generally use only species passing that county's encounter filters and biome.
-- Trainers in counties with story index 3+ loosen the filters: the species may match the biome or any of the 4 adjacent biomes, must fit the level, and must be within 1 domestication step.
+- Trainers in counties with story index 3+ loosen the filters: the species may match the biome or any adjacent biome (orthogonal neighbors in the 5x5 grid, so up to 4; edge biomes have fewer), must fit the level, and must be within 1 domestication step (of the 0-3 domestication value).
 - Gym members, the rival, the Elite 4, and other "boss" trainers are not limited by domestication, habitat, or biome.
-- Low-level "bad guy" (Team Rocket-style) members are also not limited by domestication, habitat, or biome, but only use species whose base evolution has a very high catch rate (Rattata, Zubat, Caterpie, Pidgey, Spearow, Ekans, Oddish, Diglett, Meowth, Poliwag, Bellsprout, Geodude, Magikarp, etc.).
+- Low-level "bad guy" (Team Rocket-style) members are also not limited by domestication, habitat, or biome, but only use species whose base evolution has a catch rate of 255 (the starting cutoff, to be tuned by feel) (Rattata, Zubat, Caterpie, Pidgey, Spearow, Ekans, Oddish, Diglett, Meowth, Poliwag, Bellsprout, Geodude, Magikarp, etc.).
 
 ### Move pools
 
