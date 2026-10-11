@@ -159,7 +159,7 @@ Why this order: if NPCs don't talk about subplots and story arcs, testers can't 
 
 Stages, each leaving the game playable:
 
-1. Divide the Emerald world map(s) into ~6x4 counties with hardcoded terrain type (mountainous, ocean, flat), biome, population, special location, story order, McGuffin keys and locks, and capital (Lilycove City). A key/lock is basically anywhere story advancement moves from one county to a non-adjacent county. The story-arc id is also hardcoded.
+1. Divide the Emerald world map(s) into the 5x4 counties with hardcoded terrain type (mountainous, ocean, flat), biome, population, special location, story order, McGuffin keys and locks, and capital (Lilycove City). A key/lock is basically anywhere story advancement moves from one county to a non-adjacent county. The story-arc id is also hardcoded.
 2. Hardcode the world tiles within each county: which are cities, routes, and special locations.
 3. For each city and special location, hardcode its named buildings, subplot McGuffins, and city "theme"; hardcode which cities have gyms, the leader's name, and the gym type.
 4. Implement the "random" NPC talking: some NPCs give story-arc state text, some give city/location subplot McGuffins, some talk about named buildings, the gym type, gym leader, or the city's theme. Remaining NPCs talk about their immediate vicinity or random text.
