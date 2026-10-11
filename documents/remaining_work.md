@@ -1,0 +1,27 @@
+# Remaining Work
+
+- Collect the overall plan for the mod from the user and record it in `design.md`.
+- Rewrite `README.md` as the fork's own README (currently still upstream's).
+- Pin down world generation details: terrain/biome/population/special-location types, story-order algorithm, key/lock rules, capital selection, and how generated data maps onto pokeemerald maps, warps, and encounters.
+- Verify the real world-map tile grid size and set county size (~5x5 tiles) and the 6x4 county grid to fit it.
+- Clarify route rules: tie-breaking and duplicate-route handling when several adjacency rules apply to the same county pair.
+- Define the special-location catalog (inside-city vs outside-city lists, how a location is chosen for a county, relation to terrain/biome/story order).
+- Decide how to integrate the underground tunnels around Saffron (Underground Path) into the world model; keep Red/Blue map reproducibility as a design check.
+- Define the 5x5 biome grid (axis values, the 25 biomes, which 16 each 4x4 subset yields), the meaning of each 2-bit population level (0 = none, 1 = village, 2 = town, 3 = city; how it relates to terrain/biome), and whether the world is regenerated on demand vs cached in RAM (cost of regeneration).
+- Remove the debug menu's trainer ID reroll option, so the player ID (the world seed) is stable for the whole game.
+- Design the three settlement generation algorithms (village, town, city): building footprints, path layout, how they map onto GBA map layouts/metatiles, and how gyms/Pokémon Centers/Marts get placed in each.
+- Species typing: species whose sprite strongly implies an element always keep that element; base forms get one type and evolutions gain the second (algorithm needed); decide interactions with abilities.
+- Move pools: define the appendage bitfield vocabulary, per-move requirement/stat tagging for ~1000 moves, the power-sorted level bucketing, the learn-level list generator, and filter probabilities (type match, stat match); research how egg moves work in mainline games and finalize the egg move rule.
+- Species<->biome mapping: pick the hardcoded stride and inverse; verify the math (biome = (idx*stride + playerID) mod 16 needs an odd stride for uniform biomes; ~63 species/biome implies ~1008 species and species of one biome being 16 indices apart; check whether the stride must be coprime to the species count, to 16, or both); handle the other-trainer-ID biome subset.
+- Define per-species "commonness" scores and the level-plausibility filter (using evolution levels), plus the starter/legendary/pseudo-legendary exclusion lists.
+- Define the 25-biome type affinity tables (18 types, log-scale encoding).
+- Budget CPU: profile/estimate the cost of regenerating world data, species mapping, encounter filtering, and move picks on GBA hardware; decide what to cache.
+- Design the main story arcs (a handful, deeper than Red/Blue) and how their beats map onto county story indices.
+- Design subplot data format (linear stages, hint texts, story-state texts) and author the special-location and city subplots (TV-episode style, introducing gym leaders before their battles).
+- Design a generic mechanism for triggering subplot stage-advancement cutscenes (no plan yet).
+- Write NPC talking points for named buildings and per gym type, with parameterized city/leader names.
+- Estimate ROM budget for subplot text/script data.
+- Decide whether towns get a Mart, define the per-bag-category city stores, and the daily trader generation (daily seeding, trader count by population, catch-rate similarity and level-overlap rules).
+- Implement type icons before Pokémon names in all text: pokeemerald-expansion is believed to already have text icons for each type (unverified; check before adding new glyphs); handling of name buffers and text width, and nickname/name-entry screens.
+- Decide which expansion mechanics (Mega Evolution, Gigantamax, Z-Moves, Terastallization, etc.) and alternate forms to keep, and how procedural typing/move pools interact with them (e.g. Mega types, Tera types, form-specific moves).
+- Execute the staged hardcode-then-randomize roadmap in design.md ("Development approach"), starting with stage 1: hardcoded Emerald-based county division. Needs: choosing the county grid over Emerald's maps, and the assignments of terrain/biome/population/special location/story order/keys/capital per county.
