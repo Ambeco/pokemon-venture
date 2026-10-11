@@ -10,14 +10,15 @@ The goal of the world generation below is a game world map with cities, routes, 
 
 ## World generation
 
-- The world map is a grid of roughly 6x4 "counties".
+- The world map is a grid of 5 columns x 4 rows of "counties" (matching roughly the 5 columns and 4 rows of cities in Kanto).
 - Each county is procedurally assigned a terrain type, a biome, a population, and a special location.
 - A "story order" over the counties is generated, which sometimes designates McGuffin "keys" and the "lock" counties they open.
 - One county's city is picked as the "capital".
 
 ### County layout
 
-- Each county is ~5x5 "world tiles". A world tile is one GBA tile on the world map; the map looks to be ~30x20 tiles today (user's eyeball estimate), so the county grid must be adjusted to match the actual world-map tile grid.
+- Each county is 6x4 "world tiles". A world tile is one cell of the Hoenn region map, which is 28x15 cells (`MAP_WIDTH`/`MAP_HEIGHT` in `src/field/region_map.c`; cell contents in `src/data/region_map/region_map_layout.h`).
+- 5x4 counties of 6x4 tiles is 30x16, so the first tile column of the first county column, the last tile column of the last county column, and the last tile row of the last county row are off limits, leaving 28x15.
 - If a county's population is above zero, it places a settlement at a random position within its middle 3x3 world tiles. Population is 0-3 (2 bits); population 0 never generates a city.
 - Every county always has a special location, whether or not it has a city.
 - With a city, the special location is placed either in or adjacent to the city (50%), or on a random non-adjacent world tile (50%).
