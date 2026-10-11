@@ -81,6 +81,15 @@ Average gym order in the mainline games (earliest first):
 | Dark | 7.0 |
 | Dragon | 8.0 |
 
+Each type's order also has a standard deviation in the mainline games:
+
+- Bug through Poison (Bug, Rock, Grass, Normal, Fighting, Poison): 0.82-1.94.
+- Fire, Water, Flying: 2.17-2.85.
+- Electric: 1.85. Ground: 1.5.
+- All others: 0.63 or less. Dragon: 0 (always last).
+
+The algorithm only needs to feel like the mainline games; the exact details are barely user-visible. Pick 8 types at random, then give each a sort key of its average order plus random noise, and sort. Every type has some chance to be first or last, but the result stays near the ideal order. Noise is scaled by each type's deviation (so Dragon stays last and Bug/Fire/Water/Flying move around), using ~0.5 where only an upper bound is known. A simpler fallback is the same noise range (0 to ~9) for every type.
+
 ### Special locations
 
 Special locations are either inside a city or outside one (mirroring mainline games, with Red/Blue as the reference).
