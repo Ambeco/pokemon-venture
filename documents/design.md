@@ -287,13 +287,16 @@ The story is expected to be the biggest hurdle, and most of the ROM space saved 
 - Reference points: Red/Blue (take down Rocket bases, then the leader) and Black/White (N and Ghetsis). The arcs should be deeper than Red/Blue.
 - Story points are sprinkled across the counties according to their generated story indices.
 
-### Arc progression (partial)
+### Arc progression
 
-The progression mechanism is adapted from a design for far more powerful hardware, so it will need rework to fit GBA CPU and memory limits. So far:
+The progression mechanism is adapted from a design for far more powerful hardware, so it may need rework to fit GBA CPU and memory limits.
 
 - Game start picks the rival arc and the story arc; map generation may insert some McGuffins (usually HMs).
 - The start of the game is driven entirely by the rival arc.
-- Each arc determines where it would like its next cutscene to be, in terms of county-story-index.
+- Each arc determines where its next cutscene should be: a county-story-index, then a specific route or city (and, for a city, a specific building).
+- When the player finishes that route or leaves that building, the cutscene triggers. Usually an NPC runs up, says something, sometimes triggers a battle or gives an item, then runs off screen. The arc then advances to its next stage.
+- When a city is generated or loaded, the code checks whether it (or an adjacent route) is the right place for each arc's current state, and uses that to pick "near" or "far" NPC texts for that arc. At least one NPC per arc gets an arc-state hint text. When the state advances, those NPCs switch to an arc-state-specific thank-you text.
+- Subplots work the same way but take place entirely within a city and the starts of its adjacent routes.
 
 ### Rival arcs
 
