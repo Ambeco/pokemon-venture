@@ -402,6 +402,7 @@ The set of places the player can reach is an implicit "story graph", ideally nev
 - Exception: the initial rival battle in the lab temporarily reduces the reachable area, but the battle restores the prior reachability, win or lose.
 - The reachable area is bounded by McGuffin locks, and at least one of those has a McGuffin key inside the reachable area.
 - Usual pattern: a lock blocking access to story index N has its key at story index N-1. As long as the reachable area only grows, this makes the story completable.
+- Soft-locks are prevented by construction, not detected afterwards: the generation algorithm must make them impossible, with no seed-sweep or solver check. The rules above (key at N-1, only-growing reachability) are the means.
 - Soft-lock protection: if the route from a city to a higher route-story-index is always locked on the city's subplot being resolved, and a subplot's resolution only requires McGuffins in the city or in adjacent routes with a lower route-story-index, accidental soft-locks become much less likely.
 
 Emerald's opening as an example:

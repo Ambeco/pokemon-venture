@@ -79,7 +79,7 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 
 ### Milestone 11: Procedural county-story-indices
 
-- Layer-2 generator with McGuffin boundaries and the Elite Four/start/capital placement tendencies; a seed-sweep solvability check (every seed completable).
+- Layer-2 generator with McGuffin boundaries and the Elite Four/start/capital placement tendencies; completability must follow from the algorithm's construction, not from checking seeds.
 
 ### Milestone 12: Procedural terrain types and biomes
 
@@ -130,4 +130,4 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 - Decide how strongly gym assignment follows the average gym-order table (soft bias strength, Elite Four preference for late types) alongside theme requirements.
 - Content roadmap: Emerald rival arc and story arc first (preserving cutscene text), then the Kanto story arc and Red/Blue/Yellow rival arc, then other mainline games; subplots from Emerald, then RBY and others, and eventually TV-episode subplots.
 - Adapt the arc progression design to GBA CPU/memory limits: where arc and subplot state lives in the save, how the cutscene target (county-story-index, route/city, building) is derived without storing it, and how it fits the layering principle.
-- Specify the implicit story graph check: how a place's accessibility is derived from arc/subplot state and route-story-indices without storing a graph; a seed-sweep test that verifies reachability and solvability and finds soft-locks (generalizing the lock-key N / N-1 pattern and the subplot-gating rule).
+- Specify the implicit story graph: how a place's accessibility is derived from arc/subplot state and route-story-indices without storing a graph, and prove the generation rules (key at N-1, subplot-gated routes, only-growing reachability) make soft-locks impossible by construction.
