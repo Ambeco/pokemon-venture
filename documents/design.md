@@ -51,6 +51,22 @@ Routes are placed after all cities and special locations are placed.
 - If no adjacent county is the capital or has an adjacent story index, the county routes to whichever adjacent county has the highest story index.
 - Counties only ever route to adjacent counties.
 
+### Route story indices
+
+Each route, city, and special location also gets a route-story-index, derived from the county-story-indices of the places a route connects. Route-story-indices start at 4 * county-story-index, which leaves room for several steps inside one county.
+
+Within a county:
+
+- The first route and city/location entered have route-story-index 4 * county-story-index.
+- If the county has a city and an external special location, the route between them is 4 * county-story-index + 2 by default, and whichever of the two is "second" gets that same index.
+- A special location inside a city gets the city's route-story-index + 1.
+- A city or special location with no routes to lower county-story-indices gets county-story-index + 3 (as 4 * county-story-index + 3 in the scheme above).
+
+Between counties:
+
+- Adjacent county-story-indices: the route gets its index from the higher county. By default it is McGuffin-locked on completing the subplots of BOTH the lower county's city and special location. The higher county's city or location gets the same index, so completing the subplot at the lower location lets the player proceed along the route to the next one.
+- Non-adjacent county-story-indices: the route gets its index from the higher county's city or location. If county generation determined there is a McGuffin lock into the higher county, the route is blocked on that McGuffin. Otherwise, by default, entering the higher-index city or location triggers a new McGuffin that unlocks all of its routes to lower-index counties.
+
 ## Geography
 
 County-level terrain is laid out like a typical Pokémon region:

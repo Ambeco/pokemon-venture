@@ -33,3 +33,4 @@
 - Check why Emerald caps land encounters at 12 slots and fixed slot ratios, and whether the encounter code can take dynamic table sizes and ratios.
 - Define the per-method encounter tables (eager: walk, surf, grass, dark grass; lazy: rods, rock smash, headbutt, berry trees, spots), time-of-day and weather filters, and table recalculation when time or weather changes.
 - Hardcode estimated encounter levels for non-level evolutions (stones ~29, trade, friendship, etc.).
+- Pin down route-story-index rules: confirm the +2/+3 offsets against the 4 * county-story-index scheme (the doc keeps the original wording where it was ambiguous), the "second" of a city and external location, and what happens when several rules give one place different indices.
