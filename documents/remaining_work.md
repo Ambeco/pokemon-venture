@@ -13,7 +13,7 @@
 - Species typing: species whose sprite strongly implies an element always keep that element; base forms get one type and evolutions gain the second (algorithm needed); decide interactions with abilities.
 - Move pools: define the appendage bitfield vocabulary, per-move requirement/stat tagging for ~1000 moves, the power-sorted level bucketing, the learn-level list generator, and filter probabilities (type match, stat match); research how egg moves work in mainline games and finalize the egg move rule.
 - Species<->biome mapping: pick the hardcoded stride and inverse; verify the math (biome = (idx*stride + playerID) mod 16 needs an odd stride for uniform biomes; ~63 species/biome implies ~1008 species and species of one biome being 16 indices apart; check whether the stride must be coprime to the species count, to 16, or both); handle the other-trainer-ID biome subset.
-- Define per-species "commonness" scores and the level-plausibility filter (using evolution levels), plus the starter/legendary/pseudo-legendary exclusion lists.
+- Define the route species filters (level-plausibility using evolution levels, domestication by edge distance, habitat, random drop), the random-drop rate, any further filters, and the catch-rate-proportional encounter table; plus the starter/legendary/pseudo-legendary exclusion lists.
 - Define the 25-biome type affinity tables (18 types, log-scale encoding).
 - Budget CPU: profile/estimate the cost of regenerating world data, species mapping, encounter filtering, and move picks on GBA hardware; decide what to cache.
 - Design the main story arcs (a handful, deeper than Red/Blue) and how their beats map onto county story indices.

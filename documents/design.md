@@ -135,13 +135,19 @@ Per-species fields used for encounters and trading (field widths are tentative):
 
 ### Route encounter selection
 
-Many routes share a biome but sit at very different levels. To pick a route's species, iterate over the biome's ~63 species and:
+The species-to-biome stride mapping only determines types. A route's encounters are built separately from the species correlated with the route's biome (~63). Many routes share a biome but sit at very different levels, so the species are filtered, then weighted:
 
-- filter out species whose evolve-to/evolve-from levels make them unlikely at the route's level,
-- filter out starters, legendaries, and pseudo-legendaries,
-- randomly filter out some more, seeded from player ID.
+- by commonness: legendaries, babies, fossils, and trade/item-evolved Pokémon are never wild, and starters and other super-rare Pokémon are very rare,
+- by domestication, relative to how close the route is to the map edge or a Safari Zone,
+- by habitat: minimum requirements (e.g. water for fish) and image-based habitat biases,
+- by level: species whose evolve-to/evolve-from levels make them unlikely at the route's level are dropped,
+- by a random filter that drops some of the rest.
 
-Each species has a "commonness" score that sets the encounter ratios among the survivors.
+The survivors' encounter ratios are proportional to their catch rates.
+
+All of this, including the randomness, is derived from the trainer ID, so each play-through is fully deterministic.
+
+A species whose habitat strongly opposes the biome may not appear at all in a play-through. This is intended, like Sandshrew, Vulpix, Meowth, Bellsprout, Magmar, and Pinsir never appearing in Pokémon Red.
 
 ### Move pools
 
