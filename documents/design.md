@@ -198,6 +198,15 @@ Evolution levels:
 - Level-based evolutions define a line's level range, which normally keeps multiple stages of one line off the same route. Occasional overlap is fine, as in mainline games.
 - Non-level evolutions use hardcoded estimated levels for encounter-table purposes only (e.g. stone evolutions at ~29, since Red's Celadon sells stones and its gym leader's ace is level 29). The Pokémon still evolves only by its real method.
 
+### Trainer teams and levels
+
+Route-story-indices determine wild Pokémon levels, trainer levels, hidden item choices, and similar progression-scaled content. Trainer species are chosen as follows:
+
+- Trainers in counties with story index 1-2 generally use only species passing that county's encounter filters and biome.
+- Trainers in counties with story index 3+ loosen the filters: the species may match the biome or any of the 4 adjacent biomes, must fit the level, and must be within 1 domestication step.
+- Gym members, the rival, the Elite 4, and other "boss" trainers are not limited by domestication, habitat, or biome.
+- Low-level "bad guy" (Team Rocket-style) members are also not limited by domestication, habitat, or biome, but only use species whose base evolution has a very high catch rate (Rattata, Zubat, Caterpie, Pidgey, Spearow, Ekans, Oddish, Diglett, Meowth, Poliwag, Bellsprout, Geodude, Magikarp, etc.).
+
 ### Move pools
 
 Moves are generated procedurally per species, from per-species anatomy and per-move requirements.
