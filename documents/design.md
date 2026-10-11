@@ -56,6 +56,21 @@ Routes are placed after all cities and special locations are placed.
 - Biomes form a 5x5 grid: one axis is precipitation, the other is temperature.
 - Each game randomly selects one of the four 4x4 subsets of that grid and uses those 16 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct.
 
+The 25 biomes. Columns run from hottest (left) to coldest (right); rows are humidity levels.
+
+| Humidity | Hottest | | | | Coldest |
+|---|---|---|---|---|---|
+| 4 | Tropical rainforest | Tropical fresh-water swamp forest | Temperate giant rainforest | Montane rainforest | Bog |
+| 3 | Tropical seasonal rainforest | Mangrove swamp | Temperate fresh-water swamp forest | Temperate evergreen forest | Elfin woodland |
+| 2 | Temperate deciduous forest | Temperate woodland | Temperate shrublands | Salt marsh | Taiga |
+| 1 | Thorn forest | Savanna | Temperate grassland | Alpine grasslands | Tundra |
+| 0 | Tropical desert | Thorn scrub | Warm-temperate desert | Cool temperate desert scrub | Arctic-alpine desert |
+
+Biome terrain and art:
+
+- To keep graphics size down, many biomes share tile sprites and differ by palette tint; ideally each biome still has some unique sprites.
+- Each biome has its own algorithm for the number and placement of trees, dark/tall/short grass, dirt, water, rocks, hills, etc.
+
 ## Data representation and determinism
 
 - GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (16 biomes), population in 2 bits (roughly logarithmic).
