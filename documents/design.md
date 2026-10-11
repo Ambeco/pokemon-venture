@@ -287,6 +287,14 @@ The story is expected to be the biggest hurdle, and most of the ROM space saved 
 - Reference points: Red/Blue (take down Rocket bases, then the leader) and Black/White (N and Ghetsis). The arcs should be deeper than Red/Blue.
 - Story points are sprinkled across the counties according to their generated story indices.
 
+### Arc progression (partial)
+
+The progression mechanism is adapted from a design for far more powerful hardware, so it will need rework to fit GBA CPU and memory limits. So far:
+
+- Game start picks the rival arc and the story arc; map generation may insert some McGuffins (usually HMs).
+- The start of the game is driven entirely by the rival arc.
+- Each arc determines where it would like its next cutscene to be, in terms of county-story-index.
+
 ### Rival arcs
 
 The first version always uses the Emerald rival arc, preserving the cutscene text as much as possible:
