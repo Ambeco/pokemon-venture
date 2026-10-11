@@ -34,3 +34,4 @@
 - Define the per-method encounter tables (eager: walk, surf, grass, dark grass; lazy: rods, rock smash, headbutt, berry trees, spots), time-of-day and weather filters, and table recalculation when time or weather changes.
 - Hardcode estimated encounter levels for non-level evolutions (stones ~29, trade, friendship, etc.).
 - Pin down route-story-index edge cases: a county with no lower-index neighbors (the start), several adjacent lower-index counties, and what "highest story index" means for choosing the main route into a county.
+- Audit existing rules against the layering principle (design.md "Layered generation"): e.g. route-story-index rules must depend only on county-story-indices and connectivity, and species/encounter generation must not need generated map data.
