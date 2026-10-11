@@ -394,6 +394,24 @@ The work for each step is broken into milestones 0-12 in `remaining_work.md`. Mi
 
 A McGuffin key is whatever gates progress until a condition is met: an NPC blocking the way until a subplot reaches a certain state, an HM needed to pass an obstacle, or a special plot item such as the Poké Flute to wake a sleeping Pokémon.
 
+### Story graph
+
+The set of places the player can reach is an implicit "story graph", ideally never held in memory.
+
+- Reachable area only ever grows. The player gains route entrances/exits and cities, and never loses access.
+- The reachable area is bounded by McGuffin locks, and at least one of those has a McGuffin key inside the reachable area.
+- Usual pattern: a lock blocking access to story index N has its key at story index N-1. As long as the reachable area only grows, this makes the story completable.
+- Soft-lock protection: if the route from a city to a higher route-story-index is always locked on the city's subplot being resolved, and a subplot's resolution only requires McGuffins in the city or in adjacent routes with a lower route-story-index, accidental soft-locks become much less likely.
+
+Emerald's opening as an example:
+
+- After the initial rival cutscenes, once the player has a Pokémon and has battled the rival, Littleroot Town, Route 101 and Oldale Town are accessible.
+- Route 102 is locked: a sketch artist blocks its entrance.
+- Route 103 is locked in the middle by Surf.
+- Route 103 contains a McGuffin: the rival battle, which unlocks the next rival cutscene at Birch's Lab.
+- Birch's Lab contains a McGuffin: the Pokédex and Poké Balls, which unlock the Route 102 artist lock.
+
+
 ## Alternatives considered
 
 _None yet._
