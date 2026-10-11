@@ -150,6 +150,45 @@ Players strongly associate Pokémon with their types, so random types are a ment
 - Expansion already contains ~1000 Pokémon and ~1000 moves, plus mechanics such as Mega Evolution and Gigantamax. How these fit the mod is undecided; they could make fun mechanics.
 - Expansion supports building FRLG as well as Emerald (`docs/tutorials/how_to_frlg.md`).
 
+## Development approach: hardcode first, then randomize
+
+The world starts as a hardcoded Pokémon Emerald world and is progressively abstracted and randomized, rather than building the generator first. Hardcoded content exercises the same metadata the generator will later produce, and keeps the story testable throughout.
+
+Why this order: if NPCs don't talk about subplots and story arcs, testers can't tell how to progress, which would cripple testing; and subplot babble requires city/route/location metadata anyway.
+
+Stages, each leaving the game playable:
+
+1. Divide the Emerald world map(s) into ~6x4 counties with hardcoded terrain type (mountainous, ocean, flat), biome, population, special location, story order, McGuffin keys and locks, and capital (Lilycove City). A key/lock is basically anywhere story advancement moves from one county to a non-adjacent county. The story-arc id is also hardcoded.
+2. Hardcode the world tiles within each county: which are cities, routes, and special locations.
+3. For each city and special location, hardcode its named buildings, subplot McGuffins, and city "theme"; hardcode which cities have gyms, the leader's name, and the gym type.
+4. Implement the "random" NPC talking: some NPCs give story-arc state text, some give city/location subplot McGuffins, some talk about named buildings, the gym type, gym leader, or the city's theme. Remaining NPCs talk about their immediate vicinity or random text.
+5. Abstract the subplots per city/location, add more, and randomize them; likewise abstract story-arc advancement (less visible, since world tiles keep hardcoded story indices).
+6. With subplots no longer fixed, building locations are no longer fixed: randomize city layouts within a world tile (except special buildings).
+7. Abstract McGuffins and make them randomizable; until then, shuffling is limited by McGuffins and encounter tables.
+8. Implement randomized encounter tables by the route's biome.
+9. Shuffle city locations within a county, and which special locations are in each county.
+10. Shuffle the counties' story indices.
+11. Randomize terrain types and biomes (the last randomizable map element).
+
+Random Pokémon types and move sets can be implemented at virtually any point in this order.
+
+### McGuffins
+
+A McGuffin key is whatever gates progress until a condition is met: an NPC blocking the way until a subplot reaches a certain state, an HM needed to pass an obstacle, or a special plot item such as the Poké Flute to wake a sleeping Pokémon.
+
 ## Alternatives considered
 
 _None yet._
+
+### Generator-first development
+
+Build the procedural world generator first and hand-author content to fit it.
+
+Pros:
+- Matches the end goal directly; no throwaway hardcoded layer.
+- Finds generator performance problems early.
+
+Cons:
+- Story progression can't be tested without NPC hints, which need subplot/city metadata the generator would have to produce first.
+- Everything must work before anything is playable.
+- Random layouts make bugs hard to reproduce.
