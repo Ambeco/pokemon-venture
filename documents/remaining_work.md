@@ -23,3 +23,4 @@
 - Estimate ROM budget for subplot text/script data.
 - Decide whether towns get a Mart, define the per-bag-category city stores, and the daily trader generation (daily seeding, trader count by population, catch-rate similarity and level-overlap rules).
 - Implement type icons before Pokémon names in all text: pokeemerald-expansion is believed to already have text icons for each type (unverified; check before adding new glyphs); handling of name buffers and text width, and nickname/name-entry screens.
+- Decide which expansion mechanics (Mega Evolution, Gigantamax, Z-Moves, Terastallization, etc.) and alternate forms to keep, and how procedural typing/move pools interact with them (e.g. Mega types, Tera types, form-specific moves).
