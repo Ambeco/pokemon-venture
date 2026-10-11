@@ -298,6 +298,13 @@ The progression mechanism is adapted from a design for far more powerful hardwar
 - When a city is generated or loaded, the code checks whether it (or an adjacent route) is the right place for each arc's current state, and uses that to pick "near" or "far" NPC texts for that arc. At least one NPC per arc gets an arc-state hint text. When the state advances, those NPCs switch to an arc-state-specific thank-you text.
 - Subplots work the same way but take place entirely within a city and the starts of its adjacent routes.
 
+### Possible future extensions
+
+In the far future:
+
+- City subplots could involve the gym leaders more, as in Pokémon Black and White.
+- Specific named grunts could take a bigger part in story arcs, like Jessie and James in Pokémon Yellow.
+
 ### Rival arcs
 
 The first version always uses the Emerald rival arc, preserving the cutscene text as much as possible:
