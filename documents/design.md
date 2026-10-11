@@ -16,8 +16,8 @@ Generation is a stack of layers, each computed only from the layers above it, ne
 2. World map: county-story-indices, from layer 1 plus a couple of McGuffin boundaries.
 3. World map: county populations, city locations and names, and special location IDs and positions, from layers 1-2.
 4. World map: which counties connect to which, from layers 1-3.
-5. Each county: the details of its own world tiles (including exact route placement) and its route-story-indices, from layers 1-4. Counties are independent and never need an adjacent county's route-story-indices. Counties may have sub-layers like the world map.
-6. Field maps: generated from the layers above, without referring to adjacent field maps.
+5. Each county: the details of its own world tiles (including exact route placement) and its route-story-indices, from world layers 1-4 only. No county layer depends on any other county's data, including an adjacent county's route-story-indices. Counties may have sub-layers like the world map.
+6. Field maps: generated from world layers 1-4 and the county they are inside, never from another county's data or from adjacent field maps. The exception is inter-county routes, which may use the data of the two counties they connect.
 7. Further layers continue the same pattern.
 
 This forces single-pass generation with no recursion or transitive operations, and keeps memory use minimal. Any new rule must be checked against it: a rule that needs data from a later layer, or from a sibling's same-layer output, breaks the design.
