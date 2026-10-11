@@ -21,3 +21,4 @@
 - Design a generic mechanism for triggering subplot stage-advancement cutscenes (no plan yet).
 - Write NPC talking points for named buildings and per gym type, with parameterized city/leader names.
 - Estimate ROM budget for subplot text/script data.
+- Decide whether towns get a Mart, define the per-bag-category city stores, and the daily trader generation (daily seeding, trader count by population, catch-rate similarity and level-overlap rules).

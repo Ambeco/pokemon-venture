@@ -130,6 +130,15 @@ The story is expected to be the biggest hurdle, and most of the ROM space saved 
 - Each named building has a short list of NPC talking points.
 - Each gym type has a short list of NPC talking points, parameterized by city name and gym leader name.
 
+### Shops and trading
+
+- Poké Marts: villages and possibly towns keep a general Mart; cities instead have a separate store per bag category (balls, healing items, stat items, etc.).
+- Towns and cities have the Pokémon Center trade room as a separate building (not the second floor).
+- Each trade building has 0-3 random NPC traders per day; higher population makes more traders likely.
+- For each trader, a route or special location is randomly chosen, then a random Pokémon that spawns there; that is the Pokémon the trader asks for, which guarantees the player can obtain it.
+- The Pokémon the trader offers is a random species with the same commonness and a similar catch rate, whose evolution level range overlaps the chosen route's level. It may be the same species as the requested one.
+- Traded Pokémon carry a different trainer ID, so their types and moves differ from the player's own (see the other-trainer-ID biome subset above).
+
 ## Base codebase
 
 - Built on [rh-hideout/pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) 1.16.1 (itself built on pret/pokeemerald). Remote `upstream` points there; `origin` is `Ambeco/pokemon-venture`.
