@@ -186,6 +186,10 @@ Biome terrain and art:
 - GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (a world uses only 16 of the 25 biomes), population in 2 bits (roughly logarithmic).
 - Map generation uses a PRNG seeded from the player ID. The generated world therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every player ID yields a completely different map.
 
+- Saves record a generator id, and the game refuses to open a save whose generator id does not match. Players upgrading mid-playthrough are not supported.
+- Seeds: terrain and world generation use the player ID plus the secret ID. Pokémon types and moves, which affect battles, use only information that travels with a Pokémon (the original trainer's ID and name), so battles and traded Pokémon are handled correctly. The 16-bit player ID alone gives only 65535 worlds, which is considered acceptable; the player name adds entropy for types and moves.
+- Incremental generation goal: world, county, and map generation should be light enough to run in tiny chunks per frame as the player approaches a new area. On entering a city, plot points are picked a little per frame so the next cutscene location is known before the player has moved about 5 tiles.
+
 ## Procedural species types and wild encounters
 
 Species types and move pools are procedurally generated, and wild Pokémon on a route should match the route's biome, like a real game.
@@ -268,6 +272,7 @@ Moves are generated procedurally per species, from per-species anatomy and per-m
 - At a learn level, the candidate range is wider than one level's ~20 moves, and exactly one move is guaranteed to be picked.
 - Candidates are filtered out if the species lacks the required appendages. Moves whose type does not match the species' types are dropped with high probability, as are moves whose associated stat does not match the species' stat ratios.
 - Levels 1 and 6 are always learn levels (at least one move each).
+- Balance is deliberately loose: moves arrive in general level ranges, and as long as Pokémon get reasonably typed moves at roughly normal frequency and power level, each is roughly balanced. Players can catch 6+ Pokémon before the first gym, so type advantage and leveling cover the rest.
 - TMs and tutors use the same validity filter as level-up, except instead of randomly picking one valid move, they only check whether a given move is valid for the species at all.
 - Egg moves (tentative, pending research into how breeding works): pick a move the child species could learn by TM that a different-species parent learns naturally, chosen randomly.
 
@@ -297,6 +302,9 @@ The progression mechanism is adapted from a design for far more powerful hardwar
 - When the player finishes that route or leaves that building, the cutscene triggers. Usually an NPC runs up, says something, sometimes triggers a battle or gives an item, then runs off screen. The arc then advances to its next stage.
 - When a city is generated or loaded, the code checks whether it (or an adjacent route) is the right place for each arc's current state, and uses that to pick "near" or "far" NPC texts for that arc. At least one NPC per arc gets an arc-state hint text. When the state advances, those NPCs switch to an arc-state-specific thank-you text.
 - Subplots work the same way but take place entirely within a city and the starts of its adjacent routes.
+- Arc and subplot state use the game's existing flag/var storage for small story state.
+- Cutscene placement is deterministic, so it is never stored: the rival arc procedurally selects route-story-indices for its state-advancing cutscenes, then the story arc selects route-story-indices for its own, avoiding the rival arc's. With 50-100 route-story-indices to choose from, collisions are not a concern.
+- Each route checks whether a rival or story cutscene belongs to it and plays it when the player enters. Each city or location likewise checks whether a cutscene belongs to its area and may place it anywhere inside its subplot, since the player cannot advance without completing the subplot anyway.
 
 ### Possible future extensions
 
