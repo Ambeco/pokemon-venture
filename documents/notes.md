@@ -26,3 +26,23 @@
 - Link order: the Makefile links `src/` objects sorted by basename, as when `src/` was flat. In directory order, the Z-Move animation test crashes (a latent upstream memory-layout bug, root cause not found). If it reappears after other layout changes, suspect a buffer overrun in the animation code.
 
 Running tests: use `make check -j4` (all 12 cores plus a misbehaving ROM exhausts WSL's 7.9 GB; add `ulimit -v`). Upstream worktree for comparison: `~/decomps/pv-master` (outside the repo).
+
+## Draft Emerald county tables (6 columns x 4 rows)
+
+From the user, to be cleaned up (rows have inconsistent column counts; x = covered by the text box, ? = empty/undecided).
+
+Strict grid:
+
+- y=0: Fallarbor | Lavaridge+Mt. Chimney | Fortree+Safari Zone | Lilycove | x
+- y=1: Rustboro+Verdanturf | Mauville | Mt. Pyre | Sootopolis | Mossdeep
+- y=2: Petalburg+Oldale+Littleroot | Slateport | ? | Pacifidlog+Sky Pillar | Ever Grande
+- y=3: Dewford | ? | Southern Island | x | x
+
+Shifted grid (preferred: one city per county, caves spread more evenly):
+
+- y=0: Fallarbor | Lavaridge+Mt. Chimney | Fortree | Safari Zone | Lilycove | ? | ?
+- y=1: Rustboro | Verdanturf | Mauville | Mt. Pyre | ? | ? | Mossdeep
+- y=2: Petalburg | Oldale | ? | Slateport | x | ? | Sootopolis | Ever Grande
+- y=3: Dewford | Littleroot | Slateport | Southern Island | Pacifidlog+Sky Pillar | Battle Frontier | ?
+
+An earlier 5-row table (Fallarbor+Meteor Falls, Rustboro+Rusturf Tunnel, Mauville+Mirage Tower, Sootopolis+Cave of Origin, Ever Grande+Elite Four, Slateport+Sealed Chamber, Sky Pillar+Seafloor Cavern, Dewford+Granite Cave, Abandoned Ship/Sea Mauville, Island Cave, Altering Cave, Shoal Cave, Scorched Slab) assigned the caves and special locations; reuse it when filling special locations.

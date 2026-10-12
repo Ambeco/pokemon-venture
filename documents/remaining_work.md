@@ -11,7 +11,7 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 - Seeded generator module: a deterministic, self-contained PRNG and hash (seed = player ID, plus per-purpose salts such as county, map, NPC), independent of the game's `gRngValue`; written as pure functions with no GBA dependencies so they can be unit tested.
 - World seed accessor wrapping `gSaveBlock2Ptr->playerTrainerId`; remove the debug menu's "New Trainer ID" option (`src/util/debug.c:663`, `DebugAction_Player_Id`) so the seed never changes.
 - Test strategy for randomization: many existing tests assert real species types and learnsets (e.g. `ASSUME(GetSpeciesType(...))`), so every randomization milestone needs a compile-time switch (or fixed identity mapping under `TESTING`) plus new tests that sweep many seeds and check invariants.
-- Hardcoded world data tables (`src/data/world/`?) for the 5x4 counties over Emerald's 28x15 region map (`src/data/region_map/region_map_layout.h`): terrain, biome, population, special location, story index, McGuffin keys/locks, capital (Lilycove), story-arc id, world-tile roles, per-city themes/buildings/gym types/leaders.
+- Hardcoded world data tables (`src/data/world/`?) for the 6x4 counties over Emerald's 28x15 region map (`src/data/region_map/region_map_layout.h`): terrain, biome, population, special location, story index, McGuffin keys/locks, capital (Lilycove), story-arc id, world-tile roles, per-city themes/buildings/gym types/leaders.
 - Debug tool to print the whole world (counties, tiles, indices, McGuffins) as text, used by every later milestone.
 - Arc/subplot state storage: pick save vars/flags (bitpacked) for arc stage and subplot stages; verify against `SaveBlock` space.
 
@@ -95,7 +95,7 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 
 - Collect the overall plan for the mod from the user and record it in `design.md`.
 - Pin down world generation details: terrain/biome/population/special-location types, story-order algorithm, key/lock rules, capital selection, and how generated data maps onto pokeemerald maps, warps, and encounters.
-- Resolve the Emerald county table (design.md, "Emerald county assignment"): it has 5 rows but the county grid is 5x4, so decide whether the grid should be 5x5 (counties 6x3 tiles?) or whether a row folds into another; fill the empty bottom-right counties; assign terrain, biome, population, story index, and keys/locks to each county.
+- Produce a clean 6x4 Emerald county table from the two drafts in notes.md (column counts and duplicate Slateport need fixing), fill the empty counties, and assign terrain, biome, population, story index, and keys/locks to each county.
 - Clarify route rules: tie-breaking and duplicate-route handling when several adjacency rules apply to the same county pair.
 - Define the special-location catalog (inside-city vs outside-city lists, how a location is chosen for a county, relation to terrain/biome/story order).
 - Decide how to integrate the underground tunnels around Saffron (Underground Path) into the world model; keep Red/Blue map reproducibility as a design check.
@@ -131,3 +131,4 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 - Content roadmap: Emerald rival arc and story arc first (preserving cutscene text), then the Kanto story arc and Red/Blue/Yellow rival arc, then other mainline games; subplots from Emerald, then RBY and others, and eventually TV-episode subplots.
 - Adapt the arc progression design to GBA CPU/memory limits: where arc and subplot state lives in the save, how the cutscene target (county-story-index, route/city, building) is derived without storing it, and how it fits the layering principle.
 - Specify the implicit story graph: how a place's accessibility is derived from arc/subplot state and route-story-indices without storing a graph, and prove the generation rules (key at N-1, subplot-gated routes, only-growing reachability) make soft-locks impossible by construction.
+- A county is 5x4 world tiles, so "middle 3x3" for city placement is not centered vertically; decide the exact allowed region (and what the off-limits edges do to edge counties).

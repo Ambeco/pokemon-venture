@@ -24,15 +24,15 @@ This forces single-pass generation with no recursion or transitive operations, a
 
 ## World generation
 
-- The world map is a grid of 5 columns x 4 rows of "counties" (matching roughly the 5 columns and 4 rows of cities in Kanto).
+- The world map is a grid of 6 columns x 4 rows of "counties" (roughly the 5-6 columns and 4 rows of cities in Kanto).
 - Each county is procedurally assigned a terrain type, a biome, a population, and a special location.
 - A "story order" over the counties is generated, which sometimes designates McGuffin "keys" and the "lock" counties they open.
 - One county's city is picked as the "capital".
 
 ### County layout
 
-- Each county is 6x4 "world tiles". A world tile is one cell of the Hoenn region map, which is 28x15 cells (`MAP_WIDTH`/`MAP_HEIGHT` in `src/field/region_map.c`; cell contents in `src/data/region_map/region_map_layout.h`).
-- 5x4 counties of 6x4 tiles is 30x16, so the first tile column of the first county column, the last tile column of the last county column, and the last tile row of the last county row are off limits, leaving 28x15.
+- Each county is 5x4 "world tiles" (5 wide, 4 tall). A world tile is one cell of the Hoenn region map, which is 28x15 cells (`MAP_WIDTH`/`MAP_HEIGHT` in `src/field/region_map.c`; cell contents in `src/data/region_map/region_map_layout.h`).
+- 6x4 counties of 5x4 tiles is 30x16, so the first tile column of the first county column, the last tile column of the last county column, and the last tile row of the last county row are off limits, leaving 28x15.
 - If a county's population is above zero, it places a settlement at a random position within its middle 3x3 world tiles. Population is 0-3 (2 bits); population 0 never generates a city.
 - Every county always has a special location, whether or not it has a city.
 - With a city, the special location is placed either in or adjacent to the city (50%), or on a random non-adjacent world tile (50%).
@@ -374,7 +374,7 @@ Why this order: if NPCs don't talk about subplots and story arcs, testers can't 
 
 Stages, each leaving the game playable:
 
-1. Divide the Emerald world map(s) into the 5x4 counties with hardcoded terrain type (mountainous, ocean, flat), biome, population, special location, story order, McGuffin keys and locks, and capital (Lilycove City). A key/lock is basically anywhere story advancement moves from one county to a non-adjacent county. The story-arc id is also hardcoded.
+1. Divide the Emerald world map(s) into the 6x4 counties with hardcoded terrain type (mountainous, ocean, flat), biome, population, special location, story order, McGuffin keys and locks, and capital (Lilycove City). A key/lock is basically anywhere story advancement moves from one county to a non-adjacent county. The story-arc id is also hardcoded.
 2. Hardcode the world tiles within each county: which are cities, routes, and special locations.
 3. For each city and special location, hardcode its named buildings, subplot McGuffins, and city "theme"; hardcode which cities have gyms, the leader's name, and the gym type.
 4. Implement the "random" NPC talking: some NPCs give story-arc state text, some give city/location subplot McGuffins, some talk about named buildings, the gym type, gym leader, or the city's theme. Remaining NPCs talk about their immediate vicinity or random text.
@@ -392,17 +392,9 @@ The work for each step is broken into milestones 0-12 in `remaining_work.md`. Mi
 
 ### Emerald county assignment (stage 1)
 
-Hoenn does not fit the county grid cleanly, so for the hardcoded stage the places are fudged into counties, with everything very slightly stretched apart. Since most content is hardcoded at this stage, the stretching does not matter, and once the world is fully generated there is no fakery left.
+Hoenn does not fit the 6x4 county grid cleanly, so for the hardcoded stage places are fudged into counties, with everything very slightly stretched apart. Since most content is hardcoded at this stage, the stretching does not matter, and once the world is fully generated there is no fakery left.
 
-| | x=0 | x=1 | x=2 | x=3 | x=4 |
-|---|---|---|---|---|---|
-| y=0 | Fallarbor + Meteor Falls | Lavaridge + Mt. Chimney | Fortree City + Scorched Slab | Safari Zone | Shoal Cave |
-| y=1 | Rustboro + Rusturf Tunnel | Verdanturf | Mauville + Mirage Tower | Mt. Pyre | Mossdeep |
-| y=2 | Petalburg | Oldale | Altering Cave | Sootopolis + Cave of Origin | Ever Grande + Elite Four |
-| y=3 | Island Cave | Littleroot | Slateport + Sealed Chamber | Pacifidlog | Sky Pillar + Seafloor Cavern |
-| y=4 | Dewford + Granite Cave | Abandoned Ship / Sea Mauville | Southern Island | ? | ? |
-
-Emerald puts nothing in the bottom right, because the text box covers those tiles.
+The preferred layout shifts the grid lines slightly so that each county holds at most one city and the caves and other special locations are spread more evenly. Emerald puts nothing in the bottom right, because the text box covers those tiles. The draft assignment tables are in `notes.md` pending cleanup.
 
 ### McGuffins
 
