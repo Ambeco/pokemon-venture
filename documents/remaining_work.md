@@ -123,15 +123,14 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 - Check why Emerald caps land encounters at 12 slots and fixed slot ratios, and whether the encounter code can take dynamic table sizes and ratios.
 - Define the per-method encounter tables (eager: walk, surf, grass, dark grass; lazy: rods, rock smash, headbutt, berry trees, spots), time-of-day and weather filters, and table recalculation when time or weather changes.
 - Hardcode estimated encounter levels for non-level evolutions (stones ~29, trade, friendship, etc.).
-- Pin down route-story-index edge cases: a county with no lower-index neighbors (the start), several adjacent lower-index counties, and what "highest story index" means for choosing the main route into a county.
 - Audit existing rules against the layering principle (design.md "Layered generation"): e.g. route-story-index rules must depend only on county-story-indices and connectivity, and species/encounter generation must not need generated map data.
 - Define trainer team generation: the trainer classes (ordinary, boss, low-level grunt), how route-story-index maps to trainer and wild levels and hidden items, and tune the grunt catch-rate cutoff (starts at 255).
 - Define the theme catalog (requirements, sprite sets, gym types, NPC texts) and how the world layer assigns themes to spread gym types; define how placement tendencies (Elite Four corner, start near it, capital far, coast/mountain city nudges) are implemented within the layering principle.
 - Decide how strongly gym assignment follows the average gym-order table (soft bias strength, Elite Four preference for late types) alongside theme requirements.
 - Content roadmap: Emerald rival arc and story arc first (preserving cutscene text), then the Kanto story arc and Red/Blue/Yellow rival arc, then other mainline games; subplots from Emerald, then RBY and others, and eventually TV-episode subplots.
 - Choose the existing flag/var slots for arc and subplot state, and the deterministic selection of route-story-indices for rival then story cutscenes.
-- Specify the implicit story graph: how a place's accessibility is derived from arc/subplot state and route-story-indices without storing a graph, and prove the generation rules (key at N-1, subplot-gated routes, only-growing reachability) make soft-locks impossible by construction.
 - Check the dropped top tile row against the Emerald region map: confirm the 28x15 cells after dropping the top row and the first/last columns still hold the intended county contents, and that the city name and Nav overlays only cover unused tiles.
 - Check whether the secret ID can be used for types and moves: `BoxPokemon.otId` is a 32-bit field (`include/pokemon/pokemon.h:259`), which in vanilla holds both the public and secret ID, so the secret ID may travel with a Pokémon and could add entropy to type/move seeds. Verify against trade and link code.
 - Design chunked, per-frame generation (world/county/map and city plot points) and its CPU budget.
 - Add the generator id to the save and the refuse-to-load check.
+- Confirm the story-graph proposals in design.md (the layer-2 growth constraint, the start county always having a settlement, keys as permanent flags) and check the first-place rule against Emerald's actual layout.

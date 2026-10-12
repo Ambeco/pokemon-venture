@@ -125,6 +125,15 @@ Between counties:
 - Adjacent county-story-indices: the route gets its index from the higher county. By default it is McGuffin-locked on completing the subplots of BOTH the lower county's city and special location. The higher county's city or location gets the same index, so completing the subplot at the lower location lets the player proceed along the route to the next one.
 - Non-adjacent county-story-indices: the route gets its index from the higher county's city or location. If county generation determined there is a McGuffin lock into the higher county, the route is blocked on that McGuffin. Otherwise, by default, entering the higher-index city or location triggers a new McGuffin that unlocks all of its routes to lower-index counties.
 
+#### Route-story-index edge cases
+
+- "Adjacent" counties are orthogonal grid neighbors. County-story-indices are unique, so "highest lower neighbor" never ties.
+- Layer-2 constraint (growth order): every county with story index above 0 has at least one adjacent county with a lower index. The story order therefore grows outward from the start, and every county has a main route into it. Non-adjacent story jumps (the McGuffin-lock case) are still allowed, because some other lower neighbor always exists to enter from.
+- The main route into county c comes from its adjacent lower county with the highest story index. If c-1 is adjacent, that is c-1. Other routes from lower neighbors into c are "routes to lower-index counties" and open when the higher county's entry McGuffin triggers (see Between counties).
+- Starting county (index 0): it has no lower neighbor and no main route into it. It always has a settlement (population at least 1). Its first place is the city, and the player starts there, with +0 = the city.
+- A county without a city (population 0) has only its special location; that is its "first", and +2 and +3 are unused.
+- Which place of c is "first" is the place its main route connects to. That follows from the route rules (shortest route between either of the two counties' places, biased toward cities), which depend only on layers 1-3, so layer 4 can decide it without any county data from layer 5.
+
 ## Geography
 
 County-level terrain is laid out like a typical Pokémon region:
@@ -418,6 +427,23 @@ The set of places the player can reach is an implicit "story graph", ideally nev
 - Usual pattern: a lock blocking access to story index N has its key at story index N-1. As long as the reachable area only grows, this makes the story completable.
 - Soft-locks are prevented by construction, not detected afterwards: the generation algorithm must make them impossible, with no seed-sweep or solver check. The rules above (key at N-1, only-growing reachability) are the means.
 - Soft-lock protection: if the route from a city to a higher route-story-index is always locked on the city's subplot being resolved, and a subplot's resolution only requires McGuffins in the city or in adjacent routes with a lower route-story-index, accidental soft-locks become much less likely.
+
+How accessibility is evaluated without a stored graph: every lock is checked locally where the player meets it (a blocking NPC, an HM obstacle, a gated route entrance). A lock on a place with route-story-index r opens when the flag of its key is set, and the key's location is derived deterministically from r (at index r-1, or the lower city's subplot completion). No global graph or reachability computation is ever needed.
+
+Why soft-locks are impossible by construction, as an induction on route-story-index:
+
+1. Claim: a player who has completed everything at indices below r can reach every place of index r and obtain its key.
+2. Base: index 0 is the start county's city, where the player starts.
+3. Step: a place of index r is entered from a place of lower index (the layer-2 growth constraint guarantees a lower neighbor; inside a county the +0, +1, +2, +3 chain enters each place from an earlier one). The only gate on the way requires keys found at index r-1 or at the lower city's subplot, and subplots require only McGuffins from their own city or adjacent routes of lower index. So nothing needed is at index r or above.
+4. Monotonic reachability: reachable area never shrinks (apart from the initial rival battle, which restores it, win or lose), so no key can be lost by moving on.
+5. Hence the claim holds for every r, and the story is always completable.
+
+The argument depends on these rules, each of which must be kept:
+
+- Keys are permanent flags set when obtained, never inventory items or Pokémon moves that can be sold, tossed, released, or forgotten (e.g. "can use Surf" is a flag set when the HM is received).
+- No lock may be placed on a place at index r unless its key is placed at index r-1.
+- Cutscenes of different arcs have distinct indices, and a cutscene never gates progress other than inside its subplot.
+- A battle loss never blocks progress: the player returns to a reachable Pokémon Center.
 
 Emerald's opening as an example:
 
