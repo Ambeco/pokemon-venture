@@ -32,7 +32,7 @@ This forces single-pass generation with no recursion or transitive operations, a
 ### County layout
 
 - Each county is 5x4 "world tiles" (5 wide, 4 tall). A world tile is one cell of the Hoenn region map, which is 28x15 cells (`MAP_WIDTH`/`MAP_HEIGHT` in `src/field/region_map.c`; cell contents in `src/data/region_map/region_map_layout.h`).
-- 6x4 counties of 5x4 tiles is 30x16, so the first tile column of the first county column, the last tile column of the last county column, and the last tile row of the last county row are off limits, leaving 28x15.
+- 6x4 counties of 5x4 tiles is 30x16, so the first tile column of the first county column, the last tile column of the last county column, and the last tile row of the last county row are off limits, leaving 28x15. The 6x4 grid of 5x4-tile counties was chosen over the inverse (5x4 counties of 6x4 tiles) because it yields more locations on the map and shorter routes between them.
 - If a county's population is above zero, it places a settlement at a random position within its middle 3x3 world tiles. Population is 0-3 (2 bits); population 0 never generates a city.
 - Every county always has a special location, whether or not it has a city.
 - With a city, the special location is placed either in or adjacent to the city (50%), or on a random non-adjacent world tile (50%).
@@ -449,3 +449,14 @@ Cons:
 - Needs a second mapping and more bookkeeping for the species-to-biome lookup.
 
 Not planned; may be revisited depending on player feedback.
+
+### 5x4 counties of 6x4 tiles
+
+Use 5 columns x 4 rows of counties, each 6 wide x 4 tall.
+
+Pros:
+- Matches Kanto's 5 columns of cities.
+- Larger counties leave more room within each county.
+
+Cons:
+- Fewer locations on the map, and longer routes between them.
