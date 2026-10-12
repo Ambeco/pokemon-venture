@@ -95,7 +95,7 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 
 - Collect the overall plan for the mod from the user and record it in `design.md`.
 - Pin down world generation details: terrain/biome/population/special-location types, story-order algorithm, key/lock rules, capital selection, and how generated data maps onto pokeemerald maps, warps, and encounters.
-- Settle how the 5x4 grid of 6x4-tile counties (with off-limits edge tiles) overlays Emerald's region map for stage 1, where much of the 28x15 grid is ocean.
+- Resolve the Emerald county table (design.md, "Emerald county assignment"): it has 5 rows but the county grid is 5x4, so decide whether the grid should be 5x5 (counties 6x3 tiles?) or whether a row folds into another; fill the empty bottom-right counties; assign terrain, biome, population, story index, and keys/locks to each county.
 - Clarify route rules: tie-breaking and duplicate-route handling when several adjacency rules apply to the same county pair.
 - Define the special-location catalog (inside-city vs outside-city lists, how a location is chosen for a county, relation to terrain/biome/story order).
 - Decide how to integrate the underground tunnels around Saffron (Underground Path) into the world model; keep Red/Blue map reproducibility as a design check.

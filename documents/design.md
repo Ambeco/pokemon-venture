@@ -390,6 +390,20 @@ Random Pokémon types and move sets can be implemented at virtually any point in
 
 The work for each step is broken into milestones 0-12 in `remaining_work.md`. Milestone 0 covers the hardcoded foundation (stages 1-4); the milestones then follow the order: shuffled NPC texts, shuffled subplots, non-fixed arc cutscenes, random types, encounters, moves, trainers, procedural buildings and terrain, shuffled McGuffins, randomized city placement, procedural story indices, procedural terrain and biomes.
 
+### Emerald county assignment (stage 1)
+
+Hoenn does not fit the county grid cleanly, so for the hardcoded stage the places are fudged into counties, with everything very slightly stretched apart. Since most content is hardcoded at this stage, the stretching does not matter, and once the world is fully generated there is no fakery left.
+
+| | x=0 | x=1 | x=2 | x=3 | x=4 |
+|---|---|---|---|---|---|
+| y=0 | Fallarbor + Meteor Falls | Lavaridge + Mt. Chimney | Fortree City + Scorched Slab | Safari Zone | Shoal Cave |
+| y=1 | Rustboro + Rusturf Tunnel | Verdanturf | Mauville + Mirage Tower | Mt. Pyre | Mossdeep |
+| y=2 | Petalburg | Oldale | Altering Cave | Sootopolis + Cave of Origin | Ever Grande + Elite Four |
+| y=3 | Island Cave | Littleroot | Slateport + Sealed Chamber | Pacifidlog | Sky Pillar + Seafloor Cavern |
+| y=4 | Dewford + Granite Cave | Abandoned Ship / Sea Mauville | Southern Island | ? | ? |
+
+Emerald puts nothing in the bottom right, because the text box covers those tiles.
+
 ### McGuffins
 
 A McGuffin key is whatever gates progress until a condition is met: an NPC blocking the way until a subplot reaches a certain state, an HM needed to pass an obstacle, or a special plot item such as the Poké Flute to wake a sleeping Pokémon.
