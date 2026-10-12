@@ -440,10 +440,10 @@ Why soft-locks are impossible by construction, as an induction on route-story-in
 
 The argument depends on these rules, each of which must be kept:
 
-- Keys are permanent flags set when obtained, never inventory items or Pokémon moves that can be sold, tossed, released, or forgotten (e.g. "can use Surf" is a flag set when the HM is received).
+- Keys are things that cannot be permanently lost. Key items and HM moves already cannot be sold, tossed, or forgotten in Pokémon games, so they are safe; ordinary items and ordinary moves must never be keys.
 - No lock may be placed on a place at index r unless its key is placed at index r-1.
 - Cutscenes of different arcs have distinct indices, and a cutscene never gates progress other than inside its subplot.
-- A battle loss never blocks progress: the player returns to a reachable Pokémon Center.
+- A battle loss may block progress, provided the player can still reach wild encounters, shops that sell Poké Balls, and money for balls, so they can catch more Pokémon or level up. A loss only teleports the player to the last Pokémon Center, so battle McGuffins are rarely soft-locks. The initial rival battle is the exception that must unlock on a loss too, because the player cannot yet reach grass to level up.
 
 Emerald's opening as an example:
 

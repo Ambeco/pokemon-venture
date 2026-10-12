@@ -133,4 +133,4 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 - Check whether the secret ID can be used for types and moves: `BoxPokemon.otId` is a 32-bit field (`include/pokemon/pokemon.h:259`), which in vanilla holds both the public and secret ID, so the secret ID may travel with a Pokémon and could add entropy to type/move seeds. Verify against trade and link code.
 - Design chunked, per-frame generation (world/county/map and city plot points) and its CPU budget.
 - Add the generator id to the save and the refuse-to-load check.
-- Confirm the story-graph proposals in design.md (the layer-2 growth constraint, the start county always having a settlement, keys as permanent flags) and check the first-place rule against Emerald's actual layout.
+- Confirm the story-graph proposals in design.md (the layer-2 growth constraint, the start county always having a settlement, key items and HMs as the only keys) and check the first-place rule against Emerald's actual layout.
