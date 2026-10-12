@@ -75,7 +75,7 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 
 ### Milestone 10: Cities and special locations randomized within each county
 
-- Layer-3 placement (city in the middle 3x3, special location rules, themes, names, island formation) and layer-4 route generation; generated region-map display, fly points, and name popups.
+- Layer-3 placement (city placement away from county edges, special location rules, themes, names, island formation) and layer-4 route generation; generated region-map display, fly points, and name popups.
 
 ### Milestone 11: Procedural county-story-indices
 
@@ -131,4 +131,4 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 - Content roadmap: Emerald rival arc and story arc first (preserving cutscene text), then the Kanto story arc and Red/Blue/Yellow rival arc, then other mainline games; subplots from Emerald, then RBY and others, and eventually TV-episode subplots.
 - Adapt the arc progression design to GBA CPU/memory limits: where arc and subplot state lives in the save, how the cutscene target (county-story-index, route/city, building) is derived without storing it, and how it fits the layering principle.
 - Specify the implicit story graph: how a place's accessibility is derived from arc/subplot state and route-story-indices without storing a graph, and prove the generation rules (key at N-1, subplot-gated routes, only-growing reachability) make soft-locks impossible by construction.
-- A county is 5x4 world tiles, so "middle 3x3" for city placement is not centered vertically; decide the exact allowed region (and what the off-limits edges do to edge counties).
+- Check the dropped top tile row against the Emerald region map: confirm the 28x15 cells after dropping the top row and the first/last columns still hold the intended county contents, and that the city name and Nav overlays only cover unused tiles.
