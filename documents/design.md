@@ -271,6 +271,23 @@ Route-story-indices determine wild Pokémon levels, trainer levels, hidden item 
 - Gym members, the rival, the Elite 4, and other "boss" trainers are not limited by domestication, habitat, or biome.
 - Low-level "bad guy" (Team Rocket-style) members are also not limited by domestication, habitat, or biome, but only use species whose base evolution has a catch rate of 255 (the starting cutoff, to be tuned by feel) (Rattata, Zubat, Caterpie, Pidgey, Spearow, Ekans, Oddish, Diglett, Meowth, Poliwag, Bellsprout, Geodude, Magikarp, etc.).
 
+### Catch-rate floor by progression
+
+Wild encounters are limited by a minimum catch rate that falls as the story progresses, so players can catch what they meet with the balls they can buy:
+
+- The first route's encounters are generally limited to catch rate 250+, and each subsequent route lowers the threshold.
+- Most Pokémon before the second gym should have catch rate 152+, because Great Balls are not sold until after the second badge. (At catch rate 192, a Pokémon at 50% health has a 50% chance of breaking out of a basic Poké Ball.)
+- Ultra Balls are sold after the fifth badge, so from then on wild Pokémon should generally be above ~85. (At catch rate 85, a Pokémon at 30% health has a 60% chance of breaking out of a Great Ball.)
+- The minimum falls to ~0 around the time of the seventh gym.
+- Babies, starters, and legendaries (and possibly another excluded category) never occur in encounter tables.
+
+### Legendaries and starters
+
+- Around the seventh to eighth gym, McGuffins unlock a pair or trio of special locations, each holding a pair or trio of legendaries from a single game generation.
+- After the Elite Four, another special location unlocks, holding a solo legendary.
+- Ideally every legendary and starter is obtainable, but the mechanism is undecided. Starters might come as gift Pokémon after a (possibly weekly repeatable) subplot, as in Pokémon Yellow.
+- The post-Elite Four solo legendary location might spawn a new legendary each week: 50% a legendary the player does not own, 50% fully random.
+
 ### Move pools
 
 Moves are generated procedurally per species, from per-species anatomy and per-move requirements.

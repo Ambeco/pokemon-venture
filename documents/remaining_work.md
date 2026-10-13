@@ -134,3 +134,4 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 - Design chunked, per-frame generation (world/county/map and city plot points) and its CPU budget.
 - Add the generator id to the save and the refuse-to-load check.
 - Confirm the story-graph proposals in design.md (the layer-2 growth constraint, the start county always having a settlement, key items and HMs as the only keys) and check the first-place rule against Emerald's actual layout.
+- Define the catch-rate floor curve (as a function of route-story-index/badge count), the full list of species excluded from encounter tables (babies, starters, legendaries, and any further category such as pseudo-legendaries or mythicals), and the legendary/starter acquisition mechanism (gift subplots, weekly legendary spawn, generation grouping of legendary locations).
