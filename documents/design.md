@@ -119,6 +119,8 @@ Layer 2 walks the 24 counties in a snaking path from the starting county, using 
 5. If the walk dead-ends with every remaining unindexed county having 0 indexed neighbors, and only about 19 counties are indexed, the next indices are assigned to those counties at random until there are 19.
 6. The Elite Four county is reassigned the next index, so it is always 20 or higher. The 0-3 counties still without an index get reserved legendary special locations. If fewer than 3, randomly pick counties with indices 10-19 (inclusive) to hold reserved legendary locations, bringing the total to 3.
 
+Ocean counties are skipped in steps 3-5 until the next index is 15 or higher, as in mainline games where Surf opens the sea late. The first ocean county to be indexed gets a Surf McGuffin lock, and the county with the previous index (its index minus 1) gets the Surf McGuffin key. If only ocean counties remain as candidates before index 15, the first one is taken anyway, with the same lock and key.
+
 ### Route generation
 
 Routes are placed after all cities and special locations are placed.
