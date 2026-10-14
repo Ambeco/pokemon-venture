@@ -43,7 +43,7 @@ This forces single-pass generation with no recursion or transitive operations, a
 
 A few special locations are reserved for legendaries: 2-3 after roughly the 7th gym (each holding a pair or trio of legendaries), and 1 solo location after the Elite Four. They are reserved on the world map, as part of the initial county-story-index determination, and relax the usual special-location rules:
 
-- If the county has a city, routes are generated for the city as if the reserved location did not exist, then one extra route runs from the city to the reserved location. That route and the location get end-game route-story-indices (50+), above every ordinary index.
+- If the county has a city, routes are generated for the city as if the reserved location did not exist, then one extra route runs from the city to the reserved location. That route and the location get end-game route-story-indices (100+), above every ordinary index.
 - If the county has no city, routes generate as normal, and the reserved location is the county's ordinary special location and what routes attach to.
 - In a county with a city, McGuffins gating progress out of the county require only the city's subplot, never the reserved location's. The reserved location is an optional dead end.
 
@@ -142,7 +142,7 @@ Between counties:
 - The main route into county c comes from its adjacent lower county with the highest story index. If c-1 is adjacent, that is c-1. Other routes from lower neighbors into c are "routes to lower-index counties" and open when the higher county's entry McGuffin triggers (see Between counties).
 - Starting county (index 0): it has no lower neighbor and no main route into it. It always has a settlement (population at least 1). Its first place is the city, and the player starts there, with +0 = the city.
 - A county without a city (population 0) has only its special location; that is its "first", and +2 and +3 are unused.
-- A reserved legendary location in a county with a city does not take part in the +0 to +3 scheme; it and its route get end-game indices (50+), and do not count as "the county's special location" for the between-counties locks.
+- A reserved legendary location in a county with a city does not take part in the +0 to +3 scheme; it and its route get end-game indices (100+), and do not count as "the county's special location" for the between-counties locks.
 - Which place of c is "first" is the place its main route connects to. That follows from the route rules (shortest route between either of the two counties' places, biased toward cities), which depend only on layers 1-3, so layer 4 can decide it without any county data from layer 5.
 
 ## Geography
