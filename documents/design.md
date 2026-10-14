@@ -108,6 +108,17 @@ Special locations are either inside a city or outside one (mirroring mainline ga
 
 The design is intended to be able, in principle, to generate the Red/Blue world map. How to represent the underground tunnels around Saffron (the Underground Path, not Diglett's Cave) is TBD.
 
+### County-story-index assignment
+
+Layer 2 walks the 24 counties in a snaking path from the starting county, using a temporary table of how many neighbors of each county still lack a county-story-index.
+
+1. Pick a mountainous edge county, preferring a corner, as the Elite Four. It temporarily gets the invalid index 25.
+2. Pick a land county toward an edge as the starting town. It gets index 0 and becomes the walk's current position.
+3. From the current position, look at the neighbors without an index. If any has exactly 1 unindexed neighbor, pick randomly among those; otherwise pick a random unindexed neighbor. Random choice makes the path snake, and preferring 1 fills corners first, which reduces dead ends. The pick gets the next index and becomes the current position.
+4. At a dead end (no unindexed neighbors), the current county gets a McGuffin key. The next county is the closest keyless county that still has 1+ unindexed neighbors, and it gets the matching McGuffin lock. The walk continues from there.
+5. If the walk dead-ends with every remaining unindexed county having 0 indexed-free neighbors, and only about 19 counties are indexed, the next indices are assigned to those counties at random until there are 19.
+6. The Elite Four county is reassigned the next index, so it is always 20 or higher. The 0-3 counties still without an index get reserved legendary special locations. If fewer than 3, randomly pick counties with indices 10-19 (inclusive) to hold reserved legendary locations, bringing the total to 3.
+
 ### Route generation
 
 Routes are placed after all cities and special locations are placed.
