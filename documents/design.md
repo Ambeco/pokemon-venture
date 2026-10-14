@@ -35,8 +35,17 @@ This forces single-pass generation with no recursion or transitive operations, a
 - 6x4 counties of 5x4 tiles is 30x16, so the first tile column of the first county column, the last tile column of the last county column, and the top tile row of the top county row are off limits, leaving 28x15. The top row is dropped (not the bottom) because the city name overlay covers the top-right 13x1 tiles and the Nav covers the bottom-right 13x2 tiles, so this leaves both the top and bottom counties 2 usable rows in those corners, where dropping the bottom would leave the bottom-right county only 1. The 6x4 grid of 5x4-tile counties was chosen over the inverse (5x4 counties of 6x4 tiles) because it yields more locations on the map and shorter routes between them.
 - If a county's population is above zero, it places a settlement at a random world tile, except that the county's bottom row and rightmost column are excluded (unless the county is in the bottom row or rightmost column of counties), which keeps space between cities. Population is 0-3 (2 bits); population 0 never generates a city.
 - Every county always has a special location, whether or not it has a city.
+- Some counties instead hold a reserved end-game special location (see Reserved legendary locations). Layer 2 reserves them while assigning county-story-indices, so they are known before layer 3 places anything.
 - With a city, the special location is placed either in or adjacent to the city (50%), or on a random non-adjacent world tile (50%).
 - Without a city (population 0), the special location is necessarily not in a city, and it is what routes attach to.
+
+### Reserved legendary locations
+
+A few special locations are reserved for legendaries: 2-3 after roughly the 7th gym (each holding a pair or trio of legendaries), and 1 solo location after the Elite Four. They are reserved on the world map, as part of the initial county-story-index determination, and relax the usual special-location rules:
+
+- If the county has a city, routes are generated for the city as if the reserved location did not exist, then one extra route runs from the city to the reserved location. That route and the location get end-game route-story-indices (50+), above every ordinary index.
+- If the county has no city, routes generate as normal, and the reserved location is the county's ordinary special location and what routes attach to.
+- In a county with a city, McGuffins gating progress out of the county require only the city's subplot, never the reserved location's. The reserved location is an optional dead end.
 
 ### Settlement types
 
@@ -104,6 +113,7 @@ The design is intended to be able, in principle, to generate the Red/Blue world 
 Routes are placed after all cities and special locations are placed.
 
 - If the special location is outside the city, a route always connects it to the city.
+- A reserved legendary location in a county with a city is excluded from all other route rules, and gets only its own route from the city (see Reserved legendary locations).
 - If an adjacent county has an adjacent story index, a route is made: the shortest route connecting either of that county's locations to either of ours, biased toward cities.
 - If an adjacent county is the capital, there is always a route from one of our locations to the capital city.
 - If no adjacent county is the capital or has an adjacent story index, the county routes to whichever adjacent county has the highest story index.
@@ -132,6 +142,7 @@ Between counties:
 - The main route into county c comes from its adjacent lower county with the highest story index. If c-1 is adjacent, that is c-1. Other routes from lower neighbors into c are "routes to lower-index counties" and open when the higher county's entry McGuffin triggers (see Between counties).
 - Starting county (index 0): it has no lower neighbor and no main route into it. It always has a settlement (population at least 1). Its first place is the city, and the player starts there, with +0 = the city.
 - A county without a city (population 0) has only its special location; that is its "first", and +2 and +3 are unused.
+- A reserved legendary location in a county with a city does not take part in the +0 to +3 scheme; it and its route get end-game indices (50+), and do not count as "the county's special location" for the between-counties locks.
 - Which place of c is "first" is the place its main route connects to. That follows from the route rules (shortest route between either of the two counties' places, biased toward cities), which depend only on layers 1-3, so layer 4 can decide it without any county data from layer 5.
 
 ## Geography
@@ -283,8 +294,8 @@ Wild encounters are limited by a minimum catch rate that falls as the story prog
 
 ### Legendaries and starters
 
-- Around the seventh to eighth gym, McGuffins unlock a pair or trio of special locations, each holding a pair or trio of legendaries from a single game generation.
-- After the Elite Four, another special location unlocks, holding a solo legendary.
+- Around the seventh to eighth gym, McGuffins unlock a pair or trio of reserved special locations, each holding a pair or trio of legendaries from a single game generation.
+- After the Elite Four, another reserved special location unlocks, holding a solo legendary.
 - Ideally every legendary and starter is obtainable, but the mechanism is undecided. Starters might come as gift Pokémon after a (possibly weekly repeatable) subplot, as in Pokémon Yellow.
 - The post-Elite Four solo legendary location might spawn a new legendary each week: 50% a legendary the player does not own, 50% fully random.
 

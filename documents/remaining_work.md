@@ -76,6 +76,7 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 ### Milestone 10: Cities and special locations randomized within each county
 
 - Layer-3 placement (city placement away from county edges, special location rules, themes, names, island formation) and layer-4 route generation; generated region-map display, fly points, and name popups.
+- Reserved legendary locations: decide how layer 2 picks their counties, and the end-game index range. Ordinary indices reach 4*23+3 = 95 with 24 counties, so "50+" collides unless fewer counties carry story indices or the range moves above 95.
 
 ### Milestone 11: Procedural county-story-indices
 
