@@ -76,7 +76,7 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 ### Milestone 10: Cities and special locations randomized within each county
 
 - Layer-3 placement (city placement away from county edges, special location rules, themes, names, island formation) and layer-4 route generation; generated region-map display, fly points, and name popups.
-- Reserved legendary locations: step 6 of county-story-index assignment defines the 2-3 post-7th-gym counties, but not the solo post-Elite-Four one (the Elite Four county's own special location?). Also decide how a county without an index is reached, since it lacks the usual lower neighbor route, and what step 5's "about 19" is exactly (24 counties = 20 indices 0-19, Elite Four, and 3 reserved).
+- Reserved legendary locations: write the separate algorithm that picks which reserved county is the solo post-Elite-Four one and ties the other 2-3 into the gym order (gym order need not follow county-story-index, and reserved counties hold the last indices, after the Elite Four's). Also decide how a county without an index is reached, since it lacks the usual lower neighbor route, and what step 5's "about 19" is exactly (24 counties = 20 indices 0-19, Elite Four, and 3 reserved).
 
 ### Milestone 11: Procedural county-story-indices
 

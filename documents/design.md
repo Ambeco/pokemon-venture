@@ -110,16 +110,26 @@ The design is intended to be able, in principle, to generate the Red/Blue world 
 
 ### County-story-index assignment
 
-Layer 2 walks the 24 counties in a snaking path from the starting county, using a temporary table of how many neighbors of each county still lack a county-story-index.
+Layer 2 walks the 24 counties in a snaking path from the starting county, using a temporary table of how many neighbors of each county still lack a county-story-index. A county may hold several McGuffin keys and locks.
 
-1. Pick a mountainous edge county, preferring a corner, as the Elite Four. It temporarily gets the invalid index 25.
+First pick R, the number of reserved legendary counties: 3 or 4 (the 2-3 post-7th-gym counties plus the 1 post-Elite-Four solo). The walk indexes the other 24 - R - 1 counties (19 or 20, indices 0-18 or 0-19), the Elite Four takes the next index, and the R reserved counties take the last R indices.
+
+1. Pick a mountainous edge county, preferring a corner, as the Elite Four. It is set aside until the walk ends.
 2. Pick a land county toward an edge as the starting town. It gets index 0 and becomes the walk's current position.
 3. From the current position, look at the neighbors without an index. If any has exactly 1 unindexed neighbor, pick randomly among those; otherwise pick a random unindexed neighbor. Random choice makes the path snake, and preferring 1 fills corners first, which reduces dead ends. The pick gets the next index and becomes the current position.
 4. At a dead end (no unindexed neighbors), the current county gets a McGuffin key. The next county is the closest keyless county that still has 1+ unindexed neighbors, and it gets the matching McGuffin lock. The walk continues from there.
-5. If the walk dead-ends with every remaining unindexed county having 0 indexed neighbors, and only about 19 counties are indexed, the next indices are assigned to those counties at random until there are 19.
-6. The Elite Four county is reassigned the next index, so it is always 20 or higher. The 0-3 counties still without an index get reserved legendary special locations. If fewer than 3, randomly pick counties with indices 10-19 (inclusive) to hold reserved legendary locations, bringing the total to 3.
+5. If the walk dead-ends with every remaining unindexed county having 0 indexed neighbors before the target count is reached, the next indices are assigned to those counties at random until it is.
+6. The Elite Four county takes the next index, then the R counties still unindexed take the last R indices, and become the reserved legendary counties (see Reserved legendary locations). Which of them is the solo post-Elite-Four county, and how the others tie into the gym order, is decided by a separate algorithm.
 
 Ocean counties are skipped in steps 3-5 until the next index is 15 or higher, as in mainline games where Surf opens the sea late. The first ocean county to be indexed gets a Surf McGuffin lock, and the county with the previous index (its index minus 1) gets the Surf McGuffin key. If only ocean counties remain as candidates before index 15, the first one is taken anyway, with the same lock and key.
+
+#### Kanto reference pattern
+
+Story points in Kanto, as `county-story-index - content` (an index may hold several things, and the order circles back):
+
+0 start / professor's lab; 1 first city, with a McGuffin to return to the lab for the Pokedex, Poke Balls and store use; 2 forest maze special location; 3 first gym; 4 first tunnel (usually 4 or 6); 5 second gym, and the solo legendary; 7 third gym, Cut, Flash; 8 dark tunnel; 9 city; 10 fourth gym, Fly; 14 fifth gym; 17 sixth gym, Surf, Strength; 18 legendary bird; 20 seventh gym; 21 legendary bird; 22 Victory Road; 23 Elite Four. The eighth gym sat in county 1.
+
+So gym order does not have to follow county-story-index, and the story can circle back, provided the McGuffins are careful.
 
 ### Route generation
 
