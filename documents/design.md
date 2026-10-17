@@ -538,6 +538,21 @@ Emerald's opening as an example:
 - Birch's Lab contains a McGuffin: the Pokédex and Poké Balls, which unlock the Route 102 artist lock.
 
 
+### Team analyzer
+
+A PC menu option that suggests one party/box swap, using the battle damage grades.
+
+1. Hypothetical opponents: for each of the 18 types, one Pokémon with high physical and low special defense, and one with the reverse (36 total).
+2. Each party Pokémon is graded against each opponent with the switch-hint grade (best move, accuracy squared, defensive matchup).
+3. Team score of a Pokémon = (opponents where it has the top grade) + 1 - avg(second place / its grade, over those opponents). It rewards covering many opponents, and covering them by a wide margin.
+4. With a full party, the lowest team score is the "replaceable" Pokémon.
+5. Each box Pokémon is scored as if it took the replaceable one's place; the best is the "replacement".
+6. If the replacement scores higher than the replaceable Pokémon, the analyzer suggests the swap.
+
+The player chooses to run it and waits, so it may take several seconds, behind a progress bar; run it in chunks across frames.
+
+Future extension: a hardcoded list of 4-8 "best moves" per species (covering types and physical/special), scored the same way, to suggest move replacements. Combining it with the box scan (which box Pokémon would be best with moves they can learn later) is a combinatorial explosion (70 four-move sets per Pokémon from 8 candidates), so it would need a greedy or hill-climbing approximation; not designed yet.
+
 ### Gym guide advice
 
 The existing tips man at each gym entrance also gives party-specific advice from the gym's type:
