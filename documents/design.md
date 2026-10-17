@@ -436,15 +436,17 @@ Random types and moves make matchups hard to remember, so battle menus show a da
 - **Level-agnostic:** grades compare stats and multipliers, not levels or HP, so a grade means the same thing anywhere in the game.
 - **What the player knows decides the estimate's accuracy,** keyed on the opponent species' Pokédex state:
   - Not seen: defense base stats are assumed to be 100 (average; species base stats are mostly 50-150), and type effectiveness is skipped (treated as 1x).
-  - Seen, not owned: real defense base stats, rounded; type effectiveness applied.
+  - Seen, not owned: real defense base stats, rounded to the nearest 25 (about a quarter of the 100 average, deliberately coarse); type effectiveness applied.
   - Owned: real defense base stats.
+  - Temporary battle stat stages (both sides) are applied.
   - Hidden information (ability, held item, crits, the random roll) is never used.
 - **Grade scale:** a letter from Z to A, with a red-to-green color gradient.
   - Z is reserved for a damaging move that the type matchup makes deal nothing (e.g. Normal vs Ghost).
-  - Y is the worst possible case: minimal power (about 10), very low own attacking stat with 0 IVs and EVs, very high opposing defense, no STAB, and 4x resisted.
-  - A is the best possible case: the opposite of every Y assumption.
+  - Y is the worst possible case: minimal power (about 10), own attacking base stat 20 with 0 IVs and EVs, opposing defense base stat 170, no STAB, and 4x resisted.
+  - A is the best possible case: the opposite of every Y assumption (attacking base stat 170 with max IVs and EVs, defense base stat 20, STAB, 4x super effective, maximum power).
+  - The 20-170 range covers non-Mega, non-joke species; values outside it clamp to Y or A.
   - X-B lie between them on a log scale, since the factors multiply.
-- **Switch hint:** in the in-battle Pokémon menu, each party member gets a grade too: its best move's estimated damage times that move's accuracy, scaled by its defensive type matchup against the opponent's types (the same Pokédex rules apply to what the player knows about those types).
+- **Switch hint:** in the in-battle Pokémon menu, each party member gets a grade too: its best move's estimated damage times that move's accuracy, scaled by its defensive type matchup against the opponent's types, against whichever opponent it hits best (the same Pokédex rules apply to what the player knows about those types).
 - **Implementation:** reuse the AI's damage calculation (`src/battle/ai/battle_ai_util.c`) where it fits, with the estimated defenses substituted, rather than a new formula.
 
 ## Base codebase
