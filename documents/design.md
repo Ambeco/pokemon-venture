@@ -431,15 +431,21 @@ Players strongly associate Pokémon with their types, so random types are a ment
 
 Random types and moves make matchups hard to remember, so battle menus show a damage grade.
 
-- **Where:** the move selection menu, and the in-battle Pokémon > summary > moves page, show a grade per move against the current opponent. Status moves show no grade.
+- **Where:** the move selection menu, and the in-battle Pokémon > summary > moves page, show a grade per move. Status moves show no grade.
+- **Multiple opponents:** a move's grade is the highest over all opponents; the target selection screen shows each target's own grade.
+- **Level-agnostic:** grades compare stats and multipliers, not levels or HP, so a grade means the same thing anywhere in the game.
 - **What the player knows decides the estimate's accuracy,** keyed on the opponent species' Pokédex state:
-  - Not seen: defenses are a generic estimate from the opponent's level alone, and type effectiveness is skipped (treated as 1x).
-  - Seen, not owned: real defenses, rounded to the nearest multiple of sqrt(level); type effectiveness applied.
-  - Owned: real defenses.
-  - Hidden information (ability, held item, crits, the random roll) is never used; the roll is taken at its midpoint.
-- **Grade:** the estimated damage as a fraction of the opponent's current HP, shown as a letter from Z (no damage) to A (a sure KO), with a red-to-green color gradient.
+  - Not seen: defense base stats are assumed to be 100 (average; species base stats are mostly 50-150), and type effectiveness is skipped (treated as 1x).
+  - Seen, not owned: real defense base stats, rounded; type effectiveness applied.
+  - Owned: real defense base stats.
+  - Hidden information (ability, held item, crits, the random roll) is never used.
+- **Grade scale:** a letter from Z to A, with a red-to-green color gradient.
+  - Z is reserved for a damaging move that the type matchup makes deal nothing (e.g. Normal vs Ghost).
+  - Y is the worst possible case: minimal power (about 10), very low own attacking stat with 0 IVs and EVs, very high opposing defense, no STAB, and 4x resisted.
+  - A is the best possible case: the opposite of every Y assumption.
+  - X-B lie between them on a log scale, since the factors multiply.
 - **Switch hint:** in the in-battle Pokémon menu, each party member gets a grade too: its best move's estimated damage times that move's accuracy, scaled by its defensive type matchup against the opponent's types (the same Pokédex rules apply to what the player knows about those types).
-- **Implementation:** reuse the AI's damage calculation (`src/battle/ai/battle_ai_util.c`) with the opponent's defense stats substituted, rather than a new formula.
+- **Implementation:** reuse the AI's damage calculation (`src/battle/ai/battle_ai_util.c`) where it fits, with the estimated defenses substituted, rather than a new formula.
 
 ## Base codebase
 
