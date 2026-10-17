@@ -551,6 +551,8 @@ A PC menu option that suggests one party/box swap, using the battle damage grade
 7. With fewer than 6 party Pokémon, it instead suggests at least 1 box Pokémon to add (ideally the top 2-4, letting the player pick one).
 8. After the player accepts a swap or addition, it offers to reanalyze or quit, so repeated runs iterate the team toward better coverage.
 
+Known and accepted bias: scoring favors types whose same-type attacks are super effective against many types. Steel/Flying (e.g. Corviknight) gets STAB super effectiveness against 6 types, pure Normal against none, so the analyzer will often pick the former and rarely pure Normal types.
+
 The player chooses to run it and waits, so it may take several seconds, behind a progress bar; run it in chunks across frames.
 
 Future extension: a hardcoded list of 4-8 "best moves" per species (covering types and physical/special), scored the same way, to suggest move replacements. Combining it with the box scan (which box Pokémon would be best with moves they can learn later) is a combinatorial explosion (70 four-move sets per Pokémon from 8 candidates), so it would need a greedy or hill-climbing approximation; not designed yet.
