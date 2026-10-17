@@ -312,7 +312,7 @@ Route-story-indices determine wild Pokémon levels, trainer levels, hidden item 
   - Underleveled bonus: a Pokémon below the current route's lowest wild level gets significantly more experience.
   - Overleveled penalty: a Pokémon above the next boss's estimated highest level (gym leader, villain leader, champion, etc.) gets significantly less.
 - The next boss's highest level is estimated from the route-story-index alone (about `route-story-index + 6`, with boss levels about `route-story-index + 3`), not read from the actual boss team.
-- Invariant: from any point, at least one route with encounters lets the player train up to the next boss's level + 1 without penalty. Whenever the boss level formula changes, retune the penalty threshold to keep this true (a seed-sweep test should check it).
+- Invariant: before every boss, at least one route with encounters lets the player train up to the boss's level + 1 without penalty. This holds by construction, so it needs no seed-sweep test: every boss is in a city or special location, each of which is reached by an actual route (which always has wild encounters) with a route-story-index 0-2 lower. Whenever the boss level formula changes, retune the penalty threshold against that 0-2 gap.
 
 ### Catch-rate floor by progression
 
