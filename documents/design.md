@@ -427,6 +427,20 @@ More follow from Red/Blue/Yellow, then other games. In the far future, more subp
 
 Players strongly associate Pokémon with their types, so random types are a mental hurdle. To ease it, whenever a Pokémon's name is displayed it is prefixed with icons for its types, e.g. "You encountered a wild 🐉❄️Rattata!".
 
+### Battle damage estimates
+
+Random types and moves make matchups hard to remember, so battle menus show a damage grade.
+
+- **Where:** the move selection menu, and the in-battle Pokémon > summary > moves page, show a grade per move against the current opponent. Status moves show no grade.
+- **What the player knows decides the estimate's accuracy,** keyed on the opponent species' Pokédex state:
+  - Not seen: defenses are a generic estimate from the opponent's level alone, and type effectiveness is skipped (treated as 1x).
+  - Seen, not owned: real defenses, rounded to the nearest multiple of sqrt(level); type effectiveness applied.
+  - Owned: real defenses.
+  - Hidden information (ability, held item, crits, the random roll) is never used; the roll is taken at its midpoint.
+- **Grade:** the estimated damage as a fraction of the opponent's current HP, shown as a letter from Z (no damage) to A (a sure KO), with a red-to-green color gradient.
+- **Switch hint:** in the in-battle Pokémon menu, each party member gets a grade too: its best move's estimated damage times that move's accuracy, scaled by its defensive type matchup against the opponent's types (the same Pokédex rules apply to what the player knows about those types).
+- **Implementation:** reuse the AI's damage calculation (`src/battle/ai/battle_ai_util.c`) with the opponent's defense stats substituted, rather than a new formula.
+
 ## Base codebase
 
 - Built on [rh-hideout/pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) 1.16.1 (itself built on pret/pokeemerald). Remote `upstream` points there; `origin` is `Ambeco/pokemon-venture`.
