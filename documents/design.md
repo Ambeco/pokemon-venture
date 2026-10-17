@@ -542,12 +542,14 @@ Emerald's opening as an example:
 
 A PC menu option that suggests one party/box swap, using the battle damage grades.
 
-1. Hypothetical opponents: for each of the 18 types, one Pokémon with high physical and low special defense, and one with the reverse (36 total).
+1. Hypothetical opponents: for each of the 18 types, one Pokémon with physical/special defense base stats 130/70, and one with 70/130 (36 total). Milder than the grade extremes, to resemble real species.
 2. Each party Pokémon is graded against each opponent with the switch-hint grade (best move, accuracy squared, defensive matchup).
-3. Team score of a Pokémon = (opponents where it has the top grade) + 1 - avg(second place / its grade, over those opponents). It rewards covering many opponents, and covering them by a wide margin.
+3. Top grade is decided by the raw damage estimate, not the letter, so ties are rare (if the raw estimate is hard to expose, tied Pokémon all count as top). Team score of a Pokémon = (opponents where it has the top grade) + 1 - avg(second place / its grade, over those opponents). It rewards covering many opponents, and covering them by a wide margin.
 4. With a full party, the lowest team score is the "replaceable" Pokémon.
 5. Each box Pokémon is scored as if it took the replaceable one's place; the best is the "replacement".
-6. If the replacement scores higher than the replaceable Pokémon, the analyzer suggests the swap.
+6. If the replacement scores strictly higher than the replaceable Pokémon, the analyzer suggests the swap; ties keep the player's existing choice.
+7. With fewer than 6 party Pokémon, it instead suggests at least 1 box Pokémon to add (ideally the top 2-4, letting the player pick one).
+8. After the player accepts a swap or addition, it offers to reanalyze or quit, so repeated runs iterate the team toward better coverage.
 
 The player chooses to run it and waits, so it may take several seconds, behind a progress bar; run it in chunks across frames.
 
