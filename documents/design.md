@@ -305,6 +305,15 @@ Route-story-indices determine wild Pokémon levels, trainer levels, hidden item 
 - Gym members, the rival, the Elite 4, and other "boss" trainers are not limited by domestication, habitat, or biome.
 - Low-level "bad guy" (Team Rocket-style) members are also not limited by domestication, habitat, or biome, but only use species whose base evolution has a catch rate of 255 (the starting cutoff, to be tuned by feel) (Rattata, Zubat, Caterpie, Pidgey, Spearow, Ekans, Oddish, Diglett, Meowth, Poliwag, Bellsprout, Geodude, Magikarp, etc.).
 
+### Experience
+
+- The whole party gains experience after every battle, as in Sword/Shield (`I_EXP_SHARE_FLAG` in `include/config/item.h`, set permanently rather than toggled by a key item).
+- Level-based multipliers keep the party's levels together:
+  - Underleveled bonus: a Pokémon below the current route's lowest wild level gets significantly more experience.
+  - Overleveled penalty: a Pokémon above the next boss's estimated highest level (gym leader, villain leader, champion, etc.) gets significantly less.
+- The next boss's highest level is estimated from the route-story-index alone (about `route-story-index + 6`, with boss levels about `route-story-index + 3`), not read from the actual boss team.
+- Invariant: from any point, at least one route with encounters lets the player train up to the next boss's level + 1 without penalty. Whenever the boss level formula changes, retune the penalty threshold to keep this true (a seed-sweep test should check it).
+
 ### Catch-rate floor by progression
 
 Wild encounters are limited by a minimum catch rate that falls as the story progresses, so players can catch what they meet with the balls they can buy:
