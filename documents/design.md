@@ -442,11 +442,13 @@ Random types and moves make matchups hard to remember, so battle menus show a da
   - Hidden information (ability, held item, crits, the random roll) is never used.
 - **Grade scale:** a letter from Z to A, with a red-to-green color gradient.
   - Z is reserved for a damaging move that the type matchup makes deal nothing (e.g. Normal vs Ghost).
-  - Y is the worst possible case: minimal power (about 10), own attacking base stat 20 with 0 IVs and EVs, opposing defense base stat 170, no STAB, and 4x resisted.
-  - A is the best possible case: the opposite of every Y assumption (attacking base stat 170 with max IVs and EVs, defense base stat 20, STAB, 4x super effective, maximum power).
+  - Y is the worst possible case: move power 10, own attacking base stat 20 with 0 IVs and EVs, opposing defense base stat 170, no STAB, and 4x resisted.
+  - A is the best possible case: the opposite of every Y assumption (attacking base stat 170 with max IVs and EVs, defense base stat 20, STAB, 4x super effective, move power 150).
   - The 20-170 range covers non-Mega, non-joke species; values outside it clamp to Y or A.
-  - X-B lie between them on a log scale, since the factors multiply.
-- **Switch hint:** in the in-battle Pokémon menu, each party member gets a grade too: its best move's estimated damage times that move's accuracy, scaled by its defensive type matchup against the opponent's types, against whichever opponent it hits best (the same Pokédex rules apply to what the player knows about those types).
+  - Power 150 sits just above the strongest downside-free move (140). Power 10 sits well below the weakest common single-hit moves (40, e.g. Tackle) so those don't grade as terrible early on; multi-hit moves grade by their listed per-hit power, which is no more misleading than the power the game shows.
+  - X-B are evenly spaced between Y and A on a log scale, since the factors multiply, so each letter is the same damage multiplier apart.
+  - Being level-agnostic, the Y-A thresholds are compile-time constants: a 24-entry threshold table searched in at most 5 comparisons.
+- **Switch hint:** in the in-battle Pokémon menu, each party member gets a grade too: its best move's estimated damage times that move's accuracy squared ("if it isn't 100%, it's 0%": 50% accuracy weighs 0.25x), scaled by its defensive type matchup against the opponent's types, against whichever opponent it hits best (the same Pokédex rules apply to what the player knows about those types).
 - **Implementation:** reuse the AI's damage calculation (`src/battle/ai/battle_ai_util.c`) where it fits, with the estimated defenses substituted, rather than a new formula.
 
 ## Base codebase
@@ -527,6 +529,13 @@ Emerald's opening as an example:
 - Birch's Lab contains a McGuffin: the Pokédex and Poké Balls, which unlock the Route 102 artist lock.
 
 
+### Gym guide advice
+
+The existing tips man at each gym entrance also gives party-specific advice from the gym's type:
+- Which party Pokémon have attacking moves strong against the gym type.
+- Which party Pokémon have types weak defensively against the gym type.
+- Species found in the current county, at an equal or lower route-story-index, with a type advantage over the gym type.
+
 ## Alternatives considered
 
 _None yet._
@@ -567,3 +576,9 @@ Pros:
 
 Cons:
 - Fewer locations on the map, and longer routes between them.
+
+### Damage grades in the overworld party menu inside gyms
+
+Showing the switch-hint grades in the field party menu while inside a gym, graded against the gym type.
+- Pros: helps plan a gym's battles before they start.
+- Cons: a rare case for extra UI; the gym guide's advice covers the same need.
