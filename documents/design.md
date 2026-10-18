@@ -205,7 +205,7 @@ For reference, the Pokémon Snap courses were beach, tunnel, volcano, river, cav
 ## Biomes
 
 - There are 25 possible biomes, forming a 5x5 grid: one axis is precipitation, the other is temperature. Every species is associated with one of all 25 biomes.
-- A given region/world map is limited to one of the six 4x3 subsets of that grid (all 4 humidity levels of 5, and 3 adjacent temperature levels of 5), chosen randomly per game: 12 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct. Temperature spans only 3 levels because 4 made the hot and cold ends of one region too far apart.
+- A given region/world map is limited to one of the six 4x3 subsets of that grid (4 adjacent humidity levels of 5, and 3 adjacent temperature levels of 5), chosen randomly per game: 12 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct. Temperature spans only 3 levels because 4 made the hot and cold ends of one region too far apart.
 - Every evolutionary line maps to one of the region's 12 biomes (see "Species <-> biome mapping"), so all ~541 lines are wild-encounterable, about 45 per biome. That exceeds Pokémon storage (420 slots, 14 boxes of 30); if it feels like too many, the mapping widens to mod 13+, and lines landing on residue 12+ do not spawn in the wild that run (NPCs can still have and trade them).
 
 The 25 biomes. Columns run from hottest (left) to coldest (right); rows are humidity levels.
