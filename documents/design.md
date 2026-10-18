@@ -506,14 +506,14 @@ Each county holds at most one city, with the caves and other special locations s
 
 Lavaridge is 42 (between Meteor Falls and Fortree) to keep the existing numbering.
 
-Terrain and biome per county. Hoenn is mostly rainforest, so it uses the warm, wet biome subset (humidity 1-4, the three hottest temperature columns). Temperature falls from the top row (hottest column) downward; the desert north of Mauville is faked with Thorn forest, and the smaller one at (0,0) with Savanna. Ocean counties have no county biome.
+Terrain and biome per county. Hoenn is mostly rainforest, so it uses the warm, wet biome subset (humidity 1-4, the three hottest temperature columns). Temperature falls from the top row (hottest column) downward; the desert north of Mauville is faked with Thorn forest, and the smaller one at (0,0) with Savanna. Ocean counties get a biome too, for surf, dive and fishing encounters: the maximum-humidity row, from Tropical rainforest in the top row down to Montane rainforest in the bottom row. Dewford's island is too small for its own biome, so (0,3) is Ocean.
 
 | Row | x=0 | x=1 | x=2 | x=3 | x=4 | x=5 |
 | --- | --- | --- | --- | --- | --- | --- |
-| y=0 | Mountain, Savanna | Mountain, Savanna | Mountain, Thorn forest | Land, Tropical rainforest | Land, Tropical seasonal rainforest | Ocean |
-| y=1 | Land, Temperate woodland | Mountain, Temperate woodland | Land, Mangrove swamp | Land, Mangrove swamp | Land, Tropical fresh-water swamp forest | Ocean |
-| y=2 | Land, ? | Land, ? | Land, Temperate shrublands | Land, Temperate fresh-water swamp forest | ?, ? | Land (island), Temperate giant rainforest |
-| y=3 | Land, ? | Land, Temperate fresh-water swamp forest | Land, Temperate grassland | Ocean | Ocean | Ocean |
+| y=0 | Mountain, Savanna | Mountain, Savanna | Mountain, Thorn forest | Land, Tropical rainforest | Land, Tropical seasonal rainforest | Ocean, Tropical rainforest |
+| y=1 | Land, ? | Mountain, ? | Land, Mangrove swamp | Land, Mangrove swamp | Land, Tropical fresh-water swamp forest | Ocean, Tropical fresh-water swamp forest |
+| y=2 | Land, Temperate woodland | Land, Temperate shrublands | Land, Temperate shrublands | Land, Temperate fresh-water swamp forest | Ocean, Temperate giant rainforest | Land (island), Temperate giant rainforest |
+| y=3 | Ocean, Montane rainforest | Land, Temperate fresh-water swamp forest | Land, Temperate grassland | Ocean, Montane rainforest | Ocean, Montane rainforest | Ocean, Montane rainforest |
 
 ### McGuffins
 
