@@ -205,9 +205,8 @@ For reference, the Pokémon Snap courses were beach, tunnel, volcano, river, cav
 ## Biomes
 
 - There are 25 possible biomes, forming a 5x5 grid: one axis is precipitation, the other is temperature. Every species is associated with one of all 25 biomes.
-- A given region/world map is limited to one of the four 4x4 subsets of that grid, chosen randomly per game: 16 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct.
-- Species associated with the other 9 biomes cannot be encountered in the wild in that playthrough, but NPCs can still have and trade them as normal.
-- Players can therefore expect to encounter about 346 of the ~541 evolutionary lines in the wild (16/25). Pokémon storage has 420 slots (14 boxes of 30), so this is already a lot.
+- A given region/world map is limited to one of the six 4x3 subsets of that grid (all 4 humidity levels of 5, and 3 adjacent temperature levels of 5), chosen randomly per game: 12 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct. Temperature spans only 3 levels because 4 made the hot and cold ends of one region too far apart.
+- Every evolutionary line maps to one of the region's 12 biomes (see "Species <-> biome mapping"), so all ~541 lines are wild-encounterable, about 45 per biome. That exceeds Pokémon storage (420 slots, 14 boxes of 30); if it feels like too many, the mapping widens to mod 13+, and lines landing on residue 12+ do not spawn in the wild that run (NPCs can still have and trade them).
 
 The 25 biomes. Columns run from hottest (left) to coldest (right); rows are humidity levels.
 
@@ -245,12 +244,12 @@ Each biome has a hardcoded table of how often each of the 18 Pokémon types occu
 
 A species' biome must be findable quickly without walking the generated map data, and so must the species list of a biome. This uses a two-way coprime-stride (modular multiplicative) mapping between species and biomes:
 
-- The mapping operates on the ~541 evolutionary lines (via each species' base evolution), and associates every line with one of all 25 biomes, not just a game's 16.
-- A stride coprime to 25 (not divisible by 5), and its modular inverse, are hardcoded.
-- Species to biome: `(baseSpeciesIndex * stride + playerID) mod 25`.
+- The mapping operates on the ~541 evolutionary lines (via each species' base evolution), and associates every line with one of the region's 12 biomes.
+- A stride coprime to 12 (not divisible by 2 or 3), and its modular inverse, are hardcoded.
+- Species to biome: `(baseSpeciesIndex * stride + playerID) mod 12`, indexing the region's biome subset.
 - The species' two types are then chosen by random selection seeded from species + player ID, weighted by that biome's type affinity.
 - Biome to species: compute the first species of the biome via the inverse, then the rest follow at a fixed index distance from each other (derived from the inverse).
-- Each biome ends up with ~22 evolutionary lines.
+- Each biome ends up with ~45 evolutionary lines.
 - A Pokémon whose trainer ID differs from the player's maps through that trainer ID, so it may land in a different biome and get different types.
 
 ### Species metadata
@@ -266,7 +265,7 @@ Per-species fields used for encounters and trading (field widths are tentative):
 
 ### Route encounter selection
 
-The species-to-biome stride mapping only determines types. A route's encounters are built separately from the evolutionary lines correlated with the route's biome (~22 per biome). Many routes share a biome but sit at very different levels, so the species are filtered, then weighted:
+The species-to-biome stride mapping only determines types. A route's encounters are built separately from the evolutionary lines correlated with the route's biome (~45 per biome). Many routes share a biome but sit at very different levels, so the species are filtered, then weighted:
 
 - by commonness: legendaries, babies, fossils, and trade/item-evolved Pokémon are never wild, and starters and other super-rare Pokémon are very rare,
 - by domestication, relative to how close the route is to the map edge or a Safari Zone,
@@ -275,7 +274,9 @@ The species-to-biome stride mapping only determines types. A route's encounters 
 - by time of day and weather,
 - by a random filter that drops some of the rest.
 
-Roughly half of the ~22 lines are expected to be filtered out, leaving ~11. The survivors' encounter ratios are proportional to their catch rates.
+Most of the ~45 lines are expected to be filtered out, leaving roughly 10-15.
+
+Super-common species: a hardcoded list of very common species (catch rate >= 235; Pidgey, Rattata, Zubat, Magikarp, etc.) that, as in the mainline games, can show up on routes all over the region. When a route's table has too few species after filtering, these are also considered, bypassing the biome filter but not the others (habitat still applies: Magikarp needs water, Pidgey avoids caves, Zubat only spawns in caves and ruins). Still under consideration. The survivors' encounter ratios are proportional to their catch rates.
 
 All of this, including the randomness, is derived from the trainer ID, so each play-through is fully deterministic. Tables are deterministic, not fixed: they are recalculated when the time of day or weather changes.
 
@@ -607,10 +608,22 @@ Pros:
 - Players could encounter ~470 of the 541 lines, so far fewer species are locked out of a playthrough.
 
 Cons:
-- 470 exceeds the 420 box slots, and even 346 already seems like a lot to collect.
+- 470 exceeds the 420 box slots.
 - Needs a second mapping and more bookkeeping for the species-to-biome lookup.
 
 Not planned; may be revisited depending on player feedback.
+
+### 4x4 biome subsets with a mod-25 mapping
+
+Each region uses 16 biomes (4 humidity x 4 temperature levels), and species map over all 25 biomes, so lines landing outside the subset are not wild.
+
+Pros:
+- Fewer wild lines (~346), closer to the box capacity.
+- More biome variety within one region.
+
+Cons:
+- 4 temperature levels made a region's hot and cold ends too far apart (Hoenn fits in 3).
+- Locks ~195 lines out of each run's wild encounters.
 
 ### 5x4 counties of 6x4 tiles
 

@@ -39,7 +39,7 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 ### Milestone 4: Randomized Pokémon types
 
 - Species metadata tool: base-evolution table, sprite-implied element overrides, and the biome type-affinity tables.
-- Stride mapping (mod 25) and seeded type selection; route every type read through the single accessor `GetSpeciesType` (`include/pokemon/pokemon.h:824`), and check every direct read of `types` in battle, Pokédex, AI, and the summary screens.
+- Stride mapping (mod 12, over the region's 4x3 biome subset) and seeded type selection; route every type read through the single accessor `GetSpeciesType` (`include/pokemon/pokemon.h:824`), and check every direct read of `types` in battle, Pokédex, AI, and the summary screens.
 - Type icons before names (check existing icons first).
 - Ability interactions; decide on form changes, Mega/Tera types.
 - Done when: all tests pass with the generator off, and seed-sweep tests confirm 1-2 valid types, base-form single type, evolutions sharing the base's mapping.
@@ -84,7 +84,7 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 
 ### Milestone 12: Procedural terrain types and biomes
 
-- Layer-1 generator: outer ring mountain/ocean, inland extensions, humidity/temperature gradients with a guaranteed non-mountain desert, 16-of-25 biome subset selection.
+- Layer-1 generator: outer ring mountain/ocean, inland extensions, humidity/temperature gradients with a guaranteed non-mountain desert, 4x3 biome subset selection (one of 6).
 
 ### Cross-cutting
 
@@ -97,15 +97,15 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 - Collect the overall plan for the mod from the user and record it in `design.md`.
 - Pin down world generation details: terrain/biome/population/special-location types, story-order algorithm, key/lock rules, capital selection, and how generated data maps onto pokeemerald maps, warps, and encounters.
 - Emerald county table (design.md, "Emerald county assignment"): assign population and keys/locks, and derive county-story-indices from the visit order.
-- Decide whether a world's biome subset narrows to 4 humidity x 3 temperature levels (Emerald's county biomes already fit in 3 columns) (12 biomes, 6 possible subsets) instead of 4x4; that cuts wild-encounterable lines from ~346 to ~260 of ~541.
+- Decide whether to adopt the super-common species list (design.md, "Route encounter selection"), and what "too few species" means for a table.
 - Clarify route rules: tie-breaking and duplicate-route handling when several adjacency rules apply to the same county pair.
 - Define the special-location catalog (inside-city vs outside-city lists, how a location is chosen for a county, relation to terrain/biome/story order).
 - Decide how to integrate the underground tunnels around Saffron (Underground Path) into the world model; keep Red/Blue map reproducibility as a design check.
-- Define the 5x5 biome grid (axis values, the 25 biomes, which 16 each 4x4 subset yields), the meaning of each 2-bit population level (0 = none, 1 = village, 2 = town, 3 = city; how it relates to terrain/biome), and whether the world is regenerated on demand vs cached in RAM (cost of regeneration).
+- Define the 5x5 biome grid (axis values, the 25 biomes, which 12 each 4x3 subset yields), the meaning of each 2-bit population level (0 = none, 1 = village, 2 = town, 3 = city; how it relates to terrain/biome), and whether the world is regenerated on demand vs cached in RAM (cost of regeneration).
 - Design the three settlement generation algorithms (village, town, city): building footprints, path layout, how they map onto GBA map layouts/metatiles, and how gyms/Pokémon Centers/Marts get placed in each.
 - Species typing: species whose sprite strongly implies an element always keep that element; base forms get one type and evolutions gain the second (algorithm needed); decide interactions with abilities.
 - Move pools: define the appendage bitfield vocabulary, per-move requirement/stat tagging for ~1000 moves, the power-sorted level bucketing, the learn-level list generator, and filter probabilities (type match, stat match); research how egg moves work in mainline games and finalize the egg move rule.
-- Species<->biome mapping: pick the hardcoded stride (coprime to 25) and inverse over the ~541 evolutionary lines; verify that species of one biome end up evenly spaced and that traded Pokémon (other trainer ID) map sensibly.
+- Species<->biome mapping: pick the hardcoded stride (coprime to 12) and inverse over the ~541 evolutionary lines; verify that species of one biome end up evenly spaced and that traded Pokémon (other trainer ID) map sensibly.
 - Define the route species filters (level-plausibility using evolution levels, domestication by edge distance, habitat, random drop), the random-drop rate, any further filters, and the catch-rate-proportional encounter table; plus the starter/legendary/pseudo-legendary exclusion lists.
 - Define the 25-biome type affinity tables (18 types, log-scale encoding).
 - Budget CPU: profile/estimate the cost of regenerating world data, species mapping, encounter filtering, and move picks on GBA hardware; decide what to cache.
