@@ -452,11 +452,17 @@ Type colors: 16 hues evenly spaced 22.5° apart, plus 3 achromatic types.
 
 Normal is white (#FFFFFF), Dark black (#000000), Steel gray (#7F7F7F). The bright set has S=0.67, V=1; the dark set S=1, V=0.67. The hues follow the mainline games' associations where possible (fire red, electric yellow, water blue, ghost dark purple, fairy pink, ground brown, etc.). Stellar is not a real type, so its color need not be distinct.
 
+Color buckets define "close": a color with low saturation falls in an achromatic bucket by V (Normal, Steel, Dark); otherwise its bucket is its hue rounded to the nearest 22.5°, i.e. one of the 16 type hues. S and V never choose between hued buckets. A whole shading ramp of one color shares a hue, so it lands in one bucket and recolors together.
+
 Algorithm:
-1. For each original type, pick the sprite palette color closest in hue/saturation to that type's color.
-2. If none is reasonably close, pick the most-used color that is not near black or white and (with two types) not near the other type's pick.
-3. Recolor each picked color, and colors very close to it, by replacing hue and saturation with the new type's, scaled by how close each color was, while keeping each color's own V. Keeping V preserves the sprite's shading, so only the type colors' hues matter, not their brightness.
+1. For each original type, pick the sprite palette colors in that type's bucket.
+2. If the bucket is empty, pick the most-used color that is not near black or white and (with two types) not near the other type's pick.
+3. Recolor every color in a picked bucket by rotating its hue to the new type's hue (keeping its offset within the bucket) and scaling its saturation toward the new type's, while keeping each color's own V. Keeping V preserves the sprite's shading, so only the type colors' hues matter, not their brightness.
 4. Achromatic types: recoloring to Normal, Dark or Steel desaturates instead of shifting hue; recoloring from them gives the picked gray a hue.
+
+Shinies:
+- A shiny's palette is its vanilla shiny palette, recolored at the same indices. Two-type shinies swap the two types' colors (a Fairy/Fire is pink+red, its shiny red+pink).
+- Shimmer: when a shiny enters battle, at the start of its turn, and every ~10 s while idle, its recolored hues rotate 360° over 1 s, an iridescent ripple. This is the main shiny tell, since single-type shinies have no swap. It is a per-frame palette update of a few colors, like the existing palette fades.
 
 Cost: GBA sprites use 16-color palettes, so recoloring touches 16 colors per Pokémon, not pixels. Steps 1-2 depend only on the original sprite, so a build tool precomputes the picked palette indices per species; only step 3 runs at runtime, when the palette loads.
 
