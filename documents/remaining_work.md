@@ -96,7 +96,9 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 
 - Collect the overall plan for the mod from the user and record it in `design.md`.
 - Pin down world generation details: terrain/biome/population/special-location types, story-order algorithm, key/lock rules, capital selection, and how generated data maps onto pokeemerald maps, warps, and encounters.
-- Emerald county table (design.md, "Emerald county assignment"): assign population and keys/locks, and derive county-story-indices from the visit order.
+- Emerald McGuffins (next session): read the user's Emerald walkthrough and list every McGuffin key and lock it shows (location, approximate story index, requirements); then read how a sample is implemented (flags, vars, badges, key items, HMs, subplot state) and use the code to complete the list in `Emerald.md`, so NPC dialogue can be keyed off them.
+- Decide whether a city's count of inside-city special locations equals its population (1-3); Emerald averages ~0.6 per city (~1.2 counting gyms), see `Emerald.md`.
+- Emerald county table (`Emerald.md`): assign population and keys/locks, and derive county-story-indices from the visit order.
 - Decide whether to adopt the super-common species list (design.md, "Route encounter selection"), and what "too few species" means for a table.
 - Clarify route rules: tie-breaking and duplicate-route handling when several adjacency rules apply to the same county pair.
 - Define the special-location catalog (inside-city vs outside-city lists, how a location is chosen for a county, relation to terrain/biome/story order).
