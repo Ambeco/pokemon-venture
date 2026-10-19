@@ -433,6 +433,33 @@ More follow from Red/Blue/Yellow, then other games. In the far future, more subp
 - The Pokémon the trader offers is a random species with the same commonness and a similar catch rate, whose evolution level range overlaps the chosen route's level. It may be the same species as the requested one.
 - Traded Pokémon carry a different trainer ID, so their types and moves differ from the player's own (see the other-trainer-ID biome subset above).
 
+### Type-recolored sprites
+
+A species' sprite is recolored to suggest its randomized types: the sprite colors that stand for its original types are swapped for its new types' colors.
+
+Type colors: 16 hues evenly spaced 22.5° apart, plus 3 achromatic types.
+
+| Hue | Type | RGB | | Hue | Type | RGB |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0° | Fire | #FF5555 | | 22.5° | Ground | #AA3F00 |
+| 45° | Electric | #FFD455 | | 67.5° | Rock | #94AA00 |
+| 90° | Bug | #AAFF55 | | 112.5° | Dragon | #15AA00 |
+| 135° | Grass | #55FF7F | | 157.5° | Stellar | #00AA6A |
+| 180° | Ice | #55FFFF | | 202.5° | Flying | #006AAA |
+| 225° | Water | #557FFF | | 247.5° | Poison | #1500AA |
+| 270° | Psychic | #AA55FF | | 292.5° | Ghost | #9400AA |
+| 315° | Fairy | #FF55D4 | | 337.5° | Fighting | #AA003F |
+
+Normal is white (#FFFFFF), Dark black (#000000), Steel gray (#7F7F7F). The bright set has S=0.67, V=1; the dark set S=1, V=0.67. The hues follow the mainline games' associations where possible (fire red, electric yellow, water blue, ghost dark purple, fairy pink, ground brown, etc.). Stellar is not a real type, so its color need not be distinct.
+
+Algorithm:
+1. For each original type, pick the sprite palette color closest in hue/saturation to that type's color.
+2. If none is reasonably close, pick the most-used color that is not near black or white and (with two types) not near the other type's pick.
+3. Recolor each picked color, and colors very close to it, by replacing hue and saturation with the new type's, scaled by how close each color was, while keeping each color's own V. Keeping V preserves the sprite's shading, so only the type colors' hues matter, not their brightness.
+4. Achromatic types: recoloring to Normal, Dark or Steel desaturates instead of shifting hue; recoloring from them gives the picked gray a hue.
+
+Cost: GBA sprites use 16-color palettes, so recoloring touches 16 colors per Pokémon, not pixels. Steps 1-2 depend only on the original sprite, so a build tool precomputes the picked palette indices per species; only step 3 runs at runtime, when the palette loads.
+
 ### Type icons in names
 
 Players strongly associate Pokémon with their types, so random types are a mental hurdle. To ease it, whenever a Pokémon's name is displayed it is prefixed with icons for its types, e.g. "You encountered a wild 🐉❄️Rattata!".
