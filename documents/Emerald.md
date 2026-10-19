@@ -52,3 +52,22 @@ Two eco-terrorist factions, Magma and Aqua, argue industrial progress versus env
 - Answering questions earns the Old Rod.
 - Granite Cave requires Flash.
 - Delivering the Devon Goods to Captain Stern.
+
+## McGuffin chain (from the Bulbapedia walkthrough)
+
+Source: Bulbapedia "Walkthrough:Pokémon Emerald", in tutorial order (Part 1 only so far). Each entry is `Thing — needs: <McGuffin> — gives: <McGuffin>`. A `needs?:` is a guess: the tutorial states no requirement, so it is the previous Thing's McGuffin. Only gates and plot items are listed; ordinary rewards (Potions, Berries) are not McGuffins.
+
+1. Start in Littleroot — needs: nothing — gives: Littleroot access
+2. Birch's House, May/Brendan leaves — needs?: Littleroot access — gives: May/Brendan out helping Birch
+3. Route 101, rescue Birch (pick starter) — needs?: May/Brendan out helping Birch — gives: Starter Pokémon
+4. Birch's Lab, thanks — needs: Starter Pokémon — gives: Lab free to leave; go find May/Brendan on Route 103
+5. Route 101 to Oldale Town — needs?: Lab free to leave — gives: Oldale access
+6. Oldale west exit, sketch artist blocks Route 102 — needs?: Oldale access — gives: Route 102 access
+7. Route 103, west half only (seawater divides it) — needs?: Route 102 access — gives: Route 103 east half access
+8. Route 103, Rival Battle 1 — needs?: Route 103 east half access — gives: Rival Battle 1 done
+9. Birch's Lab, Pokédex and 5 Poké Balls — needs: Rival Battle 1 done — gives: Pokédex, Poké Balls (shops stock balls)
+10. Littleroot, Mom gives Running Shoes — needs: Pokédex — gives: Running Shoes
+11. Route 102 to Petalburg — needs?: Running Shoes — gives: Petalburg access
+12. Petalburg Gym, Norman and Wally catch Ralts — needs?: Petalburg access — gives: Wally has Ralts
+13. Petalburg Gym challenge (Norman) — needs: 4 Badges — gives: Gym 5 (Petalburg)
+14. Petalburg west exit, man in sunglasses blocks Route 104 — needs?: Wally has Ralts — gives: Route 104 access
