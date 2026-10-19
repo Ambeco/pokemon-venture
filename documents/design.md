@@ -452,7 +452,7 @@ Type colors: 16 hues evenly spaced 22.5° apart, plus 3 achromatic types.
 
 Normal is white (#FFFFFF), Dark black (#000000), Steel gray (#7F7F7F). The bright set has S=0.67, V=1; the dark set S=1, V=0.67. The hues follow the mainline games' associations where possible (fire red, electric yellow, water blue, ghost dark purple, fairy pink, ground brown, etc.). Stellar is not a real type, so its color need not be distinct.
 
-Color buckets define "close": a color with low saturation falls in an achromatic bucket by V (Normal, Steel, Dark); otherwise its bucket is its hue rounded to the nearest 22.5°, i.e. one of the 16 type hues. S and V never choose between hued buckets. A whole shading ramp of one color shares a hue, so it lands in one bucket and recolors together.
+Color buckets define "close": a color with low saturation falls in an achromatic bucket by V (Normal, Steel, Dark); otherwise its bucket is its hue rounded to the nearest 22.5°, i.e. one of the 16 type hues. S and V never choose between hued buckets. Starting cutoffs, to be tuned by visual tests: saturation below 1/3 is achromatic (likely tuned down); achromatic V below 1/3 is Dark, above 2/3 Normal, between them Steel (the middle may need more room). A whole shading ramp of one color shares a hue, so it lands in one bucket and recolors together.
 
 Algorithm:
 1. For each original type, pick the sprite palette colors in that type's bucket.
