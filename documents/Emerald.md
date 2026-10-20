@@ -55,7 +55,9 @@ Two eco-terrorist factions, Magma and Aqua, argue industrial progress versus env
 
 ## McGuffin chain (from the Bulbapedia walkthrough)
 
-Source: Bulbapedia "Walkthrough:Pokémon Emerald", in tutorial order (Parts 1-5 so far), so a lock usually appears before its key. Each entry is `Thing — needs: <McGuffin> — gives: <McGuffin>`. A `needs?:` is a guess: the tutorial states no requirement, so it is the previous Thing's McGuffin, or the well-known game requirement where the tutorial hints at one (Surf, Cut). Only gates and plot items are listed; ordinary rewards (Potions, Berries, TMs, Poké Balls) are not McGuffins. Field use of an HM needs both the HM and its gym badge.
+Source: Bulbapedia "Walkthrough:Pokémon Emerald", in tutorial order (Parts 1-5 so far), so a lock usually appears before its key. Each entry is `Thing — needs: <McGuffin> — gives: <McGuffin>`. A `needs?:` is a guess: the tutorial states no requirement, so it is the previous Thing's McGuffin, or the well-known game requirement where the tutorial hints at one (Surf, Cut). Only gates and plot items are listed; ordinary rewards (Potions, Berries, TMs, Poké Balls) are not McGuffins. Field use of an HM needs both the HM and its gym badge. When a key and its lock are in different Parts, both entries say so: the key lists `unlocks: <lock> (Pn #m)` and the lock lists `key: <key> (Pn #m)`; a key not yet reached is `key: <name> (later Part)`. Entries are grouped under their Part heading; numbering continues across Parts.
+
+### Part 1
 
 1. Start in Littleroot — needs: nothing — gives: Littleroot access
 2. Birch's House, May/Brendan leaves — needs?: Littleroot access — gives: May/Brendan out helping Birch
@@ -63,7 +65,7 @@ Source: Bulbapedia "Walkthrough:Pokémon Emerald", in tutorial order (Parts 1-5 
 4. Birch's Lab, thanks — needs: Starter Pokémon — gives: Lab free to leave; go find May/Brendan on Route 103
 5. Route 101 to Oldale Town — needs?: Lab free to leave — gives: Oldale access
 6. Oldale west exit, sketch artist blocks Route 102 — needs?: Pokédex — gives: Route 102 access
-7. Route 103, east half (seawater divides it; also reached from Route 110) — needs?: Surf — gives: Route 103 east half access
+7. Route 103, east half (seawater divides it; also reached from Route 110) — needs?: Surf (key: Surf, later Part) — gives: Route 103 east half access
 8. Route 103 west half, Rival Battle 1 — needs?: Oldale access — gives: Rival Battle 1 done
 9. Birch's Lab, Pokédex and 5 Poké Balls — needs: Rival Battle 1 done — gives: Pokédex, Poké Balls (shops stock balls)
 10. Littleroot, Mom gives Running Shoes — needs: Pokédex — gives: Running Shoes
@@ -71,6 +73,8 @@ Source: Bulbapedia "Walkthrough:Pokémon Emerald", in tutorial order (Parts 1-5 
 12. Petalburg Gym, Norman and Wally catch Ralts — needs?: Petalburg access — gives: Wally has Ralts
 13. Petalburg Gym challenge (Norman) — needs: 4 Badges — gives: Gym 5 (Petalburg)
 14. Petalburg west exit, man in sunglasses blocks Route 104 — needs?: Wally has Ralts — gives: Route 104 access
+### Part 2
+
 15. Petalburg Woods, small trees restrict travel to the west side — needs?: Cut (HM01 + Stone Badge) — gives: Petalburg Woods full access
 16. Petalburg Woods, Devon researcher and Aqua grunt — needs?: Route 104 access — gives: Aqua grunt defeated
 17. Route 104 north, Flower Shop middle sister — needs?: Aqua grunt defeated — gives: Wailmer Pail
@@ -80,32 +84,38 @@ Source: Bulbapedia "Walkthrough:Pokémon Emerald", in tutorial order (Parts 1-5 
 21. Rustboro Gym (Roxanne) — needs?: Devon HQ upper floors access — gives: Stone Badge (Gym 1, enables Cut in the field)
 22. Rustboro, Stop Thief (Aqua grunt flees Devon) — needs: Stone Badge — gives: Route 116 access
 23. Route 116 at Rusturf Tunnel entrance, Peeko kidnapped — needs?: Route 116 access — gives: Peeko kidnapped
-24. Rusturf Tunnel, debris blocks the through-passage — needs: HM06 Rock Smash + Dynamo Badge — gives: HM04 Strength (from Wanda's boyfriend), tunnel open
+24. Rusturf Tunnel, debris blocks the through-passage — needs: HM06 Rock Smash (key: P5 #48) + Dynamo Badge (key: P5 #50) — gives: HM04 Strength (from Wanda's boyfriend), tunnel open
 25. Rusturf Tunnel, the Take-Down — needs?: Peeko kidnapped — gives: Devon Goods, Peeko rescued
+### Part 3
+
 26. Rustboro, Devon Corporation return — needs: Devon Goods — gives: PokéNav (Map, Condition, Match Call), Letter for Steven
 27. Rival Battle 2 (optional, outside the Poké Mart) — needs?: PokéNav Match Call — gives: Rival Battle 2 done
 28. Briney sails to Dewford (Routes 105-106) — needs: Letter — gives: Dewford access
 29. Dewford, Fisherman quiz — needs?: Dewford access — gives: Old Rod
 30. Dewford Gym (Brawly) — needs?: Old Rod — gives: Knuckle Badge (Gym 2, enables Flash in the field)
-31. Routes 105-108 sea, full exploration — needs: Surf + Balance Badge (fifth) — gives: Sea routes full access
+31. Routes 105-108 sea, full exploration — needs: Surf + Balance Badge (fifth) (key: both later Part) — gives: Sea routes full access
 32. Granite Cave 1F, Hiker near entrance — needs?: Knuckle Badge — gives: HM05 Flash
 33. Granite Cave underground (dark) — needs?: Flash — gives: Granite Cave underground access
 34. Granite Cave back chamber, Steven — needs: Letter — gives: Letter delivered
 35. Dewford pier, Briney to Slateport (Route 109 beach) — needs: Devon Goods — gives: Slateport access
+### Part 4
+
 36. Slateport, Oceanic Museum blocked by Aqua grunts — needs: Shipyard visit — gives: Museum access
 37. Slateport, Stern's Shipyard (Dock) — needs?: Slateport access — gives: Shipyard visit
 38. Oceanic Museum, deliver to Stern, fight two grunts, meet Archie — needs: Museum access (and $50, or enter free if broke) — gives: Devon Goods delivered, Scott registered
 39. Slateport Harbor, new ferry unfinished — needs?: Devon Goods delivered — gives: Ferry access (later)
-40. Slateport, buy Harbor Mail — needs?: Devon Goods delivered — gives: Harbor Mail
-41. Route 110, pedestrians limited to the lower path; Seaside Cycling Road — needs: Bike — gives: Seaside Cycling Road access
-42. Route 110, Trick House (Trick Master puzzle 1) — needs?: Slateport access — gives: Trick House puzzle 1 done
+40. Slateport, buy Harbor Mail — needs?: Devon Goods delivered — gives: Harbor Mail — unlocks: Coin Case (P5 #45)
+41. Route 110, pedestrians limited to the lower path; Seaside Cycling Road — needs: Bike (key: P5 #47) — gives: Seaside Cycling Road access
+42. Route 110, Trick House (Trick Master puzzle 1; a new puzzle opens with each Badge, most mazes also need field moves) — needs?: Slateport access — gives: Trick House puzzle 1 done — unlocks: puzzle 2 with the Dynamo Badge (P5 #51)
 43. Route 110, Rival Battle 3 — needs?: Trick House puzzle 1 done — gives: Itemfinder, Rival Battle 3 done
 44. Route 110 to Mauville — needs?: Rival Battle 3 done — gives: Mauville access
-45. Mauville, woman next to the Poké Mart — needs: Harbor Mail — gives: Coin Case
+### Part 5
+
+45. Mauville, woman next to the Poké Mart — needs: Harbor Mail (key: P4 #40) — gives: Coin Case
 46. Mauville Game Corner — needs: Coin Case — gives: Game Corner access
-47. Mauville, Rydel's Cycles (checks your dirty Running Shoes) — needs: Running Shoes — gives: Mach Bike or Acro Bike (Mach Bike climbs muddy slopes, e.g. Granite Cave)
-48. Mauville, Scientist in the southeast house — needs?: Mauville access — gives: HM06 Rock Smash
+47. Mauville, Rydel's Cycles (checks your dirty Running Shoes) — needs: Running Shoes — gives: Mach Bike or Acro Bike (Mach Bike climbs muddy slopes, e.g. Granite Cave) — unlocks: Seaside Cycling Road (P4 #41)
+48. Mauville, Scientist in the southeast house — needs?: Mauville access — gives: HM06 Rock Smash — unlocks: Rusturf debris (P2 #24), Granite Cave B2F rocks (P5 #51)
 49. Mauville Gym, Wally's Challenge outside — needs?: Mauville access — gives: Wally Battle done, Wally in PokéNav
-50. Mauville Gym (Wattson) — needs?: Wally Battle done — gives: Dynamo Badge (Gym 3, enables Rock Smash in the field)
-51. Granite Cave B2F cracked rocks and Trick House puzzle 2 (optional) — needs: Rock Smash / Dynamo Badge — gives: Nosepass encounters; puzzle 2
-52. Route 118, only the west side explorable — needs?: Surf — gives: Route 118 full access
+50. Mauville Gym (Wattson) — needs?: Wally Battle done — gives: Dynamo Badge (Gym 3, enables Rock Smash in the field) — unlocks: Rusturf debris (P2 #24), Trick House puzzle 2 (P5 #51)
+51. Granite Cave B2F cracked rocks (lock first mentioned in P3 #33) and Trick House puzzle 2 (lock in P4 #42) (optional) — needs: Rock Smash (key: P5 #48) / Dynamo Badge (key: P5 #50) — gives: Nosepass encounters; puzzle 2
+52. Route 118, only the west side explorable — needs?: Surf (key: Surf, later Part) — gives: Route 118 full access
