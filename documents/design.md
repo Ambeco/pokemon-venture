@@ -397,6 +397,21 @@ Next comes the Kanto arc: Team Rocket pushes human exploitation of nature versus
 
 Arcs from the other mainline games are added as far as possible.
 
+### Story state storage
+
+Emerald stores all story state as flags and vars in `SaveBlock1` (`include/global.h`), accessed through `src/minigames/event_data.c` (`FlagGet`/`FlagSet`, `VarGet`/`VarSet`) and driven by map scripts (`data/maps/*/scripts.inc`, `data/scripts/`) using `setflag`, `setvar`, `addvar`, `goto_if_*`, `switch` and `map_script_2 VAR, value, handler` (which fires a handler when a var holds a value, the usual way a stage triggers a cutscene).
+
+- Flags are single bits (`u8 flags[]`, 2400 flags / 300 bytes). IDs run `0x000`-`0x95F`: temp (cleared on map load), trainer-defeated (`0x500`+), system (`0x860`+, includes the badge flags `FLAG_BADGE01_GET`..`08`), and daily. About 380 are already unused. `FLAG_HIDE_*` flags control whether an NPC exists.
+- Vars are 16-bit (`u16 vars[]`, `0x4000`-`0x40FF` = 256 vars / 512 bytes, the first 16 temp). About 29 are already unused. A var is a stage counter for one storyline.
+- Limits: the saved ranges are fixed by `FLAGS_COUNT` and `VARS_END`, and growing them costs `SaveBlock1` (and so save sector) space. The ID space allows far more: flags up to `0x3FFF` and vars up to `0x7FFF` before the unsaved special ranges (`SPECIAL_FLAGS_START` `0x4000`, `SPECIAL_VARS_START` `0x8000`). IDs `>= SPECIAL_*_START` are RAM scratch and are not saved.
+- Emerald's own dependencies are implicit counters. Example: Norman's gym requires 4 badges because each of the first four gyms does `addvar VAR_PETALBURG_GYM_STATE, 1`, and Norman `switch`es on it. These are replaced by explicit lock/key checks when McGuffins are abstracted.
+
+Planned layout, once the Emerald vars are no longer needed (badge and HM flags stay as they are):
+
+- Main story: nearly linear, in two vars. Var A is the county currently "owning" the main storyline; var B is the player's stage within that county's story. A storyline may span counties while the first county still owns it (e.g. the opening: first Pokémon, go to the next town and back for the Pokédex and Poké Balls, then the Poké Ball tutorial).
+- Per-county subplot slot: 4 bits per county for a subplot of one of its special locations that is not tied to the main story. 24 counties x 4 bits = 96 bits = 6 vars. A second slot per county for a city subplot, plus one for a city-special-location subplot, would be 3 x 24 x 4 bits = 288 bits = 18 vars (at 4 slots per 16-bit var), which is the most it could need.
+- Cross-county and cross-location flag coordination is undecided.
+
 ### Subplots
 
 - Each special location has a hardcoded, thin subplot.
