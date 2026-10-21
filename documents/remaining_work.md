@@ -22,8 +22,9 @@ Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design.md, 
 - Bucket the ~133 `Emerald.md` lock/key entries into main arc, city subplot, special-location subplot, gym and gate; list the city and special-location ones to convert.
 - Paper-test the descriptor, accessor and adapter against Petalburg gym/Surf (implicit `addvar` badge counter plus an HM gift), Devon Goods (spans three towns; check the 4-bit slot) and Granite Cave/Flash; fix the format rather than special-casing.
 - Decide the open questions in design.md: building roles, whether runtime NPC spawning is needed beyond cutscenes, and the `$originCity`/`$priorCity` anchors.
-- Implement the descriptor, the stage accessor and the adapter over the existing Emerald vars, with tests; then the story-reference resolver and its build tool.
-- Done when: the Petalburg and Rustboro city subplots can be swapped for a test seed, both completable.
+- Implement the descriptor, the stage accessor and the read-only adapter over the existing Emerald vars, with tests; then the story-reference resolver and its build tool.
+- Port one city subplot through the descriptor with the game's behavior unchanged.
+- Done when: the accessor and adapter pass tests, one subplot is ported, and the NPC-talk query returns the right stage for it. The swap itself is Milestone 2's done-when.
 
 ### Milestone 1: NPC texts shuffled, still hinting the current arcs and subplot
 
@@ -40,7 +41,7 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 - Subplot data format (linear stages, hint texts, state texts, trigger place, rewards).
 - Generic cutscene runner (NPC runs up, text, optional battle/item, runs off) implemented once as a parameterized script/special, using map-script hooks for "finished route" and "left building" triggers.
 - Convert the first few Emerald subplots (Cut man, Briney's Wingull, Devon Goods, Old Rod quiz, Flash, Captain Stern) to the data format; assign a subplot per city at the world layer.
-- Done when: the same city gets different subplots for different seeds, each completable.
+- Done when: for some seed, two city-bucket subplots whose role and progression requirements both hosts meet are swapped, both are completable, and NPCs in both cities hint correctly; and the same city gets different subplots for different seeds, each completable.
 
 ### Milestone 3: Rival and story-arc cutscenes no longer at fixed locations
 
