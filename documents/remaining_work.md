@@ -15,7 +15,20 @@ Prerequisites for everything else (design.md stages 1-4: hardcoded Emerald count
 - Debug tool to print the whole world (counties, tiles, indices, McGuffins) as text, used by every later milestone.
 - Arc/subplot state storage: pick save vars/flags (bitpacked) for arc stage and subplot stages; verify against `SaveBlock` space.
 
+### Milestone 1a: Subplot abstraction groundwork
+
+Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design.md, "Subplot abstraction").
+
+- Bucket the ~133 `Emerald.md` lock/key entries into main arc, city subplot, special-location subplot, gym and gate; list the city and special-location ones to convert.
+- Paper-test the descriptor, accessor and adapter against Petalburg gym/Surf (implicit `addvar` badge counter plus an HM gift), Devon Goods (spans three towns; check the 4-bit slot) and Granite Cave/Flash; fix the format rather than special-casing.
+- Decide the open questions in design.md: building roles, whether runtime NPC spawning is needed beyond cutscenes, and the `$originCity`/`$priorCity` anchors.
+- Implement the descriptor, the stage accessor and the adapter over the existing Emerald vars, with tests; then the story-reference resolver and its build tool.
+- Done when: the Petalburg and Rustboro city subplots can be swapped for a test seed, both completable.
+
 ### Milestone 1: NPC texts shuffled, still hinting the current arcs and subplot
+
+Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when subplots are ported.
+
 
 - Text pools: per-theme, per-building-type, per-gym-type, "near"/"far" arc hints, arc-state thank-yous; parameterized with city and leader names.
 - A generic NPC talk special that picks a text from (county, city, NPC local id, arc states); replace fixed `msgbox` scripts in `data/maps/*/scripts.inc` with it, via a conversion tool rather than by hand.

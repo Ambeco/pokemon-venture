@@ -421,6 +421,46 @@ Planned layout, once the Emerald vars are no longer needed (badge and HM flags s
 
 Initial subplot content comes from Emerald (`Emerald.md`). More follow from Red/Blue/Yellow, then other games. In the far future, more subplots are modeled after TV show episodes.
 
+### Subplot abstraction
+
+Goal: city and special-location subplots become data that can be assigned to any place that meets their requirements, so subplots can be shuffled (stage 5) and NPC talk can be written once against the final interfaces. Done when, for some seed, Petalburg's and Rustboro's city subplots are swapped, both are completable, and NPCs in both cities hint correctly.
+
+#### Scope
+
+Only subplot beats need converting; trainer text, item pickups, trainer-defeated flags and NPC-hide flags stay as they are. The lock/key entries in `Emerald.md` fall into buckets:
+
+- Main arc (rival, Aqua/Magma, Wally): stays on Emerald's vars behind the adapter until the arc cutscenes are generalized (Milestone 3).
+- City subplot and special-location subplot: converted, and the only buckets needed to unblock subplot shuffling.
+- Gate (an HM, key item or blocking NPC that gates progress): one mechanism, a lock with a key.
+- Gym: a city subplot in the end state (the gym leader is met during the subplot, as in the anime and Black/White). Temporarily a separate fixed beat per city, so the Emerald story can be abstracted first.
+
+#### Placement and requirements
+
+- The end state picks a city's subplot early in city generation, so the city knows which story buildings to place.
+- Each subplot declares requirements on the cities or locations that may host it: required buildings (by role, e.g. gym, shop, house with an NPC), required HMs, biome, and terrain (mountain, coast, island). These requirements are expected to stay long term.
+- In the hardcoded stage, buildings are fixed, so a subplot is assigned only to a city whose existing buildings satisfy its requirements; subplots address buildings by role, not by map, and cutscene beats spawn their NPCs at runtime (a generic runner) rather than relying on NPCs placed in a particular map.
+
+#### Interfaces
+
+Defined for the end state, not for Emerald, so NPC talk never needs redesign:
+
+- Subplot descriptor: linear stages; per stage the hint texts, story-state texts and trigger place (by role); the requirements above; rewards; and the key/lock it produces.
+- Stage accessor: reads and writes a subplot's stage by slot (county plus slot kind, see "Story state storage"), never by subplot identity, so moving a subplot moves no state.
+- NPC-talk query: reads only descriptor, accessor and placement, and returns the text to say. It cannot tell a ported subplot from an adapter-backed one.
+- Adapter: lets an unported Emerald subplot answer the accessor from its old vars (e.g. Petalburg gym "open" is `VAR_PETALBURG_GYM_STATE >= 6`). Subplots are ported one at a time, each leaving `make check` green.
+
+#### Text references
+
+The script engine has no field-path variables. Text holds only the placeholders `{STR_VAR_1}`-`{STR_VAR_3}` (`gStringVar1-3`), a few fixed ones (`{PLAYER}`, `{RIVAL}`, `{AQUA}`...) expanded by `StringExpandPlaceholders` (`src/util/string_util.c`), and values that scripts put into the string vars with `buffer*` commands or a `special` function.
+
+Authored text uses story references such as `$originCity.gym.leader.name`, `$currentCity.nearbySmallCity.name`, `$priorCity.nearbyBigCity.theme.motto` or `$currentCity.pkmnCenter.nearBuildingName`. A reference is an anchor (origin, current, or prior place of the subplot) plus a path through the generated world data. A build tool turns each reference in a template into a compact reference id, and a single talk special resolves the ids to strings into the string vars. A template therefore holds at most three references, unless more placeholder ids are added.
+
+#### Open
+
+- Whether the 4-bit per-county slot can represent a subplot spanning several counties (Devon Goods spans Rusturf, Rustboro and Slateport), or such a subplot belongs to the main arc.
+- Which building roles exist, and whether runtime NPC spawning is needed beyond cutscenes.
+- The anchor definitions for `$originCity` and `$priorCity` when a subplot has no origin city.
+
 ### NPC dialogue
 
 - Each named building has a short list of NPC talking points.
@@ -601,6 +641,28 @@ The existing tips man at each gym entrance also gives party-specific advice from
 ## Alternatives considered
 
 _None yet._
+
+### Subplots bound to their original maps (shuffling only by swapping maps)
+
+Keep each subplot's NPCs and events in its Emerald maps, and shuffle by swapping whole cities.
+
+Pros:
+- No new runtime NPC machinery.
+
+Cons:
+- Subplots cannot move between cities, which is what stage 5 needs.
+- Conflicts with procedural buildings, where maps are not fixed.
+
+### Runtime-spawned NPCs for every subplot beat
+
+The generic cutscene runner creates every subplot NPC and event at runtime.
+
+Pros:
+- A subplot is independent of the host city's buildings.
+
+Cons:
+- Subplots tied to a building (a gym, a shop, a house) lose their interiors.
+- Large rewrite of every subplot up front.
 
 ### Generator-first development
 
