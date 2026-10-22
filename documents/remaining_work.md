@@ -22,7 +22,9 @@ Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design.md, 
 - Bucket the ~133 `Emerald.md` lock/key entries into main arc, city subplot, special-location subplot, gym and gate; list the city and special-location ones to convert.
 - Paper-test the descriptor, accessor and adapter against Petalburg gym/Surf (implicit `addvar` badge counter plus an HM gift), Devon Goods (spans three towns, so main arc or split; confirm the split) and Granite Cave/Flash; fix the format rather than special-casing.
 - Hardcode the planner's inputs for Emerald (county-story-indices, the hardcoded host range per item ordinal, the per-kind host masks, the callback chance; design.md, "Main plot planner") so the real resolver runs, and map each resulting step to the Emerald flags or vars that mean it is done, for the adapter.
-- Decide the open questions in design.md: building roles, whether runtime NPC spawning is needed beyond cutscenes, and the `$originCity`/`$priorCity` anchors.
+- Enumerate Emerald's blocker McGuffin locks (a person standing in the way until a boolean) and its traversal-item McGuffins (HMs other than Fly, Wailmer Pail, Go-Goggles, Devon Scope, ...); keep the special-item and HM McGuffins fixed for the Emerald stage; generate new blocker texts later toward a pool of about 96.
+- When coding the quota ranges (gyms, HMs, rival and Rocket beats, utility items), use vaguely reasonable placeholder ranges and list every range explicitly for the user to check before moving on.
+- Decide the open questions in design.md: building roles and whether runtime NPC spawning is needed beyond cutscenes.
 - Implement the descriptor, the stage accessor and the read-only adapter over the existing Emerald vars, with tests; then the story-reference resolver and its build tool.
 - Port one optional, stored-slot subplot (not a main-line one, since the main-story-index is not maintained until Milestone 3) through the descriptor with the game's behavior unchanged.
 - Done when: the accessor and adapter pass tests, one subplot is ported, and the NPC-talk query returns the right stage for it. The swap itself is Milestone 2's done-when.
