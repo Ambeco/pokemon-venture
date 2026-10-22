@@ -397,6 +397,37 @@ Next comes the Kanto arc: Team Rocket pushes human exploitation of nature versus
 
 Arcs from the other mainline games are added as far as possible.
 
+### Main plot planner
+
+The main story is a single ordered list of steps, produced by a planner that runs on the world layers (it uses only counties' story indices, gym assignments, HM and special-location placement, never any county's private details). Each step names a responsible county and an action: give a McGuffin (specified, like HM Cut, or unspecified), unlock the routes into a county, give a gym, or place a rival or boss battle. For example:
+
+```
+0. Littleroot County gives [Pokémon].
+1. Littleroot County unblocks Petalburg (city only).
+2. Petalburg County gives [package].
+3. Littleroot County unblocks Poké Balls.
+4. Littleroot County unlocks Petalburg County.
+5. Petalburg County unlocks Rustboro County.
+6. Rustboro County gives [HM Cut].
+7. Rustboro County gives [Gym 1].
+8. Rustboro County places Rival Battle 2.
+9. Rustboro County unlocks the port.
+10. Rustboro County unlocks Dewford County.
+```
+
+Rules:
+
+- Routes between counties are locked by default.
+- A step makes one county responsible for providing a McGuffin (or unlocking something) to advance the story. The main-story-index var says how many steps are complete. A county may be responsible for non-consecutive steps, and a step may involve other counties (the opening's Wally scene is a Littleroot-County step that plays in Petalburg).
+- Unlocking and blocking inside a county, and which place hosts a step, is entirely that county's private choice.
+- *When* an inter-county route unlocks is fixed by the planner's step order. How it is blocked and unblocked is usually left to the county, but a step may specify it (HM Cut).
+- A county plans its subplots independently of the others, because nothing it injects into another county is decided in its private layer: any step that touches a foreign county is assigned by the planner, in the county headers, before private details are generated.
+- Cross-county McGuffin ids derive from the step index (a hash of the seed and the index), so both counties on a route agree on its lock without reading each other's private data. County-internal McGuffins draw from a pool reserved for that county, so two counties never reuse an id. The pools come from a large McGuffin list partitioned by a coprime-stride mapping like the species-to-biome one.
+- Keys follow the "key at r-1" rule of "Story graph": the key for a lock is produced by the immediately preceding step.
+- NPC hint text asks the planner for the step at the current main-story-index, so the planner's step table is the top layer of the subplot descriptor (see "Subplot abstraction").
+
+Open: whether each county header stores its own step indices or they are recomputed from the planner on demand; whether the planner needs layer 4 (connections) for steps such as "unlocks the port"; and how many distinct McGuffins the pool needs.
+
 ### Story state storage
 
 Emerald stores all story state as flags and vars in `SaveBlock1` (`include/global.h`), accessed through `src/minigames/event_data.c` (`FlagGet`/`FlagSet`, `VarGet`/`VarSet`) and driven by map scripts (`data/maps/*/scripts.inc`, `data/scripts/`) using `setflag`, `setvar`, `addvar`, `goto_if_*`, `switch` and `map_script_2 VAR, value, handler` (which fires a handler when a var holds a value, the usual way a stage triggers a cutscene).
@@ -408,9 +439,9 @@ Emerald stores all story state as flags and vars in `SaveBlock1` (`include/globa
 
 Planned layout, once the Emerald vars are no longer needed (badge and HM flags stay as they are):
 
-- Main story: nearly linear, in two vars. Var A is the county currently "owning" the main storyline; var B is the player's stage within that county's story. A storyline may span counties while the first county still owns it (e.g. the opening: first Pokémon, go to the next town and back for the Pokédex and Poké Balls, then the Poké Ball tutorial).
-- Per-county subplot slot: 4 bits per county for a subplot of one of its special locations that is not tied to the main story. 24 counties x 4 bits = 96 bits = 6 vars. A second slot per county for a city subplot, plus one for a city-special-location subplot, would be 3 x 24 x 4 bits = 288 bits = 18 vars (at 4 slots per 16-bit var), which is the most it could need.
-- Cross-county and cross-location flag coordination is undecided.
+- Main story: one var, the main-story-index, counting the steps of the main plot planner completed (see "Main plot planner"). Nothing else about the main line is stored.
+- County-internal state: each county's own subplots keep their stage in vars reserved for that county, which no other county reads. 4-bit slots would need at most 18 vars (3 subplots x 24 counties x 4 bits, 4 slots per var); with most of Emerald's ~220 story vars retired, a whole var per city or special location (about 48) is affordable, and is simpler than packing. Vars are allocated in named regions as Emerald's vars are retired. A var per route (fewer than 79) would also fit, and is left for a later version.
+- Flags for county-internal McGuffins come from per-county reserved pools (see "Main plot planner").
 
 ### Subplots
 
@@ -447,7 +478,7 @@ Only subplot beats need converting; trainer text, item pickups, trainer-defeated
 Defined for the end state, not for Emerald, so NPC talk never needs redesign:
 
 - Subplot descriptor: linear stages; per stage the hint texts, story-state texts and trigger place (by role); the requirements above; rewards; and the key/lock it produces.
-- Stage accessor: reads and writes a subplot's stage by slot (county plus slot kind, see "Story state storage"), never by subplot identity, so moving a subplot moves no state. A subplot on the main line has no stored state: its stage is derived from the main-story position vars (see "Story state storage"). Only optional subplots off the main line (e.g. a special location's) use the stored 4-bit slots. Callers cannot tell the difference. The main-story position vars are not maintained until the main arc is ported (Milestone 3), so until then main-line stages come from the adapter over Emerald's vars.
+- Stage accessor: reads and writes a subplot's stage by slot (county plus slot kind, see "Story state storage"), never by subplot identity, so moving a subplot moves no state. A subplot that is a main-plot step has no stored state: its stage is derived from the main-story-index (see "Main plot planner"). Subplots internal to a county use that county's reserved vars. Callers cannot tell the difference. The main-story-index is not maintained until the main arc is ported (Milestone 3), so until then main-line stages come from the adapter over Emerald's vars.
 - NPC-talk query: reads only descriptor, accessor and placement, and returns the text to say. It cannot tell a ported subplot from an adapter-backed one.
 - Adapter: lets an unported Emerald subplot answer the accessor from its old vars (e.g. Petalburg gym "open" is `VAR_PETALBURG_GYM_STATE >= 6`). It is read-only, so NPCs can hint at unported subplots, but only ported subplots can be shuffled. Subplots are ported one at a time, each leaving `make check` green.
 
@@ -640,6 +671,17 @@ The existing tips man at each gym entrance also gives party-specific advice from
 - Species found in the current county, at an equal or lower route-story-index, with a type advantage over the gym type.
 
 ## Alternatives considered
+
+### Main story owned by one county at a time
+
+A var holds the county owning the main storyline and a second var the stage within it; a storyline may span counties while its first county still owns it.
+
+Pros:
+- Very little state.
+
+Cons:
+- A county's story would inject elements into foreign counties, which would have to be decided in the county headers and could not be deferred to private details, breaking independent county generation.
+- The story circles back to counties (Petalburg's tutorial and gym 5), which a single owner cannot express.
 
 ### Subplots bound to their original maps (shuffling only by swapping maps)
 
