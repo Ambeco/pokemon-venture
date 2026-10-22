@@ -21,7 +21,7 @@ Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design.md, 
 
 - Bucket the ~133 `Emerald.md` lock/key entries into main arc, city subplot, special-location subplot, gym and gate; list the city and special-location ones to convert.
 - Paper-test the descriptor, accessor and adapter against Petalburg gym/Surf (implicit `addvar` badge counter plus an HM gift), Devon Goods (spans three towns, so main arc or split; confirm the split) and Granite Cave/Flash; fix the format rather than special-casing.
-- Hardcode the planner's inputs for Emerald (county chapters, gym table, McGuffin table, beat lists; design.md, "Main plot planner") so the real resolver runs, and map each resulting step to the Emerald flags or vars that mean it is done, for the adapter.
+- Hardcode the planner's inputs for Emerald (county-story-indices, the hardcoded block range per kind ordinal, the per-kind masks; design.md, "Main plot planner") so the real resolver runs, and map each resulting step to the Emerald flags or vars that mean it is done, for the adapter.
 - Decide the open questions in design.md: building roles, whether runtime NPC spawning is needed beyond cutscenes, and the `$originCity`/`$priorCity` anchors.
 - Implement the descriptor, the stage accessor and the read-only adapter over the existing Emerald vars, with tests; then the story-reference resolver and its build tool.
 - Port one optional, stored-slot subplot (not a main-line one, since the main-story-index is not maintained until Milestone 3) through the descriptor with the game's behavior unchanged.
