@@ -157,7 +157,7 @@ Within a county, the "first" city/location is the one the main route into the co
 Between counties:
 
 - The route gets its index from the higher county's city or location, and that place gets the same index.
-- Whether and when the route opens is not decided by the index: the main plot planner owns every inter-county lock (see "Main plot planner"). By default the planner opens the routes into a county with one step, "unlocks the routes into county c", in a chapter after the previous county-story-index's own key (if any) was given.
+- Whether and when the route opens is not decided by the index: a route is open when both its end locations are unlocked, and the main plot planner owns each county's first-location unlock (see "Main plot planner"), placed in a chapter after the previous county-story-index's own key (if any) was given.
 
 #### Route-story-index edge cases
 
@@ -406,7 +406,8 @@ Structure. A main-story-index is `chapter * 8 + slot`, over a wide range (0-511,
 
 | Slot | Step |
 |---|---|
-| 0-3 | Unlock the routes into a county (up to 4 counties per chapter) |
+| 0 | Unlock a county's first location (one county per chapter) |
+| 1-3 | Reserved for further step kinds (e.g. a second McGuffin or beat) |
 | 4 | A county gives a McGuffin (an HM or a key item) |
 | 5 | Story-arc beat (Team Rocket, Aqua/Magma) |
 | 6 | Rival beat |
@@ -416,14 +417,14 @@ A slot with nothing assigned is a no-op: the index skips it on advance, which is
 
 What each slot resolves to is a pure function of small world data:
 
-- Unlock slots: each county header holds a 6-bit chapter (24 counties = 18 bytes); its rank among the counties of its chapter picks the slot. Chapters are monotone in county-story-index.
+- Unlock slot: each county header holds a 6-bit chapter (24 counties = 18 bytes) at which its first location unlocks, in slot 0. Chapters are monotone in county-story-index and distinct, so no ranking is needed. Only the 23 non-starter counties need an unlock step, not about 4 routes each.
 - Slot 4: a table of the HMs and key items (at most about a dozen entries), each with its giving county and chapter, from layer 2's McGuffin links (the Surf lock, the jump key and lock) and the HM assignments.
 - Slot 5 and 6: the story arc's and the rival arc's beat lists, each beat anchored relative to gyms ("after gym k", so chapter splits cannot break it) and to a kind of place ("needs a special location of kind X", "needs a city"); a county is chosen by hashing the seed among the unlocked counties that meet the anchor.
 - Slot 7: the gym table, mapping gym k to its county and chapter (8 entries). Chapter numbers need not equal gym numbers, since chapters split.
 
 Rules:
 
-- Routes between counties are locked by default.
+- A route has no lock of its own: it is open when both its end locations are unlocked. A county's unlock step opens its first location, and so immediately every route into it from already-unlocked counties; when a county later unlocks another of its locations (its own private subplot), every route from an unlocked county into that location opens at once. A route between two locations that are already unlocked is open from the start.
 - A step makes one county responsible. A step is hosted only in its responsible county's own places, or on an inter-county route bordering that county (layer 6 allows this). A beat that plays in Petalburg is a Petalburg step, never a Littleroot one.
 - The responsible county for an unlock is the previous county-story-index's, or, where county-story-indices jump, the county that holds the key: it provides the specific McGuffin and the unlocked county knows to require it.
 - Unlocking inside a county, and which place hosts a step, is entirely that county's private choice. When an inter-county route unlocks is fixed by the step order; how it is blocked is usually left to the county, but a step may specify it (HM Cut).
@@ -471,7 +472,7 @@ Opening, as slots (illustrative):
 4.0  unlock the port; 4.1 unlock Dewford
 ```
 
-Open: how many chapters the end game needs; how the opening's Littleroot and Petalburg counties split the tutorial beats; how many unlock slots a chapter needs after forced splits (the 4 may need to grow); whether the arc and rival beat lists are tabulated per chapter or generated.
+Open: how many chapters the end game needs; how the opening's Littleroot and Petalburg counties split the tutorial beats; what slots 1-3 are used for; whether an HM obstacle on a route (a Cut tree) counts as the unlock of the location behind it; whether the arc and rival beat lists are tabulated per chapter or generated.
 
 ### Story state storage
 
