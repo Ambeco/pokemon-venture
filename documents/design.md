@@ -157,7 +157,7 @@ Within a county, the "first" city/location is the one the main route into the co
 Between counties:
 
 - The route gets its index from the higher county's city or location, and that place gets the same index.
-- Whether and when the route opens is not decided by the index: a route is open when both its end locations are unlocked, and the main plot planner owns each county's first-location unlock (see "Main plot planner"), placed in a chapter after the previous county-story-index's own key (if any) was given.
+- Whether and when the route opens is not decided by the index: a route is gated by the unlock condition of its later end location (see "Main plot planner"), and the main plot planner owns each county's first-location unlock (see "Main plot planner"), placed in a chapter after the previous county-story-index's own key (if any) was given.
 
 #### Route-story-index edge cases
 
@@ -424,7 +424,7 @@ What each slot resolves to is a pure function of small world data:
 
 Rules:
 
-- A route has no lock of its own: it is open when both its end locations are unlocked. A county's unlock step opens its first location, and so immediately every route into it from already-unlocked counties; when a county later unlocks another of its locations (its own private subplot), every route from an unlocked county into that location opens at once. A route between two locations that are already unlocked is open from the start.
+- Locks live on routes, never on locations. A location's own tiles and data never change when it unlocks; what changes is every route into it. The route generator therefore enforces the unlock condition of the route's later-unlocking end location (its key, e.g. the McGuffin id) as a gate placed at the route's earlier-unlocking end, so the player cannot reach the later location until the key is held. Conceptually a route is open exactly when both its end locations are unlocked, so a county's unlock step (of its first location) opens every route into it at once, and a county's private unlock of another location opens every route into that one; a route between two already-unlocked locations has no gate. Which end is earlier comes from the planner's unlock order (the county chapters) for first locations, and from the counties' private order inside a county; inter-county routes may read both counties' data (layer 6), so this is known where the route is built.
 - A step makes one county responsible. A step is hosted only in its responsible county's own places, or on an inter-county route bordering that county (layer 6 allows this). A beat that plays in Petalburg is a Petalburg step, never a Littleroot one.
 - The responsible county for an unlock is the previous county-story-index's, or, where county-story-indices jump, the county that holds the key: it provides the specific McGuffin and the unlocked county knows to require it.
 - Unlocking inside a county, and which place hosts a step, is entirely that county's private choice. When an inter-county route unlocks is fixed by the step order; how it is blocked is usually left to the county, but a step may specify it (HM Cut).
