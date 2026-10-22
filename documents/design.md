@@ -407,7 +407,8 @@ Structure. A main-story-index is `chapter * 8 + slot`, over a wide range (0-511,
 | Slot | Step |
 |---|---|
 | 0 | Unlock a county's first location (one county per chapter) |
-| 1-3 | Reserved for further step kinds (e.g. a second McGuffin or beat) |
+| 1 | A county gives a guaranteed utility item (Bicycle, fishing rods, ...) |
+| 2-3 | Reserved for further step kinds (e.g. a second McGuffin or beat) |
 | 4 | A county gives a McGuffin (an HM or a key item) |
 | 5 | Story-arc beat (Team Rocket, Aqua/Magma) |
 | 6 | Rival beat |
@@ -419,6 +420,8 @@ What each slot resolves to is a pure function of small world data:
 
 - Unlock slot: each county header holds a 6-bit chapter (24 counties = 18 bytes) at which its first location unlocks, in slot 0. Chapters are monotone in county-story-index and distinct, so no ranking is needed. Only the 23 non-starter counties need an unlock step, not about 4 routes each.
 - Slot 4: a table of the McGuffins the planner schedules (at most about a dozen entries), each with its giving county and chapter, from layer 2's McGuffin links (the jump key and lock, the Surf lock) and the HM assignments.
+
+Guaranteed utility items. Some items appear in every game in a typical window but gate nothing: the Bicycle, the Old, Good and Super Rods, the Itemfinder, the Coin Case, the Exp. Share, the Town Map and the PokéNav. Each is a slot 1 step, scheduled in an index window (the Bicycle in the first half, the rods early, middle and late) with the same quota guarantee as the HMs. They are not locks, so they never affect the soft-lock proof, and a county may still choose to use one as an optional gate (a ledge or Cycling Road that needs the Bicycle). Items that do gate something in Emerald (Go-Goggles for the desert, the Devon Scope) are ordinary McGuffins. The set is open: any other item that every game should hand out belongs to this list.
 
 HMs. Apart from Surf, an HM is an ordinary McGuffin key: a story step may give it to unlock the gate on the routes to the next county, and any county may also hide optional items behind HM obstacles on its routes, unrelated to any subplot. The planner does not need to place HMs for any gating reason; it only has to guarantee that every HM is given somewhere before the end game, since a game with missing HMs would feel wrong. Each HM's giving step is then scheduled like any key (before the lock it opens, if any). Surf is the exception, because ocean counties and islands need water routes: it is placed by the layer-2 rule (see "County-story-index assignment"), so ocean counties' route generation can assume the player holds Surf and needs no ferry or bridge special cases, while counties indexed before Surf's lock never rely on water crossings.
 - Slot 5 and 6: the story arc's and the rival arc's beat lists, each beat anchored relative to gyms ("after gym k", so chapter splits cannot break it) and to a kind of place ("needs a special location of kind X", "needs a city"); a county is chosen by hashing the seed among the unlocked counties that meet the anchor.
@@ -474,7 +477,7 @@ Opening, as slots (illustrative):
 4.0  unlock the port; 4.1 unlock Dewford
 ```
 
-Open: how many chapters the end game needs; how the opening's Littleroot and Petalburg counties split the tutorial beats; what slots 1-3 are used for; whether an HM obstacle on a route (a Cut tree) counts as the unlock of the location behind it; whether the arc and rival beat lists are tabulated per chapter or generated.
+Open: how many chapters the end game needs; how the opening's Littleroot and Petalburg counties split the tutorial beats; what slots 2-3 are used for; whether an HM obstacle on a route (a Cut tree) counts as the unlock of the location behind it; whether the arc and rival beat lists are tabulated per chapter or generated.
 
 ### Story state storage
 
