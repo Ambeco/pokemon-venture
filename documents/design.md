@@ -15,7 +15,9 @@ Generation is a stack of layers, each computed only from the layers above it, ne
 1. World map: terrain types and biomes per county, from the PRNG seeded on the player ID alone.
 2. World map: county-story-indices, from layer 1 plus a couple of McGuffin boundaries.
 3. World map: county populations, city locations and names, and special location IDs and positions, from layers 1-2.
-4. World map: which counties connect to which, from layers 1-3 (using only county-story-index adjacency and the capital, never planner steps); then the main plot planner, from layers 1-4 (see "Main plot planner"). The planner's steps are stored in or derivable from the county headers before layer 5 begins.
+4. World map: which counties connect to which, from layers 1-3 (using only county-story-index adjacency and the capital, never planner data).
+
+The main plot planner (see "Main plot planner") needs no routes: its chapters, gym order and McGuffin tables come from layers 1-3 (layer 3 also raises populations and reserves special locations so the planner's guarantees hold), and layer 4's route rules already connect each county to the next county-story-index.
 5. Each county: the details of its own world tiles (including exact route placement) and its route-story-indices, from world layers 1-4 only. No county layer depends on any other county's data, including an adjacent county's route-story-indices. Counties may have sub-layers like the world map.
 6. Field maps: generated from world layers 1-4 and the county they are inside, never from another county's data or from adjacent field maps. The exception is inter-county routes, which may use the data of the two counties they connect.
 7. Further layers continue the same pattern.
@@ -121,7 +123,7 @@ First pick R, the number of reserved legendary counties: 3 or 4 (the 2-3 post-7t
 5. If the walk dead-ends with every remaining unindexed county having 0 indexed neighbors before the target count is reached, the next indices are assigned to those counties at random until it is.
 6. The Elite Four county takes the next index, then the R counties still unindexed take the last R indices, and become the reserved legendary counties (see Reserved legendary locations). Which of them is the solo post-Elite-Four county, and how the others tie into the gym order, is decided by a separate algorithm.
 
-Ocean counties are skipped in steps 3-5 until the next index is 15 or higher, as in mainline games where Surf opens the sea late. The first ocean county to be indexed gets a Surf McGuffin lock, and the county with the previous index (its index minus 1) gets the Surf McGuffin key. If only ocean counties remain as candidates before index 15, the first one is taken anyway, with the same lock and key.
+Ocean counties are skipped in steps 3-5 until the next index is 15 or higher, as in mainline games where Surf opens the sea late. The first ocean county to be indexed gets a Surf McGuffin lock, and the county with the previous index (its index minus 1) gets the Surf McGuffin key. If only ocean counties remain as candidates before index 15, the first one is taken anyway, with the same lock and key. So the first ocean county is indexed when the land walk has no candidate left or the index reaches 15, whichever comes first (see "Main plot planner").
 
 #### Kanto reference pattern
 
@@ -399,44 +401,60 @@ Arcs from the other mainline games are added as far as possible.
 
 ### Main plot planner
 
-The main story is a single ordered list of steps, produced by a planner that runs on the world layers (it uses only counties' story indices, gym assignments, HM and special-location placement, never any county's private details). Each step names a responsible county and an action: give a McGuffin (specified, like HM Cut, or unspecified), unlock the routes into a county, give a gym, or place a rival or boss battle. For example:
+The main story is an ordered sequence of steps, counted by one var, the main-story-index. The sequence is computed from a few small tables, never stored as a step list. It uses only layers 1-3 and the McGuffin links of layer 2, not the routes: the route rules already guarantee a route from each county to the next county-story-index, and the planner follows that order.
 
-```
-0. Littleroot County gives [Pokémon].
-1. Littleroot County unblocks Petalburg (city only).
-2. Petalburg County gives [package].
-3. Littleroot County unblocks Poké Balls.
-4. Littleroot County unlocks Petalburg County.
-5. Petalburg County unlocks Rustboro County.
-6. Rustboro County gives [HM Cut].
-7. Rustboro County gives [Gym 1].
-8. Rustboro County places Rival Battle 2.
-9. Rustboro County unlocks the port.
-10. Rustboro County unlocks Dewford County.
-```
+Structure. A main-story-index is `chapter * 8 + slot`. Chapter 0 is the opening, chapters 1-8 each end with a gym, and later chapters cover the Elite Four and end game. Each slot has one fixed kind, so two steps never share an index:
+
+| Slot | Step |
+|---|---|
+| 0-3 | Unlock the routes into a county (up to 4 counties per chapter) |
+| 4 | A county gives a McGuffin (an HM or a key item) |
+| 5 | Story-arc beat (Team Rocket, Aqua/Magma) |
+| 6 | Rival beat |
+| 7 | Gym |
+
+A slot with nothing assigned is a no-op: the index skips it on advance, which is a constant-time check. The slot order puts unlocks before McGuffins and gyms last in a chapter, so a chapter reads "explore the newly opened counties, find the McGuffin, meet the story, win the gym".
+
+What each slot resolves to is a pure function of small world data:
+
+- Unlock slots: each county header holds a 4-bit chapter (24 counties = 12 bytes); its rank among the counties of its chapter picks the slot. Chapters are monotone in county-story-index.
+- Slot 4: a table of the HMs and key items (at most about a dozen entries), each with its giving county and chapter, from layer 2's McGuffin links (the Surf lock, the jump key and lock) and the HM assignments.
+- Slot 5 and 6: the story arc's and the rival arc's beat lists, each beat tagged with a chapter; a county is chosen by hashing the seed among the unlocked counties that meet the beat's anchor ("needs a special location of kind X", "needs a city").
+- Slot 7: the gym order, one county per gym (8 entries).
 
 Rules:
 
 - Routes between counties are locked by default.
-- Story-arc beats (Team Rocket's Mt. Moon heist, the Lavender tragedy and the Silph takeover; Team Aqua and Magma's beats) and rival battles are steps like any other. Each arc supplies an ordered beat list, each beat with an anchor ("after gym k", "needs a special location of kind X", "needs a city") and a required kind of place; the planner merges the arc's and the rival arc's beats into the step list in order and assigns each to a county whose places meet the anchor, as subplot requirements do. A beat's own cutscene then plays in that county's places.
-- A step makes one county responsible for providing a McGuffin (or unlocking something) to advance the story. The main-story-index var says how many steps are complete. A county may be responsible for non-consecutive steps. A step is hosted only in its responsible county's own places, or on an inter-county route bordering that county (layer 6 allows this). A beat that plays in Petalburg is a Petalburg step, never a Littleroot one.
-- Unlocking and blocking inside a county, and which place hosts a step, is entirely that county's private choice.
-- *When* an inter-county route unlocks is fixed by the planner's step order. How it is blocked and unblocked is usually left to the county, but a step may specify it (HM Cut).
-- A county plans its subplots independently of the others, because nothing it injects into another county is decided in its private layer: any step that touches a foreign county is assigned by the planner, in the county headers, before private details are generated.
-- Cross-county McGuffin ids derive from the step index (a hash of the seed and the index), so both counties on a route agree on its lock without reading each other's private data. County-internal McGuffins draw from a pool reserved for that county, so two counties never reuse an id. The pools come from a large McGuffin list partitioned by a coprime-stride mapping like the species-to-biome one.
-- Keys follow the "key at r-1" rule of "Story graph": the key for a lock is produced by the immediately preceding step.
-- NPC hint text asks the planner for the step at the current main-story-index, so the planner's step table is the top layer of the subplot descriptor (see "Subplot abstraction").
-- The McGuffin partition for cross-county ids (hashed from step indices) is disjoint from the per-county pools, so a hash never collides with a county's reserved id.
+- A step makes one county responsible. A step is hosted only in its responsible county's own places, or on an inter-county route bordering that county (layer 6 allows this). A beat that plays in Petalburg is a Petalburg step, never a Littleroot one.
+- The responsible county for an unlock is the previous county-story-index's, or, where county-story-indices jump, the county that holds the key: it provides the specific McGuffin and the unlocked county knows to require it.
+- Unlocking inside a county, and which place hosts a step, is entirely that county's private choice. When an inter-county route unlocks is fixed by the step order; how it is blocked is usually left to the county, but a step may specify it (HM Cut).
+- A key's chapter is strictly earlier than the chapter of the lock it opens. This covers jumps, the Surf lock, and gating steps in the opening (the Pokédex and Poké Balls, given in an early chapter, gate the next county's unlock in a later one). Chapters are split where needed, so a chapter holds at most one McGuffin.
+- An HM's badge comes from a gym in a chapter no later than the chapter before the HM's lock opens.
+- Cross-county McGuffin ids derive from the step index (a hash of the seed and the index), so both counties on a route agree on its lock without reading each other's private data. County-internal McGuffins draw from per-county reserved pools, partitioned by a coprime-stride mapping like the species-to-biome one. The two partitions are disjoint, so a hash never collides with a county's reserved id.
+- NPC hint text asks the planner for the step at the current main-story-index, so the planner is the top layer of the subplot descriptor (see "Subplot abstraction").
 
-Relation to the route-story-index. The main-story-index governs everything between counties; the route-story-index orders places only within a county (and as a level and difficulty hint). The soft-lock proof of "Story graph" is an induction over planner steps instead:
+Guarantees the earlier layers must provide:
 
-1. A step may be assigned only to a county that an earlier step has already unlocked, or to the start county.
-2. A step's gate opens exactly when the main-story-index reaches the step, and the step's responsible county produces its key (or unlocks its routes) within places already reachable.
-3. The index only grows, so reachability only grows, and every step is reachable and completable when reached.
+- Counties 0 and 1 both have a city (population at least 1) and are adjacent, with their cities close to each other and any special location further away, so a direct route between them exists.
+- Gym k's city lies in a county unlocked by chapter k. Layer 3 raises populations where needed so that the counties unlocked by chapter k contain at least k+1 cities, then assigns gyms greedily.
+- Story-arc beats claim special locations or cities in layer 3, as reserved legendary locations do, so an anchor can always be met.
 
-Circle-backs (Norman's gym) are therefore fine: a gym is a step, and a counted requirement such as "4 badges" is re-expressed as "after the 4th gym step".
+Surf and the end of the land. By the ocean-skip rule, no ocean county is indexed before index 15, and the first one is locked on Surf from the county with the previous index. The Surf key is therefore given in that county's chapter, and the ocean county unlocks in a later chapter, so the player has finished every land county indexed before it. To make that coincide with running out of land counties, the first ocean county is indexed when the land walk has no candidate left or the index reaches 15, whichever comes first. Land counties indexed after the Surf lock are optional extras reachable on land. A seed-sweep test measures the gap between Surf's chapter and the last pre-Surf land county.
 
-Open: whether each county header stores its own step indices or they are recomputed from the planner on demand; and how many distinct McGuffins the pool needs.
+Opening, as slots (illustrative):
+
+```
+0.4  Littleroot gives [Pokémon]
+1.0  unlock Petalburg
+1.4  Petalburg gives [package]
+2.4  Littleroot gives [Pokédex and Poké Balls]
+3.0  unlock Rustboro
+3.4  Rustboro gives [HM Cut]
+3.7  Rustboro gym (gym 1)
+4.0  unlock the port; 4.1 unlock Dewford
+```
+
+Open: how many chapters the end game needs; how the opening's Littleroot and Petalburg counties split the tutorial beats; how many unlock slots a chapter needs after forced splits (the 4 may need to grow); whether the arc and rival beat lists are tabulated per chapter or generated.
 
 ### Story state storage
 
