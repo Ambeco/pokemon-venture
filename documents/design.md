@@ -119,11 +119,11 @@ First pick R, the number of reserved legendary counties: 3 or 4 (the 2-3 post-7t
 1. Pick a mountainous edge county, preferring a corner, as the Elite Four. It is set aside until the walk ends.
 2. Pick a land county toward an edge as the starting town. It gets index 0 and becomes the walk's current position.
 3. From the current position, look at the neighbors without an index. If any has exactly 1 unindexed neighbor, pick randomly among those; otherwise pick a random unindexed neighbor. Random choice makes the path snake, and preferring 1 fills corners first, which reduces dead ends. The pick gets the next index and becomes the current position.
-4. At a dead end (no unindexed neighbors), the current county gets a McGuffin key. The next county is the closest keyless county that still has 1+ unindexed neighbors, and it gets the matching McGuffin lock. The walk continues from there.
+4. At a dead end (no unindexed neighbors), the current county gets a McGuffin key. The next county is the closest keyless county that still has 1+ unindexed non-ocean neighbors (before Surf is placed), and it gets the matching McGuffin lock. The walk continues from there.
 5. If the walk dead-ends with every remaining unindexed county having 0 indexed neighbors before the target count is reached, the next indices are assigned to those counties at random until it is.
 6. The Elite Four county takes the next index, then the R counties still unindexed take the last R indices, and become the reserved legendary counties (see Reserved legendary locations). Which of them is the solo post-Elite-Four county, and how the others tie into the gym order, is decided by a separate algorithm.
 
-Ocean counties are skipped in steps 3-5 until Surf is placed, as in mainline games where Surf opens the sea late. In steps 3-4 a "dead end" means no unindexed non-ocean neighbor. At a dead end, count the unindexed non-ocean counties (not counting the set-aside Elite Four and reserved counties). If at least about 3 remain, step 4 applies as written, with an ordinary key and lock. If fewer remain, this is where Surf is placed instead: the current county gets the Surf McGuffin key, and the next county is the closest unindexed ocean county adjacent to an indexed county, which gets the Surf lock. From then on ocean counties are eligible like any other. The count threshold, not a fixed index, makes Surf arrive near the end of the land counties however many ocean counties the terrain produces. If only ocean counties remain as candidates, Surf is placed immediately.
+Ocean counties are skipped in steps 3-5 until Surf is placed, as in mainline games where Surf opens the sea late. In steps 3-4 a "dead end" means no unindexed non-ocean neighbor. At a dead end, count the unindexed non-ocean counties (not counting the set-aside Elite Four and reserved counties). If at least about 3 remain, step 4 applies as written, with an ordinary key and lock. If fewer remain, this is where Surf is placed instead: the current county gets the Surf McGuffin key, and the next county is the closest unindexed ocean county adjacent to an indexed county, which gets the Surf lock. From then on ocean counties are eligible like any other. The count threshold, not a fixed index, makes Surf arrive near the end of the land counties however many ocean counties the terrain produces. If only ocean counties remain as candidates, Surf is placed immediately. Surf is always placed before the walk reaches its target count: if no qualifying dead end has occurred by the walk's last index, it is forced there, so no ocean county can end up unreachable. The land count excludes only the Elite Four county, since the reserved counties are whatever is left when the walk ends.
 #### Kanto reference pattern
 
 Story points in Kanto, as `county-story-index - content` (an index may hold several things, and the order circles back):
@@ -374,7 +374,7 @@ The progression mechanism is adapted from a design for far more powerful hardwar
 - When a city is generated or loaded, the code checks whether it (or an adjacent route) is the right place for each arc's current state, and uses that to pick "near" or "far" NPC texts for that arc. At least one NPC per arc gets an arc-state hint text. When the state advances, those NPCs switch to an arc-state-specific thank-you text.
 - Subplots work the same way but take place entirely within a city and the starts of its adjacent routes.
 - Arc and subplot state use the game's existing flag/var storage for small story state.
-- Cutscene placement is deterministic, so it is never stored: the rival arc procedurally selects route-story-indices for its state-advancing cutscenes, then the story arc selects route-story-indices for its own, avoiding the rival arc's. With 50-100 route-story-indices to choose from, collisions are not a concern.
+- Cutscene placement is deterministic, so it is never stored: each rival and story-arc beat has its own planner slot (slots 5 and 6), so beats cannot land on the same main-story-index, and the responsible county's private layer picks the place.
 - Each route checks whether a rival or story cutscene belongs to it and plays it when the player enters. Each city or location likewise checks whether a cutscene belongs to its area and may place it anywhere inside its subplot, since the player cannot advance without completing the subplot anyway.
 
 ### Possible future extensions
@@ -438,7 +438,7 @@ Guarantees the earlier layers must provide:
 - Gym k's city lies in a county unlocked by gym k's chapter. Layer 3 raises populations where needed so that the first f(k) counties by index contain at least k+1 cities, then assigns gyms greedily.
 - Story-arc beats claim special locations or cities in layer 3, as reserved legendary locations do, so an anchor can always be met.
 
-Surf and the end of the land. Layer 2 places Surf at the first dead end where fewer than about 3 non-ocean counties remain unindexed (see "County-story-index assignment"), so the Surf key is given in that county's chapter and the ocean county unlocks in a later chapter. The player has therefore visited nearly every land county first, and the few left over are optional extras reachable on land. A seed-sweep test measures how many land counties remain at Surf and how early or late Surf's chapter falls; the threshold is tuned from that.
+Surf and the end of the land. Layer 2 places Surf at the first dead end where fewer than about 3 non-ocean counties remain unindexed (see "County-story-index assignment"), so the Surf key is given in that county's chapter and the ocean county unlocks in a later chapter. The player has therefore visited nearly every land county first; the few land counties indexed after the Surf lock are ordinary counties with their own unlock steps, which may need Surf to enter. A seed-sweep test measures how many land counties remain at Surf and how early or late Surf's chapter falls; the threshold is tuned from that.
 
 Relation to the route-story-index. The main-story-index governs everything between counties; the route-story-index orders places only within a county (and as a level and difficulty hint). The soft-lock proof of "Story graph" is an induction over planner steps:
 
@@ -448,9 +448,9 @@ Relation to the route-story-index. The main-story-index governs everything betwe
 
 Step completion is level-triggered: every step's content is gated on the index being at least its step (a gym cannot be beaten out of order), and on every advance and on map load the new current step's condition is re-checked, so finishing a county's subplot early is never lost. Circle-backs (Norman's gym) are therefore fine: a gym is a step, and a counted requirement such as "4 badges" is re-expressed as "after the 4th gym step".
 
-Memory. The planner stores about 12 bytes of county chapters, 8 gym entries and about a dozen McGuffin entries, around 50-100 bytes in all, regenerated from the player ID at world generation. The chapter assignment is a scan at world generation, not a closed form.
+Memory. The planner stores about 12 bytes of county chapters, 8 gym entries and about a dozen McGuffin entries, around 50-100 bytes in all, computed when a new game starts or a save loads and kept in EWRAM. The chapter assignment is a scan at that point, not a closed form.
 
-Open: whether Surf needs a minimum index so that a land-poor seed does not hand it out too early.
+Open: whether Surf needs a minimum index so that a land-poor seed does not hand it out too early; the function f(k) (how many counties by index must hold k+1 cities), a tunable.
 
 Opening, as slots (illustrative):
 
@@ -478,7 +478,8 @@ Emerald stores all story state as flags and vars in `SaveBlock1` (`include/globa
 
 Planned layout, once the Emerald vars are no longer needed (badge and HM flags stay as they are):
 
-- Main story: one var, the main-story-index, counting the steps of the main plot planner completed (see "Main plot planner"). Nothing else about the main line is stored.
+- Main story: one var, the main-story-index, counting the steps of the main plot planner completed (see "Main plot planner").
+- Main-step stage: one more var holding the stage of the current main step's subplot, reset to 0 on every advance. Only one main step is current at a time, so one var serves every main-line subplot; the accessor derives a main-line subplot's stage from the index plus this var. Nothing else about the main line is stored.
 - County-internal state: each county's own subplots keep their stage in vars reserved for that county, which no other county reads. 4-bit slots would need at most 18 vars (3 subplots x 24 counties x 4 bits, 4 slots per var); once Emerald's shufflable story vars are retired (map scripts reference ~220 vars in all, not all story; the reservable count is not yet measured), a whole var per city or special location (about 48) is affordable, and is simpler than packing. Vars are allocated in named regions as Emerald's vars are retired. A var per route (fewer than 79) would also fit, and is left for a later version.
 - Flags for county-internal McGuffins come from per-county reserved pools (see "Main plot planner").
 
@@ -508,7 +509,7 @@ Only subplot beats need converting; trainer text, item pickups, trainer-defeated
 
 - The end state picks a city's subplot early in city generation, so the city knows which story buildings to place.
 - Each subplot declares requirements on the cities or locations that may host it: required buildings (by role, e.g. gym, shop, house with an NPC), required HMs, biome, and terrain (mountain, coast, island). These requirements are expected to stay long term.
-- Progression requirements: the keys and badges a subplot consumes (Norman needs 4 badges; Petalburg Woods needs Cut), and the keys it produces. Keys a subplot produces may only open locks relative to its host (its outbound routes), so the "key at r-1" rule of "Story graph" still holds after a move. A key that opens a fixed lock elsewhere (Cut opens Petalburg Woods and Rusturf) is a gate, not a subplot output. Consumed requirements are either relative to the host (the lower neighbor's subplot is done) or counted (badges >= N, so the host's step must come after the Nth gym step). A subplot may move only to a host where these hold, which is what makes a swapped subplot provably completable.
+- Progression requirements: the keys and badges a subplot consumes (Norman needs 4 badges; Petalburg Woods needs Cut), and the keys it produces. Keys a subplot produces may only open locks relative to its host (its outbound routes); between counties those locks are planner unlock steps, ordered by chapter (a key's chapter precedes its lock's), so the rule holds after a move. A key that opens a fixed lock elsewhere (Cut opens Petalburg Woods and Rusturf) is a gate, not a subplot output. Consumed requirements are either relative to the host (the lower neighbor's subplot is done) or counted (badges >= N, so the host's step must come after the Nth gym step). A subplot may move only to a host where these hold, which is what makes a swapped subplot provably completable.
 - In the hardcoded stage, buildings are fixed, so a subplot is assigned only to a city whose existing buildings satisfy its requirements, and subplots address buildings by role, not by map.
 - NPC hosting: each host building keeps a few placeholder object events whose graphics come from a var (`OBJ_EVENT_GFX_VAR_0`, `VAR_OBJ_GFX_ID_0`..`F`), a generic script, and a hide flag; a subplot fills them by setting the vars and flags in the host map's on-transition script. These vars are shared (the rival graphics, battle frontier and Route 117 already set them), so they are never persistent state. This is cheaper than spawning NPCs at runtime, which is kept for cutscene beats (an NPC running up to the player) via the generic runner.
 
@@ -517,7 +518,7 @@ Only subplot beats need converting; trainer text, item pickups, trainer-defeated
 Defined for the end state, not for Emerald, so NPC talk never needs redesign:
 
 - Subplot descriptor: linear stages; per stage the hint texts, story-state texts and trigger place (by role); the requirements above; rewards; and the key/lock it produces.
-- Stage accessor: reads and writes a subplot's stage by slot (county plus slot kind, see "Story state storage"), never by subplot identity, so moving a subplot moves no state. A subplot that is a main-plot step has no stored state: its stage is derived from the main-story-index (see "Main plot planner"). Subplots internal to a county use that county's reserved vars. Callers cannot tell the difference. The main-story-index is not maintained until the main arc is ported (Milestone 3), so until then main-line stages come from the adapter over Emerald's vars.
+- Stage accessor: reads and writes a subplot's stage by slot (county plus slot kind, see "Story state storage"), never by subplot identity, so moving a subplot moves no state. A subplot that is a main-plot step has no state of its own: not started, current or done comes from the main-story-index (see "Main plot planner"), and its stage within the current step from the shared main-step stage var. Subplots internal to a county use that county's reserved vars. Callers cannot tell the difference. The main-story-index is not maintained until the main arc is ported (Milestone 3), so until then main-line stages come from the adapter over Emerald's vars.
 - NPC-talk query: reads only descriptor, accessor and placement, and returns the text to say. It cannot tell a ported subplot from an adapter-backed one.
 - Adapter: lets an unported Emerald subplot answer the accessor from its old vars (e.g. Petalburg gym "open" is `VAR_PETALBURG_GYM_STATE >= 6`). It is read-only, so NPCs can hint at unported subplots, but only ported subplots can be shuffled. Subplots are ported one at a time, each leaving `make check` green.
 
@@ -657,6 +658,8 @@ The set of places the player can reach is an implicit "story graph", ideally nev
 - Soft-locks are prevented by construction, not detected afterwards: the generation algorithm must make them impossible, with no seed-sweep or solver check. The rules above (key at N-1, only-growing reachability) are the means.
 - Soft-lock protection: if the route from a city to a higher route-story-index is always locked on the city's subplot being resolved, and a subplot's resolution only requires McGuffins in the city or in adjacent routes with a lower route-story-index, accidental soft-locks become much less likely.
 
+The route-story-index parts of this section apply within a county (and to the starts of its adjacent routes); between counties the induction over planner steps in "Main plot planner" applies instead.
+
 How accessibility is evaluated without a stored graph: every lock is checked locally where the player meets it (a blocking NPC, an HM obstacle, a gated route entrance). A lock on a place with route-story-index r opens when the flag of its key is set, and the key's location is derived deterministically from r (at index r-1, or the lower city's subplot completion). No global graph or reachability computation is ever needed.
 
 Why soft-locks are impossible by construction, as an induction on route-story-index:
@@ -710,6 +713,17 @@ The existing tips man at each gym entrance also gives party-specific advice from
 - Species found in the current county, at an equal or lower route-story-index, with a type advantage over the gym type.
 
 ## Alternatives considered
+
+### Surf at a fixed county-story-index
+
+Make ocean counties eligible only from index 15, with Surf at the first ocean county.
+
+Pros:
+- Predictable and mainline-like.
+
+Cons:
+- Misaligned whenever the land count is not about 15, with Surf arriving while many land counties remain or never.
+- Fragile if terrain generation changes the number of ocean counties.
 
 ### Explicit main-plot step table
 

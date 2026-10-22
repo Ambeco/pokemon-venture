@@ -13,7 +13,7 @@ Prerequisites for everything else (design.md stages 1-3: hardcoded Emerald count
 - Test strategy for randomization: many existing tests assert real species types and learnsets (e.g. `ASSUME(GetSpeciesType(...))`), so every randomization milestone needs a compile-time switch (or fixed identity mapping under `TESTING`) plus new tests that sweep many seeds and check invariants.
 - Hardcoded world data tables (`src/data/world/`?) for the 6x4 counties over Emerald's 28x15 region map (`src/data/region_map/region_map_layout.h`): terrain, biome, population, special location, story index, McGuffin keys/locks, capital (Lilycove), story-arc id, world-tile roles, per-city themes/buildings/gym types/leaders.
 - Debug tool to print the whole world (counties, tiles, indices, McGuffins) as text, used by every later milestone.
-- Arc/subplot state storage: pick save vars/flags (bitpacked) for arc stage and subplot stages; verify against `SaveBlock` space.
+- Story state storage: allocate the main-story-index var, the main-step stage var, and per-county vars in named regions as Emerald's vars are retired; count the reservable vars and verify against `SaveBlock` space (design.md, "Story state storage").
 
 ### Milestone 1a: Subplot abstraction groundwork
 
@@ -21,7 +21,7 @@ Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design.md, 
 
 - Bucket the ~133 `Emerald.md` lock/key entries into main arc, city subplot, special-location subplot, gym and gate; list the city and special-location ones to convert.
 - Paper-test the descriptor, accessor and adapter against Petalburg gym/Surf (implicit `addvar` badge counter plus an HM gift), Devon Goods (spans three towns, so main arc or split; confirm the split) and Granite Cave/Flash; fix the format rather than special-casing.
-- Hardcode Emerald's main plot as a planner step table (design.md, "Main plot planner") and map each step to the Emerald flags or vars that mean it is done, for the adapter.
+- Hardcode the planner's inputs for Emerald (county chapters, gym table, McGuffin table, beat lists; design.md, "Main plot planner") so the real resolver runs, and map each resulting step to the Emerald flags or vars that mean it is done, for the adapter.
 - Decide the open questions in design.md: building roles, whether runtime NPC spawning is needed beyond cutscenes, and the `$originCity`/`$priorCity` anchors.
 - Implement the descriptor, the stage accessor and the read-only adapter over the existing Emerald vars, with tests; then the story-reference resolver and its build tool.
 - Port one optional, stored-slot subplot (not a main-line one, since the main-story-index is not maintained until Milestone 3) through the descriptor with the game's behavior unchanged.
@@ -47,7 +47,7 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 ### Milestone 3: Rival and story-arc cutscenes no longer at fixed locations
 
 - Implement route-story-index and county-story-index lookups over the hardcoded world (design.md, "Route story indices").
-- Arc cutscene placement: arc stage to county-story-index to route/city/building, without storing it.
+- Arc cutscene placement: main-story-index slot (5 or 6) to responsible county to route/city/building, without storing it; maintain the main-story-index and main-step stage vars for the main arc.
 - Replace Emerald's fixed rival and Wally encounters, and the Magma/Aqua beats, with generic cutscenes; preserve the text.
 - Done when: rival battles occur at the right gym positions on generated places, and arcs finish.
 
@@ -86,7 +86,7 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 
 ### Milestone 9: Inter-county McGuffins shuffled
 
-- Abstract McGuffin kinds (blocking NPC, HM obstacle, key item) behind one interface; place obstacles at generated chokepoints; shuffle which HM or item unlocks what; decouple HM use from fixed locations.
+- Abstract McGuffin kinds (blocking NPC, HM obstacle, key item) behind one interface, driven by the planner's unlock and McGuffin slots; place obstacles at generated chokepoints; shuffle which HM or item unlocks what; decouple HM use from fixed locations.
 
 ### Milestone 10: Cities and special locations randomized within each county
 
