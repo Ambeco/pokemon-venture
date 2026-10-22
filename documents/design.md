@@ -418,6 +418,7 @@ The main story is a single ordered list of steps, produced by a planner that run
 Rules:
 
 - Routes between counties are locked by default.
+- Story-arc beats (Team Rocket's Mt. Moon heist, the Lavender tragedy and the Silph takeover; Team Aqua and Magma's beats) and rival battles are steps like any other. Each arc supplies an ordered beat list, each beat with an anchor ("after gym k", "needs a special location of kind X", "needs a city") and a required kind of place; the planner merges the arc's and the rival arc's beats into the step list in order and assigns each to a county whose places meet the anchor, as subplot requirements do. A beat's own cutscene then plays in that county's places.
 - A step makes one county responsible for providing a McGuffin (or unlocking something) to advance the story. The main-story-index var says how many steps are complete. A county may be responsible for non-consecutive steps. A step is hosted only in its responsible county's own places, or on an inter-county route bordering that county (layer 6 allows this). A beat that plays in Petalburg is a Petalburg step, never a Littleroot one.
 - Unlocking and blocking inside a county, and which place hosts a step, is entirely that county's private choice.
 - *When* an inter-county route unlocks is fixed by the planner's step order. How it is blocked and unblocked is usually left to the county, but a step may specify it (HM Cut).
