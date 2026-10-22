@@ -15,7 +15,7 @@ Generation is a stack of layers, each computed only from the layers above it, ne
 1. World map: terrain types and biomes per county, from the PRNG seeded on the player ID alone.
 2. World map: county-story-indices, from layer 1 plus a couple of McGuffin boundaries.
 3. World map: county populations, city locations and names, and special location IDs and positions, from layers 1-2.
-4. World map: which counties connect to which, from layers 1-3.
+4. World map: which counties connect to which, from layers 1-3 (using only county-story-index adjacency and the capital, never planner steps); then the main plot planner, from layers 1-4 (see "Main plot planner"). The planner's steps are stored in or derivable from the county headers before layer 5 begins.
 5. Each county: the details of its own world tiles (including exact route placement) and its route-story-indices, from world layers 1-4 only. No county layer depends on any other county's data, including an adjacent county's route-story-indices. Counties may have sub-layers like the world map.
 6. Field maps: generated from world layers 1-4 and the county they are inside, never from another county's data or from adjacent field maps. The exception is inter-county routes, which may use the data of the two counties they connect.
 7. Further layers continue the same pattern.
@@ -155,8 +155,8 @@ Within a county, the "first" city/location is the one the main route into the co
 
 Between counties:
 
-- Adjacent county-story-indices: the route gets its index from the higher county. By default it is McGuffin-locked on completing the subplots of BOTH the lower county's city and special location. The higher county's city or location gets the same index, so completing the subplot at the lower location lets the player proceed along the route to the next one.
-- Non-adjacent county-story-indices: the route gets its index from the higher county's city or location. If county generation determined there is a McGuffin lock into the higher county, the route is blocked on that McGuffin. Otherwise, by default, entering the higher-index city or location triggers a new McGuffin that unlocks all of its routes to lower-index counties.
+- The route gets its index from the higher county's city or location, and that place gets the same index.
+- Whether and when the route opens is not decided by the index: the main plot planner owns every inter-county lock (see "Main plot planner"). By default the planner opens the routes into a county with one step, "unlocks the routes into county c", placed after the steps of the county that holds the previous county-story-index.
 
 #### Route-story-index edge cases
 
@@ -368,7 +368,7 @@ The progression mechanism is adapted from a design for far more powerful hardwar
 
 - Game start picks the rival arc and the story arc; map generation may insert some McGuffins (usually HMs).
 - The start of the game is driven entirely by the rival arc.
-- Each arc determines where its next cutscene should be: a county-story-index, then a specific route or city (and, for a city, a specific building).
+- Rival and story-arc beats are steps of the main plot planner (e.g. "places Rival Battle 2"); the responsible county picks the specific route or city (and, for a city, building) within its own places.
 - When the player finishes that route or leaves that building, the cutscene triggers. Usually an NPC runs up, says something, sometimes triggers a battle or gives an item, then runs off screen. The arc then advances to its next stage.
 - When a city is generated or loaded, the code checks whether it (or an adjacent route) is the right place for each arc's current state, and uses that to pick "near" or "far" NPC texts for that arc. At least one NPC per arc gets an arc-state hint text. When the state advances, those NPCs switch to an arc-state-specific thank-you text.
 - Subplots work the same way but take place entirely within a city and the starts of its adjacent routes.
@@ -418,15 +418,24 @@ The main story is a single ordered list of steps, produced by a planner that run
 Rules:
 
 - Routes between counties are locked by default.
-- A step makes one county responsible for providing a McGuffin (or unlocking something) to advance the story. The main-story-index var says how many steps are complete. A county may be responsible for non-consecutive steps, and a step may involve other counties (the opening's Wally scene is a Littleroot-County step that plays in Petalburg).
+- A step makes one county responsible for providing a McGuffin (or unlocking something) to advance the story. The main-story-index var says how many steps are complete. A county may be responsible for non-consecutive steps. A step is hosted only in its responsible county's own places, or on an inter-county route bordering that county (layer 6 allows this). A beat that plays in Petalburg is a Petalburg step, never a Littleroot one.
 - Unlocking and blocking inside a county, and which place hosts a step, is entirely that county's private choice.
 - *When* an inter-county route unlocks is fixed by the planner's step order. How it is blocked and unblocked is usually left to the county, but a step may specify it (HM Cut).
 - A county plans its subplots independently of the others, because nothing it injects into another county is decided in its private layer: any step that touches a foreign county is assigned by the planner, in the county headers, before private details are generated.
 - Cross-county McGuffin ids derive from the step index (a hash of the seed and the index), so both counties on a route agree on its lock without reading each other's private data. County-internal McGuffins draw from a pool reserved for that county, so two counties never reuse an id. The pools come from a large McGuffin list partitioned by a coprime-stride mapping like the species-to-biome one.
 - Keys follow the "key at r-1" rule of "Story graph": the key for a lock is produced by the immediately preceding step.
 - NPC hint text asks the planner for the step at the current main-story-index, so the planner's step table is the top layer of the subplot descriptor (see "Subplot abstraction").
+- The McGuffin partition for cross-county ids (hashed from step indices) is disjoint from the per-county pools, so a hash never collides with a county's reserved id.
 
-Open: whether each county header stores its own step indices or they are recomputed from the planner on demand; whether the planner needs layer 4 (connections) for steps such as "unlocks the port"; and how many distinct McGuffins the pool needs.
+Relation to the route-story-index. The main-story-index governs everything between counties; the route-story-index orders places only within a county (and as a level and difficulty hint). The soft-lock proof of "Story graph" is an induction over planner steps instead:
+
+1. A step may be assigned only to a county that an earlier step has already unlocked, or to the start county.
+2. A step's gate opens exactly when the main-story-index reaches the step, and the step's responsible county produces its key (or unlocks its routes) within places already reachable.
+3. The index only grows, so reachability only grows, and every step is reachable and completable when reached.
+
+Circle-backs (Norman's gym) are therefore fine: a gym is a step, and a counted requirement such as "4 badges" is re-expressed as "after the 4th gym step".
+
+Open: whether each county header stores its own step indices or they are recomputed from the planner on demand; and how many distinct McGuffins the pool needs.
 
 ### Story state storage
 
@@ -440,7 +449,7 @@ Emerald stores all story state as flags and vars in `SaveBlock1` (`include/globa
 Planned layout, once the Emerald vars are no longer needed (badge and HM flags stay as they are):
 
 - Main story: one var, the main-story-index, counting the steps of the main plot planner completed (see "Main plot planner"). Nothing else about the main line is stored.
-- County-internal state: each county's own subplots keep their stage in vars reserved for that county, which no other county reads. 4-bit slots would need at most 18 vars (3 subplots x 24 counties x 4 bits, 4 slots per var); with most of Emerald's ~220 story vars retired, a whole var per city or special location (about 48) is affordable, and is simpler than packing. Vars are allocated in named regions as Emerald's vars are retired. A var per route (fewer than 79) would also fit, and is left for a later version.
+- County-internal state: each county's own subplots keep their stage in vars reserved for that county, which no other county reads. 4-bit slots would need at most 18 vars (3 subplots x 24 counties x 4 bits, 4 slots per var); once Emerald's shufflable story vars are retired (map scripts reference ~220 vars in all, not all story; the reservable count is not yet measured), a whole var per city or special location (about 48) is affordable, and is simpler than packing. Vars are allocated in named regions as Emerald's vars are retired. A var per route (fewer than 79) would also fit, and is left for a later version.
 - Flags for county-internal McGuffins come from per-county reserved pools (see "Main plot planner").
 
 ### Subplots
@@ -469,7 +478,7 @@ Only subplot beats need converting; trainer text, item pickups, trainer-defeated
 
 - The end state picks a city's subplot early in city generation, so the city knows which story buildings to place.
 - Each subplot declares requirements on the cities or locations that may host it: required buildings (by role, e.g. gym, shop, house with an NPC), required HMs, biome, and terrain (mountain, coast, island). These requirements are expected to stay long term.
-- Progression requirements: the keys and badges a subplot consumes (Norman needs 4 badges; Petalburg Woods needs Cut), and the keys it produces. Keys a subplot produces may only open locks relative to its host (its outbound routes), so the "key at r-1" rule of "Story graph" still holds after a move. A key that opens a fixed lock elsewhere (Cut opens Petalburg Woods and Rusturf) is a gate, not a subplot output. Consumed requirements are either relative to the host (the lower neighbor's subplot is done) or counted (badges >= N, so the host's index must be above the Nth gym's). A subplot may move only to a host where these hold, which is what makes a swapped subplot provably completable.
+- Progression requirements: the keys and badges a subplot consumes (Norman needs 4 badges; Petalburg Woods needs Cut), and the keys it produces. Keys a subplot produces may only open locks relative to its host (its outbound routes), so the "key at r-1" rule of "Story graph" still holds after a move. A key that opens a fixed lock elsewhere (Cut opens Petalburg Woods and Rusturf) is a gate, not a subplot output. Consumed requirements are either relative to the host (the lower neighbor's subplot is done) or counted (badges >= N, so the host's step must come after the Nth gym step). A subplot may move only to a host where these hold, which is what makes a swapped subplot provably completable.
 - In the hardcoded stage, buildings are fixed, so a subplot is assigned only to a city whose existing buildings satisfy its requirements, and subplots address buildings by role, not by map.
 - NPC hosting: each host building keeps a few placeholder object events whose graphics come from a var (`OBJ_EVENT_GFX_VAR_0`, `VAR_OBJ_GFX_ID_0`..`F`), a generic script, and a hide flag; a subplot fills them by setting the vars and flags in the host map's on-transition script. These vars are shared (the rival graphics, battle frontier and Route 117 already set them), so they are never persistent state. This is cheaper than spawning NPCs at runtime, which is kept for cutscene beats (an NPC running up to the player) via the generic runner.
 
