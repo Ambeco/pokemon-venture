@@ -402,7 +402,7 @@ Arcs from the other mainline games are added as far as possible.
 
 The main story is an ordered sequence of steps, counted by one var, the main-story-index. The sequence is computed from a few small tables, never stored as a step list. It uses only layers 1-3 and the McGuffin links of layer 2, not the routes: the route rules already guarantee a route from each county to the next county-story-index, and the planner follows that order.
 
-Structure. A main-story-index is `chapter * 8 + slot`. Chapter 0 is the opening, chapters normally end with a gym but may be split further where a constraint needs it (so there are more than 8 chapters), and the last chapters cover the Elite Four and end game. Each slot has one fixed kind, so two steps never share an index:
+Structure. A main-story-index is `chapter * 8 + slot`, over a wide range (0-511, 64 chapters) so that steps have room to land in unpredictable places; indices 0-7 are the scripted opening (hand-ordered, not slotted), and the last chapters cover the Elite Four and end game. Each slot has one fixed kind, so two steps of different kinds never share an index:
 
 | Slot | Step |
 |---|---|
@@ -416,7 +416,7 @@ A slot with nothing assigned is a no-op: the index skips it on advance, which is
 
 What each slot resolves to is a pure function of small world data:
 
-- Unlock slots: each county header holds a 4-bit chapter (24 counties = 12 bytes); its rank among the counties of its chapter picks the slot. Chapters are monotone in county-story-index.
+- Unlock slots: each county header holds a 6-bit chapter (24 counties = 18 bytes); its rank among the counties of its chapter picks the slot. Chapters are monotone in county-story-index.
 - Slot 4: a table of the HMs and key items (at most about a dozen entries), each with its giving county and chapter, from layer 2's McGuffin links (the Surf lock, the jump key and lock) and the HM assignments.
 - Slot 5 and 6: the story arc's and the rival arc's beat lists, each beat anchored relative to gyms ("after gym k", so chapter splits cannot break it) and to a kind of place ("needs a special location of kind X", "needs a city"); a county is chosen by hashing the seed among the unlocked counties that meet the anchor.
 - Slot 7: the gym table, mapping gym k to its county and chapter (8 entries). Chapter numbers need not equal gym numbers, since chapters split.
@@ -448,7 +448,9 @@ Relation to the route-story-index. The main-story-index governs everything betwe
 
 Step completion is level-triggered: every step's content is gated on the index being at least its step (a gym cannot be beaten out of order), and on every advance and on map load the new current step's condition is re-checked, so finishing a county's subplot early is never lost. Circle-backs (Norman's gym) are therefore fine: a gym is a step, and a counted requirement such as "4 badges" is re-expressed as "after the 4th gym step".
 
-Memory. The planner stores about 12 bytes of county chapters, 8 gym entries and about a dozen McGuffin entries, around 50-100 bytes in all, computed when a new game starts or a save loads and kept in EWRAM. The chapter assignment is a scan at that point, not a closed form.
+Memory. The planner stores 18 bytes of county chapters, the gym and McGuffin entries, and the resolved chapter of each placed beat (about 60 steps in all, a few hundred bytes at most), computed when a new game starts or a save loads and kept in EWRAM. The chapter assignment is a left-to-right scan at that point, not a closed form.
+
+Placement windows. Steps with freedom are placed at a hash-chosen chapter inside a window set by their anchors, and the scan applies the hard ordering rules as window bounds: a gym lies after its county's unlock and the previous gym; a rival beat lies between two gyms' chapters, with its own tighter bounds (e.g. the first rival battle in chapters 8-16); a key lies before its lock. With about 15 candidate chapters per rival beat, the order of rival, arc and gym beats varies between seeds. Two steps of the same kind get distinct chapters by probing the hash. The advance skips to the next used index through the sorted list of placed steps.
 
 Open: whether Surf needs a minimum index so that a land-poor seed does not hand it out too early; the function f(k) (how many counties by index must hold k+1 cities), a tunable.
 
@@ -733,7 +735,7 @@ Pros:
 - Any step order is expressible, with no slot constraints.
 
 Cons:
-- The table must be stored (100+ entries), which the memory budget avoids.
+- Each entry is a full (county, action) record (100+ of them), instead of a few bytes of chapter per step derived from the slot kind.
 - Nothing structural keeps rival, arc, gym and HM steps from landing on the same index.
 
 ### Main story owned by one county at a time
