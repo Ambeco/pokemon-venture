@@ -123,7 +123,7 @@ First pick R, the number of reserved legendary counties: 3 or 4 (the 2-3 post-7t
 5. If the walk dead-ends with every remaining unindexed county having 0 indexed neighbors before the target count is reached, the next indices are assigned to those counties at random until it is.
 6. The Elite Four county takes the next index, then the R counties still unindexed take the last R indices, and become the reserved legendary counties (see Reserved legendary locations). Which of them is the solo post-Elite-Four county, and how the others tie into the gym order, is decided by a separate algorithm.
 
-Ocean counties are skipped in steps 3-5 until the next index is 15 or higher, as in mainline games where Surf opens the sea late. The first ocean county to be indexed gets a Surf McGuffin lock, and the county with the previous index (its index minus 1) gets the Surf McGuffin key. If only ocean counties remain as candidates before index 15, the first one is taken anyway, with the same lock and key.
+Ocean counties are skipped in steps 3-5 until Surf is placed, as in mainline games where Surf opens the sea late. In steps 3-4 a "dead end" means no unindexed non-ocean neighbor. At a dead end, count the unindexed non-ocean counties (not counting the set-aside Elite Four and reserved counties). If at least about 3 remain, step 4 applies as written, with an ordinary key and lock. If fewer remain, this is where Surf is placed instead: the current county gets the Surf McGuffin key, and the next county is the closest unindexed ocean county adjacent to an indexed county, which gets the Surf lock. From then on ocean counties are eligible like any other. The count threshold, not a fixed index, makes Surf arrive near the end of the land counties however many ocean counties the terrain produces. If only ocean counties remain as candidates, Surf is placed immediately.
 #### Kanto reference pattern
 
 Story points in Kanto, as `county-story-index - content` (an index may hold several things, and the order circles back):
@@ -438,7 +438,7 @@ Guarantees the earlier layers must provide:
 - Gym k's city lies in a county unlocked by gym k's chapter. Layer 3 raises populations where needed so that the first f(k) counties by index contain at least k+1 cities, then assigns gyms greedily.
 - Story-arc beats claim special locations or cities in layer 3, as reserved legendary locations do, so an anchor can always be met.
 
-Surf and the end of the land. By the ocean-skip rule, ocean counties become eligible only from index 15, and the first one indexed is locked on Surf from the county with the previous index. The Surf key is therefore given in that county's chapter, and the ocean county unlocks in a later chapter, so the player has finished every land county indexed before it. Surf coincides with running out of land counties only when fewer than about 15 land counties exist; otherwise ocean can be picked while land remains. A seed-sweep test measures the gap between Surf's chapter and the last pre-Surf land county.
+Surf and the end of the land. Layer 2 places Surf at the first dead end where fewer than about 3 non-ocean counties remain unindexed (see "County-story-index assignment"), so the Surf key is given in that county's chapter and the ocean county unlocks in a later chapter. The player has therefore visited nearly every land county first, and the few left over are optional extras reachable on land. A seed-sweep test measures how many land counties remain at Surf and how early or late Surf's chapter falls; the threshold is tuned from that.
 
 Relation to the route-story-index. The main-story-index governs everything between counties; the route-story-index orders places only within a county (and as a level and difficulty hint). The soft-lock proof of "Story graph" is an induction over planner steps:
 
@@ -450,7 +450,7 @@ Step completion is level-triggered: every step's content is gated on the index b
 
 Memory. The planner stores about 12 bytes of county chapters, 8 gym entries and about a dozen McGuffin entries, around 50-100 bytes in all, regenerated from the player ID at world generation. The chapter assignment is a scan at world generation, not a closed form.
 
-Open: the Surf trade-off between exact alignment (an ocean county is taken only when no land candidate remains, which could make Surf very late) and keeping 15 as the earliest eligible index (closer to the mainline games, with Surf sometimes early).
+Open: whether Surf needs a minimum index so that a land-poor seed does not hand it out too early.
 
 Opening, as slots (illustrative):
 
