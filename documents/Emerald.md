@@ -411,3 +411,148 @@ Levels the walkthrough lists, per place in tutorial order. `wild` is the land, c
 - Battle 3: Glacia — Glacia (Elite Four): Sealeo 50, Glalie 50, Sealeo 52, Glalie 52, Walrein 53
 - Battle 4: Drake — Drake (Elite Four): Shelgon 52, Altaria 54, Kingdra 53, Flygon 53, Salamence 55
 - Champion — Wallace (Champion): Wailord 57, Tentacruel 55, Ludicolo 56, Whiscash 56, Gyarados 56, Milotic 58
+
+## Main-story-index table (proposed)
+
+Emerald fitted to the main plot planner (design.md, "Main plot planner"): one row per main-story-index `4x + s`. Step 0 and 2 list gets, step 1 is the optional callback (host named), step 3 unlocks county x+1 via the named McGuffin. Gets within a list are unordered for the planner; the county picks the order, so "G4 then Surf" inside a list means the county's script orders them. `G1`-`G8` are gyms (each with its HM), `RB1`-`RB5` rival battles, `Magma`/`Aqua` beats are the Rocket-equivalent arc beats. Verdanturf, Fallarbor and the Shoal Cave county have no mandatory gets.
+
+County numbers below are the proposed county-story-indices, in walkthrough order and unique. They differ from the county table above for the counties after Lavaridge: that table's Lavaridge (42) becomes 11, Fortree 11 becomes 13, Mt. Pyre 13 becomes 14, Lilycove 14 becomes 15, Shoal Cave 15 becomes 16, Mossdeep 16 becomes 17, Ever Grande 17 becomes 20, Pacifidlog 20 becomes 19, Mirage Island 19 becomes 21 and the Sealed Chamber 21 becomes 22. Route-story-index is 4 times the county number. The empty county (3,2) takes 23.
+
+| Index | County | Step | Contents |
+| --- | --- | --- | --- |
+| 0 | 0 Littleroot | 0 | Starter |
+| 1 | | 1 | (no callback) |
+| 2 | | 2 | (none) |
+| 3 | | 3 | Unlock Oldale via Starter |
+| 4 | 1 Oldale | 0 | RB1 (Route 103); design.md's tutorial calls this the "package" |
+| 5 | | 1 | Callback to Littleroot (0): Pokédex, Poké Balls, Running Shoes |
+| 6 | | 2 | (none yet; generated as normal) |
+| 7 | | 3 | Unlock Petalburg via Pokédex |
+| 8 | 2 Petalburg | 0 | Wally has Ralts; Aqua beat (Petalburg Woods grunt) |
+| 9 | | 1 | (no callback) |
+| 10 | | 2 | Wailmer Pail |
+| 11 | | 3 | Unlock Rustboro via Wailmer Pail |
+| 12 | 3 Rustboro | 0 | G1 + Cut; Aqua beat (Stop Thief) |
+| 13 | | 1 | (no callback) |
+| 14 | | 2 | Devon Goods recovered (Peeko, Route 116); PokéNav; Letter; RB2 |
+| 15 | | 3 | Unlock Dewford via Letter (Briney's boat, port from Petalburg) |
+| 16 | 4 Dewford | 0 | G2 + Flash; Old Rod |
+| 17 | | 1 | (no callback) |
+| 18 | | 2 | Letter delivered to Steven (Granite Cave) |
+| 19 | | 3 | Unlock Slateport via Letter delivered (Briney's boat) |
+| 20 | 5 Slateport | 0 | Shipyard visit (Stern) |
+| 21 | | 1 | (no callback) |
+| 22 | | 2 | Museum: Devon Goods delivered; Aqua beat (two grunts, Archie); Harbor Mail |
+| 23 | | 3 | Unlock Cycling Road county via Devon Goods delivered |
+| 24 | 6 Cycling Road | 0 | RB3 (Route 110); Itemfinder |
+| 25 | | 1 | (no callback) |
+| 26 | | 2 | (none; Trick House puzzle 1 is optional) |
+| 27 | | 3 | Unlock Mauville via RB3 |
+| 28 | 7 Mauville | 0 | Wally battle 1 |
+| 29 | | 1 | (no callback) |
+| 30 | | 2 | G3 + Rock Smash; Coin Case (from Harbor Mail); Mach Bike or Acro Bike |
+| 31 | | 3 | Unlock Verdanturf via Rock Smash + Dynamo Badge (Rusturf debris) |
+| 32-34 | 8 Verdanturf | 0-2 | (none) |
+| 35 | | 3 | Unlock Fallarbor via a blocker |
+| 36-38 | 9 Fallarbor | 0-2 | (none) |
+| 39 | | 3 | Unlock Meteor Falls via a blocker |
+| 40 | 10 Meteor Falls | 0 | Magma beat (Meteorite stolen, Archie appears) |
+| 41-42 | | 1-2 | (none) |
+| 43 | | 3 | Unlock Lavaridge via Meteorite stolen (cable car) |
+| 44 | 11 Lavaridge | 0 | Magma beat (Mt. Chimney, Meteorite recovered); G4 + Strength |
+| 45 | | 1 | Callback to Petalburg (2): G5 + Surf (Norman, Wally's father) |
+| 46 | | 2 | Go-Goggles (rival meeting outside the gym) |
+| 47 | | 3 | Unlock Weather Institute county via Surf (Route 118 river) |
+| 48 | 12 Weather Institute | 0 | Aqua beat (Shelly; Castform) |
+| 49-50 | | 1-2 | (none) |
+| 51 | | 3 | Unlock Fortree via Shelly defeated |
+| 52 | 13 Fortree | 0 | RB4 (Route 119 north); Devon Scope (Route 120) |
+| 53 | | 1 | (no callback) |
+| 54 | | 2 | G6 + Fly |
+| 55 | | 3 | Unlock Mt. Pyre via G6 (Feather Badge) |
+| 56 | 14 Mt. Pyre | 0 | Aqua beat (Red Orb stolen; Magma Emblem) |
+| 57 | | 1 | Callback to Lavaridge (11): Magma Hideout (Emblem + Strength), Magma beat (Groudon awakened) |
+| 58 | | 2 | (none) |
+| 59 | | 3 | Unlock Lilycove via Groudon awakened |
+| 60 | 15 Lilycove | 0 | RB5; Pokéblock Case |
+| 61 | | 1 | Callback to Slateport (5): Aqua beat (Archie takes Stern's submarine) |
+| 62 | | 2 | Aqua beat (Aqua Hideout: Matt, Master Ball, blockade gone) |
+| 63 | | 3 | Unlock Shoal Cave county via blockade gone |
+| 64-66 | 16 Shoal Cave | 0-2 | (none) |
+| 67 | | 3 | Unlock Mossdeep via a blocker |
+| 68 | 17 Mossdeep | 0 | G7 + Dive; Magma beat (Space Center, Steven); Super Rod |
+| 69 | | 1 | (no callback) |
+| 70 | | 2 | Aqua beat (Seafloor Cavern: Shelly, Archie; Kyogre awakened) |
+| 71 | | 3 | Unlock Sootopolis via Dive + Kyogre awakened |
+| 72 | 18 Sootopolis | 0 | Cave of Origin: Groudon/Kyogre climax, Wallace heads to Sky Pillar |
+| 73-74 | | 1-2 | (none) |
+| 75 | | 3 | Unlock Pacifidlog via Cave of Origin done (Surf held) |
+| 76 | 19 Pacifidlog | 0 | Sky Pillar: Rayquaza awakened |
+| 77 | | 1 | Callback to Sootopolis (18): Rayquaza ends the fight; G8 + Waterfall |
+| 78 | | 2 | (none) |
+| 79 | | 3 | Unlock Ever Grande via Waterfall + G8 (Rain Badge) |
+| 80 | 20 Ever Grande (Elite Four) | 0 | (none; end game is open) |
+| 81 | | 1 | Callback to Sootopolis (18): Victory Road, Wally battle 2 |
+| 82 | | 2 | League lobby (8 badges), Elite Four, Champion |
+| 83 | | 3 | Unlock the reserved counties via the Hall of Fame (open) |
+| 84-95 | 21-23 reserved | 0-3 | Post-game; open (Mirage Island, Sealed Chamber and the empty county) |
+
+Callbacks: 6 in about 21 blocks (indices 5, 45, 57, 61, 77, 81), four of them after Fly. No block has two different callback hosts.
+
+### Exceptions to the normal rules
+
+Numbered so they can be struck off as the rules or the table change.
+
+1. G5 shares block 11 with G4 (callback gym in the same block as the previous gym). Planner change needed: G4 forced to step 0 so it finishes before the step-1 callback. Alternative: add a spare block between them.
+2. Surf's unlock (index 47) opens a land county (Route 118's river), not an ocean county, and Surf lock is block 11 rather than "the ocean county's dead end".
+3. Strength is given at Rusturf Tunnel in Emerald but follows G4 (index 44) here.
+4. Ports: Briney's boat reaches Dewford (an ocean county at index 4, before Surf) from Petalburg's Route 104, and reaches Slateport from Dewford's pier, though Slateport's only lower neighbor is Littleroot.
+5. G5's callback to Petalburg is 4 county steps from Lavaridge, beyond the pre-Fly bound of 3. Hardcoded exception.
+6. Devon Goods: Peeko and the Take-Down are hosted on Route 116 (inter-county route 3-8), not inside the Rusturf Tunnel in county 8; Dewford to Slateport is keyed on "Letter delivered" (block 4's own get) instead of Devon Goods; the delivery is a block-5 get that relies on index order, not a key check.
+7. Fiery Path, Route 111 north and Route 112 north are walked on the way to Fallarbor before county 11 unlocks, so they move into county 8's cell. Verdanturf's cell is otherwise nearly empty.
+8. Rival Battle 3 moves from the Mauville cell to the Cycling Road cell (Route 110).
+9. Seafloor Cavern moves from the Ever Grande cell to Mossdeep's. Victory Road lives in Sootopolis's cell, so Wally battle 2 is a callback.
+10. Mt. Pyre (14) is forced before Lilycove (15); Emerald lets the player visit Lilycove first.
+11. Blocks 8, 9 and 16 have no mandatory gets, so their unlocks need blocker McGuffins that vanilla Emerald lacks (or a tiny subplot each).
+12. Verdanturf's unlock uses Rock Smash + Dynamo Badge, which also gates Route 117; vanilla leaves it open.
+13. The Elite Four county has two gates: Waterfall + Rain Badge into Ever Grande, and 8 badges into the League lobby.
+14. The empty county (3,2) must take a reserved index (23) and holds no legendary location.
+15. Sealed Chamber and the Regi trio are mid-game in Emerald but post-Elite Four here (reserved counties).
+
+### Optional content with inter-county story
+
+These do not use planner slots. Each is gated by keys from any earlier index (design.md, "Main plot planner" rules) and never blocks the main story. They need an optional-story index (tentatively a var each, see `remaining_work.md`) so NPCs in other counties can hint at them.
+
+Item and key chains:
+
+| Content | Host county | Gated by (source block) | Chain |
+| --- | --- | --- | --- |
+| Fossil revival | 11 (Mirage Tower), 3 | Mach Bike (7), Rock Smash (7) | Mirage Tower fossil, revive at Devon Corporation |
+| Abandoned Ship | 0 | Surf (11), Dive (17) | Storage Key, Scanner, Captain Stern (5), DeepSeaTooth/Scale |
+| Harbor Mail | 5, 7 | Devon Goods delivered (5) | Mail, Coin Case, Mauville Game Corner |
+| Secret Power | 8, 5 | none | TM Secret Power (Route 111 north), Slateport Market bargains |
+| Meteorite TM | 9 | Meteorite recovered (11) | Professor Cozmo's TM |
+| New Mauville | 7, 6 | Surf (11), Basement Key (7) | Generator, Thunderbolt |
+| Trick House | 6 | badges and field moves | Inner-county indexing is enough |
+
+Regi trio (unlocked in the Sealed Chamber, county 22):
+
+| Step | Host | Gated by (source block) |
+| --- | --- | --- |
+| Dive to the Sealed Chamber | 22 | Dive (17) |
+| Braille wall | 22 | TM Dig (Route 114, 9) |
+| Back wall | 22 | Wailord first, Relicanth last in party (Dive, rods) |
+| Regirock (Desert Ruins) | 11 | Sealed Chamber opened, Rock Smash (7), Go-Goggles (11) |
+| Regice (Island Cave) | 4 | Sealed Chamber opened, Surf (11) |
+| Registeel (Ancient Tomb) | 13 | Sealed Chamber opened, Flash (4) |
+
+Post-Elite Four unlocks, all listed "requires Elite Four" in the county table:
+
+| Content | Host county |
+| --- | --- |
+| Altering Cave | 1 |
+| Trainer Hill | 7 |
+| Desert Underpass | 10 |
+| Battle Frontier, Artisan Cave, Mirage Island | 21 |
+| Southern Island (Eon Ticket) | 22 |
+| Rayquaza rematch (Sky Pillar, Mach Bike) | 19 |
