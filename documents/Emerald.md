@@ -424,7 +424,7 @@ County numbers below are the proposed county-story-indices, in walkthrough order
 | 1 | | 1 | (no callback) |
 | 2 | | 2 | (none) |
 | 3 | | 3 | Unlock Oldale via Starter |
-| 4 | 1 Oldale | 0 | RB1 (Route 103); design.md's tutorial calls this the "package" |
+| 4 | 1 Oldale | 0 | RB1 (Route 103); sends the player back to Birch |
 | 5 | | 1 | Callback to Littleroot (0): Pokédex, Poké Balls, Running Shoes |
 | 6 | | 2 | (none yet; generated as normal) |
 | 7 | | 3 | Unlock Petalburg via Pokédex |
@@ -452,14 +452,15 @@ County numbers below are the proposed county-story-indices, in walkthrough order
 | 29 | | 1 | (no callback) |
 | 30 | | 2 | G3 + Rock Smash; Coin Case (from Harbor Mail); Mach Bike or Acro Bike |
 | 31 | | 3 | Unlock Verdanturf via Rock Smash + Dynamo Badge (Rusturf debris) |
-| 32-34 | 8 Verdanturf | 0-2 | (none) |
+| 32 | 8 Verdanturf | 0 | Strength (Rusturf Tunnel; Emerald-only exception 3) |
+| 33-34 | | 1-2 | (none) |
 | 35 | | 3 | Unlock Fallarbor via a blocker |
 | 36-38 | 9 Fallarbor | 0-2 | (none) |
 | 39 | | 3 | Unlock Meteor Falls via a blocker |
 | 40 | 10 Meteor Falls | 0 | Magma beat (Meteorite stolen, Archie appears) |
 | 41-42 | | 1-2 | (none) |
 | 43 | | 3 | Unlock Lavaridge via Meteorite stolen (cable car) |
-| 44 | 11 Lavaridge | 0 | Magma beat (Mt. Chimney, Meteorite recovered); G4 + Strength |
+| 44 | 11 Lavaridge | 0 | Magma beat (Mt. Chimney, Meteorite recovered); G4 (Strength already held) |
 | 45 | | 1 | Callback to Petalburg (2): G5 + Surf (Norman, Wally's father) |
 | 46 | | 2 | Go-Goggles (rival meeting outside the gym) |
 | 47 | | 3 | Unlock Weather Institute county via Surf (Route 118 river) |
@@ -505,8 +506,8 @@ Numbered so they can be struck off as the rules or the table change.
 
 1. G5 shares block 11 with G4 (callback gym in the same block as the previous gym). Planner change needed: G4 forced to step 0 so it finishes before the step-1 callback. Alternative: add a spare block between them.
 2. Surf's unlock (index 47) opens a land county (Route 118's river), not an ocean county, and Surf lock is block 11 rather than "the ocean county's dead end".
-3. Strength is given at Rusturf Tunnel in Emerald but follows G4 (index 44) here.
-4. Ports: Briney's boat reaches Dewford (an ocean county at index 4, before Surf) from Petalburg's Route 104, and reaches Slateport from Dewford's pier, though Slateport's only lower neighbor is Littleroot.
+3. Strength is given at Rusturf Tunnel (index 32), long before G4 (index 44), instead of with its gym. Emerald-only; the algorithm keeps an HM at its gym's time.
+4. Ports (design.md, "Ports"): the algorithm puts the port county first and the ocean county right after it, but here Dewford (ocean, 4) precedes Slateport (port, 5), and Briney's first trip starts at Petalburg's Route 104, not at the port. Swapping them would put Slateport's Devon Goods delivery before Dewford's Letter. Also the third port, Lilycove (15), is later than the rule would place it (about index 10-13). Keep as an exception unless the story order changes.
 5. G5's callback to Petalburg is 4 county steps from Lavaridge, beyond the pre-Fly bound of 3. Hardcoded exception.
 6. Devon Goods: Peeko and the Take-Down are hosted on Route 116 (inter-county route 3-8), not inside the Rusturf Tunnel in county 8; Dewford to Slateport is keyed on "Letter delivered" (block 4's own get) instead of Devon Goods; the delivery is a block-5 get that relies on index order, not a key check.
 7. Fiery Path, Route 111 north and Route 112 north are walked on the way to Fallarbor before county 11 unlocks, so they move into county 8's cell. Verdanturf's cell is otherwise nearly empty.
