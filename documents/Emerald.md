@@ -500,6 +500,39 @@ County numbers below are the proposed county-story-indices, in walkthrough order
 
 Callbacks: 6 in about 21 blocks (indices 5, 45, 57, 61, 77, 81), four of them after Fly. No block has two different callback hosts.
 
+### Per-county storage needs
+
+Counted from the table above, by host county (callback gets count for the host, not the block). A gym and its HM count as two gets, a reserved county as zero. "Max list" is the largest single list the county hosts, which is what a completion mask must hold. "Subplot vars" is a rough count of existing Emerald vars the county's own content uses (`vars.md`); stage vars for authored subplots cannot be counted until Milestone 1a buckets them.
+
+| County | Gets hosted | Max list | Subplot vars (`vars.md`) |
+| --- | --- | --- | --- |
+| 0 Littleroot | 4 (Starter; callback: Pokédex, Poké Balls, Running Shoes) | 3 | 0 (main arc) |
+| 1 Oldale | 1 | 1 | 0 |
+| 2 Petalburg | 5 (+ callback G5, Surf) | 2 | 1 |
+| 3 Rustboro | 7 | 4 | 2 |
+| 4 Dewford | 4 | 3 | 0 |
+| 5 Slateport | 5 (+ callback Aqua beat) | 3 | 4 |
+| 6 Cycling Road | 2 | 2 | 4 + Trick House (17, packable) |
+| 7 Mauville | 5 | 4 | 1 |
+| 8 Verdanturf | 1 | 1 | 2 |
+| 9 Fallarbor | 0 | 0 | 2 |
+| 10 Meteor Falls | 1 | 1 | 1 |
+| 11 Lavaridge | 4 (+ callback Magma beat) | 2 | 2 |
+| 12 Weather Institute | 1 | 1 | 1 |
+| 13 Fortree | 4 | 2 | 0 |
+| 14 Mt. Pyre | 1 | 1 | 0 |
+| 15 Lilycove | 3 | 2 | about 5, plus 4 contest scratch vars |
+| 16 Shoal Cave | 0 | 0 | 0 |
+| 17 Mossdeep | 5 | 4 | 2 |
+| 18 Sootopolis | 6 (+ callbacks Rayquaza ends fight, G8, Waterfall, Victory Road, Wally 2) | 3 | 2 |
+| 19 Pacifidlog | 1 | 1 | 0 |
+| 20 Ever Grande | 3 | 3 | 0 |
+
+Totals: 63 gets, 20 unlocks (blocks 0-19), 3 of them blockers (indices 35, 39, 67).
+
+- Only one list is current at a time, and the largest is 4 (Rustboro step 2, Mauville step 2, Mossdeep step 0), so one shared 4-bit completion mask would do. Per-county masks are only needed if a county's completed gets must survive past its list, which level-triggered completion makes unnecessary.
+- McGuffin flags: 9 event keys in step-3 unlocks have no Emerald flag or item (Letter delivered, Devon Goods delivered, RB3, Meteorite stolen, Shelly defeated, Groudon awakened, blockade gone, Kyogre awakened, Cave of Origin done). Once the main-story-index is maintained they are derivable (a key's index is below its lock's), so they need no stored flag; the 3 blockers likewise.
+
 ### Exceptions to the normal rules
 
 Numbered so they can be struck off as the rules or the table change.
