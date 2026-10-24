@@ -502,33 +502,33 @@ Callbacks: 6 in about 21 blocks (indices 5, 45, 57, 61, 77, 81), four of them af
 
 ### Per-county storage needs
 
-Counted from the table above, by host county (callback gets count for the host, not the block). A gym and its HM count as two gets, a reserved county as zero. "Max list" is the largest single list the county hosts, which is what a completion mask must hold. "Subplot vars" is a rough count of existing Emerald vars the county's own content uses (`vars.md`); stage vars for authored subplots cannot be counted until Milestone 1a buckets them.
+Counted from the table above, by host county (callback gets count for the host, not the block). A gym and its HM count as two gets, a reserved county as zero. "Max list" is the largest single list the county hosts, which is what a completion mask must hold. "Chain vars" and "Bools" are the county's own optional subplot state (not main-arc gets), estimated from the flags and vars Emerald's scripts set in the county's maps, classified by name rather than by reading each script. Strictly ordered subplots in one county are merged into one chain var; one-shot gifts and independent visits are one bool each. Fan-club gifts, Shoal Cave salt and shells, and the Lilycove paintings are counted as bools but could become counters.
 
-| County | Gets hosted | Max list | Subplot vars (`vars.md`) |
-| --- | --- | --- | --- |
-| 0 Littleroot | 4 (Starter; callback: Pokédex, Poké Balls, Running Shoes) | 3 | 0 (main arc) |
-| 1 Oldale | 1 | 1 | 0 |
-| 2 Petalburg | 5 (+ callback G5, Surf) | 2 | 1 |
-| 3 Rustboro | 7 | 4 | 2 |
-| 4 Dewford | 4 | 3 | 0 |
-| 5 Slateport | 5 (+ callback Aqua beat) | 3 | 4 |
-| 6 Cycling Road | 2 | 2 | 4 + Trick House (17, packable) |
-| 7 Mauville | 5 | 4 | 1 |
-| 8 Verdanturf | 1 | 1 | 2 |
-| 9 Fallarbor | 0 | 0 | 2 |
-| 10 Meteor Falls | 1 | 1 | 1 |
-| 11 Lavaridge | 4 (+ callback Magma beat) | 2 | 2 |
-| 12 Weather Institute | 1 | 1 | 1 |
-| 13 Fortree | 4 | 2 | 0 |
-| 14 Mt. Pyre | 1 | 1 | 0 |
-| 15 Lilycove | 3 | 2 | about 5, plus 4 contest scratch vars |
-| 16 Shoal Cave | 0 | 0 | 0 |
-| 17 Mossdeep | 5 | 4 | 2 |
-| 18 Sootopolis | 6 (+ callbacks Rayquaza ends fight, G8, Waterfall, Victory Road, Wally 2) | 3 | 2 |
-| 19 Pacifidlog | 1 | 1 | 0 |
-| 20 Ever Grande | 3 | 3 | 0 |
+| County | Gets hosted | Max list | Chain vars | Bools |
+| --- | --- | --- | --- | --- |
+| 0 Littleroot | 4 (Starter; callback: Pokédex, Poké Balls, Running Shoes) | 3 | 0 | 0 |
+| 1 Oldale | 1 | 1 | 0 | 1 |
+| 2 Petalburg | 5 (+ callback G5, Surf) | 2 | 0 | 6 (Woods, Miracle Seed, flower shop, 3 Route 104 gifts) |
+| 3 Rustboro | 7 | 4 | 1 (fossil revival, merged with Mirage Tower's pick) | 5 |
+| 4 Dewford | 4 | 3 | 0 | 2 |
+| 5 Slateport | 5 (+ callback Aqua beat) | 3 | 2 (harbor and Stern; fan club) | 10 (6 fan-club gifts) |
+| 6 Cycling Road | 2 | 2 | 5 (Trick House, 17 vars packed) | 2 (Daycare egg pending, one other) |
+| 7 Mauville | 5 | 4 | 1 (New Mauville: key, generator, report) | 4 |
+| 8 Verdanturf | 1 | 1 | 0 | 3 |
+| 9 Fallarbor | 0 | 0 | 1 (Glass Workshop 17 values plus Fossil Maniac 3) | 5 |
+| 10 Meteor Falls | 1 | 1 | 0 | 2 |
+| 11 Lavaridge | 4 (+ callback Magma beat) | 2 | 1 (Mirage Tower and fossil pick) | 4 |
+| 12 Weather Institute | 1 | 1 | 0 | 1 |
+| 13 Fortree | 4 | 2 | 0 | 4 (Wingull errand pair shared with 17) |
+| 14 Mt. Pyre | 1 | 1 | 0 | 2 |
+| 15 Lilycove | 3 | 2 | 2 (museum; fan club) | 11 (5 paintings) |
+| 16 Shoal Cave | 0 | 0 | 0 | 10 (4 salt, 4 shell) |
+| 17 Mossdeep | 5 | 4 | 0 | 4 |
+| 18 Sootopolis | 6 (+ callbacks Rayquaza ends fight, G8, Waterfall, Victory Road, Wally 2) | 3 | 1 (Mystery Events house, 4 values) | 2 |
+| 19 Pacifidlog | 1 | 1 | 1 (weekly TM day) | 3 |
+| 20 Ever Grande | 3 | 3 | 0 | 1 |
 
-Totals: 63 gets, 20 unlocks (blocks 0-19), 3 of them blockers (indices 35, 39, 67).
+Totals: 63 gets, 20 unlocks (blocks 0-19), 3 of them blockers (indices 35, 39, 67); about 15 chain vars and about 82 bools. At most 11 bools in any county, and about 380 flags are unused today, so a fixed 12-flag pool per county would fit (288) without packing. Not counted: post-game content (Battle Frontier, Southern Island, Regi trio, Altering Cave), the 7 Trick House and Mossdeep gym switch flags (scratch), per-city visited and landmark flags, Pokénav match-call flags, and engine vars.
 
 - Only one list is current at a time, and the largest is 4 (Rustboro step 2, Mauville step 2, Mossdeep step 0), so one shared 4-bit completion mask would do. Per-county masks are only needed if a county's completed gets must survive past its list, which level-triggered completion makes unnecessary.
 - McGuffin flags: 9 event keys in step-3 unlocks have no Emerald flag or item (Letter delivered, Devon Goods delivered, RB3, Meteorite stolen, Shelly defeated, Groudon awakened, blockade gone, Kyogre awakened, Cave of Origin done). Once the main-story-index is maintained they are derivable (a key's index is below its lock's), so they need no stored flag; the 3 blockers likewise.
