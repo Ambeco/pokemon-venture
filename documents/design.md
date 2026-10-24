@@ -495,12 +495,18 @@ Emerald stores all story state as flags and vars in `SaveBlock1` (`include/globa
 - Limits: the saved ranges are fixed by `FLAGS_COUNT` and `VARS_END`, and growing them costs `SaveBlock1` (and so save sector) space. The ID space allows far more: flags up to `0x3FFF` and vars up to `0x7FFF` before the unsaved special ranges (`SPECIAL_FLAGS_START` `0x4000`, `SPECIAL_VARS_START` `0x8000`). IDs `>= SPECIAL_*_START` are RAM scratch and are not saved.
 - Emerald's own dependencies are implicit counters. Example: Norman's gym requires 4 badges because each of the first four gyms does `addvar VAR_PETALBURG_GYM_STATE, 1`, and Norman `switch`es on it. These are replaced by explicit lock/key checks when McGuffins are abstracted.
 
-Planned layout, once the Emerald vars are no longer needed (badge and HM flags stay as they are):
+The full var inventory, with each var's use and what could be merged, is in `vars.md`. Only `0x4020`-`0x40FF` (224 vars) can hold persistent state: `0x4000`-`0x400F` are temp vars cleared on map load and `0x4010`-`0x401F` are shared object-graphics vars. So reservations are named regions of constants, not positions at the start of the var space.
+
+Regions (badge and HM flags stay as they are):
 
 - Main story: one var, the main-story-index, a position `4x + s` over the counties (under 100 values, plus the end game) that always advances by one (see "Main plot planner").
+- Optional inter-county stories: about 4 vars (`VAR_OPTIONAL_STORY_0..`), each a linear stage index, so optional stories run in parallel with the main story and with each other, and NPCs in other counties can hint at them. Only content with a real optional story takes one; the Trick House uses inner-county indexing.
 - List completion: the completion mask of the current list of gets lives in the host county's reserved vars, alongside that county's own subplot stages, and the accessor reads it. Nothing else about the main line is stored.
-- County-internal state: each county's own subplots keep their stage in vars reserved for that county, which no other county reads. 4-bit slots would need at most 18 vars (3 subplots x 24 counties x 4 bits, 4 slots per var); once Emerald's shufflable story vars are retired (map scripts reference ~220 vars in all, not all story; the reservable count is not yet measured), a whole var per city or special location (about 48) is affordable, and is simpler than packing. Vars are allocated in named regions as Emerald's vars are retired. A var per route (fewer than 79) would also fit, and is left for a later version.
+- County-internal state: each county's own subplots keep their stage in vars reserved for that county, which no other county reads. 4-bit slots would need at most 18 vars (3 subplots x 24 counties x 4 bits, 4 slots per var); a whole var per city or special location (about 48) is affordable and simpler than packing. A var per route (fewer than 79) would also fit, and is left for a later version.
 - Flags for county-internal McGuffins come from per-county reserved pools (see "Main plot planner").
+- Engine and facility vars (`vars.md`, "Keep") stay where they are, since some positions are fixed (the Dex var in the ROM header, struct-cast pairs, 32-bit pairs). Packing them (daily counters, Trick House, step counters, records) is an option if the county regions need more room.
+
+Supply: 56 vars are unreferenced today and 10 more are freeable with trivial edits, so the regions can be allocated before any Emerald var is retired. Emerald's main-arc vars (about 40) are retired when the main arc is ported, and city and special-location vars (about 25) one subplot at a time, each leaving `make check` green. A test checks that regions do not overlap and stay in range.
 
 ### Subplots
 
@@ -731,6 +737,17 @@ The existing tips man at each gym entrance also gives party-specific advice from
 - Species found in the current county, at an equal or lower route-story-index, with a type advantage over the gym type.
 
 ## Alternatives considered
+
+### Reserving the first 32 vars by position
+
+Reserve Var0 for the main story, Var1-5 for optional stories and Var6-31 for per-county state.
+
+Pros:
+- Simple numbering, easy to remember.
+
+Cons:
+- `0x4000`-`0x401F` are temp and object-graphics vars, referenced throughout the map scripts and not persistent.
+- Moving them would mean rewriting every script that uses them for no gain; named regions in the persistent range give the same layout.
 
 ### Surf at a fixed county-story-index
 
