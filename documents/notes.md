@@ -26,3 +26,4 @@
 - Link order: the Makefile links `src/` objects sorted by basename, as when `src/` was flat. In directory order, the Z-Move animation test crashes (a latent upstream memory-layout bug, root cause not found). If it reappears after other layout changes, suspect a buffer overrun in the animation code.
 
 Running tests: use `make check -j4` (all 12 cores plus a misbehaving ROM exhausts WSL's 7.9 GB; add `ulimit -v`). Upstream worktree for comparison: `~/decomps/pv-master` (outside the repo).
+- Kanto (FRLG) content is in the repo: 419 `data/maps/*_Frlg` maps (incl. Sevii Islands) with full scripts, Kanto wild encounters in `wild_encounters.json`, `src/data/trainers_frlg.*`. Built only by `make firered`/`leafgreen` (`docs/tutorials/how_to_frlg.md`); `tools/mapjson` drops maps whose `region` differs from the build, so the Emerald ROM cannot reach them.
