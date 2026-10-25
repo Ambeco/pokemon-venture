@@ -27,4 +27,4 @@
 
 Running tests: use `make check -j4` (all 12 cores plus a misbehaving ROM exhausts WSL's 7.9 GB; add `ulimit -v`). Upstream worktree for comparison: `~/decomps/pv-master` (outside the repo).
 - Kanto (FRLG) content is in the repo: 419 `data/maps/*_Frlg` maps (incl. Sevii Islands) with full scripts, Kanto wild encounters in `wild_encounters.json`, `src/data/trainers_frlg.*`. Built only by `make firered`/`leafgreen` (`docs/tutorials/how_to_frlg.md`); `tools/mapjson` drops maps whose `region` differs from the build, so the Emerald ROM cannot reach them.
-- `core.filemode=false` is set in this clone's `.git/config` (local, untracked) because Windows git over `\wsl.localhost` sees every executable as `100644`. New executable scripts need `git update-index --chmod=+x <file>`.
+- `core.filemode=false` is set in this clone's `.git/config` (local, untracked) because Windows git over `\\wsl.localhost` sees every executable as `100644`. New executable scripts need `git update-index --chmod=+x <file>`.
