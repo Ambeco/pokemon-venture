@@ -8,7 +8,7 @@ The staged hardcode-first roadmap (design.md, "Development approach"). Each mile
 
 Prerequisites for everything else (design.md stages 1-3: hardcoded Emerald county division, world tiles, city/location metadata).
 
-- Remove the debug menu's "New Trainer ID" option (`src/util/debug.c:663`, `DebugAction_Player_Id`) so the world seed never changes. Also verify that trade and link code preserve the full 32-bit `otId` and the EOS-padded OT name, since the seed for types and moves depends on them.
+- Verify that trade and link code preserve the full 32-bit `otId` and the EOS-padded OT name, since the seed for types and moves depends on them.
 - Define the salt constants (county, map, NPC, ...) as callers appear; `WorldRng` currently takes bare numbers.
 - Test strategy for randomization: many existing tests assert real species types and learnsets (e.g. `ASSUME(GetSpeciesType(...))`), so every randomization milestone needs a compile-time switch (or fixed identity mapping under `TESTING`) plus new tests that sweep many seeds and check invariants.
 - Hardcoded world data tables (`src/data/world/`?) for the 6x4 counties over Emerald's 28x15 region map (`src/data/region_map/region_map_layout.h`): terrain, biome, population, special location, story index, McGuffin keys/locks, capital (Lilycove), story-arc id, world-tile roles, per-city themes/buildings/gym types/leaders.
