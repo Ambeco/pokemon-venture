@@ -14,6 +14,7 @@
 #include "sprite.h"
 #include "string_util.h"
 #include "task.h"
+#include "world_seed.h"
 
 
 #define TAG_SKIP_INTRO 2000
@@ -88,6 +89,7 @@ static void CB2_SkipToNewGame(void)
         gSaveBlock2Ptr->playerGender = SetQuickstartPlayerGender();
         const u8* textPtr = gSaveBlock2Ptr->playerGender == FEMALE ? sText_PlayerFemale : sText_PlayerMale;
         StringCopy_PlayerName(gSaveBlock2Ptr->playerName, textPtr);
+        PadOtName(gSaveBlock2Ptr->playerName, PLAYER_NAME_LENGTH + 1);
 
 #if IS_FRLG
         StringCopy_PlayerName(gSaveBlock1Ptr->rivalName, sText_Rival);

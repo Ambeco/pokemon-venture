@@ -1,5 +1,6 @@
 #include "global.h"
 #include "naming_screen.h"
+#include "world_seed.h"
 #include "malloc.h"
 #include "palette.h"
 #include "task.h"
@@ -1927,6 +1928,8 @@ static void SaveInputText(void)
         if (sNamingScreen->textBuffer[i] != CHAR_SPACE && sNamingScreen->textBuffer[i] != EOS)
         {
             StringCopyN(sNamingScreen->destBuffer, sNamingScreen->textBuffer, sNamingScreen->template->maxChars + 1);
+            if (sNamingScreen->templateNum == NAMING_SCREEN_PLAYER)
+                PadOtName(sNamingScreen->destBuffer, PLAYER_NAME_LENGTH + 1);
             break;
         }
     }

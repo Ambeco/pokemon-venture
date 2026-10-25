@@ -17,7 +17,15 @@
  * one instance of it. Different salts or ordinals give unrelated streams.
  */
 
-// Hashes up to PLAYER_NAME_LENGTH characters of otName, stopping at EOS. Bytes after EOS are ignored.
+// Fills every byte from the first EOS (or from size) to size with EOS.
+void PadOtName(u8 *name, u32 size);
+
+// TRUE if all bytes after the first EOS in the first PLAYER_NAME_LENGTH bytes are EOS.
+bool32 IsOtNamePadded(const u8 *otName);
+
+// Hashes the first PLAYER_NAME_LENGTH bytes of otName as a fixed block, with no per-character
+// loop. Every writer of a player name or Pokémon OT name must therefore EOS-pad it with
+// PadOtName(); a debug assert fires otherwise. Trading with other ROMs is unsupported.
 u32 WorldSeedFromIdentity(u32 otId, const u8 *otName);
 
 u32 WorldHash(u32 worldSeed, u32 salt, u32 ordinal);

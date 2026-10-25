@@ -6,9 +6,10 @@
 #define SALT_A 1
 #define SALT_B 2
 
-static const u8 sNameAbc[] = _("ABC");
-static const u8 sNameAbd[] = _("ABD");
-static const u8 sNameLong[] = _("ABCDEFG");
+// OT names are fixed 7-byte blocks padded with EOS.
+static const u8 sNameAbc[PLAYER_NAME_LENGTH] = {CHAR_A, CHAR_B, CHAR_C, EOS, EOS, EOS, EOS};
+static const u8 sNameAbd[PLAYER_NAME_LENGTH] = {CHAR_A, CHAR_B, CHAR_D, EOS, EOS, EOS, EOS};
+static const u8 sNameLong[PLAYER_NAME_LENGTH] = {CHAR_A, CHAR_B, CHAR_C, CHAR_D, CHAR_E, CHAR_F, CHAR_G};
 
 TEST("WorldSeedFromIdentity is deterministic")
 {
@@ -27,11 +28,60 @@ TEST("WorldSeedFromIdentity depends on the name")
     EXPECT_NE(WorldSeedFromIdentity(1, sNameAbc), WorldSeedFromIdentity(1, sNameLong));
 }
 
-TEST("WorldSeedFromIdentity ignores bytes after EOS")
+TEST("PadOtName fills everything after the first EOS with EOS")
 {
-    u8 a[PLAYER_NAME_LENGTH + 1] = {CHAR_A, CHAR_B, EOS, 0x11, 0x22, 0x33, 0x44, EOS};
-    u8 b[PLAYER_NAME_LENGTH + 1] = {CHAR_A, CHAR_B, EOS, 0x55, 0x66, 0x77, 0x88, EOS};
-    EXPECT_EQ(WorldSeedFromIdentity(7, a), WorldSeedFromIdentity(7, b));
+    u8 name[PLAYER_NAME_LENGTH + 1] = {CHAR_A, CHAR_B, EOS, 0x11, 0x22, 0x33, 0x44, 0x55};
+    u32 i;
+    PadOtName(name, sizeof(name));
+    EXPECT_EQ(name[0], CHAR_A);
+    EXPECT_EQ(name[1], CHAR_B);
+    for (i = 2; i < sizeof(name); i++)
+        EXPECT_EQ(name[i], EOS);
+}
+
+TEST("PadOtName leaves a full-length name intact")
+{
+    u8 name[PLAYER_NAME_LENGTH + 1] = {CHAR_A, CHAR_B, CHAR_C, CHAR_D, CHAR_E, CHAR_F, CHAR_G, 0x33};
+    PadOtName(name, PLAYER_NAME_LENGTH);
+    EXPECT_EQ(name[PLAYER_NAME_LENGTH - 1], CHAR_G);
+    EXPECT_EQ(name[PLAYER_NAME_LENGTH], 0x33);
+}
+
+TEST("IsOtNamePadded detects junk after EOS")
+{
+    u8 good[PLAYER_NAME_LENGTH] = {CHAR_A, EOS, EOS, EOS, EOS, EOS, EOS};
+    u8 bad[PLAYER_NAME_LENGTH] = {CHAR_A, EOS, EOS, 0x11, EOS, EOS, EOS};
+    EXPECT(IsOtNamePadded(good));
+    EXPECT(!IsOtNamePadded(bad));
+}
+
+TEST("SetBoxMonData OT name pads with EOS")
+{
+    struct Pokemon mon;
+    u8 src[PLAYER_NAME_LENGTH] = {CHAR_A, CHAR_B, EOS, 0x11, 0x22, 0x33, 0x44};
+    u32 i;
+    CreateMon(&mon, SPECIES_WOBBUFFET, 5, 0, OTID_STRUCT_PLAYER_ID);
+    SetMonData(&mon, MON_DATA_OT_NAME, src);
+    for (i = 2; i < PLAYER_NAME_LENGTH; i++)
+        EXPECT_EQ(mon.box.otName[i], EOS);
+    EXPECT(IsOtNamePadded(mon.box.otName));
+}
+
+TEST("A Pokémon's seed is identical whatever junk its source name carried")
+{
+    struct Pokemon a, b;
+    u8 srcA[PLAYER_NAME_LENGTH] = {CHAR_A, CHAR_B, EOS, 0x11, 0x22, 0x33, 0x44};
+    u8 srcB[PLAYER_NAME_LENGTH] = {CHAR_A, CHAR_B, EOS, 0x55, 0x66, 0x77, 0x88};
+    CreateMon(&a, SPECIES_WOBBUFFET, 5, 0, OTID_STRUCT_PRESET(0x12345678));
+    CreateMon(&b, SPECIES_WOBBUFFET, 5, 0, OTID_STRUCT_PRESET(0x12345678));
+    SetMonData(&a, MON_DATA_OT_NAME, srcA);
+    SetMonData(&b, MON_DATA_OT_NAME, srcB);
+    EXPECT_EQ(WorldSeedFromIdentity(0x12345678, a.box.otName), WorldSeedFromIdentity(0x12345678, b.box.otName));
+}
+
+TEST("New-game player name is padded")
+{
+    EXPECT(IsOtNamePadded(gSaveBlock2Ptr->playerName));
 }
 
 TEST("WorldSeedFromIdentity reads an unterminated 7-character OT name safely")

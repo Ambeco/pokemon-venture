@@ -42,6 +42,7 @@
 #include "pokemon_storage_system.h"
 #include "pokerus.h"
 #include "random.h"
+#include "world_seed.h"
 #include "recorded_battle.h"
 #include "regions.h"
 #include "rtc.h"
@@ -2943,6 +2944,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
             s32 i;
             for (i = 0; i < PLAYER_NAME_LENGTH; i++)
                 boxMon->otName[i] = data[i];
+            PadOtName(boxMon->otName, PLAYER_NAME_LENGTH);
             break;
         }
         case MON_DATA_MARKINGS:
