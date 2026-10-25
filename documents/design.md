@@ -12,7 +12,7 @@ The goal of the world generation below is a game world map with cities, routes, 
 
 Generation is a stack of layers, each computed only from the layers above it, never from its own neighbors or from later layers:
 
-1. World map: terrain types and biomes per county, from the PRNG seeded on the player ID alone.
+1. World map: terrain types and biomes per county, from the PRNG seeded from the world seed (see "Seeds" below).
 2. World map: county-story-indices, from layer 1 plus a couple of McGuffin boundaries.
 3. World map: county populations, city locations and names, and special location IDs and positions, from layers 1-2.
 4. World map: which counties connect to which, from layers 1-3 (using only county-story-index adjacency and the capital, never planner data).
@@ -235,10 +235,10 @@ Biome terrain and art:
 ## Data representation and determinism
 
 - GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (a world uses only 16 of the 25 biomes), population in 2 bits (roughly logarithmic).
-- Map generation uses a PRNG seeded from the player ID. The generated world therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every player ID yields a completely different map.
+- Map generation uses a PRNG seeded from the world seed. The generated world therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every distinct identity yields a completely different map.
 
 - Saves record a generator id, and the game refuses to open a save whose generator id does not match. Players upgrading mid-playthrough are not supported.
-- Seeds: terrain and world generation use the player ID plus the secret ID. Pokémon types and moves, which affect battles, use only information that travels with a Pokémon (the original trainer's ID and name), so battles and traded Pokémon are handled correctly. The 16-bit player ID alone gives only 65535 worlds, which is considered acceptable; the player name adds entropy for types and moves.
+- Seeds: everything (world, types, moves) derives from one world seed, `WorldSeedFromIdentity(otId, otName)` in `src/util/world_seed.c`: a hash of the full 32-bit OT ID (public and secret halves) and the OT name up to its terminator. These are the only inputs that are stable, always in RAM, and attached to traded Pokémon, so a traded Pokémon's types and moves come from its own OT's seed. `WorldRng(seed, salt, ordinal)` returns an independent SFC32 state per purpose and instance, never touching `gRngValue`; the player's own seed is `GetPlayerWorldSeed()`.
 - Incremental generation goal: world, county, and map generation should be light enough to run in tiny chunks per frame as the player approaches a new area. On entering a city, plot points are picked a little per frame so the next cutscene location is known before the player has moved about 5 tiles.
 
 ## Procedural species types and wild encounters

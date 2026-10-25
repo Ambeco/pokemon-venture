@@ -8,8 +8,8 @@ The staged hardcode-first roadmap (design.md, "Development approach"). Each mile
 
 Prerequisites for everything else (design.md stages 1-3: hardcoded Emerald county division, world tiles, city/location metadata).
 
-- Seeded generator module: a deterministic, self-contained PRNG and hash (seed = player ID, plus per-purpose salts such as county, map, NPC), independent of the game's `gRngValue`; written as pure functions with no GBA dependencies so they can be unit tested.
-- World seed accessor wrapping `gSaveBlock2Ptr->playerTrainerId`; remove the debug menu's "New Trainer ID" option (`src/util/debug.c:663`, `DebugAction_Player_Id`) so the seed never changes.
+- Remove the debug menu's "New Trainer ID" option (`src/util/debug.c:663`, `DebugAction_Player_Id`) so the world seed never changes. Also verify that trade and link code preserve the full 32-bit `otId` and the OT name, since the seed for types and moves depends on them.
+- Define the salt constants (county, map, NPC, ...) as callers appear; `WorldRng` currently takes bare numbers.
 - Test strategy for randomization: many existing tests assert real species types and learnsets (e.g. `ASSUME(GetSpeciesType(...))`), so every randomization milestone needs a compile-time switch (or fixed identity mapping under `TESTING`) plus new tests that sweep many seeds and check invariants.
 - Hardcoded world data tables (`src/data/world/`?) for the 6x4 counties over Emerald's 28x15 region map (`src/data/region_map/region_map_layout.h`): terrain, biome, population, special location, story index, McGuffin keys/locks, capital (Lilycove), story-arc id, world-tile roles, per-city themes/buildings/gym types/leaders.
 - Debug tool to print the whole world (counties, tiles, indices, McGuffins) as text, used by every later milestone.
@@ -158,7 +158,6 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 - Decide how strongly gym assignment follows the average gym-order table (soft bias strength, Elite Four preference for late types) alongside theme requirements.
 - Content roadmap: Emerald rival arc and story arc first (preserving cutscene text), then the Kanto story arc and Red/Blue/Yellow rival arc, then other mainline games; subplots from Emerald, then RBY and others, and eventually TV-episode subplots.
 - Check the dropped top tile row against the Emerald region map: confirm the 28x15 cells after dropping the top row and the first/last columns still hold the intended county contents, and that the city name and Nav overlays only cover unused tiles.
-- Check whether the secret ID can be used for types and moves: `BoxPokemon.otId` is a 32-bit field (`include/pokemon/pokemon.h:259`), which in vanilla holds both the public and secret ID, so the secret ID may travel with a Pokémon and could add entropy to type/move seeds. Verify against trade and link code.
 - Design chunked, per-frame generation (world/county/map and city plot points) and its CPU budget.
 - Add the generator id to the save and the refuse-to-load check.
 - Confirm the story-graph proposals in design.md (the layer-2 growth constraint, the start county always having a settlement, key items and HMs as the only keys) and check the first-place rule against Emerald's actual layout.
