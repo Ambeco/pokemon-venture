@@ -27,6 +27,7 @@ Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design.md, 
 - Decide the open questions in design.md: building roles and whether runtime NPC spawning is needed beyond cutscenes.
 - Implement the descriptor, the stage accessor and the read-only adapter over the existing Emerald vars, with tests; then the story-reference resolver and its build tool.
 - Port one optional, stored-slot subplot (not a main-line one, since the main-story-index is not maintained until Milestone 3) through the descriptor with the game's behavior unchanged.
+- Once the descriptor and McGuffin abstraction exist, also abstract Kanto's subplots and McGuffins (`data/maps/*_Frlg` scripts, `src/data/trainers_frlg.*`; notes.md) and add them to the subplot and McGuffin lists.
 - Done when: the accessor and adapter pass tests, one subplot is ported, and the NPC-talk query returns the right stage for it. The swap itself is Milestone 2's done-when.
 
 ### Milestone 1: NPC texts shuffled, still hinting the current arcs and subplot
