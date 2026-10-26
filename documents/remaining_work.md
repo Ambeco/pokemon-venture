@@ -57,6 +57,8 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 ### Milestone 4: Randomized Pokémon types
 
 - Species metadata tool: base-evolution table, sprite-implied element overrides, and the biome type-affinity tables.
+- Fixed-type exceptions to the stride mapping: the Eevee line (Eevee pure Normal, each Eeveelution its own single type), plus the sprite-implied element list. The "evolutions share the base's mapping" invariant needs these exempted.
+- Stone evolutions (decided; sprite-implied species are locked first, as above): any remaining base species that evolves with an elemental stone has its type drawn only from the types that have a stone, and evolves with the matching stone. For multi-stone lines (Gloom, Poliwhirl, Eevee), use the union of the stone types and choose the evolution by the stone used. Still to list: which types have stones (Fire, Water, Electric, Grass, Ice, Dark via Dusk, Fairy via Shiny, possibly Psychic via Dawn), and the leftover species this applies to. Evolved forms still gain an unrestricted second type.
 - Stride mapping (mod 12, over the region's 4x3 biome subset) and seeded type selection; route every type read through the single accessor `GetSpeciesType` (`include/pokemon/pokemon.h:824`), and check every direct read of `types` in battle, Pokédex, AI, and the summary screens.
 - Type icons before names (check existing icons first).
 - Ability interactions; decide on form changes, Mega/Tera types.
