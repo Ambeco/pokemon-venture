@@ -26,6 +26,10 @@ Terrain and biome per county. Hoenn is mostly rainforest, so it uses the warm, w
 | y=2 | Land, Temperate woodland | Land, Temperate shrublands | Land, Temperate shrublands | Land, Temperate fresh-water swamp forest | Ocean, Temperate giant rainforest | Land (island), Temperate giant rainforest |
 | y=3 | Ocean, Temperate giant rainforest | Land, Temperate fresh-water swamp forest | Land, Temperate grassland | Ocean, Temperate giant rainforest | Ocean, Temperate giant rainforest | Ocean, Temperate giant rainforest |
 
+### County-story-indices used in the code
+
+`src/data/world/emerald_world.h` renumbers the table above to 0-23 in order, with three fixes so the layer-2 rules hold: Lavaridge (42) sits between Meteor Falls (10) and Fortree (12) as index 11; Sootopolis is 18 and the empty county (3,2) is 19, so Ever Grande is index 20, the Elite Four for R = 3, followed by the reserved legendary counties Mirage Island (21), Pacifidlog (22) and Sealed Chamber (23). Jumps (non-adjacent consecutive indices) are 3 to 4, 4 to 5, 10 to 11 and 17 to 18, numbered 1-4 as key/lock ids. Ports (Dewford, Slateport, Lilycove) and special-location kinds are best fits, not final.
+
 ### Special location counts
 
 Counted from the county table, classifying each place by where it is in Emerald (gyms, the Elite Four, rival battles and HM pickups excluded; Glass Workshop, Pretty Petal Flower Shop, Trainer Hill, Trick House, Daycare and Berry Master are on routes):

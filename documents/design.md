@@ -234,12 +234,36 @@ Biome terrain and art:
 
 ## Data representation and determinism
 
-- GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (a world uses only 16 of the 25 biomes), population in 2 bits (roughly logarithmic).
+- GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (an index into the world's 4x3 subset of the 25 biomes), population in 2 bits (roughly logarithmic).
 - Map generation uses a PRNG seeded from the world seed. The generated world therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every distinct identity yields a completely different map.
 
 - Saves record a generator id, and the game refuses to open a save whose generator id does not match. Players upgrading mid-playthrough are not supported.
 - Seeds: everything (world, types, moves) derives from one world seed, `WorldSeedFromIdentity(otId, otName)` in `src/util/world_seed.c`: a hash of the full 32-bit OT ID (public and secret halves) and the 7-byte OT name hashed as a fixed block, which is why every name writer EOS-pads it (`PadOtName`: the naming screen, quickstart, `SetBoxMonData`); a debug assert catches unpadded names. Trading is only supported between Venture ROMs, so incoming mons are trusted to be padded. These are the only inputs that are stable, always in RAM, and attached to traded Pokémon, so a traded Pokémon's types and moves come from its own OT's seed. `WorldRng(seed, salt, ordinal)` returns an independent SFC32 state per purpose and instance, never touching `gRngValue`; the player's own seed is `GetPlayerWorldSeed()`.
 - Incremental generation goal: world, county, and map generation should be light enough to run in tiny chunks per frame as the player approaches a new area. On entering a city, plot points are picked a little per frame so the next cutscene location is known before the player has moved about 5 tiles.
+
+### County headers
+
+Code: `include/util/world_county.h`, `src/util/world_county.c`, Emerald data in `src/data/world/emerald_world.h`.
+
+The 24 county headers plus a small world header are cached for the whole session (24 x 4 bytes = 96 bytes), and they carry everything a county needs to know about its neighbors, so a county is generated from its own header and its neighbors' headers and never from a neighbor's generated content. Because they are always resident, a field is stored only if it is the output of a global constraint (the terrain shape, the story-index walk, the settlement quota, the special-location assignment) and so cannot be recomputed from the other headers plus a per-county hash.
+
+Per county (`struct CountyHeader`, 25 bits used of 32):
+
+| Field | Bits | Why stored |
+|---|---|---|
+| terrain (land, mountain, ocean) | 2 | layer 1 shape |
+| biome, as an index into the world's 4x3 subset | 4 | layer 1 gradients |
+| county-story-index | 5 | layer 2 walk |
+| population | 2 | layer 3 settlement quota |
+| special-location kind | 5 | layer 3 assignment (unique kinds, reserved legendaries) |
+| key id, lock id: jump ordinal 1-7, 0 = none | 3 + 3 | layer 2 dead ends; a lock jump is not derivable from adjacency once ports and side visits exist |
+| port flag | 1 | layer 2 |
+
+Per world (`struct WorldHeader`): the capital county, R (the reserved legendary count, 3 or 4), the biome subset (humidity base and temperature base) and the story-arc id. These are one-per-world facts, so they are not per-county flags; the Elite Four and reserved counties follow from R and the story indices.
+
+Derived, never stored: island (a land county whose neighbors are ocean), the city name (table lookup from the seed and county id), city and special-location tiles, extra special locations, the gym, HM and arc-beat hosts and the gym types (all planner hashes), and whether a route exists to a neighbor (county-story-index adjacency, capital, highest index). A key's kind and cross-county McGuffin id come from the planner's item hash, so the header holds only the ordinal that pairs a key county with its lock county. A county holds at most one key and one lock (it can be both a lock's target and a key's holder). The city theme is not stored yet; if its eligibility rules turn out to need a global choice it gets spare bits.
+
+In the hardcoded Emerald stage, tile positions and names are not in the header; they will sit behind accessors that later become hashes, so callers do not change.
 
 ## Procedural species types and wild encounters
 
@@ -875,3 +899,23 @@ Cons:
 Showing the switch-hint grades in the field party menu while inside a gym, graded against the gym type.
 - Pros: helps plan a gym's battles before they start.
 - Cons: a rare case for extra UI; the gym guide's advice covers the same need.
+
+### Per-county flags for capital and Elite Four
+
+Store an `isCapital` and `isEliteFour` bit in every county header.
+
+Pros:
+- A county reads its own header only.
+
+Cons:
+- Spends 2 bits x 24 on one-per-world facts; the world header holds the capital id, and R plus the story index identify the Elite Four.
+
+### Tile positions and names in the headers
+
+Store each county's city tile, special-location tile and city name index in its header.
+
+Pros:
+- No hashing at read time.
+
+Cons:
+- Roughly doubles the always-resident data for values a per-county hash gives for free.
