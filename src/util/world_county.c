@@ -43,6 +43,13 @@ u32 GetCountyByStoryIdx(u32 idx)
     return 0;
 }
 
+u32 GetCountyLockId(u32 countyId)
+{
+    u32 idx = GetCountyHeader(countyId)->storyIdx;
+
+    return idx == 0 ? 0 : GetCountyHeader(GetCountyByStoryIdx(idx - 1))->keyId;
+}
+
 u32 GetEliteFourStoryIdx(void)
 {
     return NUM_COUNTIES - 1 - GetWorldHeader()->reservedCount;

@@ -247,7 +247,7 @@ Code: `include/util/world_county.h`, `src/util/world_county.c`, Emerald data in 
 
 The 24 county headers plus a small world header are cached for the whole session (24 x 3 bytes = 72 bytes), and they carry everything a county needs to know about its neighbors, so a county is generated from its own header and its neighbors' headers and never from a neighbor's generated content. Because they are always resident, a field is stored only if it is the output of a global constraint (the terrain shape, the story-index walk, the settlement quota) and so cannot be recomputed from the other headers plus a per-county hash.
 
-Per county (`struct CountyHeader`, packed, 20 bits used of 24):
+Per county (`struct CountyHeader`, packed, 17 bits used of 24):
 
 | Field | Bits | Why stored |
 |---|---|---|
@@ -255,7 +255,7 @@ Per county (`struct CountyHeader`, packed, 20 bits used of 24):
 | biome, as an index into the world's 4x3 subset | 4 | layer 1 gradients |
 | county-story-index | 5 | layer 2 walk |
 | population | 2 | layer 3 settlement quota |
-| key id, lock id: jump ordinal 1-7, 0 = none | 3 + 3 | layer 2 dead ends; a lock jump is not derivable from adjacency once ports and side visits exist |
+| key id: jump ordinal 1-7, 0 = none | 3 | layer 2 dead ends; the lock is always in the next story index, so lock ids are derived |
 | port flag | 1 | layer 2 |
 
 Per world (`struct WorldHeader`): the capital county, R (the reserved legendary count, 3 or 4), the biome subset (humidity base and temperature base) and the story-arc id. These are one-per-world facts, so they are not per-county flags; the Elite Four and reserved counties follow from R and the story indices.

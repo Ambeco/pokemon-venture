@@ -17,7 +17,7 @@
  * tiles, names) is deliberately not here; it will sit behind accessors that later become hashes.
  *
  * Quirks: a biome is stored relative to the world's 4x3 biome subset (see GetCountyBiome); the
- * spare bits of CountyHeader are reserved and must stay zero; a county may hold one key and one
+ * spare bits of CountyHeader are reserved and must stay zero; a key's lock is always in the next story index, so only keys are stored; a county may hold one key and one
  * lock at once (a dead end that was itself reached by a jump), but never two of either.
  */
 
@@ -91,10 +91,9 @@ struct CountyHeader
     u32 biome:4;            // index into the world's 4x3 subset, row-major from its driest, hottest corner
     u32 storyIdx:5;         // county-story-index, unique over 0..NUM_COUNTIES-1
     u32 population:2;       // 0 = no settlement, 1 village, 2 town, 3 city
-    u32 keyId:3;            // jump ordinal 1-7 whose key this county holds, 0 = none
-    u32 lockId:3;           // jump ordinal 1-7 whose lock opens this county, 0 = none
+    u32 keyId:3;            // jump ordinal 1-7 whose key this county holds, 0 = none; its lock is at storyIdx + 1
     u32 port:1;
-    u32 reserved:4;
+    u32 reserved:7;
 } __attribute__((packed));
 
 STATIC_ASSERT(sizeof(struct CountyHeader) == 3, CountyHeaderIs3Bytes);
@@ -112,6 +111,9 @@ struct WorldHeader
 const struct WorldHeader *GetWorldHeader(void);
 
 const struct CountyHeader *GetCountyHeader(u32 countyId);
+
+// Jump ordinal whose lock opens this county (the key of the county at storyIdx - 1), 0 = none.
+u32 GetCountyLockId(u32 countyId);
 
 // Global grid id (enum Biome) of the county's biome, expanded through the world's subset.
 u32 GetCountyBiome(u32 countyId);

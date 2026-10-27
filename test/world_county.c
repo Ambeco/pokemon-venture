@@ -65,7 +65,7 @@ TEST("WorldCounty: Each key's county precedes its lock's county, and ids are pai
                 keys++;
                 keyIdx = GetCountyHeader(i)->storyIdx;
             }
-            if (GetCountyHeader(i)->lockId == id)
+            if (GetCountyLockId(i) == id)
             {
                 locks++;
                 lockIdx = GetCountyHeader(i)->storyIdx;
@@ -90,7 +90,7 @@ TEST("WorldCounty: Every non-adjacent consecutive walk step has a key and lock")
         if (!AreCountiesAdjacent(prev, cur))
         {
             EXPECT(GetCountyHeader(prev)->keyId != 0);
-            EXPECT_EQ((u32)GetCountyHeader(prev)->keyId, (u32)GetCountyHeader(cur)->lockId);
+            EXPECT_EQ((u32)GetCountyHeader(prev)->keyId, GetCountyLockId(cur));
         }
     }
 }
