@@ -274,6 +274,10 @@ Tile positions and names are not in the headers. They are read through accessors
 - The empty county (3, 2) has no city, special location or route tile, as a one-off Emerald exception; every other county has at least one special location.
 - Positions inside a county are placeholders nudged toward Hoenn; routes are short unconnected stubs until route placement and route-story-indices are generated.
 
+### Region dump
+
+`DumpRegion()` / `PrintRegionToLog()` (`include/util/region_dump.h`, debug menu: Utilities, "Print region (log)") print an ASCII map of the 28x15 cells (city, special location, route, empty; county separators) and two lines per county (header fields, capital/Elite Four/reserved, city, special locations, route count) through the accessors, so it shows whatever the generator later produces. Lines are emitted one at a time to keep stack use small.
+
 ### Regions and multiple regions
 
 Gold/Silver and FireRed/LeafGreen have several region maps the player moves between. This mod is built for one region now but keeps the seams so a later version can host more: nothing region-shaped may assume a single instance in new code.
