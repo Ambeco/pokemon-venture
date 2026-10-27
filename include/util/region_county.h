@@ -13,8 +13,8 @@
  * never from a neighbor's generated content.
  *
  * Stage 1 (hardcoded Emerald): GetRegionHeader() returns a ROM table. Later it returns a RAM copy
- * filled by the generator; callers do not change. Per-tile Emerald data (city and special-location
- * tiles, names) is deliberately not here; it will sit behind accessors that later become hashes.
+ * filled by the generator; callers do not change. Per-tile data (city and special-location
+ * tiles, names) is deliberately not here; see region_tile.h.
  *
  * Quirks: a biome is stored relative to the region's 4x3 biome subset (see GetCountyBiome); the
  * spare bits of CountyHeader are reserved and must stay zero; a key's lock is always in the next story index, so only keys are stored; a county may hold one key and one

@@ -1,6 +1,6 @@
 # pokemon-venture
 
-Procedurally generated Pokémon world mod on top of pokeemerald-expansion. Read `documents/` first (`design.md`, `remaining_work.md`, `notes.md`).
+Procedurally generated Pokémon region mod on top of pokeemerald-expansion. Read `documents/` first (`design.md`, `remaining_work.md`, `notes.md`).
 
 ## Branches
 

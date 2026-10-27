@@ -12,7 +12,7 @@ The goal of the region generation below is a game region map with cities, routes
 
 Generation is a stack of layers, each computed only from the layers above it, never from its own neighbors or from later layers:
 
-1. Region map: terrain types and biomes per county, from the PRNG seeded from the identity seed (a region would use a seed derived from it) (see "Seeds" below).
+1. Region map: terrain types and biomes per county, from the PRNG seeded from the region seed (today the identity seed itself; see "Regions and multiple regions") (see "Seeds" below).
 2. Region map: county-story-indices, from layer 1 plus a couple of McGuffin boundaries.
 3. Region map: county populations, city locations and names, and special location IDs and positions, from layers 1-2.
 4. Region map: which counties connect to which, from layers 1-3 (using only county-story-index adjacency and the capital, never planner data).
@@ -235,7 +235,7 @@ Biome terrain and art:
 ## Data representation and determinism
 
 - GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (an index into the region's 4x3 subset of the 25 biomes), population in 2 bits (roughly logarithmic).
-- Map generation uses a PRNG seeded from the identity seed (a region would use a seed derived from it). The generated region therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every distinct identity yields a completely different map.
+- Map generation uses a PRNG seeded from the region seed (today the identity seed itself; see "Regions and multiple regions"). The generated region therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every distinct identity yields a completely different map.
 
 - Saves record a generator id, and the game refuses to open a save whose generator id does not match. Players upgrading mid-playthrough are not supported.
 - Seeds: everything (region, types, moves) derives from one identity seed, `SeedFromIdentity(otId, otName)` in `src/util/identity_seed.c`: a hash of the full 32-bit OT ID (public and secret halves) and the 7-byte OT name hashed as a fixed block, which is why every name writer EOS-pads it (`PadOtName`: the naming screen, quickstart, `SetBoxMonData`); a debug assert catches unpadded names. Trading is only supported between Venture ROMs, so incoming mons are trusted to be padded. These are the only inputs that are stable, always in RAM, and attached to traded Pokémon, so a traded Pokémon's types and moves come from its own OT's seed. `IdentityRng(seed, salt, ordinal)` returns an independent SFC32 state per purpose and instance, never touching `gRngValue`; the player's own seed is `GetPlayerIdentitySeed()`.
@@ -262,7 +262,26 @@ Per region (`struct RegionHeader`): the capital county, R (the reserved legendar
 
 Derived, never stored: island (a land county whose neighbors are ocean), the city name (table lookup from the seed and county id), the special locations (kind, tile and routes, picked per county by a coprime stride over the kind list like the city name, so kinds are not reused; the reserved legendary counties are known from the story index), the gym, HM and arc-beat hosts and the gym types (all planner hashes), and whether a route exists to a neighbor (county-story-index adjacency, capital, highest index). A key's kind and cross-county McGuffin id come from the planner's item hash, so the header holds only the ordinal that pairs a key county with its lock county. A county holds at most one key and one lock (it can be both a lock's target and a key's holder). The city theme is not stored yet; if its eligibility rules turn out to need a global choice it gets spare bits.
 
-In the hardcoded Emerald stage, tile positions and names are not in the header; they will sit behind accessors that later become hashes, so callers do not change.
+### Region tiles
+
+Code: `include/util/region_tile.h`, `src/util/region_tile.c`, Emerald data in `src/data/region/emerald_tiles.h`.
+
+Tile positions and names are not in the headers. They are read through accessors keyed by county id or region-map cell: `GetRegionTileFlags(x, y)`, the city (`DoesCountyHaveCity`, `GetCountyCityPos`, `GetCountyCityMapSec`), the special locations (count, then position and MAPSEC per index) and the route tiles (count, then position per index). In the hardcoded Emerald stage they answer from a per-county ROM table (city tile, up to 6 special locations, a 20-bit route mask, all in county-local coordinates); later they answer from per-county hashes, so callers do not change. Everything is asked through the county, so a county is still generated from its own header and its neighbors' headers only.
+
+- Roles are a bit set, not an enum: a special location inside a city (Devon Corp, Mauville Game Corner) shares the city's tile. Special locations are otherwise distinct tiles, and route tiles never share a tile with anything.
+- Names are MAPSEC ids. A special location that lies on a route in Emerald (Glass Workshop, Trick House) takes the route's MAPSEC, and an in-city one without its own MAPSEC takes the city's.
+- The table is per county rather than a 28x15 grid because Emerald.md fudges places into counties: for example Fallarbor's real cell (3, 0) falls in county (0, 0) geometrically but belongs to county (1, 0). The region-map screen still shows the real Hoenn layout; the two are reconciled only when the generated region replaces Emerald.
+- The empty county (3, 2) has no city, special location or route tile, as a one-off Emerald exception; every other county has at least one special location.
+- Positions inside a county are placeholders nudged toward Hoenn; routes are short unconnected stubs until route placement and route-story-indices are generated.
+
+### Regions and multiple regions
+
+Gold/Silver and FireRed/LeafGreen have several region maps the player moves between. This mod is built for one region now but keeps the seams so a later version can host more: nothing region-shaped may assume a single instance in new code.
+
+- Per region: the region header, the 24 county headers, the tile data, the county var slices (sized for one region today) and a region seed. A region's seed would be `IdentityRng(identitySeed, SALT_REGION, regionIndex)` or similar, never the identity seed itself.
+- Per identity, shared by all regions: the identity seed, species types and move pools (which must agree across trades and regions).
+- Not implemented until V2: travel between regions, a region index in the save, per-region var slices.
+
 
 ## Procedural species types and wild encounters
 
@@ -908,6 +927,18 @@ Pros:
 
 Cons:
 - Spends 2 bits x 24 on one-per-region facts; the region header holds the capital id, and R plus the story index identify the Elite Four.
+
+### A global 28x15 table of tile roles
+
+Store one grid of cells for the whole Emerald region instead of per-county tables.
+
+Pros:
+- Direct lookup by region cell; simplest to read.
+
+Cons:
+- Hides the county as the unit of generation, so the generator's per-county hashes would need a different shape.
+- Emerald.md fudges places into counties, so the grid would disagree with the real Hoenn region-map layout and invite using the wrong one.
+- 420 bytes of ROM for mostly empty cells.
 
 ### Tile positions and names in the headers
 

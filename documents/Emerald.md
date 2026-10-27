@@ -4,7 +4,7 @@ Emerald-specific data for the hardcoded stage (design.md, "Development approach"
 
 ## County assignment
 
-Hoenn does not fit the 6x4 county grid cleanly, so for the hardcoded stage places are fudged into counties, with everything very slightly stretched apart. Since most content is hardcoded at this stage, the stretching does not matter, and once the world is fully generated there is no fakery left.
+Hoenn does not fit the 6x4 county grid cleanly, so for the hardcoded stage places are fudged into counties, with everything very slightly stretched apart. Since most content is hardcoded at this stage, the stretching does not matter, and once the region is fully generated there is no fakery left.
 
 Each county holds at most one city, with the caves and other special locations spread around it. Each cell starts with the order in which the player first visits it in Emerald, in steps of 4 (leaving room for routes between), then its city, special locations, gym (with its badge order), rival battles and HM/McGuffin acquisitions. "Requires" names what unlocks a location. County (3,2) is deliberately empty: Emerald has nothing reasonable to put there, which is accepted for the hardcoded stage.
 
@@ -29,6 +29,10 @@ Terrain and biome per county. Hoenn is mostly rainforest, so it uses the warm, w
 ### County-story-indices used in the code
 
 `src/data/region/emerald_region.h` renumbers the table above to 0-23 in order, with three fixes so the layer-2 rules hold: Lavaridge (42) sits between Meteor Falls (10) and Fortree (12) as index 11; Sootopolis is 18 and the empty county (3,2) is 19, so Ever Grande is index 20, the Elite Four for R = 3, followed by the reserved legendary counties Mirage Island (21), Pacifidlog (22) and Sealed Chamber (23). Jumps (non-adjacent consecutive indices) are 3 to 4, 4 to 5, 10 to 11 and 17 to 18, numbered 1-4 as key/lock ids. Ports (Dewford, Slateport, Lilycove) and special-location kinds are best fits, not final.
+
+### Tile placement
+
+`src/data/region/emerald_tiles.h` puts each county's city, special locations and route stubs on county-local tiles. Positions are placeholders; the county and the place names are what Emerald.md fixes. Places with no MAPSEC of their own use their route's or city's MAPSEC (design.md, "Region tiles").
 
 ### Special location counts
 
