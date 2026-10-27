@@ -1,6 +1,6 @@
 #include "global.h"
 #include "constants/characters.h"
-#include "world_seed.h"
+#include "identity_seed.h"
 
 // Murmur3 32-bit mixing.
 static u32 MixWord(u32 h, u32 k)
@@ -45,7 +45,7 @@ bool32 IsOtNamePadded(const u8 *otName)
     return TRUE;
 }
 
-u32 WorldSeedFromIdentity(u32 otId, const u8 *otName)
+u32 SeedFromIdentity(u32 otId, const u8 *otName)
 {
     // Padding is EOS by contract (PadOtName), so the name is hashed as a fixed 7-byte block.
     u32 h = MixWord(0, otId);
@@ -55,20 +55,20 @@ u32 WorldSeedFromIdentity(u32 otId, const u8 *otName)
     return Finalize(h ^ 11);
 }
 
-u32 WorldHash(u32 worldSeed, u32 salt, u32 ordinal)
+u32 IdentityHash(u32 seed, u32 salt, u32 ordinal)
 {
-    u32 h = MixWord(0x9e3779b9, worldSeed);
+    u32 h = MixWord(0x9e3779b9, seed);
     h = MixWord(h, salt);
     h = MixWord(h, ordinal);
     return Finalize(h ^ 12);
 }
 
-rng_value_t WorldRng(u32 worldSeed, u32 salt, u32 ordinal)
+rng_value_t IdentityRng(u32 seed, u32 salt, u32 ordinal)
 {
-    return LocalRandomSeed(WorldHash(worldSeed, salt, ordinal));
+    return LocalRandomSeed(IdentityHash(seed, salt, ordinal));
 }
 
-u32 GetPlayerWorldSeed(void)
+u32 GetPlayerIdentitySeed(void)
 {
-    return WorldSeedFromIdentity(READ_OTID_FROM_SAVE, gSaveBlock2Ptr->playerName);
+    return SeedFromIdentity(READ_OTID_FROM_SAVE, gSaveBlock2Ptr->playerName);
 }

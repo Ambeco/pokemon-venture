@@ -4,46 +4,46 @@ Current state of the design for the mod. Organized by topic; describes what the 
 
 ## Overview
 
-The mod procedurally generates a Pokémon world rather than using a fixed map. (The user describes the idea as "overly ambitious"; the full concept is still being collected.)
+The mod procedurally generates a Pokémon region rather than using a fixed map. (The user describes the idea as "overly ambitious"; the full concept is still being collected.)
 
-The goal of the world generation below is a game world map with cities, routes, and special locations that mirrors what a normal mainline Pokémon game looks like.
+The goal of the region generation below is a game region map with cities, routes, and special locations that mirrors what a normal mainline Pokémon game looks like.
 
 ## Layered generation
 
 Generation is a stack of layers, each computed only from the layers above it, never from its own neighbors or from later layers:
 
-1. World map: terrain types and biomes per county, from the PRNG seeded from the world seed (see "Seeds" below).
-2. World map: county-story-indices, from layer 1 plus a couple of McGuffin boundaries.
-3. World map: county populations, city locations and names, and special location IDs and positions, from layers 1-2.
-4. World map: which counties connect to which, from layers 1-3 (using only county-story-index adjacency and the capital, never planner data).
+1. Region map: terrain types and biomes per county, from the PRNG seeded from the identity seed (a region would use a seed derived from it) (see "Seeds" below).
+2. Region map: county-story-indices, from layer 1 plus a couple of McGuffin boundaries.
+3. Region map: county populations, city locations and names, and special location IDs and positions, from layers 1-2.
+4. Region map: which counties connect to which, from layers 1-3 (using only county-story-index adjacency and the capital, never planner data).
 
     The main plot planner (see "Main plot planner") needs no routes: its items come from layers 1-3, and layer 4's route rules already connect each county to the next county-story-index. Layer 3 runs in this order: (a) the settlement quota: counties 0 and 1 and the Elite Four county always have a settlement, plus a random 8 to 13 more; (b) the gym hosts (the Surf gym's host is the Surf-lock county or its callback county), each picked from its hardcoded range, which gives the gym counties their settlements first; (c) the remaining settlements, distributed among the other counties, then populations and special locations (with arc-beat reservations); (d) the other items' hosts from their masks.
-5. Each county: the details of its own world tiles (including exact route placement) and its route-story-indices, from world layers 1-4 only. No county layer depends on any other county's data, including an adjacent county's route-story-indices. Counties may have sub-layers like the world map.
-6. Field maps: generated from world layers 1-4 and the county they are inside, never from another county's data or from adjacent field maps. The exception is inter-county routes, which may use the data of the two counties they connect.
+5. Each county: the details of its own region tiles (including exact route placement) and its route-story-indices, from region layers 1-4 only. No county layer depends on any other county's data, including an adjacent county's route-story-indices. Counties may have sub-layers like the region map.
+6. Field maps: generated from region layers 1-4 and the county they are inside, never from another county's data or from adjacent field maps. The exception is inter-county routes, which may use the data of the two counties they connect.
 7. Further layers continue the same pattern.
 
 This forces single-pass generation with no recursion or transitive operations, and keeps memory use minimal. Any new rule must be checked against it: a rule that needs data from a later layer, or from a sibling's same-layer output, breaks the design.
 
-## World generation
+## Region generation
 
-- The world map is a grid of 6 columns x 4 rows of "counties" (roughly the 5-6 columns and 4 rows of cities in Kanto).
+- The region map is a grid of 6 columns x 4 rows of "counties" (roughly the 5-6 columns and 4 rows of cities in Kanto).
 - Each county is procedurally assigned a terrain type, a biome, a population, and a special location.
 - A "story order" over the counties is generated, which sometimes designates McGuffin "keys" and the "lock" counties they open.
 - One county's city is picked as the "capital".
 
 ### County layout
 
-- Each county is 5x4 "world tiles" (5 wide, 4 tall). A world tile is one cell of the Hoenn region map, which is 28x15 cells (`MAP_WIDTH`/`MAP_HEIGHT` in `src/field/region_map.c`; cell contents in `src/data/region_map/region_map_layout.h`).
+- Each county is 5x4 "region tiles" (5 wide, 4 tall). A region tile is one cell of the Hoenn region map, which is 28x15 cells (`MAP_WIDTH`/`MAP_HEIGHT` in `src/field/region_map.c`; cell contents in `src/data/region_map/region_map_layout.h`).
 - 6x4 counties of 5x4 tiles is 30x16, so the first tile column of the first county column, the last tile column of the last county column, and the top tile row of the top county row are off limits, leaving 28x15. The top row is dropped (not the bottom) because the city name overlay covers the top-right 13x1 tiles and the Nav covers the bottom-right 13x2 tiles, so this leaves both the top and bottom counties 2 usable rows in those corners, where dropping the bottom would leave the bottom-right county only 1. The 6x4 grid of 5x4-tile counties was chosen over the inverse (5x4 counties of 6x4 tiles) because it yields more locations on the map and shorter routes between them.
-- If a county's population is above zero, it places a settlement at a random world tile, except that the county's bottom row and rightmost column are excluded (unless the county is in the bottom row or rightmost column of counties), which keeps space between cities. Population is 0-3 (2 bits); population 0 never generates a city.
+- If a county's population is above zero, it places a settlement at a random region tile, except that the county's bottom row and rightmost column are excluded (unless the county is in the bottom row or rightmost column of counties), which keeps space between cities. Population is 0-3 (2 bits); population 0 never generates a city.
 - Every county always has a special location, whether or not it has a city.
 - Some counties instead hold a reserved end-game special location (see Reserved legendary locations). Layer 2 reserves them while assigning county-story-indices, so they are known before layer 3 places anything.
-- With a city, the special location is placed either in or adjacent to the city (50%), or on a random non-adjacent world tile (50%).
+- With a city, the special location is placed either in or adjacent to the city (50%), or on a random non-adjacent region tile (50%).
 - Without a city (population 0), the special location is necessarily not in a city, and it is what routes attach to.
 
 ### Reserved legendary locations
 
-A few special locations are reserved for legendaries: 2-3 after roughly the 7th gym (each holding a pair or trio of legendaries), and 1 solo location after the Elite Four. They are reserved on the world map, as part of the initial county-story-index determination, and relax the usual special-location rules:
+A few special locations are reserved for legendaries: 2-3 after roughly the 7th gym (each holding a pair or trio of legendaries), and 1 solo location after the Elite Four. They are reserved on the region map, as part of the initial county-story-index determination, and relax the usual special-location rules:
 
 - If the county has a city, routes are generated for the city as if the reserved location did not exist, then one extra route runs from the city to the reserved location. That route and the location get end-game route-story-indices (100+), above every ordinary index.
 - If the county has no city, routes generate as normal, and the reserved location is the county's ordinary special location and what routes attach to.
@@ -63,7 +63,7 @@ Some towns and cities have a theme.
 
 - Themes often have requirements, such as being on an island, being far from the capital, being low level, or being ocean-adjacent.
 - A theme affects which sprites the settlement uses and its gym type, and carries its own NPC texts so NPCs talk about their town appropriately.
-- Themes are picked at the world layer(s), so gym types can be distributed well across the map.
+- Themes are picked at the region layer(s), so gym types can be distributed well across the map.
 
 ### Gym type order
 
@@ -108,7 +108,7 @@ Special locations are either inside a city or outside one (mirroring mainline ga
 - Outside cities: Viridian Forest, Mt. Moon, Bill's House, Dark Tunnel (Rock Tunnel), Power Plant, S.S. Anne, Safari Zone, Whirlpool Islands (Seafoam Islands), Victory Road tunnel.
 - Inside cities: Museum, burgled house, Pokémon Tower, Game Corner, Celadon Mall, Mansion, Silph Co. tower.
 
-The design is intended to be able, in principle, to generate the Red/Blue world map. How to represent the underground tunnels around Saffron (the Underground Path, not Diglett's Cave) is TBD.
+The design is intended to be able, in principle, to generate the Red/Blue region map. How to represent the underground tunnels around Saffron (the Underground Path, not Diglett's Cave) is TBD.
 
 ### County-story-index assignment
 
@@ -200,7 +200,7 @@ Climate gradients:
 
 Biome granularity:
 
-- Routes and cities are not locked to their county's biome. The gradients extend to the world-tile level, and each route or city is based on its own world tile.
+- Routes and cities are not locked to their county's biome. The gradients extend to the region-tile level, and each route or city is based on its own region tile.
 - A single route or city has a single biome, with no gradient within it.
 
 ### Landforms and cave variants
@@ -214,7 +214,7 @@ For reference, the Pokémon Snap courses were beach, tunnel, volcano, river, cav
 ## Biomes
 
 - There are 25 possible biomes, forming a 5x5 grid: one axis is precipitation, the other is temperature. Every species is associated with one of all 25 biomes.
-- A given region/world map is limited to one of the six 4x3 subsets of that grid (4 adjacent humidity levels of 5, and 3 adjacent temperature levels of 5), chosen randomly per game: 12 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct. Temperature spans only 3 levels because 4 made the hot and cold ends of one region too far apart.
+- A given region/region map is limited to one of the six 4x3 subsets of that grid (4 adjacent humidity levels of 5, and 3 adjacent temperature levels of 5), chosen randomly per game: 12 biomes. This keeps biomes coherent at small scale and makes separate games feel distinct. Temperature spans only 3 levels because 4 made the hot and cold ends of one region too far apart.
 - Every evolutionary line maps to one of the region's 12 biomes (see "Species <-> biome mapping"), so all ~541 lines are wild-encounterable, about 45 per biome. That exceeds Pokémon storage (420 slots, 14 boxes of 30); if it feels like too many, the mapping widens to mod 13+, and lines landing on residue 12+ do not spawn in the wild that run (NPCs can still have and trade them).
 
 The 25 biomes. Columns run from hottest (left) to coldest (right); rows are humidity levels.
@@ -234,31 +234,31 @@ Biome terrain and art:
 
 ## Data representation and determinism
 
-- GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (an index into the world's 4x3 subset of the 25 biomes), population in 2 bits (roughly logarithmic).
-- Map generation uses a PRNG seeded from the world seed. The generated world therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every distinct identity yields a completely different map.
+- GBA memory is scarce, so per-county data is bitpacked: biome type in 4 bits (an index into the region's 4x3 subset of the 25 biomes), population in 2 bits (roughly logarithmic).
+- Map generation uses a PRNG seeded from the identity seed (a region would use a seed derived from it). The generated region therefore does not need to be stored in the save file, and possibly not even in RAM (it can be regenerated on demand). Every distinct identity yields a completely different map.
 
 - Saves record a generator id, and the game refuses to open a save whose generator id does not match. Players upgrading mid-playthrough are not supported.
-- Seeds: everything (world, types, moves) derives from one world seed, `WorldSeedFromIdentity(otId, otName)` in `src/util/world_seed.c`: a hash of the full 32-bit OT ID (public and secret halves) and the 7-byte OT name hashed as a fixed block, which is why every name writer EOS-pads it (`PadOtName`: the naming screen, quickstart, `SetBoxMonData`); a debug assert catches unpadded names. Trading is only supported between Venture ROMs, so incoming mons are trusted to be padded. These are the only inputs that are stable, always in RAM, and attached to traded Pokémon, so a traded Pokémon's types and moves come from its own OT's seed. `WorldRng(seed, salt, ordinal)` returns an independent SFC32 state per purpose and instance, never touching `gRngValue`; the player's own seed is `GetPlayerWorldSeed()`.
-- Incremental generation goal: world, county, and map generation should be light enough to run in tiny chunks per frame as the player approaches a new area. On entering a city, plot points are picked a little per frame so the next cutscene location is known before the player has moved about 5 tiles.
+- Seeds: everything (region, types, moves) derives from one identity seed, `SeedFromIdentity(otId, otName)` in `src/util/identity_seed.c`: a hash of the full 32-bit OT ID (public and secret halves) and the 7-byte OT name hashed as a fixed block, which is why every name writer EOS-pads it (`PadOtName`: the naming screen, quickstart, `SetBoxMonData`); a debug assert catches unpadded names. Trading is only supported between Venture ROMs, so incoming mons are trusted to be padded. These are the only inputs that are stable, always in RAM, and attached to traded Pokémon, so a traded Pokémon's types and moves come from its own OT's seed. `IdentityRng(seed, salt, ordinal)` returns an independent SFC32 state per purpose and instance, never touching `gRngValue`; the player's own seed is `GetPlayerIdentitySeed()`.
+- Incremental generation goal: region, county, and map generation should be light enough to run in tiny chunks per frame as the player approaches a new area. On entering a city, plot points are picked a little per frame so the next cutscene location is known before the player has moved about 5 tiles.
 
 ### County headers
 
-Code: `include/util/world_county.h`, `src/util/world_county.c`, Emerald data in `src/data/world/emerald_world.h`.
+Code: `include/util/region_county.h`, `src/util/region_county.c`, Emerald data in `src/data/region/emerald_region.h`.
 
-The 24 county headers plus a small world header are cached for the whole session (24 x 3 bytes = 72 bytes), and they carry everything a county needs to know about its neighbors, so a county is generated from its own header and its neighbors' headers and never from a neighbor's generated content. Because they are always resident, a field is stored only if it is the output of a global constraint (the terrain shape, the story-index walk, the settlement quota) and so cannot be recomputed from the other headers plus a per-county hash.
+The 24 county headers plus a small region header are cached for the whole session (24 x 3 bytes = 72 bytes), and they carry everything a county needs to know about its neighbors, so a county is generated from its own header and its neighbors' headers and never from a neighbor's generated content. Because they are always resident, a field is stored only if it is the output of a global constraint (the terrain shape, the story-index walk, the settlement quota) and so cannot be recomputed from the other headers plus a per-county hash.
 
 Per county (`struct CountyHeader`, packed, 17 bits used of 24):
 
 | Field | Bits | Why stored |
 |---|---|---|
 | terrain (land, mountain, ocean) | 2 | layer 1 shape |
-| biome, as an index into the world's 4x3 subset | 4 | layer 1 gradients |
+| biome, as an index into the region's 4x3 subset | 4 | layer 1 gradients |
 | county-story-index | 5 | layer 2 walk |
 | population | 2 | layer 3 settlement quota |
 | key id: jump ordinal 1-7, 0 = none | 3 | layer 2 dead ends; the lock is always in the next story index, so lock ids are derived |
 | port flag | 1 | layer 2 |
 
-Per world (`struct WorldHeader`): the capital county, R (the reserved legendary count, 3 or 4), the biome subset (humidity base and temperature base) and the story-arc id. These are one-per-world facts, so they are not per-county flags; the Elite Four and reserved counties follow from R and the story indices.
+Per region (`struct RegionHeader`): the capital county, R (the reserved legendary count, 3 or 4), the biome subset (humidity base and temperature base) and the story-arc id. These are one-per-region facts, so they are not per-county flags; the Elite Four and reserved counties follow from R and the story indices.
 
 Derived, never stored: island (a land county whose neighbors are ocean), the city name (table lookup from the seed and county id), the special locations (kind, tile and routes, picked per county by a coprime stride over the kind list like the city name, so kinds are not reused; the reserved legendary counties are known from the story index), the gym, HM and arc-beat hosts and the gym types (all planner hashes), and whether a route exists to a neighbor (county-story-index adjacency, capital, highest index). A key's kind and cross-county McGuffin id come from the planner's item hash, so the header holds only the ordinal that pairs a key county with its lock county. A county holds at most one key and one lock (it can be both a lock's target and a key's holder). The city theme is not stored yet; if its eligibility rules turn out to need a global choice it gets spare bits.
 
@@ -382,7 +382,7 @@ Moves are generated procedurally per species, from per-species anatomy and per-m
 
 - ROM space is not expected to be a problem. The extra per-species and per-move metadata costs tens of thousands of bytes, but the hand-authored learnset/move tables, most maps, and encounter tables are dropped.
 - RAM is scarce (hence the bitpacking and regeneration from the player-ID seed).
-- CPU time is the bigger hurdle: on-demand regeneration of the world, species mapping, encounter filtering, and learn-level move picks must be cheap enough for a GBA.
+- CPU time is the bigger hurdle: on-demand regeneration of the region, species mapping, encounter filtering, and learn-level move picks must be cheap enough for a GBA.
 
 ## Story and subplots
 
@@ -449,7 +449,7 @@ Items and placement. Each item (a kind and an ordinal: the 8 gyms, the rival bea
 - Time block x: `hash(seed, kind, ordinal)` over the valid blocks in its range.
 - Host: x itself, or, if block x has a callback and the item qualifies, the callback county y(x) (step 1). Each block has a callback with a configured chance, `hash(seed, x) < p`, so a block has at most one callback host and no item coordinates with another. An item falls back to host x if y(x) fails the kind's mask or already hosts a gym (evaluated over the gyms in ordinal order); if no prior county lies within the distance bound, the block has no callback; a gym and its HM go together (both callbacks or neither) except in the Surf block; Fly, and so gym 6, never moves to a callback.
 - Callback county: `y(x)` is a hash over the prior counties within a grid-step distance bound of x (layers 1-2 supply the geometry): 3 county steps up to and including the block that gives Fly and unbounded after it, since before Fly the player must walk back. Fly's block is a pure function of its range.
-- Callback chance p: roughly how often a normal Emerald run must revisit a prior town, about 2 of 23 blocks, raised slightly (about 12%). The tutorial's callback at block 1 satisfies the minimum of one callback in every world.
+- Callback chance p: roughly how often a normal Emerald run must revisit a prior town, about 2 of 23 blocks, raised slightly (about 12%). The tutorial's callback at block 1 satisfies the minimum of one callback in every region.
 - Step: a hash bit chooses step 0 or 2 for a non-callback item, and step 1 for a callback.
 
 A callback is hosted in county y, which is already unlocked, and may hold a gym, a rival battle and a Rocket beat together.
@@ -579,7 +579,7 @@ Defined for the end state, not for Emerald, so NPC talk never needs redesign:
 
 The script engine has no field-path variables. Text holds only the placeholders `{STR_VAR_1}`-`{STR_VAR_3}` (`gStringVar1-3`), a few fixed ones (`{PLAYER}`, `{RIVAL}`, `{AQUA}`...) expanded by `StringExpandPlaceholders` (`src/util/string_util.c`), and values that scripts put into the string vars with `buffer*` commands or a `special` function.
 
-Authored text uses story references such as `$currentCity.gym.leader.name`, `$currentCity.nearbySmallCity.name`, `$stepCounty.city.theme.motto` or `$currentCity.pkmnCenter.nearBuildingName`. A reference is an anchor plus a path through the generated world data. A build tool turns each reference in a template into a compact reference id, and a single talk special expands the whole template in C into `gStringVar4` and shows it itself with `ShowFieldMessageFromBuffer` (not via the `message` command, which expands its source string into `gStringVar4` and would overlap it); this avoids the three-reference limit of `{STR_VAR_1}`-`{STR_VAR_3}`. Subplots are limited to a single county, so anchors are the speaker's own place (the NPC's city and building, for `$currentCity.pkmnCenter...`-style random talk), the subplot's own place, and, for hints about the main story, the responsible county of the current step (`$stepCounty`).
+Authored text uses story references such as `$currentCity.gym.leader.name`, `$currentCity.nearbySmallCity.name`, `$stepCounty.city.theme.motto` or `$currentCity.pkmnCenter.nearBuildingName`. A reference is an anchor plus a path through the generated region data. A build tool turns each reference in a template into a compact reference id, and a single talk special expands the whole template in C into `gStringVar4` and shows it itself with `ShowFieldMessageFromBuffer` (not via the `message` command, which expands its source string into `gStringVar4` and would overlap it); this avoids the three-reference limit of `{STR_VAR_1}`-`{STR_VAR_3}`. Subplots are limited to a single county, so anchors are the speaker's own place (the NPC's city and building, for `$currentCity.pkmnCenter...`-style random talk), the subplot's own place, and, for hints about the main story, the responsible county of the current step (`$stepCounty`).
 
 #### Open
 
@@ -669,18 +669,18 @@ Random types and moves make matchups hard to remember, so battle menus show a da
 
 ## Development approach: hardcode first, then randomize
 
-The world starts as a hardcoded Pokémon Emerald world and is progressively abstracted and randomized, rather than building the generator first. Hardcoded content exercises the same metadata the generator will later produce, and keeps the story testable throughout.
+The region starts as a hardcoded Pokémon Emerald region and is progressively abstracted and randomized, rather than building the generator first. Hardcoded content exercises the same metadata the generator will later produce, and keeps the story testable throughout.
 
 Why this order: if NPCs don't talk about subplots and story arcs, testers can't tell how to progress, which would cripple testing; and subplot babble requires city/route/location metadata anyway. NPC talk exists to support subplot shuffling, so its interfaces (descriptor, stage accessor, text references; see "Subplot abstraction") are defined first, for the end state, and NPC talk is built on them before any subplot is ported.
 
 Stages, each leaving the game playable:
 
-1. Divide the Emerald world map(s) into the 6x4 counties with hardcoded terrain type (mountainous, ocean, flat), biome, population, special location, story order, McGuffin keys and locks, and capital (Lilycove City). A key/lock is basically anywhere story advancement moves from one county to a non-adjacent county. The story-arc id is also hardcoded.
-2. Hardcode the world tiles within each county: which are cities, routes, and special locations.
+1. Divide the Emerald region map(s) into the 6x4 counties with hardcoded terrain type (mountainous, ocean, flat), biome, population, special location, story order, McGuffin keys and locks, and capital (Lilycove City). A key/lock is basically anywhere story advancement moves from one county to a non-adjacent county. The story-arc id is also hardcoded.
+2. Hardcode the region tiles within each county: which are cities, routes, and special locations.
 3. For each city and special location, hardcode its named buildings, subplot McGuffins, and city "theme"; hardcode which cities have gyms, the leader's name, and the gym type.
 4. Define the subplot interfaces (see "Subplot abstraction"), then implement the "random" NPC talking on them: some NPCs give story-arc state text, some give city/location subplot McGuffins, some talk about named buildings, the gym type, gym leader, or the city's theme. Remaining NPCs talk about their immediate vicinity or random text.
-5. Abstract the subplots per city/location, add more, and randomize them; likewise abstract story-arc advancement (less visible, since world tiles keep hardcoded story indices).
-6. With subplots no longer fixed, building locations are no longer fixed: randomize city layouts within a world tile (except special buildings).
+5. Abstract the subplots per city/location, add more, and randomize them; likewise abstract story-arc advancement (less visible, since region tiles keep hardcoded story indices).
+6. With subplots no longer fixed, building locations are no longer fixed: randomize city layouts within a region tile (except special buildings).
 7. Abstract McGuffins and make them randomizable; until then, shuffling is limited by McGuffins and encounter tables.
 8. Implement randomized encounter tables by the route's biome.
 9. Shuffle city locations within a county, and which special locations are in each county.
@@ -846,7 +846,7 @@ Cons:
 
 ### Generator-first development
 
-Build the procedural world generator first and hand-author content to fit it.
+Build the procedural region generator first and hand-author content to fit it.
 
 Pros:
 - Matches the end goal directly; no throwaway hardcoded layer.
@@ -907,7 +907,7 @@ Pros:
 - A county reads its own header only.
 
 Cons:
-- Spends 2 bits x 24 on one-per-world facts; the world header holds the capital id, and R plus the story index identify the Elite Four.
+- Spends 2 bits x 24 on one-per-region facts; the region header holds the capital id, and R plus the story index identify the Elite Four.
 
 ### Tile positions and names in the headers
 

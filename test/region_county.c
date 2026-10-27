@@ -1,15 +1,15 @@
 #include "global.h"
 #include "test/test.h"
-#include "world_county.h"
+#include "region_county.h"
 
-// Invariants are written over GetWorldHeader() so they become seed-sweep tests once the generator exists.
+// Invariants are written over GetRegionHeader() so they become seed-sweep tests once the generator exists.
 
-TEST("WorldCounty: CountyHeader is 3 bytes")
+TEST("RegionCounty: CountyHeader is 3 bytes")
 {
     EXPECT_EQ(sizeof(struct CountyHeader), 3);
 }
 
-TEST("WorldCounty: County story indices are unique and cover 0..NUM_COUNTIES-1")
+TEST("RegionCounty: County story indices are unique and cover 0..NUM_COUNTIES-1")
 {
     u32 seen[NUM_COUNTIES] = {0};
     u32 i;
@@ -24,7 +24,7 @@ TEST("WorldCounty: County story indices are unique and cover 0..NUM_COUNTIES-1")
     }
 }
 
-TEST("WorldCounty: Every county above story index 0 has an adjacent lower index (growth order)")
+TEST("RegionCounty: Every county above story index 0 has an adjacent lower index (growth order)")
 {
     u32 a, b;
 
@@ -37,21 +37,21 @@ TEST("WorldCounty: Every county above story index 0 has an adjacent lower index 
     }
 }
 
-TEST("WorldCounty: Reserved counties are the last R indices and the Elite Four precedes them")
+TEST("RegionCounty: Reserved counties are the last R indices and the Elite Four precedes them")
 {
     u32 reserved = 0, elite = 0, i;
 
-    EXPECT(GetWorldHeader()->reservedCount == 3 || GetWorldHeader()->reservedCount == 4);
+    EXPECT(GetRegionHeader()->reservedCount == 3 || GetRegionHeader()->reservedCount == 4);
     for (i = 0; i < NUM_COUNTIES; i++)
     {
         reserved += IsCountyReserved(i);
         elite += IsCountyEliteFour(i);
     }
-    EXPECT_EQ(reserved, GetWorldHeader()->reservedCount);
+    EXPECT_EQ(reserved, GetRegionHeader()->reservedCount);
     EXPECT_EQ(elite, 1);
 }
 
-TEST("WorldCounty: Each key's county precedes its lock's county, and ids are paired once")
+TEST("RegionCounty: Each key's county precedes its lock's county, and ids are paired once")
 {
     u32 id, i;
 
@@ -78,7 +78,7 @@ TEST("WorldCounty: Each key's county precedes its lock's county, and ids are pai
     }
 }
 
-TEST("WorldCounty: Every non-adjacent consecutive walk step has a key and lock")
+TEST("RegionCounty: Every non-adjacent consecutive walk step has a key and lock")
 {
     u32 idx;
 
@@ -95,15 +95,15 @@ TEST("WorldCounty: Every non-adjacent consecutive walk step has a key and lock")
     }
 }
 
-TEST("WorldCounty: The capital has population 3 and is on land")
+TEST("RegionCounty: The capital has population 3 and is on land")
 {
-    const struct CountyHeader *capital = GetCountyHeader(GetWorldHeader()->capital);
+    const struct CountyHeader *capital = GetCountyHeader(GetRegionHeader()->capital);
 
     EXPECT_EQ((u32)capital->population, 3);
     EXPECT(capital->terrain != COUNTY_TERRAIN_OCEAN);
 }
 
-TEST("WorldCounty: Counties 0 and 1 are adjacent and both have settlements")
+TEST("RegionCounty: Counties 0 and 1 are adjacent and both have settlements")
 {
     u32 zero = GetCountyByStoryIdx(0), one = GetCountyByStoryIdx(1);
 
@@ -112,7 +112,7 @@ TEST("WorldCounty: Counties 0 and 1 are adjacent and both have settlements")
     EXPECT(GetCountyHeader(one)->population > 0);
 }
 
-TEST("WorldCounty: Settlement quota: story 0, 1 and the Elite Four plus 8 to 13 more")
+TEST("RegionCounty: Settlement quota: story 0, 1 and the Elite Four plus 8 to 13 more")
 {
     u32 settlements = 0, i;
 
@@ -122,7 +122,7 @@ TEST("WorldCounty: Settlement quota: story 0, 1 and the Elite Four plus 8 to 13 
     EXPECT(settlements >= 11 && settlements <= 16);
 }
 
-TEST("WorldCounty: At least 10 counties are not ocean")
+TEST("RegionCounty: At least 10 counties are not ocean")
 {
     u32 land = 0, i;
 
@@ -131,7 +131,7 @@ TEST("WorldCounty: At least 10 counties are not ocean")
     EXPECT(land >= 10);
 }
 
-TEST("WorldCounty: Spare header bits are zero")
+TEST("RegionCounty: Spare header bits are zero")
 {
     u32 i;
 
@@ -139,26 +139,26 @@ TEST("WorldCounty: Spare header bits are zero")
         EXPECT_EQ((u32)GetCountyHeader(i)->reserved, 0);
 }
 
-TEST("WorldCounty: Biomes expand through the subset into the 25-biome grid")
+TEST("RegionCounty: Biomes expand through the subset into the 25-biome grid")
 {
-    const struct WorldHeader *world = GetWorldHeader();
+    const struct RegionHeader *region = GetRegionHeader();
     u32 i;
 
-    EXPECT(world->biomeHumidityBase + BIOME_SUBSET_HUMIDITY_LEVELS <= 5);
-    EXPECT(world->biomeTemperatureBase + BIOME_SUBSET_TEMPERATURE_LEVELS <= 5);
+    EXPECT(region->biomeHumidityBase + BIOME_SUBSET_HUMIDITY_LEVELS <= 5);
+    EXPECT(region->biomeTemperatureBase + BIOME_SUBSET_TEMPERATURE_LEVELS <= 5);
     for (i = 0; i < NUM_COUNTIES; i++)
     {
         u32 biome = GetCountyBiome(i);
         EXPECT(GetCountyHeader(i)->biome < NUM_BIOMES_IN_SUBSET);
-        EXPECT(BIOME_HUMIDITY(biome) >= world->biomeHumidityBase);
-        EXPECT(BIOME_HUMIDITY(biome) < world->biomeHumidityBase + BIOME_SUBSET_HUMIDITY_LEVELS);
+        EXPECT(BIOME_HUMIDITY(biome) >= region->biomeHumidityBase);
+        EXPECT(BIOME_HUMIDITY(biome) < region->biomeHumidityBase + BIOME_SUBSET_HUMIDITY_LEVELS);
     }
     // Littleroot's county: Temperate fresh-water swamp forest.
     EXPECT_EQ(GetCountyBiome(COUNTY_ID(1, 3)), BIOME_TEMPERATE_FRESHWATER_SWAMP_FOREST);
     EXPECT_EQ(GetCountyBiome(COUNTY_ID(0, 0)), BIOME_SAVANNA);
 }
 
-TEST("WorldCounty: Ports: at most three, none in the starting county")
+TEST("RegionCounty: Ports: at most three, none in the starting county")
 {
     u32 ports = 0, i;
 
@@ -168,7 +168,7 @@ TEST("WorldCounty: Ports: at most three, none in the starting county")
     EXPECT_EQ((u32)GetCountyHeader(GetCountyByStoryIdx(0))->port, 0);
 }
 
-TEST("WorldCounty: AreCountiesAdjacent is orthogonal only and does not wrap rows")
+TEST("RegionCounty: AreCountiesAdjacent is orthogonal only and does not wrap rows")
 {
     EXPECT_EQ(AreCountiesAdjacent(COUNTY_ID(1, 1), COUNTY_ID(2, 1)), TRUE);
     EXPECT_EQ(AreCountiesAdjacent(COUNTY_ID(1, 1), COUNTY_ID(1, 2)), TRUE);
@@ -177,7 +177,7 @@ TEST("WorldCounty: AreCountiesAdjacent is orthogonal only and does not wrap rows
     EXPECT_EQ(AreCountiesAdjacent(COUNTY_ID(1, 1), COUNTY_ID(1, 1)), FALSE);
 }
 
-TEST("WorldCounty: County region bounds tile the 28x15 region map exactly")
+TEST("RegionCounty: County region bounds tile the 28x15 region map exactly")
 {
     u32 covered[15][28] = {{0}};
     u32 id, x, y;
@@ -200,7 +200,7 @@ TEST("WorldCounty: County region bounds tile the 28x15 region map exactly")
             EXPECT_EQ(covered[y][x], 1);
 }
 
-TEST("WorldCounty: County region bounds: edge counties are one tile smaller")
+TEST("RegionCounty: County region bounds: edge counties are one tile smaller")
 {
     u32 l, t, r, b;
 

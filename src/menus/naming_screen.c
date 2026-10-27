@@ -1,6 +1,6 @@
 #include "global.h"
 #include "naming_screen.h"
-#include "world_seed.h"
+#include "identity_seed.h"
 #include "malloc.h"
 #include "palette.h"
 #include "task.h"

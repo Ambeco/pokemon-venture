@@ -14,7 +14,7 @@
 #include "sprite.h"
 #include "string_util.h"
 #include "task.h"
-#include "world_seed.h"
+#include "identity_seed.h"
 
 
 #define TAG_SKIP_INTRO 2000

@@ -1,33 +1,29 @@
 #include "global.h"
 #include "constants/vars.h"
-#include "world_county.h"
+#include "region_county.h"
 
-#include "data/world/emerald_world.h"
+#include "data/region/emerald_region.h"
 
 STATIC_ASSERT(NUM_COUNTIES == NUM_COUNTY_VAR_SLICES, CountyVarSlicesMatchCounties);
 
-// Region map size (MAP_WIDTH/MAP_HEIGHT in region_map.c).
-#define REGION_W 28
-#define REGION_H 15
-
-const struct WorldHeader *GetWorldHeader(void)
+const struct RegionHeader *GetRegionHeader(void)
 {
-    return &sEmeraldWorld;
+    return &sEmeraldRegion;
 }
 
 const struct CountyHeader *GetCountyHeader(u32 countyId)
 {
     AGB_ASSERT(countyId < NUM_COUNTIES);
-    return &GetWorldHeader()->counties[countyId];
+    return &GetRegionHeader()->counties[countyId];
 }
 
 u32 GetCountyBiome(u32 countyId)
 {
-    const struct WorldHeader *world = GetWorldHeader();
+    const struct RegionHeader *region = GetRegionHeader();
     u32 local = GetCountyHeader(countyId)->biome;
 
-    return BIOME_GRID(world->biomeHumidityBase + local / BIOME_SUBSET_TEMPERATURE_LEVELS,
-                      world->biomeTemperatureBase + local % BIOME_SUBSET_TEMPERATURE_LEVELS);
+    return BIOME_GRID(region->biomeHumidityBase + local / BIOME_SUBSET_TEMPERATURE_LEVELS,
+                      region->biomeTemperatureBase + local % BIOME_SUBSET_TEMPERATURE_LEVELS);
 }
 
 u32 GetCountyByStoryIdx(u32 idx)
@@ -52,7 +48,7 @@ u32 GetCountyLockId(u32 countyId)
 
 u32 GetEliteFourStoryIdx(void)
 {
-    return NUM_COUNTIES - 1 - GetWorldHeader()->reservedCount;
+    return NUM_COUNTIES - 1 - GetRegionHeader()->reservedCount;
 }
 
 bool32 IsCountyReserved(u32 countyId)

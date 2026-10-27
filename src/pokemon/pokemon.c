@@ -42,7 +42,7 @@
 #include "pokemon_storage_system.h"
 #include "pokerus.h"
 #include "random.h"
-#include "world_seed.h"
+#include "identity_seed.h"
 #include "recorded_battle.h"
 #include "regions.h"
 #include "rtc.h"

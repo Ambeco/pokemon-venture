@@ -28,7 +28,7 @@ Terrain and biome per county. Hoenn is mostly rainforest, so it uses the warm, w
 
 ### County-story-indices used in the code
 
-`src/data/world/emerald_world.h` renumbers the table above to 0-23 in order, with three fixes so the layer-2 rules hold: Lavaridge (42) sits between Meteor Falls (10) and Fortree (12) as index 11; Sootopolis is 18 and the empty county (3,2) is 19, so Ever Grande is index 20, the Elite Four for R = 3, followed by the reserved legendary counties Mirage Island (21), Pacifidlog (22) and Sealed Chamber (23). Jumps (non-adjacent consecutive indices) are 3 to 4, 4 to 5, 10 to 11 and 17 to 18, numbered 1-4 as key/lock ids. Ports (Dewford, Slateport, Lilycove) and special-location kinds are best fits, not final.
+`src/data/region/emerald_region.h` renumbers the table above to 0-23 in order, with three fixes so the layer-2 rules hold: Lavaridge (42) sits between Meteor Falls (10) and Fortree (12) as index 11; Sootopolis is 18 and the empty county (3,2) is 19, so Ever Grande is index 20, the Elite Four for R = 3, followed by the reserved legendary counties Mirage Island (21), Pacifidlog (22) and Sealed Chamber (23). Jumps (non-adjacent consecutive indices) are 3 to 4, 4 to 5, 10 to 11 and 17 to 18, numbered 1-4 as key/lock ids. Ports (Dewford, Slateport, Lilycove) and special-location kinds are best fits, not final.
 
 ### Special location counts
 

@@ -6,13 +6,13 @@ The staged hardcode-first roadmap (design.md, "Development approach"). Each mile
 
 ### Milestone 0: Foundations
 
-Prerequisites for everything else (design.md stages 1-3: hardcoded Emerald county division, world tiles, city/location metadata).
+Prerequisites for everything else (design.md stages 1-3: hardcoded Emerald county division, region tiles, city/location metadata).
 
 - Verify that trade and link code preserve the full 32-bit `otId` and the EOS-padded OT name, since the seed for types and moves depends on them.
-- Define the salt constants (county, map, NPC, ...) as callers appear; `WorldRng` currently takes bare numbers.
+- Define the salt constants (county, map, NPC, ...) as callers appear; `IdentityRng` currently takes bare numbers.
 - Test strategy for randomization: the test runner uses a fixed, deterministic OT ID (public and secret) and player name, so tests run the real randomized path with reproducible results; there is no switch or identity mapping. Expected values are updated whenever an algorithm changes. Many existing tests assert real species types and learnsets (e.g. `ASSUME(GetSpeciesType(...))`), so each randomization milestone must first work out how those get fixed in bulk (e.g. a per-test species override, or choosing the fixed identity so common test species keep their types), and add seed-sweep tests that check invariants. Find where the test runner sets `playerTrainerId` and `playerName` now.
-- Remaining hardcoded world data beyond the county headers (design.md, "County headers"): world-tile roles (city, special-location and route tiles, city names) behind accessors, per-city themes/buildings/gym types/leaders. Then check the header placeholders: special-location kinds, ports, and the Emerald Surf placement: the Surf block is county-story-index 12 (Fortree), with a step-1 callback to Petalburg giving Gym 5 + HM Surf and Fortree's own step 2 giving Gym 6, with no ocean-lock county. This is an Emerald-only exception to design.md's Surf rule (kept because Gym 5 and Gym 6 so close together is odd for generated worlds); encode it in the hardcoded planner inputs, not the generator.
-- Debug tool to print the whole world (counties, tiles, indices, McGuffins) as text, used by every later milestone.
+- Remaining hardcoded region data beyond the county headers (design.md, "County headers"): region-tile roles (city, special-location and route tiles, city names) behind accessors, per-city themes/buildings/gym types/leaders. Then check the header placeholders: special-location kinds, ports, and the Emerald Surf placement: the Surf block is county-story-index 12 (Fortree), with a step-1 callback to Petalburg giving Gym 5 + HM Surf and Fortree's own step 2 giving Gym 6, with no ocean-lock county. This is an Emerald-only exception to design.md's Surf rule (kept because Gym 5 and Gym 6 so close together is odd for generated regions); encode it in the hardcoded planner inputs, not the generator.
+- Debug tool to print the whole region (counties, tiles, indices, McGuffins) as text, used by every later milestone.
 - Story state storage (design.md, "Story state storage"; inventory in `vars.md`, done): the first 32 vars are temp and object-GFX, so reservations are named regions in `0x4020`-`0x40FF`, not Var0-31. Remaining steps: (1) the main-line counts are in `Emerald.md` ("Per-county storage needs"); still to count are authored-subplot stage vars (after Milestone 1a's bucketing) and the optional inter-county stories (the slice is 4 vars per county, 3 used by the main line); (4) retire Emerald vars as Milestones 1a, 2 and 3 land: the 62 legacy vars in `vars.h` shrink toward zero, and county slices become usable as they go (only the first 14 are free now). Also trim `test/vars.c`'s table as vars are retired or packed.
 
 ### Milestone 1a: Subplot abstraction groundwork
@@ -44,12 +44,12 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 
 - Subplot data format (linear stages, hint texts, state texts, trigger place, rewards).
 - Generic cutscene runner (NPC runs up, text, optional battle/item, runs off) implemented once as a parameterized script/special, using map-script hooks for "finished route" and "left building" triggers.
-- Convert the first few Emerald subplots (Cut man, Briney's Wingull, Devon Goods, Old Rod quiz, Flash, Captain Stern) to the data format; assign a subplot per city at the world layer.
+- Convert the first few Emerald subplots (Cut man, Briney's Wingull, Devon Goods, Old Rod quiz, Flash, Captain Stern) to the data format; assign a subplot per city at the region layer.
 - Done when: for some seed, two city-bucket subplots whose role and progression requirements both hosts meet are swapped, both are completable, and NPCs in both cities hint correctly; and the same city gets different subplots for different seeds, each completable. After bucketing out main arc, gyms and gates, Emerald may not contain two qualifying city subplots; if so, author one small extra subplot for the test.
 
 ### Milestone 3: Rival and story-arc cutscenes no longer at fixed locations
 
-- Implement route-story-index and county-story-index lookups over the hardcoded world (design.md, "Route story indices").
+- Implement route-story-index and county-story-index lookups over the hardcoded region (design.md, "Route story indices").
 - Arc cutscene placement: main-story-index list (rival or arc items) to host county to route/city/building, without storing it; maintain the main-story-index and the per-county completion masks for the main arc.
 - Replace Emerald's fixed rival and Wally encounters, and the Magma/Aqua beats, with generic cutscenes; preserve the text.
 - Done when: rival battles occur at the right gym positions on generated places, and arcs finish.
@@ -115,22 +115,22 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 ## Open design questions and unscheduled work
 
 - Collect the overall plan for the mod from the user and record it in `design.md`.
-- Pin down world generation details: terrain/biome/population/special-location types, story-order algorithm, key/lock rules, capital selection, and how generated data maps onto pokeemerald maps, warps, and encounters.
+- Pin down region generation details: terrain/biome/population/special-location types, story-order algorithm, key/lock rules, capital selection, and how generated data maps onto pokeemerald maps, warps, and encounters.
 - Emerald McGuffins (next session): read the user's Emerald walkthrough and list every McGuffin key and lock it shows (location, approximate story index, requirements); then read how a sample is implemented (flags, vars, badges, key items, HMs, subplot state) and use the code to complete the list in `Emerald.md`, so NPC dialogue can be keyed off them.
 - Decide whether a city's count of inside-city special locations equals its population (1-3); Emerald averages ~0.6 per city (~1.2 counting gyms), see `Emerald.md`.
 - Emerald county table (`Emerald.md`): assign population and keys/locks, and derive county-story-indices from the visit order.
 - Decide whether to adopt the super-common species list (design.md, "Route encounter selection"), and what "too few species" means for a table.
 - Clarify route rules: tie-breaking and duplicate-route handling when several adjacency rules apply to the same county pair.
 - Define the special-location catalog (inside-city vs outside-city lists, how a location is chosen for a county, relation to terrain/biome/story order).
-- Decide how to integrate the underground tunnels around Saffron (Underground Path) into the world model; keep Red/Blue map reproducibility as a design check.
-- Define the 5x5 biome grid (axis values, the 25 biomes, which 12 each 4x3 subset yields), the meaning of each 2-bit population level (0 = none, 1 = village, 2 = town, 3 = city; how it relates to terrain/biome), and whether the world is regenerated on demand vs cached in RAM (cost of regeneration).
+- Decide how to integrate the underground tunnels around Saffron (Underground Path) into the region model; keep Red/Blue map reproducibility as a design check.
+- Define the 5x5 biome grid (axis values, the 25 biomes, which 12 each 4x3 subset yields), the meaning of each 2-bit population level (0 = none, 1 = village, 2 = town, 3 = city; how it relates to terrain/biome), and whether the region is regenerated on demand vs cached in RAM (cost of regeneration).
 - Design the three settlement generation algorithms (village, town, city): building footprints, path layout, how they map onto GBA map layouts/metatiles, and how gyms/Pokémon Centers/Marts get placed in each.
 - Species typing: species whose sprite strongly implies an element always keep that element; base forms get one type and evolutions gain the second (algorithm needed); decide interactions with abilities.
 - Move pools: define the appendage bitfield vocabulary, per-move requirement/stat tagging for ~1000 moves, the power-sorted level bucketing, the learn-level list generator, and filter probabilities (type match, stat match); research how egg moves work in mainline games and finalize the egg move rule.
 - Species<->biome mapping: pick the hardcoded stride (coprime to 12) and inverse over the ~541 evolutionary lines; verify that species of one biome end up evenly spaced and that traded Pokémon (other trainer ID) map sensibly.
 - Define the route species filters (level-plausibility using evolution levels, domestication by edge distance, habitat, random drop), the random-drop rate, any further filters, and the catch-rate-proportional encounter table; plus the starter/legendary/pseudo-legendary exclusion lists.
 - Define the 25-biome type affinity tables (18 types, log-scale encoding).
-- Budget CPU: profile/estimate the cost of regenerating world data, species mapping, encounter filtering, and move picks on GBA hardware; decide what to cache.
+- Budget CPU: profile/estimate the cost of regenerating region data, species mapping, encounter filtering, and move picks on GBA hardware; decide what to cache.
 - Design the main story arcs (a handful, deeper than Red/Blue) and how their beats map onto county story indices.
 - Design subplot data format (linear stages, hint texts, story-state texts) and author the special-location and city subplots (TV-episode style, introducing gym leaders before their battles).
 - Design a generic mechanism for triggering subplot stage-advancement cutscenes (no plan yet).
@@ -148,7 +148,7 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 - Decide which expansion mechanics (Mega Evolution, Gigantamax, Z-Moves, Terastallization, etc.) and alternate forms to keep, and how procedural typing/move pools interact with them (e.g. Mega types, Tera types, form-specific moves).
 - Biome art and terrain: decide which biomes share tilesets (palette variants) and which get unique sprites; design the per-biome terrain placement algorithms (trees, grass types, dirt, water, rocks, hills); map the 25 biomes to type-affinity tables and to Emerald's existing tilesets for the hardcoded stage.
 - Find the latent memory-layout bug behind the Z-Move animation test crash seen when linking in directory order (see notes.md), so the basename-sorted link order can be dropped.
-- Design the geography generator: outer-ring mountain/ocean stretches, inland mountain and ocean extensions, island formation, and humidity/temperature gradients at world-tile granularity that guarantee a non-mountain desert-like biome.
+- Design the geography generator: outer-ring mountain/ocean stretches, inland mountain and ocean extensions, island formation, and humidity/temperature gradients at region-tile granularity that guarantee a non-mountain desert-like biome.
 - Define the landform list (beach, volcano, farmland, sandbars, fjords, salt flats, mesas, river basin) and cave variants (underground river, bioluminescence, crystals, sinkholes, magma, ice), and how each biases tiles, encounters and layouts.
 - Define the species metadata fields (habitat requirements/biases from sprite appearance, domestication, base evolution, level-range enum, commonness) and tag all ~1000 species; reconcile image-based habitat biases with the species-to-biome stride mapping that decides types (the mapping decides a species' types; habitat flags decide where it appears).
 - Check why Emerald caps land encounters at 12 slots and fixed slot ratios, and whether the encounter code can take dynamic table sizes and ratios.
@@ -156,11 +156,11 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 - Hardcode estimated encounter levels for non-level evolutions (stones ~29, trade, friendship, etc.).
 - Audit existing rules against the layering principle (design.md "Layered generation"): e.g. route-story-index rules must depend only on county-story-indices and connectivity, and species/encounter generation must not need generated map data.
 - Define trainer team generation: the trainer classes (ordinary, boss, low-level grunt), how route-story-index maps to trainer and wild levels and hidden items, and tune the grunt catch-rate cutoff (starts at 255).
-- Define the theme catalog (requirements, sprite sets, gym types, NPC texts) and how the world layer assigns themes to spread gym types; define how placement tendencies (Elite Four corner, start near it, capital far, coast/mountain city nudges) are implemented within the layering principle.
+- Define the theme catalog (requirements, sprite sets, gym types, NPC texts) and how the region layer assigns themes to spread gym types; define how placement tendencies (Elite Four corner, start near it, capital far, coast/mountain city nudges) are implemented within the layering principle.
 - Decide how strongly gym assignment follows the average gym-order table (soft bias strength, Elite Four preference for late types) alongside theme requirements.
 - Content roadmap: Emerald rival arc and story arc first (preserving cutscene text), then the Kanto story arc and Red/Blue/Yellow rival arc, then other mainline games; subplots from Emerald, then RBY and others, and eventually TV-episode subplots.
 - Check the dropped top tile row against the Emerald region map: confirm the 28x15 cells after dropping the top row and the first/last columns still hold the intended county contents, and that the city name and Nav overlays only cover unused tiles.
-- Design chunked, per-frame generation (world/county/map and city plot points) and its CPU budget.
+- Design chunked, per-frame generation (region/county/map and city plot points) and its CPU budget.
 - Add the generator id to the save and the refuse-to-load check.
 - Confirm the story-graph proposals in design.md (the layer-2 growth constraint, the start county always having a settlement, key items and HMs as the only keys) and check the first-place rule against Emerald's actual layout.
 - Define the catch-rate floor curve (as a function of route-story-index/badge count), the full list of species excluded from encounter tables (babies, starters, legendaries, and any further category such as pseudo-legendaries or mythicals), and the legendary/starter acquisition mechanism (gift subplots, weekly legendary spawn, generation grouping of legendary locations).

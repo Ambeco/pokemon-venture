@@ -1,4 +1,4 @@
-// Hardcoded Emerald world (design.md, "Development approach", stage 1); values from Emerald.md.
+// Hardcoded Emerald region (design.md, "Development approach", stage 1); values from Emerald.md.
 
 // Warm, wet subset: humidity rows 1-4, the three hottest temperature columns.
 #define EMERALD_BIOME_HUMIDITY_BASE    1
@@ -11,7 +11,7 @@
 // Indexed by COUNTY_ID(x, y). Lavaridge is inserted between Meteor Falls and Fortree, the empty
 // county takes the last walk index, Ever Grande is the Elite Four (index 20 = 23 - R) and Sootopolis
 // precedes it, so the layer-2 rules hold. A key sits at the county before each non-adjacent step; its lock is the next index.
-static const struct WorldHeader sEmeraldWorld =
+static const struct RegionHeader sEmeraldRegion =
 {
     .capital = COUNTY_ID(4, 0),
     .reservedCount = 3,

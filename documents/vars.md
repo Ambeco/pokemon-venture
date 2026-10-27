@@ -24,7 +24,7 @@ Rule (design.md, "Story state storage"): content with a lot of non-script code (
 | Fan clubs (4) | `FANCLUB_FAN_COUNTER/LOSE_FAN_TIMER 4041/4042` (cast to a 2-byte struct in `field_specials.c`, so adjacent), `LILYCOVE_FAN_CLUB_STATE 4095`, `SLATEPORT_FAN_CLUB_STATE 40B7` | |
 | Cruise and harbor (2) | `CRUISE_STEP_COUNT 404A`, `SS_TIDAL_STATE 40B4` | tied to Emerald harbors |
 | Legendary-island puzzles (7) | `DEOXYS_ROCK_STEP_COUNT/LEVEL 4034/4035`, `FARAWAY_ISLAND_STEP_COUNTER 403A`, `REGICE_STEPS_1-3 403B-403D`, `ALTERING_CAVE_WILD_SET 403E` | legendary-county content; revisit with Milestone 10 |
-| Mirage Island and Tower (3) | `MIRAGE_RND_H/L 4024/4025` (32-bit seed pair), `MIRAGE_TOWER_STATE 40CB` | seed could be derived from the world seed |
+| Mirage Island and Tower (3) | `MIRAGE_RND_H/L 4024/4025` (32-bit seed pair), `MIRAGE_TOWER_STATE 40CB` | seed could be derived from the identity seed |
 | Ash and Glass (3) | `ASH_GATHER_COUNT 4048`, `JAGGED_PASS_ASH_WEATHER 40BD`, `GLASS_WORKSHOP_STATE 40BE` | tied to Emerald routes |
 | Fossils and TM (4) | `FOSSIL_RESURRECTION_STATE/WHICH_FOSSIL_REVIVED 40C4/40C5`, `FOSSIL_MANIAC_STATE 40CC`, `PACIFIDLOG_TM_RECEIVED_DAY 40C2` | fossils are revived in one county, biased toward the gym 5-8 timeline; TM day may become a per-county var |
 | Shops and stations (3) | `DEPT_STORE_FLOOR 4043`, `SAFARI_ZONE_STATE 40A4`, `CABLE_CAR_STATION_STATE 40A3`, `WEATHER_INSTITUTE_STATE 40B3` | location-bound; treat like city subplots (below) |
