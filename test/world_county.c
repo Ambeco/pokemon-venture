@@ -4,9 +4,9 @@
 
 // Invariants are written over GetWorldHeader() so they become seed-sweep tests once the generator exists.
 
-TEST("WorldCounty: CountyHeader is 4 bytes")
+TEST("WorldCounty: CountyHeader is 3 bytes")
 {
-    EXPECT_EQ(sizeof(struct CountyHeader), 4);
+    EXPECT_EQ(sizeof(struct CountyHeader), 3);
 }
 
 TEST("WorldCounty: County story indices are unique and cover 0..NUM_COUNTIES-1")
@@ -46,10 +46,6 @@ TEST("WorldCounty: Reserved counties are the last R indices and the Elite Four p
     {
         reserved += IsCountyReserved(i);
         elite += IsCountyEliteFour(i);
-        if (IsCountyReserved(i))
-            EXPECT_EQ((u32)GetCountyHeader(i)->specialLocation, SPECIAL_LOC_LEGENDARY);
-        else
-            EXPECT(GetCountyHeader(i)->specialLocation != SPECIAL_LOC_LEGENDARY);
     }
     EXPECT_EQ(reserved, GetWorldHeader()->reservedCount);
     EXPECT_EQ(elite, 1);
@@ -135,18 +131,12 @@ TEST("WorldCounty: At least 10 counties are not ocean")
     EXPECT(land >= 10);
 }
 
-TEST("WorldCounty: Special location kinds are valid and population 0 counties use outside kinds")
+TEST("WorldCounty: Spare header bits are zero")
 {
     u32 i;
 
     for (i = 0; i < NUM_COUNTIES; i++)
-    {
-        const struct CountyHeader *h = GetCountyHeader(i);
-        EXPECT(h->specialLocation < NUM_SPECIAL_LOC_KINDS);
-        if (h->population == 0)
-            EXPECT_EQ(IsSpecialLocationInsideCity(h->specialLocation), FALSE);
-        EXPECT_EQ((u32)h->reserved, 0);
-    }
+        EXPECT_EQ((u32)GetCountyHeader(i)->reserved, 0);
 }
 
 TEST("WorldCounty: Biomes expand through the subset into the 25-biome grid")

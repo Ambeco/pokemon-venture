@@ -245,9 +245,9 @@ Biome terrain and art:
 
 Code: `include/util/world_county.h`, `src/util/world_county.c`, Emerald data in `src/data/world/emerald_world.h`.
 
-The 24 county headers plus a small world header are cached for the whole session (24 x 4 bytes = 96 bytes), and they carry everything a county needs to know about its neighbors, so a county is generated from its own header and its neighbors' headers and never from a neighbor's generated content. Because they are always resident, a field is stored only if it is the output of a global constraint (the terrain shape, the story-index walk, the settlement quota, the special-location assignment) and so cannot be recomputed from the other headers plus a per-county hash.
+The 24 county headers plus a small world header are cached for the whole session (24 x 3 bytes = 72 bytes), and they carry everything a county needs to know about its neighbors, so a county is generated from its own header and its neighbors' headers and never from a neighbor's generated content. Because they are always resident, a field is stored only if it is the output of a global constraint (the terrain shape, the story-index walk, the settlement quota) and so cannot be recomputed from the other headers plus a per-county hash.
 
-Per county (`struct CountyHeader`, 25 bits used of 32):
+Per county (`struct CountyHeader`, packed, 20 bits used of 24):
 
 | Field | Bits | Why stored |
 |---|---|---|
@@ -255,13 +255,12 @@ Per county (`struct CountyHeader`, 25 bits used of 32):
 | biome, as an index into the world's 4x3 subset | 4 | layer 1 gradients |
 | county-story-index | 5 | layer 2 walk |
 | population | 2 | layer 3 settlement quota |
-| special-location kind | 5 | layer 3 assignment (unique kinds, reserved legendaries) |
 | key id, lock id: jump ordinal 1-7, 0 = none | 3 + 3 | layer 2 dead ends; a lock jump is not derivable from adjacency once ports and side visits exist |
 | port flag | 1 | layer 2 |
 
 Per world (`struct WorldHeader`): the capital county, R (the reserved legendary count, 3 or 4), the biome subset (humidity base and temperature base) and the story-arc id. These are one-per-world facts, so they are not per-county flags; the Elite Four and reserved counties follow from R and the story indices.
 
-Derived, never stored: island (a land county whose neighbors are ocean), the city name (table lookup from the seed and county id), city and special-location tiles, extra special locations, the gym, HM and arc-beat hosts and the gym types (all planner hashes), and whether a route exists to a neighbor (county-story-index adjacency, capital, highest index). A key's kind and cross-county McGuffin id come from the planner's item hash, so the header holds only the ordinal that pairs a key county with its lock county. A county holds at most one key and one lock (it can be both a lock's target and a key's holder). The city theme is not stored yet; if its eligibility rules turn out to need a global choice it gets spare bits.
+Derived, never stored: island (a land county whose neighbors are ocean), the city name (table lookup from the seed and county id), the special locations (kind, tile and routes, picked per county by a coprime stride over the kind list like the city name, so kinds are not reused; the reserved legendary counties are known from the story index), the gym, HM and arc-beat hosts and the gym types (all planner hashes), and whether a route exists to a neighbor (county-story-index adjacency, capital, highest index). A key's kind and cross-county McGuffin id come from the planner's item hash, so the header holds only the ordinal that pairs a key county with its lock county. A county holds at most one key and one lock (it can be both a lock's target and a key's holder). The city theme is not stored yet; if its eligibility rules turn out to need a global choice it gets spare bits.
 
 In the hardcoded Emerald stage, tile positions and names are not in the header; they will sit behind accessors that later become hashes, so callers do not change.
 

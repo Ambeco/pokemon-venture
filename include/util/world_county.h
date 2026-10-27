@@ -2,12 +2,12 @@
 #define GUARD_WORLD_COUNTY_H
 
 /**
- * Layer 1-3 world data: one 4-byte CountyHeader per county plus a small WorldHeader.
+ * Layer 1-3 world data: one 3-byte CountyHeader per county plus a small WorldHeader.
  *
  * The 24 headers are cached for the whole session, so a field is stored only if it is an output of
  * a global constraint (terrain shape, the story-index walk, the settlement quota) that cannot be
  * recomputed from the other headers plus a per-county hash. Everything else is derived on demand:
- * city name and tile, special-location tile, extra special locations, island-ness (neighbors'
+ * city name and tile, special locations (kind and tile, picked by a coprime stride like cities), island-ness (neighbors'
  * terrain), gym type and gym/HM/arc-beat hosts (main plot planner), which county is the Elite Four
  * and which are reserved. A county is generated from its own header and its neighbors' headers,
  * never from a neighbor's generated content.
@@ -80,34 +80,6 @@ enum Biome
 #define BIOME_SUBSET_TEMPERATURE_LEVELS 3
 #define NUM_BIOMES_IN_SUBSET (BIOME_SUBSET_HUMIDITY_LEVELS * BIOME_SUBSET_TEMPERATURE_LEVELS)
 
-// Kinds follow the Red/Blue reference set (design.md, "Special locations"); the first group is
-// outside cities, the second inside. A county without a city (population 0) must use an outside kind.
-enum SpecialLocationKind
-{
-    SPECIAL_LOC_NONE,
-    SPECIAL_LOC_FOREST,
-    SPECIAL_LOC_CAVE,
-    SPECIAL_LOC_HOUSE,
-    SPECIAL_LOC_DARK_TUNNEL,
-    SPECIAL_LOC_POWER_PLANT,
-    SPECIAL_LOC_SHIP,
-    SPECIAL_LOC_SAFARI,
-    SPECIAL_LOC_WHIRLPOOL,
-    SPECIAL_LOC_VICTORY_ROAD,
-    SPECIAL_LOC_HIDEOUT,
-    SPECIAL_LOC_LEGENDARY,
-    SPECIAL_LOC_FIRST_INSIDE_CITY,
-    SPECIAL_LOC_MUSEUM = SPECIAL_LOC_FIRST_INSIDE_CITY,
-    SPECIAL_LOC_BURGLED_HOUSE,
-    SPECIAL_LOC_TOWER,
-    SPECIAL_LOC_GAME_CORNER,
-    SPECIAL_LOC_MALL,
-    SPECIAL_LOC_MANSION,
-    SPECIAL_LOC_CORP,
-    SPECIAL_LOC_LAB,
-    NUM_SPECIAL_LOC_KINDS,
-};
-
 enum StoryArc
 {
     STORY_ARC_EMERALD,
@@ -119,15 +91,13 @@ struct CountyHeader
     u32 biome:4;            // index into the world's 4x3 subset, row-major from its driest, hottest corner
     u32 storyIdx:5;         // county-story-index, unique over 0..NUM_COUNTIES-1
     u32 population:2;       // 0 = no settlement, 1 village, 2 town, 3 city
-    u32 specialLocation:5;  // enum SpecialLocationKind of the one routes attach to
     u32 keyId:3;            // jump ordinal 1-7 whose key this county holds, 0 = none
     u32 lockId:3;           // jump ordinal 1-7 whose lock opens this county, 0 = none
     u32 port:1;
-    u32 reserved:7;
-};
+    u32 reserved:4;
+} __attribute__((packed));
 
-STATIC_ASSERT(sizeof(struct CountyHeader) == 4, CountyHeaderIs4Bytes);
-STATIC_ASSERT(NUM_SPECIAL_LOC_KINDS <= 32, SpecialLocationFitsInFiveBits);
+STATIC_ASSERT(sizeof(struct CountyHeader) == 3, CountyHeaderIs3Bytes);
 
 struct WorldHeader
 {
@@ -157,8 +127,6 @@ bool32 IsCountyReserved(u32 countyId);
 bool32 IsCountyEliteFour(u32 countyId);
 
 bool32 AreCountiesAdjacent(u32 a, u32 b);
-
-bool32 IsSpecialLocationInsideCity(u32 kind);
 
 // Region-map cell bounds (inclusive) of a county's tiles. Edge counties are one tile smaller
 // because the outer 30x16 tile ring is off limits (design.md, "County layout").

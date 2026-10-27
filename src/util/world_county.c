@@ -66,11 +66,6 @@ bool32 AreCountiesAdjacent(u32 a, u32 b)
     return dx + dy == 1;
 }
 
-bool32 IsSpecialLocationInsideCity(u32 kind)
-{
-    return kind >= SPECIAL_LOC_FIRST_INSIDE_CITY;
-}
-
 // The 30x16 tile grid has its first and last columns and its first row off limits, so region cell
 // (x, y) is grid tile (x + 1, y + 1).
 void GetCountyRegionBounds(u32 countyId, u32 *left, u32 *top, u32 *right, u32 *bottom)
