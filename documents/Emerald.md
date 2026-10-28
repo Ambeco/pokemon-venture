@@ -42,6 +42,119 @@ Counted from the county table, classifying each place by where it is in Emerald 
 - Inside cities: 10 over 16 cities, about 0.6 per city (Devon Corp, Mauville Game Corner, Lilycove Dept. Store and Contest Hall, Mossdeep Game Corner and Space Center, Cave of Origin, Birch's Lab, Shipyard, Museum). Counting the 8 gyms and the Elite Four gives 19, about 1.2 per city.
 - The table lists only notable places, so these are lower bounds.
 
+## Catalogs (draft, from Bulbapedia)
+
+Source: each place's Bulbapedia infobox (`slogan` for towns and cities, `location` and `type` for other places). A place whose location is a city is inside it; one on, between or near routes is outside.
+
+### City themes
+
+A theme is the city's Bulbapedia slogan (its `motto`, the text NPCs use via `$city.theme.motto`, design.md "Text references") plus requirement tags that explain why it fits. In Emerald each of the 16 cities has its own theme; generated regions will need more authored themes. The tags are a starting vocabulary, not final.
+
+| City | Slogan | Tags |
+| --- | --- | --- |
+| Littleroot | A town that can't be shaded any hue. | start |
+| Oldale | Where things start off scarce. | village |
+| Petalburg | Where people mingle with nature. | nature |
+| Rustboro | The city probing the integration of nature and science. | industry |
+| Dewford | A tiny island in the blue sea. | island |
+| Slateport | The port where people and Pokémon cross paths with nature. | coast, port |
+| Mauville | The bright and shiny city of fun! | entertainment |
+| Verdanturf | The windswept highlands with the sweet fragrance of grass. | highland |
+| Fallarbor | A farm community with small gardens. | farmland |
+| Lavaridge | An excellent place for relaxing! | volcano, hot springs |
+| Fortree | The treetop city that frolics with nature. | forest |
+| Lilycove | Where the land ends and the sea begins. | coast, port, capital |
+| Mossdeep | Our slogan: Cherish Pokémon! | island |
+| Sootopolis | The mystical city where history slumbers. | island, ancient |
+| Pacifidlog | Where the morning sun smiles upon the waters. | ocean |
+| Ever Grande | The paradise of flowers, the sea, and Pokémon. | league, coast |
+
+Gym types do not follow from these slogans (Dewford is Fighting), so in the hardcoded stage gym type is its own per-city field, not a theme property; design.md's "theme affects gym type" stays a goal for the generator.
+
+### Gyms
+
+| Ordinal | City | Type | Leader |
+| --- | --- | --- | --- |
+| 1 | Rustboro | Rock | Roxanne |
+| 2 | Dewford | Fighting | Brawly |
+| 3 | Mauville | Electric | Wattson |
+| 4 | Lavaridge | Fire | Flannery |
+| 5 | Petalburg | Normal | Norman |
+| 6 | Fortree | Flying | Winona |
+| 7 | Mossdeep | Psychic | Tate and Liza |
+| 8 | Sootopolis | Water | Wallace |
+| 9 | Ever Grande | (Elite Four) | Sidney, Phoebe, Glacia, Drake, Wallace |
+
+Mossdeep's two leaders count as one gym leader entry (a double battle); the trainer id stored is Tate and Liza's.
+
+### Special-location kinds
+
+Outside a city: cave, tunnel (links two routes or a route and a town), volcano, mountain, forest, ruins, tower, hideout, island, underwater, wreck, park, roadside building (a small standalone building on a route), route feature (Cycling Road). Inside a city: museum, entertainment (Game Corner, Contest Hall), store (Department Store), harbor (shipyard). Both: institution (company, lab, agency), cave (Cave of Origin sits in Sootopolis). In-city or outside is a placement rule per kind (a mask), not part of the kind.
+
+| Place | Bulbapedia location | Placement | Kind |
+| --- | --- | --- | --- |
+| Meteor Falls | Between Route 114 and 115 | outside | cave |
+| Desert Underpass | Route 114 near Fallarbor | outside | cave |
+| Glass Workshop | Route 113 | outside | roadside building |
+| Mt. Chimney | Route 112 near Lavaridge | outside | volcano |
+| Fiery Path | Route 112 | outside | tunnel |
+| Jagged Pass | Route 112 | outside | mountain |
+| Magma Hideout | Jagged Pass | outside | hideout |
+| Mirage Tower | Route 111 | outside | tower |
+| Desert Ruins | Route 111 | outside | ruins |
+| Ancient Tomb | Route 120 | outside | ruins |
+| Scorched Slab | East of Fortree | outside | cave |
+| Island Cave | Route 105 | outside | cave |
+| Safari Zone | North of Route 121 | outside | park |
+| Aqua Hideout | Lilycove (Emerald: by the harbor) | outside | hideout |
+| Shoal Cave | Route 125 | outside | cave |
+| Treasure Hunter's House | Route 125 | outside | roadside building |
+| Rusturf Tunnel | Between Route 116 and Verdanturf | outside | tunnel |
+| New Mauville | Below Mauville, from Route 110 | outside | institution |
+| Trainer Hill | Route 111 north of Mauville | outside | roadside building |
+| Weather Institute | Route 119 west of Fortree | outside | institution |
+| Berry Master's house | Route 123 | outside | roadside building |
+| Mt. Pyre | Route 122 | outside | mountain |
+| Petalburg Woods | Route 104 | outside | forest |
+| Pretty Petal Flower Shop | Route 104 | outside | roadside building |
+| Altering Cave | Route 103 | outside | cave |
+| Cycling Road | Route 110 | outside | route feature |
+| Trick House | Route 110 | outside | roadside building |
+| Pokémon Daycare | Route 117 | outside | roadside building |
+| Seafloor Cavern | Route 128 | outside | underwater |
+| Sealed Chamber | Route 134 | outside | underwater |
+| Southern Island | Southern Hoenn | outside | island |
+| Abandoned Ship | Route 108 | outside | wreck |
+| Granite Cave | Route 106 | outside | cave |
+| Sky Pillar | North of Route 131 | outside | tower |
+| Mirage Island | Route 130 | outside | island |
+| Battle Frontier | South of Route 130 | outside | island |
+| Artisan Cave | Battle Frontier | outside | cave |
+| Victory Road | By Ever Grande | outside | tunnel |
+| Birch's Lab | Littleroot | inside | institution |
+| Devon Corporation | Rustboro | inside | institution |
+| Oceanic Museum | Slateport | inside | museum |
+| Stern's Shipyard | Slateport | inside | harbor |
+| Contest Hall | Slateport, Verdanturf, Fallarbor, Lilycove | inside | entertainment |
+| Mauville Game Corner | Mauville | inside | entertainment |
+| Mossdeep Game Corner | Mossdeep | inside | entertainment |
+| Space Center | Mossdeep | inside | institution |
+| Lilycove Department Store | Lilycove | inside | store |
+| Cave of Origin | Sootopolis | inside | cave |
+
+Notes: Bulbapedia lists Aqua Hideout and Victory Road under their cities, but both are reached outside the city proper, so they count as outside. The Magma Hideout is inside Jagged Pass on the map; the stage treats it as its own tile. The Contest Halls other than Lilycove's are small buildings inside their towns and are not special locations in the table above; only Lilycove's stays one.
+
+### Building roles
+
+A building role is what an NPC can refer to ("the museum", "the Pokémon Center"). In-city special locations supply their own role. Roles seen across the 16 cities:
+
+- Everywhere but the start: Pokémon Center. Almost everywhere: Mart (absent in Littleroot, Dewford and Pacifidlog). Gym where there is one.
+- Start town only: home with a mother who heals the party, a bedroom PC.
+- Community and shopping: house (generic), market (Slateport Market), department store, motel (Cove Lily Motel), herb shop, hot springs, hall (Dewford Hall), fan club (several cities), trainers' school, secret base guild, name rater, move tutor, move reminder, move deleter, friendship rater, in-game trade house.
+- Story-bound (inside-city special locations): lab, company, museum, shipyard, Game Corner, Contest Hall, space center, cave entrance.
+
+Open: which of these stay distinct roles when buildings become procedural (a generic "service" role for tutors, raters and the move reminder/deleter?), and how many placeholder NPCs each needs (Milestone 1a).
+
 ## Rival arc
 
 - You scare off a Pokémon, the professor gives you two Pokémon, then May/Brendan battles you.
