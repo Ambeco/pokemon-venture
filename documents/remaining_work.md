@@ -41,6 +41,7 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 
 
 - Text pools: per-theme, per-building-type, per-gym-type, "near"/"far" arc hints, arc-state thank-yous; parameterized with city and leader names.
+- Kanto text extraction (`Kanto.md`, "What the ROM can carry"): a build tool copies Kanto's generic texts out of `data/maps/*_Frlg/scripts.inc` into their own data file, which the pools above draw from alongside Hoenn's. City and island sign slogans (17) go into the city table as themes; building-role talk (fan club, name rater, school, bike shop, museum, ...) and generic NPC and sign texts need classifying by role and theme, which is this milestone's pool design. Only the Emerald-reusable roles are extracted; skip story texts and the deferred roles.
 - A generic NPC talk special that picks a text from (county, city, NPC local id, arc states); replace fixed `msgbox` scripts in `data/maps/*/scripts.inc` with it, via a conversion tool rather than by hand.
 - At map load, guarantee at least one hint NPC per arc in each city/route.
 - Done when: every arc state is hinted from every city, and a seed sweep finds no city without a hint.
