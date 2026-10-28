@@ -89,7 +89,12 @@ Mossdeep's two leaders count as one gym leader entry (a double battle); the trai
 
 ### Special-location kinds
 
-Outside a city: cave, tunnel (links two routes or a route and a town), volcano, mountain, forest, ruins, tower, hideout, island, underwater, wreck, park, roadside building (a small standalone building on a route), route feature (Cycling Road). Inside a city: museum, entertainment (Game Corner, Contest Hall), store (Department Store), harbor (shipyard). Both: institution (company, lab, agency), cave (Cave of Origin sits in Sootopolis). In-city or outside is a placement rule per kind (a mask), not part of the kind.
+Two enums, since a kind only matters for eligibility (which hosts may take it, what an arc beat needs) and NPC text, and inside and outside never share a kind.
+
+- `RouteLocation` (outside a city): cave, tunnel (links two routes or a route and a town), volcano, mountain, forest, ruins, tower, hideout, island, underwater, wreck, park, facility (power plant, weather institute), roadside building (a small standalone building on a route), route feature (Cycling Road).
+- `TownLocation` (inside a city): museum, entertainment (Game Corner, Contest Hall), store (Department Store), harbor (shipyard), institution (company, lab, agency), sacred cave.
+
+Caves are otherwise outside only. Hoenn's single in-city cave, the Cave of Origin, is the Emerald-only `sacred cave` town kind, which the generator's pool never contains.
 
 | Place | Bulbapedia location | Placement | Kind |
 | --- | --- | --- | --- |
@@ -110,9 +115,9 @@ Outside a city: cave, tunnel (links two routes or a route and a town), volcano, 
 | Shoal Cave | Route 125 | outside | cave |
 | Treasure Hunter's House | Route 125 | outside | roadside building |
 | Rusturf Tunnel | Between Route 116 and Verdanturf | outside | tunnel |
-| New Mauville | Below Mauville, from Route 110 | outside | institution |
+| New Mauville | Below Mauville, from Route 110 | outside | facility |
 | Trainer Hill | Route 111 north of Mauville | outside | roadside building |
-| Weather Institute | Route 119 west of Fortree | outside | institution |
+| Weather Institute | Route 119 west of Fortree | outside | facility |
 | Berry Master's house | Route 123 | outside | roadside building |
 | Mt. Pyre | Route 122 | outside | mountain |
 | Petalburg Woods | Route 104 | outside | forest |
@@ -140,7 +145,7 @@ Outside a city: cave, tunnel (links two routes or a route and a town), volcano, 
 | Mossdeep Game Corner | Mossdeep | inside | entertainment |
 | Space Center | Mossdeep | inside | institution |
 | Lilycove Department Store | Lilycove | inside | store |
-| Cave of Origin | Sootopolis | inside | cave |
+| Cave of Origin | Sootopolis | inside | sacred cave (Emerald only) |
 
 Notes: Bulbapedia lists Aqua Hideout and Victory Road under their cities, but both are reached outside the city proper, so they count as outside. The Magma Hideout is inside Jagged Pass on the map; the stage treats it as its own tile. The Contest Halls other than Lilycove's are small buildings inside their towns and are not special locations in the table above; only Lilycove's stays one.
 
@@ -150,10 +155,10 @@ A building role is what an NPC can refer to ("the museum", "the Pokémon Center"
 
 - Everywhere but the start: Pokémon Center. Almost everywhere: Mart (absent in Littleroot, Dewford and Pacifidlog). Gym where there is one.
 - Start town only: home with a mother who heals the party, a bedroom PC.
-- Community and shopping: house (generic), market (Slateport Market), department store, motel (Cove Lily Motel), herb shop, hot springs, hall (Dewford Hall), fan club (several cities), trainers' school, secret base guild, name rater, move tutor, move reminder, move deleter, friendship rater, in-game trade house.
+- Community and shopping: house (generic), market (Slateport Market), department store, motel (Cove Lily Motel), herb shop, hot springs, hall (Dewford Hall), fan club (several cities), trainers' school, secret base guild, trade house, and service (name rater, friendship rater, move tutor, move reminder, move deleter, merged: the move reminder's and deleter's houses use the generic `LAYOUT_HOUSE2`, so there is no unique tile to map, and tutors are NPCs).
 - Story-bound (inside-city special locations): lab, company, museum, shipyard, Game Corner, Contest Hall, space center, cave entrance.
 
-Open: which of these stay distinct roles when buildings become procedural (a generic "service" role for tutors, raters and the move reminder/deleter?), and how many placeholder NPCs each needs (Milestone 1a).
+Open: how many placeholder NPCs each role needs (Milestone 1a).
 
 ## Rival arc
 
