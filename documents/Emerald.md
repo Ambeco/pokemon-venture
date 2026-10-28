@@ -94,7 +94,7 @@ Two enums, since a kind only matters for eligibility (which hosts may take it, w
 - `RouteLocation` (outside a city): cave, tunnel (links two routes or a route and a town), volcano, mountain, forest, ruins, tower, hideout, island, underwater, wreck, park, facility (power plant, weather institute), roadside building (a small standalone building on a route), route feature (Cycling Road).
 - `TownLocation` (inside a city): museum, entertainment (Game Corner, Contest Hall), store (Department Store), harbor (shipyard), institution (company, lab, agency), sacred cave.
 
-Caves are otherwise outside only. Hoenn's single in-city cave, the Cave of Origin, is the Emerald-only `sacred cave` town kind, which the generator's pool never contains.
+Ordinary caves are outside only; the Cave of Origin, Hoenn's single in-city cave, is the `sacred cave` town kind (a cave entered from a city, tied to a legendary or ancient site).
 
 | Place | Bulbapedia location | Placement | Kind |
 | --- | --- | --- | --- |
@@ -145,7 +145,7 @@ Caves are otherwise outside only. Hoenn's single in-city cave, the Cave of Origi
 | Mossdeep Game Corner | Mossdeep | inside | entertainment |
 | Space Center | Mossdeep | inside | institution |
 | Lilycove Department Store | Lilycove | inside | store |
-| Cave of Origin | Sootopolis | inside | sacred cave (Emerald only) |
+| Cave of Origin | Sootopolis | inside | sacred cave |
 
 Notes: Bulbapedia lists Aqua Hideout and Victory Road under their cities, but both are reached outside the city proper, so they count as outside. The Magma Hideout is inside Jagged Pass on the map; the stage treats it as its own tile. The Contest Halls other than Lilycove's are small buildings inside their towns and are not special locations in the table above; only Lilycove's stays one.
 

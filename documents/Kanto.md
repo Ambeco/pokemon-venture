@@ -52,4 +52,28 @@ Using the two enums from `Emerald.md`.
 
 This adds three town kinds to Emerald's list (tower, mansion, and possibly a `ship` route kind), and no in-city cave.
 
-Open: whether Kanto's special locations get a pass for building roles too (Pokémon Fan Club, Name Rater, Day Care).
+## Building roles
+
+Rule: a Kanto building role joins the shared pool only if an Emerald layout and tileset already serve the same role, so adding it costs only text and scripts. Kanto's own layouts are tiny (a map is 200-400 bytes of metatile data); the real asset cost is a map's secondary tileset, so a role is cheap exactly when Emerald has a tileset for it.
+
+In the pool now (use the Emerald layout; Kanto supplies texts):
+
+| Role | Kanto source | Emerald asset it reuses |
+| --- | --- | --- |
+| house | many generic houses | `LAYOUT_HOUSE1`-`3` |
+| Pokémon Center, Mart | every city | Emerald's |
+| fan club | Vermilion, Saffron | Slateport's `gTileset_PokemonFanClub` (Lilycove's even uses the generic tileset) |
+| school | Viridian | Rustboro's Pokémon School |
+| bike shop | Cerulean | Mauville's Rydel's Cycles |
+| museum | Pewter | Oceanic and Lilycove museums |
+| lab | Oak's Lab, Cinnabar Lab | Birch's Lab and the other Emerald labs |
+| day care | Four Island | `gTileset_PokemonDayCare` (a route building in Emerald) |
+| Game Corner, department store | Celadon, Two Island | Mauville and Lilycove |
+| hot springs | Ember Spa | Lavaridge's springs |
+| motel | Celadon Hotel | Cove Lily Motel (generic building tileset) |
+| service | Lavender Name Rater, tutors | houses, no unique tile |
+| harbor | Sevii harbors | Slateport and Lilycove harbors |
+
+Deferred (each needs a new tileset or maps, so they wait until generated maps free space): Celadon Restaurant (`gTileset_RestaurantHotel`), Celadon Condominiums (`gTileset_Condominiums`), Saffron Dojo (`gTileset_PewterGym`), Silph Co., Pokémon Tower, the Mansion, the Safari Zone office and the Power Plant.
+
+Open: the Fan Club's and Name Rater's texts, and the other generic Kanto NPC and sign texts, still need extracting by the build tool (see "What the ROM can carry").
