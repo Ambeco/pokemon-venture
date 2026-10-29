@@ -14,11 +14,9 @@ static u32 Distance(struct RegionTilePos a, struct RegionTilePos b)
     return abs(a.x - b.x) + abs(a.y - b.y);
 }
 
-static bool32 IsInEitherCounty(u32 countyA, u32 countyB, struct RegionTilePos pos)
+static bool32 IsPosInCounty(u32 countyId, struct RegionTilePos pos)
 {
-    u32 id = GetCountyFromRegionCell(pos.x, pos.y);
-
-    return id == countyA || id == countyB;
+    return GetCountyFromRegionCell(pos.x, pos.y) == countyId;
 }
 
 static struct RegionTilePos LocationOf(u32 countyId, u32 index)
@@ -53,8 +51,8 @@ TEST("RegionRoute: Endpoints are the same whichever county asks")
         ASSUME(GetCountyPairRouteEndpoints(b, a, &rev1, &rev2));
         EXPECT(SamePos(posA, rev2));
         EXPECT(SamePos(posB, rev1));
-        EXPECT_EQ(GetCountyFromRegionCell(posA.x, posA.y), a);
-        EXPECT_EQ(GetCountyFromRegionCell(posB.x, posB.y), b);
+        EXPECT(IsPosInCounty(a, posA));
+        EXPECT(IsPosInCounty(b, posB));
     }
 }
 
@@ -71,102 +69,110 @@ TEST("RegionRoute: Endpoints are a closest pair of locations")
     }
 }
 
-TEST("RegionRoute: A route is symmetric, shortest, connected and inside its two counties")
+TEST("RegionRoute: Both counties agree on the border crossing, which is one location's row or column")
 {
-    u32 a, b, i;
+    u32 a, b, crossing, owner, crossingBack, ownerBack;
     struct RegionTilePos posA, posB;
 
     FOR_EACH_ROUTE_PAIR(a, b, posA, posB)
     {
-        u32 count = GetRouteTileCount(posA, posB);
-        struct RegionTilePos prev = posA;
+        bool32 horizontal = COUNTY_Y(a) == COUNTY_Y(b);
+        struct RegionTilePos ownerPos;
 
-        EXPECT_EQ(count, GetRouteTileCount(posB, posA));
-        EXPECT_EQ(count, Distance(posA, posB) - 1);
+        ASSUME(GetRouteBorderCrossing(a, b, &crossing, &owner));
+        ASSUME(GetRouteBorderCrossing(b, a, &crossingBack, &ownerBack));
+        EXPECT_EQ(crossing, crossingBack);
+        EXPECT_EQ(owner, ownerBack);
+        EXPECT(owner == a || owner == b);
+        ownerPos = owner == a ? posA : posB;
+        EXPECT_EQ(crossing, horizontal ? ownerPos.y : ownerPos.x);
+    }
+}
+
+TEST("RegionRoute: Each half is connected, inside its county, and ends at the crossing on the border")
+{
+    u32 a, b, i, crossing, owner;
+    struct RegionTilePos posA, posB;
+
+    FOR_EACH_ROUTE_PAIR(a, b, posA, posB)
+    {
+        bool32 horizontal = COUNTY_Y(a) == COUNTY_Y(b);
+        u32 count = GetCountyRouteHalfTileCount(a, b);
+        u32 left, top, right, bottom;
+        struct RegionTilePos prev = posA, last;
+
+        GetRouteBorderCrossing(a, b, &crossing, &owner);
         for (i = 0; i < count; i++)
         {
-            struct RegionTilePos tile = GetRouteTile(posA, posB, i);
+            struct RegionTilePos tile = GetCountyRouteHalfTile(a, b, i);
 
-            EXPECT(SamePos(tile, GetRouteTile(posB, posA, i)));
-            EXPECT(IsInEitherCounty(a, b, tile));
-            EXPECT(!SamePos(tile, posA) && !SamePos(tile, posB));
-            if (i > 0)
-                EXPECT_EQ(Distance(prev, tile), 1);
+            EXPECT(IsPosInCounty(a, tile));
+            EXPECT_EQ(Distance(prev, tile), 1);
             prev = tile;
+        }
+        last = count > 0 ? prev : posA;
+        GetCountyRegionBounds(a, &left, &top, &right, &bottom);
+        if (horizontal)
+        {
+            EXPECT_EQ(last.x, COUNTY_X(b) > COUNTY_X(a) ? right : left);
+            EXPECT_EQ(last.y, crossing);
+        }
+        else
+        {
+            EXPECT_EQ(last.y, COUNTY_Y(b) > COUNTY_Y(a) ? bottom : top);
+            EXPECT_EQ(last.x, crossing);
         }
     }
 }
 
-TEST("RegionRoute: A route leaves and enters its locations in the neighbors' direction")
+TEST("RegionRoute: The two halves meet across the border and total a shortest route")
 {
     u32 a, b;
     struct RegionTilePos posA, posB;
 
     FOR_EACH_ROUTE_PAIR(a, b, posA, posB)
     {
-        bool32 horizontal = COUNTY_Y(a) == COUNTY_Y(b);
-        bool32 swapped = horizontal ? COUNTY_X(a) > COUNTY_X(b) : COUNTY_Y(a) > COUNTY_Y(b);
-        struct RegionTilePos start = swapped ? posB : posA;
-        struct RegionTilePos end = swapped ? posA : posB;
-        u32 count = GetRouteTileCount(start, end);
-        struct RegionTilePos first, last;
-        u32 gap = horizontal ? end.x - start.x : end.y - start.y;
+        u32 countA = GetCountyRouteHalfTileCount(a, b);
+        u32 countB = GetCountyRouteHalfTileCount(b, a);
+        struct RegionTilePos endA = countA > 0 ? GetCountyRouteHalfTile(a, b, countA - 1) : posA;
+        struct RegionTilePos endB = countB > 0 ? GetCountyRouteHalfTile(b, a, countB - 1) : posB;
 
-        if (count == 0)
-            continue;
-        first = GetRouteTile(start, end, 0);
-        last = GetRouteTile(start, end, count - 1);
-        if (horizontal)
-        {
-            EXPECT_EQ(first.x, start.x + 1);
-            EXPECT_EQ(first.y, start.y);
-            if (gap > 1)
-            {
-                EXPECT_EQ(last.x, end.x - 1);
-                EXPECT_EQ(last.y, end.y);
-            }
-        }
-        else
-        {
-            EXPECT_EQ(first.y, start.y + 1);
-            EXPECT_EQ(first.x, start.x);
-            if (gap > 1)
-            {
-                EXPECT_EQ(last.y, end.y - 1);
-                EXPECT_EQ(last.x, end.x);
-            }
-        }
+        EXPECT_EQ(Distance(endA, endB), 1);
+        EXPECT_EQ(countA + countB + 1, Distance(posA, posB));
     }
 }
 
-// First tile of the route leaving `from` toward `to`; FALSE if the route has no tiles.
-static bool32 FirstTileFrom(u32 fromCounty, u32 toCounty, struct RegionTilePos from, struct RegionTilePos to, struct RegionTilePos *tile)
+TEST("RegionRoute: The owner's half is straight and every half leaves toward its neighbor")
 {
-    u32 count = GetRouteTileCount(from, to);
-    bool32 horizontal = COUNTY_Y(fromCounty) == COUNTY_Y(toCounty);
-    bool32 fromIsStart = horizontal ? from.x < to.x : from.y < to.y;
-
-    if (count == 0)
-        return FALSE;
-    *tile = GetRouteTile(from, to, fromIsStart ? 0 : count - 1);
-    return TRUE;
-}
-
-// Only first tiles are guaranteed distinct. Routes sharing a location that head into the same
-// quadrant can still overlap further out (see remaining_work.md, "Route overlap").
-TEST("RegionRoute: Routes leaving one location toward different neighbors start on different tiles")
-{
-    u32 a, b, c, d;
-    struct RegionTilePos posA, posB, posC, posD, first1, first2;
+    u32 a, b, crossing, owner;
+    struct RegionTilePos posA, posB;
 
     FOR_EACH_ROUTE_PAIR(a, b, posA, posB)
     {
-        FOR_EACH_ROUTE_PAIR(c, d, posC, posD)
+        bool32 horizontal = COUNTY_Y(a) == COUNTY_Y(b);
+        s32 step = horizontal ? (COUNTY_X(b) > COUNTY_X(a) ? 1 : -1) : (COUNTY_Y(b) > COUNTY_Y(a) ? 1 : -1);
+        u32 count = GetCountyRouteHalfTileCount(a, b);
+        struct RegionTilePos first, last;
+
+        GetRouteBorderCrossing(a, b, &crossing, &owner);
+        if (count == 0)
+            continue;
+        first = GetCountyRouteHalfTile(a, b, 0);
+        last = GetCountyRouteHalfTile(a, b, count - 1);
+        if (horizontal)
         {
-            if (a != c || b == d || !SamePos(posA, posC))
-                continue;
-            if (FirstTileFrom(a, b, posA, posB, &first1) && FirstTileFrom(c, d, posC, posD, &first2))
-                EXPECT(!SamePos(first1, first2));
+            // A location already on the border column can only go across (Emerald's table has some).
+            if (last.x != posA.x)
+                EXPECT_EQ((s32)first.x - (s32)posA.x, step);
+            if (owner == a)
+                EXPECT_EQ(last.y, posA.y);
+        }
+        else
+        {
+            if (last.y != posA.y)
+                EXPECT_EQ((s32)first.y - (s32)posA.y, step);
+            if (owner == a)
+                EXPECT_EQ(last.x, posA.x);
         }
     }
 }

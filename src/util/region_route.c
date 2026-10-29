@@ -2,82 +2,6 @@
 #include "identity_seed.h"
 #include "region_route.h"
 
-// A route in axis space: u runs along the pair's axis from the west/north end, v across it.
-struct RouteShape
-{
-    bool8 horizontal;
-    s16 u1, v1, u2, v2;
-};
-
-static struct RouteShape MakeRouteShape(struct RegionTilePos a, struct RegionTilePos b)
-{
-    u32 countyA = GetCountyFromRegionCell(a.x, a.y);
-    u32 countyB = GetCountyFromRegionCell(b.x, b.y);
-    struct RouteShape shape;
-    s16 ua, va, ub, vb;
-
-    AGB_ASSERT(AreCountiesAdjacent(countyA, countyB));
-    shape.horizontal = COUNTY_Y(countyA) == COUNTY_Y(countyB);
-    ua = shape.horizontal ? a.x : a.y;
-    va = shape.horizontal ? a.y : a.x;
-    ub = shape.horizontal ? b.x : b.y;
-    vb = shape.horizontal ? b.y : b.x;
-    if (ua > ub)
-    {
-        s16 t = ua; ua = ub; ub = t;
-        t = va; va = vb; vb = t;
-    }
-    AGB_ASSERT(ub > ua);
-    shape.u1 = ua; shape.v1 = va; shape.u2 = ub; shape.v2 = vb;
-    return shape;
-}
-
-static struct RegionTilePos ShapeTile(const struct RouteShape *shape, s32 u, s32 v)
-{
-    struct RegionTilePos pos;
-
-    pos.x = shape->horizontal ? u : v;
-    pos.y = shape->horizontal ? v : u;
-    return pos;
-}
-
-static s32 BendOffset(const struct RouteShape *shape)
-{
-    u32 key = (shape->u1 << 24) | (shape->v1 << 16) | (shape->u2 << 8) | shape->v2;
-
-    return IdentityHash(GetPlayerIdentitySeed(), REGION_SALT_ROUTE_BEND + shape->horizontal, key) % (shape->u2 - shape->u1 - 1);
-}
-
-u32 GetRouteTileCount(struct RegionTilePos a, struct RegionTilePos b)
-{
-    struct RouteShape shape = MakeRouteShape(a, b);
-    s32 across = abs(shape.v2 - shape.v1);
-
-    return shape.u2 - shape.u1 == 1 ? across : shape.u2 - shape.u1 - 1 + across;
-}
-
-struct RegionTilePos GetRouteTile(struct RegionTilePos a, struct RegionTilePos b, u32 index)
-{
-    struct RouteShape shape = MakeRouteShape(a, b);
-    s32 step = shape.v2 >= shape.v1 ? 1 : -1;
-    s32 across = abs(shape.v2 - shape.v1);
-    s32 bend, lead;
-
-    AGB_ASSERT(index < GetRouteTileCount(a, b));
-    if (shape.u2 - shape.u1 == 1)
-        return ShapeTile(&shape, shape.u2, shape.v1 + step * index);
-
-    bend = shape.u1 + 1 + BendOffset(&shape);
-    lead = bend - shape.u1;
-    if (index < lead)
-        return ShapeTile(&shape, shape.u1 + 1 + index, shape.v1);
-    index -= lead;
-    if (index < across)
-        return ShapeTile(&shape, bend, shape.v1 + step * (index + 1));
-    index -= across;
-    return ShapeTile(&shape, bend + 1 + index, shape.v2);
-}
-
 // Location 0 is the city when the county has one, then the special locations in order.
 static u32 GetLocationCount(u32 countyId)
 {
@@ -132,4 +56,110 @@ bool32 GetCountyPairRouteEndpoints(u32 countyA, u32 countyB, struct RegionTilePo
     *posA = countyA == lo ? bestLo : bestHi;
     *posB = countyA == lo ? bestHi : bestLo;
     return TRUE;
+}
+
+static bool32 IsHorizontalPair(u32 countyA, u32 countyB)
+{
+    return COUNTY_Y(countyA) == COUNTY_Y(countyB);
+}
+
+bool32 GetRouteBorderCrossing(u32 countyA, u32 countyB, u32 *crossing, u32 *owner)
+{
+    u32 lo = countyA < countyB ? countyA : countyB;
+    u32 hi = countyA < countyB ? countyB : countyA;
+    struct RegionTilePos posLo, posHi;
+    bool32 horizontal = IsHorizontalPair(lo, hi);
+    bool32 pickHi;
+
+    if (!GetCountyPairRouteEndpoints(lo, hi, &posLo, &posHi))
+        return FALSE;
+    pickHi = IdentityHash(GetPlayerIdentitySeed(), REGION_SALT_ROUTE_CROSSING + horizontal, lo << 8 | hi) & 1;
+    *owner = pickHi ? hi : lo;
+    if (horizontal)
+        *crossing = pickHi ? posHi.y : posLo.y;
+    else
+        *crossing = pickHi ? posHi.x : posLo.x;
+    return TRUE;
+}
+
+// A county's half of a route in axis space: u runs along the pair's axis toward the neighbor,
+// v across it. The half goes from (u0, v0) to (border, crossing) as a run along v0 to `bend`, a run
+// across to the crossing, and a run along the crossing row to the border.
+struct HalfShape
+{
+    bool8 horizontal;
+    s16 step;
+    s16 u0, v0, border, crossing, bend;
+};
+
+static bool32 GetHalfShape(u32 county, u32 neighbor, struct HalfShape *shape)
+{
+    struct RegionTilePos mine, theirs;
+    u32 crossing, owner, left, top, right, bottom;
+    s32 length;
+
+    if (!GetCountyPairRouteEndpoints(county, neighbor, &mine, &theirs))
+        return FALSE;
+    GetRouteBorderCrossing(county, neighbor, &crossing, &owner);
+    GetCountyRegionBounds(county, &left, &top, &right, &bottom);
+    shape->horizontal = IsHorizontalPair(county, neighbor);
+    if (shape->horizontal)
+    {
+        shape->step = COUNTY_X(neighbor) > COUNTY_X(county) ? 1 : -1;
+        shape->u0 = mine.x;
+        shape->v0 = mine.y;
+        shape->border = shape->step > 0 ? right : left;
+    }
+    else
+    {
+        shape->step = COUNTY_Y(neighbor) > COUNTY_Y(county) ? 1 : -1;
+        shape->u0 = mine.y;
+        shape->v0 = mine.x;
+        shape->border = shape->step > 0 ? bottom : top;
+    }
+    shape->crossing = crossing;
+    length = (shape->border - shape->u0) * shape->step;
+    AGB_ASSERT(length >= 0);
+    // The owner's crossing is its own row, so its half is straight whatever the bend is.
+    shape->bend = length == 0 ? shape->border
+        : shape->u0 + shape->step * (1 + IdentityHash(GetPlayerIdentitySeed(), REGION_SALT_ROUTE_BEND + shape->horizontal,
+              county << 24 | shape->u0 << 16 | shape->v0 << 8 | shape->crossing) % length);
+    return TRUE;
+}
+
+static struct RegionTilePos ShapeTile(const struct HalfShape *shape, s32 u, s32 v)
+{
+    struct RegionTilePos pos;
+
+    pos.x = shape->horizontal ? u : v;
+    pos.y = shape->horizontal ? v : u;
+    return pos;
+}
+
+u32 GetCountyRouteHalfTileCount(u32 county, u32 neighbor)
+{
+    struct HalfShape shape;
+
+    if (!GetHalfShape(county, neighbor, &shape))
+        return 0;
+    return (shape.border - shape.u0) * shape.step + abs(shape.crossing - shape.v0);
+}
+
+struct RegionTilePos GetCountyRouteHalfTile(u32 county, u32 neighbor, u32 index)
+{
+    struct HalfShape shape;
+    s32 across, lead, vStep;
+
+    AGB_ASSERT(index < GetCountyRouteHalfTileCount(county, neighbor));
+    GetHalfShape(county, neighbor, &shape);
+    across = abs(shape.crossing - shape.v0);
+    vStep = shape.crossing >= shape.v0 ? 1 : -1;
+    lead = (shape.bend - shape.u0) * shape.step;
+    if (index < lead)
+        return ShapeTile(&shape, shape.u0 + shape.step * (index + 1), shape.v0);
+    index -= lead;
+    if (index < across)
+        return ShapeTile(&shape, shape.bend, shape.v0 + vStep * (index + 1));
+    index -= across;
+    return ShapeTile(&shape, shape.bend + shape.step * (index + 1), shape.crossing);
 }
