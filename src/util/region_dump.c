@@ -1,5 +1,9 @@
 #include "global.h"
 #include "gba/isagbprint.h"
+#include "data.h"
+#include "constants/characters.h"
+#include "battle_main.h"
+#include "region_city.h"
 #include "region_county.h"
 #include "region_tile.h"
 #include "region_dump.h"
@@ -35,6 +39,69 @@ static void PutNum(struct LineWriter *w, u32 n)
     while (count != 0)
         PutChar(w, digits[--count]);
 }
+
+static void PutHex(struct LineWriter *w, u32 n)
+{
+    s32 shift;
+
+    PutStr(w, "0x");
+    for (shift = 12; shift >= 0; shift -= 4)
+        PutChar(w, "0123456789abcdef"[(n >> shift) & 0xF]);
+}
+
+// Gen 3 text to ASCII; characters outside letters, digits, space and a little punctuation print as '?'.
+static void PutText(struct LineWriter *w, const u8 *text)
+{
+    if (text == NULL)
+    {
+        PutChar(w, '?');
+        return;
+    }
+    for (; *text != EOS; text++)
+    {
+        u8 c = *text;
+
+        if (c == CHAR_SPACE)
+            PutChar(w, ' ');
+        else if (c >= CHAR_0 && c <= CHAR_9)
+            PutChar(w, '0' + c - CHAR_0);
+        else if (c >= CHAR_A && c <= CHAR_Z)
+            PutChar(w, 'A' + c - CHAR_A);
+        else if (c >= CHAR_a && c <= CHAR_z)
+            PutChar(w, 'a' + c - CHAR_a);
+        else if (c == CHAR_PERIOD)
+            PutChar(w, '.');
+        else if (c == CHAR_HYPHEN)
+            PutChar(w, '-');
+        else
+            PutChar(w, '?');
+    }
+}
+
+static const char *const sLocationKindNames[NUM_LOCATION_KINDS] =
+{
+    [ROUTE_LOCATION_CAVE] = "cave",
+    [ROUTE_LOCATION_TUNNEL] = "tunnel",
+    [ROUTE_LOCATION_VOLCANO] = "volcano",
+    [ROUTE_LOCATION_MOUNTAIN] = "mountain",
+    [ROUTE_LOCATION_FOREST] = "forest",
+    [ROUTE_LOCATION_RUINS] = "ruins",
+    [ROUTE_LOCATION_TOWER] = "tower",
+    [ROUTE_LOCATION_HIDEOUT] = "hideout",
+    [ROUTE_LOCATION_ISLAND] = "island",
+    [ROUTE_LOCATION_UNDERWATER] = "underwater",
+    [ROUTE_LOCATION_WRECK] = "wreck",
+    [ROUTE_LOCATION_PARK] = "park",
+    [ROUTE_LOCATION_FACILITY] = "facility",
+    [ROUTE_LOCATION_ROADSIDE_BUILDING] = "roadside",
+    [ROUTE_LOCATION_ROUTE_FEATURE] = "feature",
+    [TOWN_LOCATION_MUSEUM] = "museum",
+    [TOWN_LOCATION_ENTERTAINMENT] = "entertain",
+    [TOWN_LOCATION_STORE] = "store",
+    [TOWN_LOCATION_HARBOR] = "harbor",
+    [TOWN_LOCATION_INSTITUTION] = "institution",
+    [TOWN_LOCATION_SACRED_CAVE] = "sacred-cave",
+};
 
 static void Flush(struct LineWriter *w, RegionDumpLineFn emit)
 {
@@ -115,19 +182,45 @@ static void DumpCounty(struct LineWriter *w, RegionDumpLineFn emit, u32 id)
     if (DoesCountyHaveCity(id))
     {
         struct RegionTilePos pos = GetCountyCityPos(id);
+        u32 ordinal = GetCountyGymOrdinal(id);
+        u32 roles = 0;
 
+        PutText(w, GetCountyCityName(id));
+        PutStr(w, " mapsec=");
         PutNum(w, GetCountyCityMapSec(id));
-        PutStr(w, "@(");
+        PutStr(w, " @(");
         PutNum(w, pos.x);
         PutChar(w, ',');
         PutNum(w, pos.y);
-        PutChar(w, ')');
+        PutStr(w, ") theme=");
+        PutNum(w, GetCountyCityTheme(id));
+        PutStr(w, " roles=");
+        for (i = 0; i < 16; i++)
+            roles |= DoesCountyCityHaveBuilding(id, 1 << i) << i;
+        PutHex(w, roles);
+        PutStr(w, " gym=");
+        PutNum(w, ordinal);
+        if (ordinal != 0)
+        {
+            PutChar(w, ' ');
+            if (GetCountyGymType(id) == TYPE_NONE)
+                PutStr(w, "none");
+            else
+                PutText(w, gTypesInfo[GetCountyGymType(id)].name);
+            PutChar(w, ' ');
+            PutText(w, GetTrainerNameFromId(GetCountyGymLeader(id)));
+            PutChar(w, '(');
+            PutNum(w, GetCountyGymLeader(id));
+            PutChar(w, ')');
+        }
     }
     else
     {
         PutStr(w, "none");
     }
-    PutStr(w, " routes=");
+    Flush(w, emit);
+
+    PutStr(w, "    routes=");
     PutNum(w, GetCountyRouteTileCount(id));
     PutStr(w, " specials=");
     for (i = 0; i < GetCountySpecialLocationCount(id); i++)
@@ -137,6 +230,8 @@ static void DumpCounty(struct LineWriter *w, RegionDumpLineFn emit, u32 id)
         if (i != 0)
             PutChar(w, ' ');
         PutNum(w, s.mapSec);
+        PutChar(w, ':');
+        PutStr(w, sLocationKindNames[s.kind]);
         PutStr(w, "@(");
         PutNum(w, s.pos.x);
         PutChar(w, ',');

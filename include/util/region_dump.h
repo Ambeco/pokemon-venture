@@ -3,11 +3,14 @@
 
 /**
  * Text dump of the whole region for debugging: an ASCII map of the 28x15 region cells grouped by
- * county, then one line per county with its header fields and tile roles.
+ * county, then three lines per county.
  *
  * Map legend: C city, S special location, @ city with a special location in it, # route, . empty;
- * a space separates county columns and a blank line separates county rows. County lines use ids
- * from COUNTY_ID and MAPSEC numbers for names. Lines are emitted one at a time (at most
+ * a space separates county columns and a blank line separates county rows. Each county then gets
+ * three lines: header fields; its city (name, MAPSEC, tile, theme id, building-role bits, gym
+ * ordinal, type and leader); and its route tile count and special locations as mapsec:kind@(x,y).
+ * Ids come from COUNTY_ID. A leader's name prints as '?' when the trainer table has none (the test
+ * build stubs it). Lines are emitted one at a time (at most
  * REGION_DUMP_LINE_SIZE - 1 characters, no newline) so nothing large lives on the stack.
  */
 

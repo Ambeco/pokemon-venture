@@ -288,7 +288,7 @@ Read-only per-county metadata behind accessors, like the tiles: `GetCountyCityTh
 
 ### Region dump
 
-`DumpRegion()` / `PrintRegionToLog()` (`include/util/region_dump.h`, debug menu: Utilities, "Print region (log)") print an ASCII map of the 28x15 cells (city, special location, route, empty; county separators) and two lines per county (header fields, capital/Elite Four/reserved, city, special locations, route count) through the accessors, so it shows whatever the generator later produces. Lines are emitted one at a time to keep stack use small.
+`DumpRegion()` / `PrintRegionToLog()` (`include/util/region_dump.h`, debug menu: Utilities, "Print region (log)") print an ASCII map of the 28x15 cells (city, special location, route, empty; county separators) and three lines per county (header fields with capital/Elite Four/reserved; the city's name, MAPSEC, tile, theme, building roles, gym ordinal, type and leader; route count and special locations with their kinds) through the accessors, so it shows whatever the generator later produces. Lines are emitted one at a time to keep stack use small.
 
 ### Regions and multiple regions
 

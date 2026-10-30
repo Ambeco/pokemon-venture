@@ -87,6 +87,29 @@ Gym types do not follow from these slogans (Dewford is Fighting), so in the hard
 
 Mossdeep's two leaders count as one gym leader entry (a double battle); the trainer id stored is Tate and Liza's. The Elite Four county stores the Champion's trainer id and no gym type. The code (`src/data/region/emerald_cities.h`) also holds each gym's planner slot; the Surf exception there (gyms 5 and 6 both in block 12, Petalburg as the step-1 callback) supersedes the Lavaridge-block placement in the main-story-index table and exceptions 1, 2 and 5 below until they are reconciled. Verified once offline against `trainers.party`: every Pokémon of gyms 1-8 has the gym's type (the test runner has no real trainer data).
 
+### City data in code
+
+`src/data/region/emerald_cities.h`: theme enum and building roles per city (roles are best fits, not verified per building; the starting town has the home-healing and bedroom-PC roles instead of a Pokémon Center).
+
+| City | Theme enum | Roles besides Pokémon Center and Mart |
+| --- | --- | --- |
+| Littleroot | START | home healing, bedroom PC (no Center or Mart) |
+| Oldale | SCARCE | |
+| Petalburg | NATURE | gym |
+| Rustboro | INDUSTRY | gym, school |
+| Dewford | TINY_ISLAND | gym, hall (no Mart) |
+| Slateport | PORT | market, fan club, service |
+| Mauville | ENTERTAINMENT | gym |
+| Verdanturf | HIGHLAND | |
+| Fallarbor | FARMLAND | service |
+| Lavaridge | HOT_SPRINGS | gym, herb shop, hot springs |
+| Fortree | TREETOP | gym, service |
+| Lilycove | CAPITAL_COAST | motel, fan club, service |
+| Mossdeep | CHERISH | gym |
+| Sootopolis | ANCIENT | gym |
+| Pacifidlog | OCEAN_SUNRISE | service (no Mart) |
+| Ever Grande | LEAGUE | league |
+
 ### Special-location kinds
 
 Two enums, since a kind only matters for eligibility (which hosts may take it, what an arc beat needs) and NPC text, and inside and outside never share a kind.

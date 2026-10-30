@@ -3,7 +3,7 @@
 #include "region_dump.h"
 #include "region_tile.h"
 
-#define MAX_DUMP_LINES 80
+#define MAX_DUMP_LINES 100
 
 static EWRAM_DATA char sLines[MAX_DUMP_LINES][REGION_DUMP_LINE_SIZE];
 static u32 sNumLines;
@@ -59,10 +59,10 @@ static void Dump(void)
     DumpRegion(Collect);
 }
 
-TEST("RegionDump: Emits a header, the map with county separators, and two lines per county")
+TEST("RegionDump: Emits a header, the map with county separators, and three lines per county")
 {
     Dump();
-    EXPECT_EQ(sNumLines, 1 + (REGION_H + COUNTY_ROWS - 1) + 2 * NUM_COUNTIES);
+    EXPECT_EQ(sNumLines, 1 + (REGION_H + COUNTY_ROWS - 1) + 3 * NUM_COUNTIES);
     EXPECT(StrStartsWith(sLines[0], "region: capital=4 reserved=3"));
 }
 
@@ -114,8 +114,22 @@ TEST("RegionDump: County lines carry roles and the empty county reports none")
     u32 base = 1 + (REGION_H + COUNTY_ROWS - 1);
 
     Dump();
-    EXPECT(StrHas(sLines[base + 2 * COUNTY_ID(4, 0)], "CAPITAL"));
-    EXPECT(StrHas(sLines[base + 2 * COUNTY_ID(5, 2)], "ELITE4"));
-    EXPECT(StrHas(sLines[base + 2 * COUNTY_ID(3, 3)], "RESERVED"));
-    EXPECT(StrEq(sLines[base + 2 * COUNTY_ID(3, 2) + 1], "    city=none routes=0 specials=none"));
+    EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(4, 0)], "CAPITAL"));
+    EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(5, 2)], "ELITE4"));
+    EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(3, 3)], "RESERVED"));
+    EXPECT(StrEq(sLines[base + 3 * COUNTY_ID(3, 2) + 1], "    city=none"));
+    EXPECT(StrEq(sLines[base + 3 * COUNTY_ID(3, 2) + 2], "    routes=0 specials=none"));
+}
+
+TEST("RegionDump: City lines carry the name, theme, roles and gym, and special locations their kinds")
+{
+    u32 base = 1 + (REGION_H + COUNTY_ROWS - 1);
+
+    Dump();
+    EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(0, 1) + 1], "RUSTBORO CITY"));
+    EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(0, 1) + 1], "gym=1 Rock"));
+    EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(5, 2) + 1], "gym=9 none"));
+    EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(1, 3) + 1], "gym=0"));
+    EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(0, 0) + 2], ":cave@("));
+    EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(2, 3) + 2], ":museum@("));
 }
