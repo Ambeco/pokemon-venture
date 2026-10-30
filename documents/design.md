@@ -726,6 +726,12 @@ Random Pokémon types and move sets can be implemented at virtually any point in
 
 The work for each step is broken into milestones 0-12 in `remaining_work.md`. Milestone 0 covers the hardcoded foundation (stages 1-3); Milestone 1a defines the subplot interfaces and ports the first subplot; the milestones then follow the order: shuffled NPC texts, shuffled subplots, non-fixed arc cutscenes, random types, encounters, moves, trainers, procedural buildings and terrain, shuffled McGuffins, randomized city placement, procedural story indices, procedural terrain and biomes.
 
+### Randomization switches
+
+Each randomization sits behind one `RANDOMIZE_*` bit (`include/constants/randomization.h`), read with `IsRandomized()` (`src/util/randomization.c`); with the bit off, that path uses vanilla Emerald data. The mask is a `u16` in `SaveBlock2` (the former `padding2`), so it survives save and load and can later become a New Game setting; a new game copies `RANDOMIZATION_NEW_GAME_DEFAULT` (`include/config/randomization.h`). A randomization is built with its bit off, so existing tests keep passing; one commit then turns it on in the default and updates the tests' expected data, with the vanilla path kept.
+
+Tests: the runner zeroes the save blocks before each test, so every bit is off and the player identity is fixed (OT ID 0, all-zero name), which makes the randomized path reproducible. A test opts in with `SetRandomized(bit, TRUE)`; seed sweeps vary the identity themselves.
+
 ### Emerald county assignment (stage 1)
 
 Hoenn is fudged into the 6x4 county grid for the hardcoded stage; the county, terrain and biome tables are in `Emerald.md`.

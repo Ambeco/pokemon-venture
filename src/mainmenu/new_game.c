@@ -38,6 +38,7 @@
 #include "contest.h"
 #include "item_menu.h"
 #include "pokemon_storage_system.h"
+#include "randomization.h"
 #include "pokemon_jump.h"
 #include "decoration_inventory.h"
 #include "secret_base.h"
@@ -181,6 +182,7 @@ void NewGameInitData(void)
     gSaveBlock2Ptr->specialSaveWarpFlags = 0;
     gSaveBlock2Ptr->gcnLinkFlags = 0;
     InitPlayerTrainerId();
+    InitNewGameRandomization();
     PlayTimeCounter_Reset();
     ClearPokedexFlags();
     InitEventData();
