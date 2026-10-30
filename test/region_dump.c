@@ -98,7 +98,12 @@ TEST("RegionDump: Map glyph counts match the tile accessors")
     for (id = 0; id < NUM_COUNTIES; id++)
     {
         expectCities += DoesCountyHaveCity(id);
-        expectRoutes += GetCountyRouteTileCount(id);
+        // A route tile shared with an outside-city location draws as a special location, not '#'.
+        for (i = 0; i < GetCountyRouteTileCount(id); i++)
+        {
+            struct RegionTilePos pos = GetCountyRouteTile(id, i);
+            expectRoutes += GetRegionTileFlags(pos.x, pos.y) == TILE_ROUTE;
+        }
     }
     EXPECT_EQ(cities, expectCities);
     EXPECT_EQ(routes, expectRoutes);

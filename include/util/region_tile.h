@@ -10,8 +10,11 @@
  * answer from per-county hashes, so callers do not change. Tiles are always asked about through
  * their county, because a county is generated from its own header and its neighbors' headers only.
  *
- * Roles are not exclusive: a special location inside a city shares the city's tile, so
- * GetRegionTileFlags() returns a bit set. A tile with no flags is empty (sea, mountain, unused).
+ * Roles are not exclusive, so GetRegionTileFlags() returns a bit set. A special location inside a
+ * city shares the city's tile (TILE_CITY | TILE_SPECIAL). A special location outside a city is
+ * itself a route tile (TILE_ROUTE | TILE_SPECIAL), counted by GetCountyRouteTileCount(), so the
+ * route reaches it without a gap. Which of the two a location is follows from its kind alone
+ * (IsSpecialLocationKindInsideCity). A tile with no flags is empty (sea, mountain, unused).
  * Special locations that sit on a route in Emerald (Glass Workshop, Trick House) are named by their
  * route's MAPSEC; a special location inside a city without its own MAPSEC (Devon Corp) uses the
  * city's. Region cells never include the off-limits outer ring (see GetCountyRegionBounds).
@@ -35,11 +38,50 @@ struct RegionTilePos
     u8 y;
 };
 
+// Two enums in one value space, so a kind says whether the location is inside a city (design.md,
+// "Special locations"; the Emerald assignment is in Emerald.md).
+enum RouteLocationKind
+{
+    ROUTE_LOCATION_CAVE,
+    ROUTE_LOCATION_TUNNEL,
+    ROUTE_LOCATION_VOLCANO,
+    ROUTE_LOCATION_MOUNTAIN,
+    ROUTE_LOCATION_FOREST,
+    ROUTE_LOCATION_RUINS,
+    ROUTE_LOCATION_TOWER,
+    ROUTE_LOCATION_HIDEOUT,
+    ROUTE_LOCATION_ISLAND,
+    ROUTE_LOCATION_UNDERWATER,
+    ROUTE_LOCATION_WRECK,
+    ROUTE_LOCATION_PARK,
+    ROUTE_LOCATION_FACILITY,
+    ROUTE_LOCATION_ROADSIDE_BUILDING,
+    ROUTE_LOCATION_ROUTE_FEATURE,
+    NUM_ROUTE_LOCATION_KINDS,
+};
+
+enum TownLocationKind
+{
+    TOWN_LOCATION_MUSEUM = NUM_ROUTE_LOCATION_KINDS,
+    TOWN_LOCATION_ENTERTAINMENT,
+    TOWN_LOCATION_STORE,
+    TOWN_LOCATION_HARBOR,
+    TOWN_LOCATION_INSTITUTION,
+    TOWN_LOCATION_SACRED_CAVE,
+    NUM_LOCATION_KINDS,
+};
+
 struct SpecialLocation
 {
     struct RegionTilePos pos;
     u8 mapSec;
+    u8 kind; // enum RouteLocationKind or enum TownLocationKind
 };
+
+static inline bool32 IsSpecialLocationKindInsideCity(u32 kind)
+{
+    return kind >= NUM_ROUTE_LOCATION_KINDS;
+}
 
 // Bit set of enum RegionTileFlags for a region-map cell.
 u32 GetRegionTileFlags(u32 x, u32 y);
@@ -57,6 +99,7 @@ u32 GetCountySpecialLocationCount(u32 countyId);
 
 struct SpecialLocation GetCountySpecialLocation(u32 countyId, u32 index);
 
+// Includes the tiles of the county's outside-city special locations.
 u32 GetCountyRouteTileCount(u32 countyId);
 
 // Region cell of the index-th route tile of the county, in row-major order.

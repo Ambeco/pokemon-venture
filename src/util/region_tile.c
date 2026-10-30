@@ -26,6 +26,20 @@ static u32 LocalTileOfRegionCell(u32 x, u32 y)
     return (x + 1) % COUNTY_TILES_W + ((y + 1) % COUNTY_TILES_H) * COUNTY_TILES_W;
 }
 
+// routeMask lists only the plain route tiles; an outside-city location is a route tile too.
+static u32 GetCountyRouteMask(const struct CountyTiles *tiles)
+{
+    u32 mask = tiles->routeMask;
+    u32 i;
+
+    for (i = 0; i < tiles->numSpecials; i++)
+    {
+        if (!IsSpecialLocationKindInsideCity(tiles->specials[i].kind))
+            mask |= 1u << tiles->specials[i].tile;
+    }
+    return mask;
+}
+
 u32 GetRegionTileFlags(u32 x, u32 y)
 {
     u32 countyId = GetCountyFromRegionCell(x, y);
@@ -41,7 +55,7 @@ u32 GetRegionTileFlags(u32 x, u32 y)
         if (tiles->specials[i].tile == tile)
             flags |= TILE_SPECIAL;
     }
-    if (tiles->routeMask & (1u << tile))
+    if (GetCountyRouteMask(tiles) & (1u << tile))
         flags |= TILE_ROUTE;
     return flags;
 }
@@ -76,17 +90,18 @@ struct SpecialLocation GetCountySpecialLocation(u32 countyId, u32 index)
     AGB_ASSERT(index < tiles->numSpecials);
     location.pos = LocalTileToPos(countyId, tiles->specials[index].tile);
     location.mapSec = tiles->specials[index].mapSec;
+    location.kind = tiles->specials[index].kind;
     return location;
 }
 
 u32 GetCountyRouteTileCount(u32 countyId)
 {
-    return __builtin_popcount(GetCountyTiles(countyId)->routeMask);
+    return __builtin_popcount(GetCountyRouteMask(GetCountyTiles(countyId)));
 }
 
 struct RegionTilePos GetCountyRouteTile(u32 countyId, u32 index)
 {
-    u32 mask = GetCountyTiles(countyId)->routeMask;
+    u32 mask = GetCountyRouteMask(GetCountyTiles(countyId));
     u32 tile;
 
     AGB_ASSERT(index < __builtin_popcount(mask));

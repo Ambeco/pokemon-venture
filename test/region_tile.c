@@ -86,7 +86,7 @@ TEST("RegionTile: Every county has a special location except the deliberately em
     }
 }
 
-TEST("RegionTile: Special locations are distinct tiles, sharing only with the city, and routes share with nothing")
+TEST("RegionTile: Special locations are distinct tiles, and a route tile is shared only with an outside-city location")
 {
     u32 id, i, j;
 
@@ -98,7 +98,7 @@ TEST("RegionTile: Special locations are distinct tiles, sharing only with the ci
             u32 flags = GetRegionTileFlags(a.pos.x, a.pos.y);
 
             EXPECT(flags & TILE_SPECIAL);
-            EXPECT(!(flags & TILE_ROUTE));
+            EXPECT_EQ((flags & TILE_ROUTE) != 0, !IsSpecialLocationKindInsideCity(a.kind));
             for (j = i + 1; j < GetCountySpecialLocationCount(id); j++)
             {
                 struct SpecialLocation b = GetCountySpecialLocation(id, j);
@@ -108,7 +108,9 @@ TEST("RegionTile: Special locations are distinct tiles, sharing only with the ci
         for (i = 0; i < GetCountyRouteTileCount(id); i++)
         {
             struct RegionTilePos pos = GetCountyRouteTile(id, i);
-            EXPECT_EQ(GetRegionTileFlags(pos.x, pos.y), TILE_ROUTE);
+            u32 flags = GetRegionTileFlags(pos.x, pos.y);
+
+            EXPECT(flags == TILE_ROUTE || flags == (TILE_ROUTE | TILE_SPECIAL));
         }
     }
 }

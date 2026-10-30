@@ -82,10 +82,10 @@ Gym types do not follow from these slogans (Dewford is Fighting), so in the hard
 | 5 | Petalburg | Normal | Norman |
 | 6 | Fortree | Flying | Winona |
 | 7 | Mossdeep | Psychic | Tate and Liza |
-| 8 | Sootopolis | Water | Wallace |
-| 9 | Ever Grande | (Elite Four) | Sidney, Phoebe, Glacia, Drake, Wallace |
+| 8 | Sootopolis | Water | Juan |
+| 9 | Ever Grande | (Elite Four) | Sidney, Phoebe, Glacia, Drake; Champion Wallace |
 
-Mossdeep's two leaders count as one gym leader entry (a double battle); the trainer id stored is Tate and Liza's.
+Mossdeep's two leaders count as one gym leader entry (a double battle); the trainer id stored is Tate and Liza's. The Elite Four county stores the Champion's trainer id and no gym type. The code (`src/data/region/emerald_cities.h`) also holds each gym's planner slot; the Surf exception there (gyms 5 and 6 both in block 12, Petalburg as the step-1 callback) supersedes the Lavaridge-block placement in the main-story-index table and exceptions 1, 2 and 5 below until they are reconciled. Verified once offline against `trainers.party`: every Pokémon of gyms 1-8 has the gym's type (the test runner has no real trainer data).
 
 ### Special-location kinds
 
