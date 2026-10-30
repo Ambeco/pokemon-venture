@@ -612,7 +612,7 @@ County numbers below are the proposed county-story-indices, in walkthrough order
 | 44 | 11 Lavaridge | 0 | Magma beat (Mt. Chimney, Meteorite recovered); G4 (Strength already held) |
 | 45 | | 1 | (no callback) |
 | 46 | | 2 | Go-Goggles (rival meeting outside the gym) |
-| 47 | | 3 | Unlock Fortree via a blocker |
+| 47 | | 3 | Unlock Fortree (open; no lock) |
 | 48 | 12 Fortree | 0 | RB4 (Route 119 north); Devon Scope (Route 120) |
 | 49 | | 1 | Callback to Petalburg (2): G5 + Surf (Norman, Wally's father) |
 | 50 | | 2 | G6 + Fly |
@@ -677,7 +677,7 @@ Counted from the table above, by host county (callback gets count for the host, 
 | 19 Pacifidlog | 1 | 1 | 1 (weekly TM day) | 3 |
 | 20 Ever Grande | 3 | 3 | 0 | 1 |
 
-Totals: 63 gets, 20 unlocks (blocks 0-19), 4 of them blockers (indices 35, 39, 47, 67); about 15 chain vars and about 82 bools. At most 11 bools in any county, and about 380 flags are unused today, so a fixed 12-flag pool per county would fit (288) without packing. Not counted: post-game content (Battle Frontier, Southern Island, Regi trio, Altering Cave), the 7 Trick House and Mossdeep gym switch flags (scratch), per-city visited and landmark flags, Pokénav match-call flags, and engine vars.
+Totals: 63 gets, 20 unlocks (blocks 0-19), 3 of them blockers (indices 35, 39, 67); about 15 chain vars and about 82 bools. At most 11 bools in any county, and about 380 flags are unused today, so a fixed 12-flag pool per county would fit (288) without packing. Not counted: post-game content (Battle Frontier, Southern Island, Regi trio, Altering Cave), the 7 Trick House and Mossdeep gym switch flags (scratch), per-city visited and landmark flags, Pokénav match-call flags, and engine vars.
 
 - Only one list is current at a time, and the largest is 4 (Rustboro step 2, Mauville step 2, Mossdeep step 0), so one shared 4-bit completion mask would do. Per-county masks are only needed if a county's completed gets must survive past its list, which level-triggered completion makes unnecessary.
 - McGuffin flags: 9 event keys in step-3 unlocks have no Emerald flag or item (Letter delivered, Devon Goods delivered, RB3, Meteorite stolen, Shelly defeated, Groudon awakened, blockade gone, Kyogre awakened, Cave of Origin done). Once the main-story-index is maintained they are derivable (a key's index is below its lock's), so they need no stored flag; the 3 blockers likewise.
@@ -696,7 +696,7 @@ Numbered so they can be struck off as the rules or the table change.
 8. Rival Battle 3 moves from the Mauville cell to the Cycling Road cell (Route 110).
 9. Seafloor Cavern moves from the Ever Grande cell to Mossdeep's. Victory Road lives in Sootopolis's cell, so Wally battle 2 is a callback.
 10. Mt. Pyre (14) is forced before Lilycove (15); Emerald lets the player visit Lilycove first.
-11. Blocks 8, 9 and 16 have no mandatory gets, so their unlocks need blocker McGuffins that vanilla Emerald lacks (or a tiny subplot each). Block 11's unlock into Fortree (index 47) also needs one, since Surf is no longer given before Fortree.
+11. Blocks 8, 9 and 16 have no mandatory gets, so their unlocks need blocker McGuffins that vanilla Emerald lacks (or a tiny subplot each). Block 11's unlock into Fortree (index 47) has no lock at all: the step is open.
 12. Verdanturf's unlock uses Rock Smash + Dynamo Badge, which also gates Route 117; vanilla leaves it open.
 13. The Elite Four county has two gates: Waterfall + Rain Badge into Ever Grande, and 8 badges into the League lobby.
 14. The empty county (3,2) must take a reserved index (23) and holds no legendary location.
