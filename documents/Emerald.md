@@ -247,7 +247,7 @@ Source: Bulbapedia "Walkthrough:Pokémon Emerald", in tutorial order (Parts 1-19
 31. Routes 105-108 sea, full exploration — needs: Surf + Balance Badge (fifth) (key: P8 #78) — gives: Sea routes full access
 32. Granite Cave 1F, Hiker near entrance — needs?: Knuckle Badge — gives: HM05 Flash — unlocks: Granite Cave underground (P3 #33), Ancient Tomb (P11 #95), Victory Road (P18 #132)
 33. Granite Cave underground (dark) — needs?: Flash — gives: Granite Cave underground access
-34. Granite Cave back chamber, Steven — needs: Letter — gives: Letter delivered
+34. Granite Cave 1F side room (a warp off lit 1F, no Flash needed), Steven — needs: Letter — gives: Letter delivered
 35. Dewford pier, Briney to Slateport (Route 109 beach) — needs: Devon Goods — gives: Slateport access
 
 ### Part 4
