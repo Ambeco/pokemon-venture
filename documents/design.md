@@ -514,6 +514,7 @@ Rules:
 - A key's index is strictly below the index of the lock it opens: the unlock's McGuffin comes from block x's lists, which precede step 4x+3.
 - Cross-county McGuffin ids derive from the item (a hash of the seed, kind and ordinal), so both counties on a route agree on its lock without reading each other's private data. County-internal McGuffins draw from per-county reserved pools, partitioned by a coprime-stride mapping like the species-to-biome one. The two partitions are disjoint, so a hash never collides with a county's reserved id.
 - NPC hint text asks the planner for the list at the current main-story-index, so the planner is the top layer of the subplot descriptor (see "Subplot abstraction").
+- Dark maps. A `requires_flash` map is only fully usable with Flash (see "Dark caves"). The planner knows no maps, so this binds the county's private placement: a get, a lock's key, or the path to a later unlock that lies beyond the unlit limit (about 6 tiles from the entrance) of a `requires_flash` map must sit at a main-story-index after the one that completes Flash and its badge (gym 2 in Emerald). A get in the same list as Flash is allowed only if the county's script orders Flash first. It holds when Flash is a callback: a callback at step 1 of block x completes at `4x+1`, so a dark get may use `4x+2` onward but not `4x`. A county that cannot satisfy it (Flash's block is later than every step it could use) keeps its dark map's contents inside the lit part; the part beyond the limit is optional content.
 
 Guarantees the earlier layers must provide:
 
@@ -541,6 +542,8 @@ Opening. The tutorial is an ordinary instance of the model, with hardcoded lists
 6   Oldale gives (generated as normal)
 7   Oldale unlocks Petalburg via [Pokédex]   (the sketch-artist lock)
 ```
+
+Vanilla stage overrides. Vanilla Emerald cannot come out of the hash formulas, since the step bit, the callback hash and the chance are random. While the planner's randomization bit is off, each item instead reads a fixed `{block, step}` from a ROM table, with a fixed host for each callback block (`Emerald.md`, "Planner inputs"; `GetGymSlot` is the gym part). This is not the rejected explicit step table: it only replaces the hash outcome for the hardcoded stage, it stores no step list at runtime, and the generic ranges and masks stay in force. A test checks that every vanilla slot lies inside its kind's range and mask, so the exceptions are exactly the numbered ones in `Emerald.md`.
 
 Open: the exact callback chance and distance bound (tuned from play); the hardcoded ranges for each kind's ordinals (placeholders at first; each is listed for the user to check); the end-game blocks (the Elite Four steps, the reserved legendary counties); whether an HM obstacle on a route counts as the unlock of the location behind it; the size of the McGuffin id pool.
 
@@ -599,7 +602,7 @@ Only subplot beats need converting; trainer text, item pickups, trainer-defeated
 - Each subplot declares requirements on the cities or locations that may host it: required buildings (by role, e.g. gym, shop, house with an NPC), required HMs, biome, and terrain (mountain, coast, island). These requirements are expected to stay long term.
 - Progression requirements: the keys and badges a subplot consumes (Norman needs 4 badges; Petalburg Woods needs Cut), and the keys it produces. Keys a subplot produces may only open locks relative to its host (its outbound routes); between counties those locks are planner unlock steps, ordered by main-story-index (a key's index is below its lock's), so the rule holds after a move. A key that opens a fixed lock elsewhere (Cut opens Petalburg Woods and Rusturf) is a gate, not a subplot output. Consumed requirements are either relative to the host (the lower neighbor's subplot is done) or counted (badges >= N, so the host's step must come after the Nth gym step). A subplot may move only to a host where these hold, which is what makes a swapped subplot provably completable.
 - In the hardcoded stage, buildings are fixed, so a subplot is assigned only to a city whose existing buildings satisfy its requirements, and subplots address buildings by role, not by map.
-- NPC hosting: each host building keeps a few placeholder object events whose graphics come from a var (`OBJ_EVENT_GFX_VAR_0`, `VAR_OBJ_GFX_ID_0`..`F`), a generic script, and a hide flag; a subplot fills them by setting the vars and flags in the host map's on-transition script. These vars are shared (the rival graphics, battle frontier and Route 117 already set them), so they are never persistent state. This is cheaper than spawning NPCs at runtime, which is kept for cutscene beats (an NPC running up to the player) via the generic runner.
+- NPC hosting: each host building keeps a few placeholder object events whose graphics come from a var (`OBJ_EVENT_GFX_VAR_0`, `VAR_OBJ_GFX_ID_0`..`F`), a generic script, and a temp hide flag (counts and spawning: "Building roles and NPC spawning"); a subplot fills them by setting the vars and flags in the host map's on-transition script. These vars are shared (the rival graphics, battle frontier and Route 117 already set them), so they are never persistent state. This is cheaper than spawning NPCs at runtime, which is kept for cutscene beats (an NPC running up to the player) via the generic runner.
 
 #### Interfaces
 
@@ -630,9 +633,12 @@ Checked against Petalburg gym/Surf, Devon Goods and Granite Cave/Flash in Emeral
 - Devon Goods stays main arc: it spans Rustboro (theft, return), the Rusturf tunnel (recovery), Dewford and the Granite Cave (letter) and Slateport (delivery), and its recovery key opens a lock back in the first county, so it is a callback, not four per-city subplots.
 - Dark caves: Emerald has no script check for Flash. Dark floors (Granite Cave B1F and B2F are `requires_flash`) only dim the screen, and the engine lets the player walk them unlit. Flash is made a hard key by limiting an unlit player to about 6 tiles from the entrance of a `requires_flash` map. Steven's room is a warp off the lit 1F, so the letter delivery never needs Flash.
 
-#### Open
+#### Building roles and NPC spawning
 
-- Which building roles exist, and how many placeholder NPC objects each building needs.
+- Roles are the `BuildingRole` bit set (`region_city.h`), with the list in `Emerald.md` ("Building roles"); the generic house, which the Petalburg gym/Surf paper test needs beside the gym, joins it as `BUILDING_HOUSE`. A subplot addresses buildings by role only.
+- Placeholder NPC objects per host map: 2 for each building role, 3 for a gym, 1 for a service building (its own NPC is fixed), 4 for a city's outdoor map, none for routes. The 16 shared `VAR_OBJ_GFX_ID_*` vars are set by the host map's on-transition script, so the limit is per map, not per game; a city map already spends 1-2 of them on the rival, so 4 is well inside it. Placeholders hide through temp flags (cleared on map load), so they cost no saved flags.
+- Runtime NPC spawning is needed only for cutscene actors (an NPC runs up to the player and off again), because a generated route or city has no object in the right place. The generic cutscene runner builds an object template at runtime and spawns it (`SpawnSpecialObjectEvent`, as the player avatar does); to be confirmed when the runner is written. Subplot NPCs inside buildings never spawn at runtime: placeholders cover them, and the rejected alternative below explains why.
+- Route hint NPCs (Milestone 1) are not decided here.
 
 ### NPC dialogue
 

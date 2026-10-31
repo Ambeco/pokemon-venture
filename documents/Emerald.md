@@ -28,7 +28,7 @@ Terrain and biome per county. Hoenn is mostly rainforest, so it uses the warm, w
 
 ### County-story-indices used in the code
 
-`src/data/region/emerald_region.h` renumbers the table above to 0-23 in order, with three fixes so the layer-2 rules hold: Lavaridge (42) sits between Meteor Falls (10) and Fortree (12) as index 11; Sootopolis is 18 and the empty county (3,2) is 19, so Ever Grande is index 20, the Elite Four for R = 3, followed by the reserved legendary counties Mirage Island (21), Pacifidlog (22) and Sealed Chamber (23). Jumps (non-adjacent consecutive indices) are 3 to 4, 4 to 5, 10 to 11 and 17 to 18, numbered 1-4 as key/lock ids. Ports (Dewford, Slateport, Lilycove) and special-location kinds are best fits, not final.
+`src/data/region/emerald_region.h` uses the indices of "Main-story-index table" below (walkthrough order, unique, 0-23): Lavaridge (42 above) is 11; Sootopolis is 18 and Pacifidlog 19, so Ever Grande is index 20, the Elite Four for R = 3, followed by the reserved legendary counties Mirage Island (21), Sealed Chamber (22) and the empty county (3,2) (23). Jumps (non-adjacent consecutive indices) are 3 to 4, 4 to 5, 10 to 11, 17 to 18 and 19 to 20, numbered 1-5 as key/lock ids. Ports (Dewford, Slateport, Lilycove) and special-location kinds are best fits, not final.
 
 ### Tile placement
 
@@ -181,7 +181,7 @@ A building role is what an NPC can refer to ("the museum", "the Pokémon Center"
 - Community and shopping: house (generic), market (Slateport Market), department store, motel (Cove Lily Motel), herb shop, hot springs, hall (Dewford Hall), fan club (several cities), trainers' school, secret base guild, trade house, and service (name rater, friendship rater, move tutor, move reminder, move deleter, merged: the move reminder's and deleter's houses use the generic `LAYOUT_HOUSE2`, so there is no unique tile to map, and tutors are NPCs).
 - Story-bound (inside-city special locations): lab, company, museum, shipyard, Game Corner, Contest Hall, space center, cave entrance.
 
-Open: how many placeholder NPCs each role needs (Milestone 1a).
+Placeholder NPC objects per host map (design.md, "Subplot abstraction", Placement): 2 for each building role, 3 for a gym, 1 for a service building, 4 for a city's outdoor map; routes get none.
 
 ## Rival arc
 
@@ -594,7 +594,7 @@ Levels the walkthrough lists, per place in tutorial order. `wild` is the land, c
 
 Emerald fitted to the main plot planner (design.md, "Main plot planner"): one row per main-story-index `4x + s`. Step 0 and 2 list gets, step 1 is the optional callback (host named), step 3 unlocks county x+1 via the named McGuffin. Gets within a list are unordered for the planner; the county picks the order, so "G4 then Surf" inside a list means the county's script orders them. `G1`-`G8` are gyms (each with its HM), `RB1`-`RB5` rival battles, `Magma`/`Aqua` beats are the Rocket-equivalent arc beats. Verdanturf, Fallarbor and the Shoal Cave county have no mandatory gets.
 
-County numbers below are the proposed county-story-indices, in walkthrough order and unique. They differ from the county table above for the counties after Lavaridge: that table's Lavaridge (42) becomes 11, Fortree 11 becomes 12, Weather Institute 12 becomes 13, Mt. Pyre 13 becomes 14, Lilycove 14 becomes 15, Shoal Cave 15 becomes 16, Mossdeep 16 becomes 17, Ever Grande 17 becomes 20, Pacifidlog 20 becomes 19, Mirage Island 19 becomes 21 and the Sealed Chamber 21 becomes 22. Route-story-index is 4 times the county number. The empty county (3,2) takes 23.
+County numbers below are the county-story-indices the code uses, in walkthrough order and unique. They differ from the county table above for the counties after Lavaridge: that table's Lavaridge (42) becomes 11, Fortree 11 becomes 12, Weather Institute 12 becomes 13, Mt. Pyre 13 becomes 14, Lilycove 14 becomes 15, Shoal Cave 15 becomes 16, Mossdeep 16 becomes 17, Ever Grande 17 becomes 20, Pacifidlog 20 becomes 19, Mirage Island 19 becomes 21 and the Sealed Chamber 21 becomes 22. Route-story-index is 4 times the county number. The empty county (3,2) takes 23.
 
 | Index | County | Step | Contents |
 | --- | --- | --- | --- |
@@ -678,6 +678,126 @@ County numbers below are the proposed county-story-indices, in walkthrough order
 
 Callbacks: 6 in about 21 blocks (indices 5, 49, 57, 61, 77, 81), four of them after Fly. No block has two different callback hosts.
 
+### Planner inputs
+
+What the main plot planner (design.md, "Main plot planner") reads for Emerald. Two layers, because the table above cannot come out of the hash formulas (step bits, callback hashes and the callback chance are random): the vanilla slots below override the hash outcome while the planner's randomization bit is off (design.md, "Vanilla stage overrides"), and the generic constants further down are what the randomized path uses. Every vanilla slot below is checked against the generic ranges and masks; the ones that fall outside are the numbered exceptions above.
+
+Constants: E = 20 (Elite Four index), R = 3, Surf-lock block n = 12, Fly's block 12. County-story-indices are in `emerald_region.h` (table above).
+
+#### Vanilla slots (block/step, from the table above)
+
+- Gyms (`sEmeraldGymSlots`, host in brackets when it is not the block's county): G1 3/0, G2 4/0, G3 7/2, G4 11/0, G5 12/1 (Petalburg, 2), G6 12/2, G7 17/0, G8 19/1 (Sootopolis, 18), League lobby 20/2.
+- HMs (each takes its gym's slot, except Strength): Cut 3/0, Flash 4/0, Rock Smash 7/2, Strength 8/0 (exception 3), Surf 12/1 (Petalburg), Fly 12/2, Dive 17/0, Waterfall 19/1 (Sootopolis).
+- Rival beats: RB1 1/0, RB2 3/2, RB3 6/0, RB4 12/0, RB5 15/0; Wally 1 7/0, Wally 2 20/1 (Sootopolis, Victory Road).
+- Arc beats, in arc order (Aqua unless noted): Petalburg Woods grunt 2/0, Stop Thief 3/0, Museum 5/2, Magma Meteor Falls 10/0, Magma Mt. Chimney 11/0, Shelly 13/0, Red Orb 14/0, Magma Hideout 14/1 (Lavaridge, 11), submarine 15/1 (Slateport, 5), Aqua Hideout 15/2, Magma Space Center 17/0, Seafloor Cavern 17/2, Cave of Origin 18/0, Sky Pillar 19/0, Rayquaza ends the fight 19/1 (Sootopolis). Devon Goods (recovered 3/2, Letter delivered 4/2, delivered 5/2) is part of the arc.
+- Special-item McGuffins (fixed): Wailmer Pail 2/2, Go-Goggles 11/2, Devon Scope 12/0.
+- Utility items: PokéNav 3/2, Old Rod 4/0, Itemfinder 6/0, Bicycle 7/2, Coin Case 7/2 (optional chain), Pokéblock Case 15/0, Super Rod 17/0. Not placed: the Good Rod (Route 118 river fisherman, optional in vanilla; if it becomes a list get it is 13/2), Harbor Mail (optional chain, 5/2).
+- Tutorial lists (blocks 0 and 1) are the hardcoded ones in design.md, "Opening".
+- Callback blocks and hosts: block 1 to county 0, 12 to 2, 14 to 11, 15 to 5, 19 to 18, 20 to 18. All other blocks have no callback.
+
+#### Host masks (bit i = county-story-index i)
+
+- Gym and gym HM (Cut, Flash, Rock Smash, Strength): 1-19 (`0x000FFFFE`); county 0 only as a callback.
+- Water HM (Surf, Dive, Waterfall): blocks where county x or x+1 is Ocean terrain: 3, 4, 15-19 (`0x000F8018`). The vanilla Surf block 12 is outside it (Route 118's river between two land counties; exception 2).
+- Rival beats and utility items: 1-19 (`0x000FFFFE`).
+- Arc beats: each beat's own host only (the location kind it needs exists once); the mask is the beat's block.
+- A callback host y(x) must pass the kind's mask and, for a gym, have a settlement.
+
+#### Callback chance
+
+- Randomized path: p = 31/256 (about 12%, design.md). Vanilla has 5 callbacks in the 19 blocks after the tutorial (26%), forced by the list above, so p never applies to the vanilla stage. For the user to pick: keep 12% (fewer revisits than Emerald) or raise toward about 20-25%.
+
+#### Placeholder ranges (randomized path, for the user to check)
+
+Windows are blocks (inclusive). Gyms 1-4 split blocks 1..n-1 into four windows with cut points ceil(k(n-1)/4); gyms 6-8 split n+1..E-1 into three with cut points n + ceil(k(E-1-n)/3). With n = 12, E = 20 these evaluate as shown; "vanilla" is the vanilla block.
+
+| Item | Range (n=12, E=20) | Vanilla | In range |
+| --- | --- | --- | --- |
+| G1 / G2 / G3 / G4 | 1-3 / 4-6 / 7-9 / 10-11 | 3 / 4 / 7 / 11 | yes |
+| G5 (Surf gym) | n only: 12 | 12 | yes |
+| G6 (Fly, never a callback) / G7 / G8 | 13-15 / 16-17 / 18-19 | 12 / 17 / 19 | G6 no (exception 1) |
+| HMs | the gym's slot (Strength included in the randomized path) | | Strength no (exception 3) |
+| RB1 | 1 (tutorial) | 1 | yes |
+| RB2 (before G1's window ends) | 2 to cut 1 = 2-3 | 3 | yes |
+| RB3 (gyms 2-3) | 4-9 | 6 | yes |
+| RB4 (gyms 4-5) | 10-12 | 12 | yes |
+| RB5 (gyms 6-7) | 13-17 | 15 | yes |
+| Wally 1 / Wally 2 | G3's window 7-9 / E only: 20 | 7 / 20 | yes |
+| Arc beats (authored per arc) | nominal block +-2, clipped to 2..E-1; ordered by arc sequence, several per block allowed | the blocks above | yes by construction |
+| Bicycle, Itemfinder | 1 to floor(E/2) = 1-10 | 7, 6 | yes |
+| Old Rod, PokéNav | 1 to ceil(E/3) = 1-7 | 4, 3 | yes |
+| Good Rod | ceil(E/3)+1 to floor(2E/3) = 8-13 | unplaced | |
+| Super Rod | floor(2E/3)+1 to E-1 = 14-19 | 17 | yes |
+| Other utility (Coin Case, Pokéblock Case, ...) | 1 to E-1 | 7, 15 | yes |
+
+Questions inside the table: arc beats cannot use disjoint windows (design.md says ranges of a kind are disjoint) because the Emerald arc has two beats in blocks 14, 15, 17 and 19, so arc beats are ordered but not disjoint here; confirm. Quotas: 8 gyms + League, 8 HMs, 5 rival beats + 2 Wally beats, 15 arc beats + 3 Devon Goods beats (Emerald arc), 7 placed utility items.
+
+#### Step predicates for the read-only adapter
+
+A list is done when every mandatory get in it is true; the current index is the first list, scanning from 0, that is not done (Emerald lets some gets happen early: Fly with RB4, Strength at Rusturf, Go-Goggles, so the highest true predicate is wrong). A step-3 unlock is done when its named key's predicate holds; the 3 blockers (35, 39, 67) and Fortree's open unlock (47) are done when the previous list is. Optional gets (RB2, RB5, Wally 1, Coin Case, Harbor Mail) never hold a list: the adapter reports them but ignores them for completion (`FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE` and `FLAG_DECLINED_WALLY_BATTLE_MAUVILLE` exist for the declined cases). Setter sites were found with `setflag`/`setvar` in `data/` (non-Frlg); "?" marks a predicate whose meaning still has to be read from the surrounding script.
+
+| Index | Gets | Done when |
+| --- | --- | --- |
+| 0 | Starter | `FLAG_SYS_POKEMON_GET` (Route101:221) |
+| 4 | RB1 | `FLAG_DEFEATED_RIVAL_ROUTE103` (Route103:143) |
+| 5 | Pokédex, Poké Balls, Running Shoes | `FLAG_RECEIVED_POKEDEX_FROM_BIRCH` (Lab:548), `FLAG_RECEIVED_RUNNING_SHOES` (Littleroot:900); balls have no flag |
+| 8 | Wally has Ralts; Woods grunt | `VAR_PETALBURG_CITY_STATE >= 3` (Petalburg:47); `VAR_PETALBURG_WOODS_STATE >= 1` (PetalburgWoods:111) ? |
+| 10 | Wailmer Pail | `FLAG_RECEIVED_WAILMER_PAIL` |
+| 12 | G1 + Cut; Stop Thief | `FLAG_BADGE01_GET`, `FLAG_RECEIVED_HM_CUT`; `VAR_RUSTBORO_CITY_STATE >= 2` (RustboroCity:302) ? |
+| 14 | Devon Goods recovered; PokéNav; Letter; RB2 | `FLAG_RECOVERED_DEVON_GOODS`; `FLAG_RECEIVED_POKENAV`; `FLAG_RETURNED_DEVON_GOODS` (the return gives the Letter); RB2 optional (`FLAG_DEFEATED_RIVAL_RUSTBORO`) |
+| 16 | G2 + Flash; Old Rod | `FLAG_BADGE02_GET`, `FLAG_RECEIVED_HM_FLASH`; `FLAG_RECEIVED_OLD_ROD` |
+| 18 | Letter delivered | `FLAG_DELIVERED_STEVEN_LETTER` |
+| 20 | Shipyard visit | `FLAG_DOCK_REJECTED_DEVON_GOODS` ? |
+| 22 | Devon Goods delivered; Museum Aqua beat; Harbor Mail | `FLAG_DELIVERED_DEVON_GOODS` (both beats are one scene); Harbor Mail optional |
+| 24 | RB3; Itemfinder | `VAR_ROUTE110_STATE >= 1` (Route110:478) ? |
+| 28 | Wally 1 | optional: `FLAG_DEFEATED_WALLY_MAUVILLE` |
+| 30 | G3 + Rock Smash; Coin Case; Bike | `FLAG_BADGE03_GET`, `FLAG_RECEIVED_HM_ROCK_SMASH`; `FLAG_RECEIVED_BIKE`; Coin Case optional (`FLAG_RECEIVED_COIN_CASE`) |
+| 32 | Strength | `FLAG_RECEIVED_HM_STRENGTH` (RusturfTunnel:60) |
+| 40 | Meteorite stolen | `FLAG_MET_ARCHIE_METEOR_FALLS` |
+| 44 | Mt. Chimney Magma beat; G4 | `FLAG_DEFEATED_EVIL_TEAM_MT_CHIMNEY`; `FLAG_BADGE04_GET` |
+| 46 | Go-Goggles | `FLAG_RECEIVED_GO_GOGGLES` |
+| 48 | RB4; Devon Scope | `VAR_ROUTE119_STATE >= 1` (Route119:145) ?; `FLAG_RECEIVED_DEVON_SCOPE` |
+| 49 | G5 + Surf | `FLAG_BADGE05_GET`, `FLAG_RECEIVED_HM_SURF` |
+| 50 | G6 + Fly | `FLAG_BADGE06_GET`, `FLAG_RECEIVED_HM_FLY` (set in Route119 with RB4, so true early) |
+| 52 | Shelly | `FLAG_RECEIVED_CASTFORM` (Route119_WeatherInstitute_2F:123) |
+| 56 | Red Orb | `FLAG_RECEIVED_RED_OR_BLUE_ORB` (MtPyre_Summit:61) |
+| 57 | Magma Hideout | `FLAG_GROUDON_AWAKENED_MAGMA_HIDEOUT` |
+| 60 | RB5; Pokéblock Case | optional (`FLAG_MET_RIVAL_LILYCOVE`); `FLAG_RECEIVED_POKEBLOCK_CASE` |
+| 61 | submarine | `VAR_SLATEPORT_HARBOR_STATE >= 2` (Harbor:64) ? |
+| 62 | Aqua Hideout | `FLAG_TEAM_AQUA_ESCAPED_IN_SUBMARINE` |
+| 68 | G7 + Dive; Space Center; Super Rod | `FLAG_BADGE07_GET`, `FLAG_RECEIVED_HM_DIVE`; `FLAG_DEFEATED_MAGMA_SPACE_CENTER`; `FLAG_RECEIVED_SUPER_ROD` |
+| 70 | Seafloor Cavern | `FLAG_KYOGRE_ESCAPED_SEAFLOOR_CAVERN` |
+| 72 | Cave of Origin | `FLAG_WALLACE_GOES_TO_SKY_PILLAR` |
+| 76 | Sky Pillar | `VAR_SKY_PILLAR_STATE >= 1` (SkyPillar_Top:127) ? |
+| 77 | Rayquaza ends the fight; G8 + Waterfall | `FLAG_SOOTOPOLIS_ARCHIE_MAXIE_LEAVE`; `FLAG_BADGE08_GET`, `FLAG_RECEIVED_HM_WATERFALL` |
+| 81 | Victory Road, Wally 2 | `FLAG_DEFEATED_WALLY_VICTORY_ROAD` |
+| 82 | League lobby, Elite Four, Champion | `FLAG_ENTERED_ELITE_FOUR`, then `FLAG_SYS_GAME_CLEAR` (set in C at the Hall of Fame) |
+
+Unlock keys that are not a get's own predicate: Pokédex lock at Oldale (index 7) is also read by the sketch artist as `FLAG_ADVENTURE_STARTED`; "Wally has Ralts" is the lock on Route 104's gym boy (`VAR_PETALBURG_CITY_STATE >= 3`).
+
+#### Traversal McGuffins (route unlocks only)
+
+HMs other than Fly, each with the Emerald locks it opens (chain entry numbers); every use needs the HM and its gym's badge:
+
+- Cut: Petalburg Woods trees (15). Flash: Granite Cave B1F-B2F (33), Ancient Tomb (95), Victory Road (132); see design.md, "Dark maps". Rock Smash: Rusturf debris (24, unlocks Verdanturf, index 31), Granite Cave B2F rocks (51), Desert Ruins (74), Mirage Tower (75), Seafloor Cavern (117). Strength: Fiery Path tunnels (57), Magma Hideout (102), Seafloor Cavern (117), Victory Road (132). Surf: Route 103 east (7), seas (31), Route 118 (52, unlocks Weather Institute, index 51), Route 115 (79), Abandoned Ship (81), New Mauville (84), Mt. Pyre route (99), Route 124 (108), Sky Pillar route (122). Dive: Abandoned Ship hidden floor (115), Seafloor Cavern (117), Sootopolis entrance (119, unlocks index 71), Sealed Chamber (123). Waterfall: Meteor Falls (64), Ever Grande (131, unlocks index 79).
+- Special items (as designed, fixed in this stage): Go-Goggles (Route 111 desert, 54), Devon Scope (Route 120 bridge and Fortree gym entrance, 92 and 94), Wailmer Pail (the planner's placeholder lock for Rustboro, index 11; vanilla Emerald has no lock there).
+- Not traversal: the Bicycle (a utility item; it gates the Cycling Road and Jagged Pass optionally), the Basement Key, Storage Key and Magma Emblem (subplot and arc keys), Fly (a convenience, never a lock).
+
+#### Blocker McGuffins
+
+A person standing in the way until a boolean. Emerald has these (chain entry, who, boolean):
+
+| Entry | Blocker | Until |
+| --- | --- | --- |
+| 6 | Sketch artist, Oldale west exit | `FLAG_ADVENTURE_STARTED` (Oldale:8, set in Birch's Lab:519) |
+| 14 | Gym boy, Petalburg west exit | `VAR_PETALBURG_CITY_STATE >= 3` (Petalburg:8 moves him, Petalburg:47 frees the path) |
+| 133 | Ace Trainers, League lobby | 8 badges (popcount of `FLAG_BADGE01_GET`-`08`) |
+| 41 | Cycling Road gate | Bicycle held (`FLAG_RECEIVED_BIKE`) |
+| 13/77 | Norman, Petalburg gym | 4 badges (derived stage, design.md "Interface rules") |
+| 36, 55 | Aqua grunts at the Museum, Magma grunts at the cable car | arc beats owned by the arc (main arc bucket); not generic blockers |
+
+The three planner blockers (indices 35, 39, 67: unlocks into Fallarbor, Meteor Falls and Mossdeep) have no Emerald counterpart yet. Until the pool grows (design.md, "Blocker McGuffins"), subplots author their own blocker scripts; the first generic blockers are those three, written as one parameterized "NPC blocks the route until the index passes step s" script.
+
 ### Per-county storage needs
 
 Counted from the table above, by host county (callback gets count for the host, not the block). A gym and its HM count as two gets, a reserved county as zero. "Max list" is the largest single list the county hosts, which is what a completion mask must hold. "Chain vars" and "Bools" are the county's own optional subplot state (not main-arc gets), estimated from the flags and vars Emerald's scripts set in the county's maps, classified by name rather than by reading each script. Strictly ordered subplots in one county are merged into one chain var; one-shot gifts and independent visits are one bool each. Fan-club gifts, Shoal Cave salt and shells, and the Lilycove paintings are counted as bools but could become counters.
@@ -696,8 +816,8 @@ Counted from the table above, by host county (callback gets count for the host, 
 | 9 Fallarbor | 0 | 0 | 1 (Glass Workshop 17 values plus Fossil Maniac 3) | 5 |
 | 10 Meteor Falls | 1 | 1 | 0 | 2 |
 | 11 Lavaridge | 4 (+ callback Magma beat) | 2 | 1 (Mirage Tower and fossil pick) | 4 |
-| 12 Weather Institute | 1 | 1 | 0 | 1 |
-| 13 Fortree | 4 | 2 | 0 | 4 (Wingull errand pair shared with 17) |
+| 12 Fortree | 4 | 2 | 0 | 4 (Wingull errand pair shared with 17) |
+| 13 Weather Institute | 1 | 1 | 0 | 1 |
 | 14 Mt. Pyre | 1 | 1 | 0 | 2 |
 | 15 Lilycove | 3 | 2 | 2 (museum; fan club) | 11 (5 paintings) |
 | 16 Shoal Cave | 0 | 0 | 0 | 10 (4 salt, 4 shell) |
@@ -709,7 +829,7 @@ Counted from the table above, by host county (callback gets count for the host, 
 Totals: 63 gets, 20 unlocks (blocks 0-19), 3 of them blockers (indices 35, 39, 67); about 15 chain vars and about 82 bools. At most 11 bools in any county, and about 380 flags are unused today, so a fixed 12-flag pool per county would fit (288) without packing. Not counted: post-game content (Battle Frontier, Southern Island, Regi trio, Altering Cave), the 7 Trick House and Mossdeep gym switch flags (scratch), per-city visited and landmark flags, Pokénav match-call flags, and engine vars.
 
 - Only one list is current at a time, and the largest is 4 (Rustboro step 2, Mauville step 2, Mossdeep step 0), so one shared 4-bit completion mask would do. Per-county masks are only needed if a county's completed gets must survive past its list, which level-triggered completion makes unnecessary.
-- McGuffin flags: 9 event keys in step-3 unlocks have no Emerald flag or item (Letter delivered, Devon Goods delivered, RB3, Meteorite stolen, Shelly defeated, Groudon awakened, blockade gone, Kyogre awakened, Cave of Origin done). Once the main-story-index is maintained they are derivable (a key's index is below its lock's), so they need no stored flag; the 3 blockers likewise.
+- McGuffin flags: the 9 event keys in step-3 unlocks (Letter delivered, Devon Goods delivered, RB3, Meteorite stolen, Shelly defeated, Groudon awakened, blockade gone, Kyogre awakened, Cave of Origin done) all have an Emerald flag or var (see "Planner inputs", step predicates), except that RB3 has only a var. Once the main-story-index is maintained they are derivable (a key's index is below its lock's), so they need no stored flag; the 3 blockers likewise.
 
 ### Exceptions to the normal rules
 

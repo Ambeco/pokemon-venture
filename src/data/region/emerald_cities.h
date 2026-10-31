@@ -63,6 +63,6 @@ static const struct GymSlot sEmeraldGymSlots[NUM_GYM_ORDINALS] =
     {12, 1},  // 5 Petalburg (callback)
     {12, 2},  // 6 Fortree
     {17, 0},  // 7 Mossdeep
-    {18, 0},  // 8 Sootopolis
+    {19, 1},  // 8 Sootopolis (callback from Pacifidlog's block, after Rayquaza ends the fight)
     {20, 2},  // 9 Ever Grande (League lobby)
 };
