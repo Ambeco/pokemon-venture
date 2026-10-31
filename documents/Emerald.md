@@ -314,7 +314,7 @@ Source: Bulbapedia "Walkthrough:Pokémon Emerald", in tutorial order (Parts 1-19
 
 81. Abandoned Ship, partly flooded — needs: Surf (key: P8 #78); Dive for the flooded rooms (key: P14 #113) — gives: Abandoned Ship access
 82. Abandoned Ship, Captain's Office — needs?: Abandoned Ship access — gives: Storage Key — unlocks: northeast cabin (TM Ice Beam)
-83. Mauville, Wattson asks you to shut down New Mauville's generator — needs?: Mauville access — gives: Basement Key
+83. Mauville, Wattson asks you to shut down New Mauville's generator — needs: Norman defeated (P8 #77; his defeat moves Wattson from the gym to the city) — gives: Basement Key
 84. New Mauville (entrance on Route 110 by Surf) — needs: Basement Key + Surf (key: P8 #78) — gives: Generator shut down
 85. Mauville, report back to Wattson — needs: Generator shut down — gives: TM Thunderbolt
 86. Route 118 east side and the river — needs: Surf (key: P8 #78) — gives: Route 118 full access (resolves P5 #52), Good Rod (Fisherman)

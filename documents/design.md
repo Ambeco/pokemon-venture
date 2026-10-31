@@ -616,9 +616,24 @@ The script engine has no field-path variables. Text holds only the placeholders 
 
 Authored text uses story references such as `$currentCity.gym.leader.name`, `$currentCity.nearbySmallCity.name`, `$stepCounty.city.theme.motto` or `$currentCity.pkmnCenter.nearBuildingName`. A reference is an anchor plus a path through the generated region data. A build tool turns each reference in a template into a compact reference id, and a single talk special expands the whole template in C into `gStringVar4` and shows it itself with `ShowFieldMessageFromBuffer` (not via the `message` command, which expands its source string into `gStringVar4` and would overlap it); this avoids the three-reference limit of `{STR_VAR_1}`-`{STR_VAR_3}`. Subplots are limited to a single county, so anchors are the speaker's own place (the NPC's city and building, for `$currentCity.pkmnCenter...`-style random talk), the subplot's own place, and, for hints about the main story, the responsible county of the current step (`$stepCounty`).
 
+#### Interface rules from paper tests
+
+Checked against Petalburg gym/Surf, Devon Goods and Granite Cave/Flash in Emerald's scripts. The format absorbs all three with these rules, none needing a special case:
+
+- Derived stages: a stage may be computed from requirements rather than stored. Petalburg gym's "locked, N badges short" and "ready" (`VAR_PETALBURG_GYM_STATE` 2-6) is just badges held, so a ported gym stores no counter and the other gyms stop writing to it (Emerald's four `addvar` calls plus `Common_EventScript_ReadyPetalburgGymForBattle` disappear). Badges held is the popcount of the badge flags, not "gyms 1-4".
+- Parameterized hints: a stage's hint text may take a number from a counted requirement ("{n} more badges"), supplied by the accessor.
+- Stage predicates: an adapter-backed subplot declares its stages as an ordered list of flag or var predicates, highest first, and the first true one is the stage. Devon Goods is DELIVERED, then RETURNED, then RECOVERED, then STOLEN, else not started. `FLAG_DEVON_GOODS_STOLEN` is cleared when RECOVERED is set, so the order, not set-ness, defines the stage. `FLAG_DOCK_REJECTED_DEVON_GOODS` is a side branch that changes only the Slateport shipyard talk, not the stage.
+- One subplot, several buildings: a stage's trigger place is a building role, and a cutscene may walk across maps. Norman's defeat triggers a walk to Wally's house (`VAR_PETALBURG_CITY_STATE` 4) where the dad hands over Surf, so the Petalburg gym host needs a "house with an NPC" role beside the gym, and the cutscene runner crosses both. Emerald keeps this beat in a second var (`VAR_PETALBURG_CITY_STATE`, six values); ported, it is stages 3-5 of the one gym subplot.
+- Keys: an HM key is a pair (HM given, badge held), and field-move checks read fixed badge flags (`src/field/field_move.c`), so shuffling which gym unlocks which HM must also change those. A key's production is a stage's reward, not a flag a gate reads directly.
+- Cross-host effects: a subplot's completion may write another host's state. Beating Norman hides Wattson in his gym and shows him in Mauville, which is what starts New Mauville. That is a produced key ("gym 5 done") consumed by New Mauville's requirements, not a flag write.
+- Main-arc steps inside locations: Granite Cave's back chamber hosts the Devon Goods letter delivery (`FLAG_DELIVERED_STEVEN_LETTER`), so a special location can host a main-arc step, placed by role ("hidden-chamber NPC") like a subplot beat.
+- Devon Goods stays main arc: it spans Rustboro (theft, return), the Rusturf tunnel (recovery), Dewford and the Granite Cave (letter) and Slateport (delivery), and its recovery key opens a lock back in the first county, so it is a callback, not four per-city subplots.
+- Soft locks: Flash has no script check anywhere in Emerald. Dark caves only use the map header's cave flag and `FLAG_SYS_USE_FLASH`, so they can be crossed unlit. Flash is therefore not a hard key for any lock.
+
 #### Open
 
 - Which building roles exist, and how many placeholder NPC objects each building needs.
+- Flash policy: the traversal rule above would make it a route-unlock McGuffin, but Emerald has no hard Flash lock. Either the generator adds dark-cave blockers, or Flash is exempt like Fly.
 
 ### NPC dialogue
 
