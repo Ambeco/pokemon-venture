@@ -398,6 +398,35 @@ Source: Bulbapedia "Walkthrough:Pokémon Emerald", in tutorial order (Parts 1-19
 134. Elite Four (Sidney, Phoebe, Glacia, Drake) back to back, no outside help — needs: League lobby cleared — gives: Champion room access
 135. Champion Wallace — needs: Elite Four beaten — gives: Hall of Fame
 
+## Lock/key buckets
+
+Every McGuffin chain entry (by number) in exactly one bucket, per design.md "Subplot abstraction / Scope".
+
+- Plain access (no real lock; just the planner's path): 1, 5, 11, 44, 53, 56, 60, 63, 68, 88, 91, 93, 104, 109.
+- Main arc (stays on Emerald vars behind the adapter until Milestone 3):
+  - Start and Birch: 2, 3, 4, 9, 10.
+  - Rival: 8, 27, 43, 71 (Go-Goggles comes from the rival), 90 (Fly), 106.
+  - Wally: 12, 49.
+  - Devon Goods (Rustboro, Rusturf, Dewford, Slateport): 20, 22, 23, 25, 26, 28, 34, 35, 36, 37, 38, 39.
+  - Aqua/Magma, Meteorite, legendaries, League: 55, 61, 65, 66, 67, 89, 97, 100, 101, 102, 103, 107, 112, 113 (Dive), 118, 120, 121, 126, 127 (Waterfall), 134, 135.
+- Gym (fixed per-city beat for now): 13, 21, 30, 50, 70, 77, 96, 111, 128, plus 78 (Surf, Norman's reward after gym 5).
+- Gate (an HM, key item or blocker NPC on a route): 6, 7, 14, 15, 24, 31, 41, 52, 54, 57, 64, 69, 79, 81, 86, 92, 99, 108, 117, 119, 122, 129, 131, 132, 133.
+- City subplot (convert): Rustboro Cutter's House 19, Dewford Old Rod quiz 29, Slateport Harbor Mail 40, Mauville Coin Case 45, Game Corner 46, Rydel's Cycles 47, Rock Smash scientist 48, Rustboro fossil revival 76, Lilycove Pokéblock Case 105, Mossdeep Super Rod 110.
+- Special-location subplot (convert), grouped by location:
+  - Petalburg Woods and Route 104 flower shop: 16, 17, 18.
+  - Granite Cave: 32, 33, 51.
+  - Route 111 north Secret Base tree: 58. Route 113 Glass Workshop: 59. Route 114 Fossil Maniac's brother: 62.
+  - Desert and Mirage Tower: 73, 75. Desert Ruins: 74. Island Cave: 80. Ancient Tomb: 95. Sealed Chamber: 123, 124, 125.
+  - Abandoned Ship: 82, 115, 116. New Mauville: 83, 84, 85. Route 120 Kecleon bridge: 94.
+  - Trick House (one subplot, badge-counted puzzles): 42, 72, 87, 98, 114, 130.
+
+Pairs where a key and its lock sit in different hosts. Per design.md these are planner unlock steps, not subplot-relative outputs:
+
+- 40 (Slateport) to 45 (Mauville), 47/48 (Mauville bike and Rock Smash) to many locks, 75 (Mirage Tower) to 76 (Rustboro), 58 to 40's Market bargains, 62 to 124, 125 to 74/80/95.
+- 115 ends in Slateport (116) and 83-85 starts in Mauville; both are mostly location-local and probably keep the location as host, with the town beat as a start or finish hook.
+
+The subplot "Briney's Wingull is stolen" appears in the Subplots list but not in the chain (no key or lock), so it needs no bucket.
+
 ## Encounter and trainer levels (from the Bulbapedia walkthrough)
 
 Levels the walkthrough lists, per place in tutorial order. `wild` is the land, cave and special-encounter level range by encounter type; `N trainers` is the count with their level range and the largest party; bosses list each Pokémon with its level. Rival parties depend on your starter (species differ, levels do not). Repeated across the whole game: Old Rod 5-10, Good Rod 10-30, Super Rod 20-45 (25-45 in some places), Surf encounters 5-35 (most commonly 10-30), Dive 20-35.

@@ -17,7 +17,7 @@ Prerequisites for everything else (design.md stages 1-3: hardcoded Emerald count
 
 Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design.md, "Subplot abstraction").
 
-- Bucket the ~133 `Emerald.md` lock/key entries into main arc, city subplot, special-location subplot, gym and gate; list the city and special-location ones to convert.
+- Review the `Emerald.md` "Lock/key buckets" (done as a first pass; the 135 entries are bucketed and the city and special-location ones listed): confirm the cross-host key/lock pairs, then treat them as planner unlock steps when paper-testing below.
 - Paper-test the descriptor, accessor and adapter against Petalburg gym/Surf (implicit `addvar` badge counter plus an HM gift), Devon Goods (spans three towns, so main arc or split; confirm the split) and Granite Cave/Flash; fix the format rather than special-casing.
 - Hardcode the planner's inputs for Emerald (county-story-indices, the hardcoded host range per item ordinal, the per-kind host masks, the callback chance; design.md, "Main plot planner") so the real resolver runs, and map each resulting step to the Emerald flags or vars that mean it is done, for the adapter.
 - Enumerate Emerald's blocker McGuffin locks (a person standing in the way until a boolean) and its traversal-item McGuffins (HMs other than Fly, Wailmer Pail, Go-Goggles, Devon Scope, ...); keep the special-item and HM McGuffins fixed for the Emerald stage; generate new blocker texts later toward a pool of about 96.
