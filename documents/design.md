@@ -730,7 +730,7 @@ The work for each step is broken into milestones 0-12 in `remaining_work.md`. Mi
 
 Each randomization sits behind one `RANDOMIZE_*` bit (`include/constants/randomization.h`), read with `IsRandomized()` (`src/util/randomization.c`); with the bit off, that path uses vanilla Emerald data. The mask is a `u16` in `SaveBlock2` (the former `padding2`), so it survives save and load and can later become a New Game setting; a new game copies `RANDOMIZATION_NEW_GAME_DEFAULT` (`include/config/randomization.h`). A randomization is built with its bit off, so existing tests keep passing; one commit then turns it on in the default and updates the tests' expected data, with the vanilla path kept.
 
-Tests: the runner zeroes the save blocks before each test, so every bit is off and the player identity is fixed (OT ID 0, all-zero name), which makes the randomized path reproducible. A test opts in with `SetRandomized(bit, TRUE)`; seed sweeps vary the identity themselves.
+Tests: the runner zeroes the save blocks before each test, so every bit is off and the player identity is fixed (OT ID 0, all-zero name), which makes the randomized path reproducible. A test opts in with `SetRandomized(bit, TRUE)`. Seed sweeps (`include/test/seed_sweep.h`) loop `FOR_EACH_SWEEP_SEED(i, seed)`, which writes a fixed, per-index OT ID and EOS-padded name into the save; a failing sweep test prints its index, and `SetSweepIdentity(i)` reproduces it.
 
 ### Emerald county assignment (stage 1)
 

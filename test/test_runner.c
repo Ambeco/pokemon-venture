@@ -15,6 +15,7 @@
 #define TIMEOUT_SECONDS 60
 
 void CB2_TestRunner(void);
+extern s32 gSeedSweepIndex;
 
 EWRAM_DATA struct TestRunnerState gTestRunnerState;
 EWRAM_DATA struct FunctionTestRunnerState *gFunctionTestRunnerState;
@@ -270,6 +271,7 @@ top:
 
     case STATE_ASSIGN_TEST:
         ClearSaveBlocks();
+        gSeedSweepIndex = -1;
         while (1)
         {
             if (gTestRunnerState.test == __stop_tests)
@@ -731,10 +733,15 @@ static void Intr_Timer2(void)
     }
 }
 
+EWRAM_DATA s32 gSeedSweepIndex = 0;
+
 void Test_ExitWithResult_(enum TestResult result, u32 stopLine, const void *return1, const char *fmt, ...)
 {
     gTestRunnerState.result = result;
     gTestRunnerState.failedAssumptionsBlockLine = stopLine;
+
+    if (result == TEST_RESULT_FAIL && gSeedSweepIndex >= 0)
+        Test_MgbaPrintf("Failed in seed sweep index %d (otId 0x%x); SetSweepIdentity(%d) reproduces it", gSeedSweepIndex, READ_OTID_FROM_SAVE, gSeedSweepIndex);
 
     if (result == TEST_RESULT_FAIL)
     {

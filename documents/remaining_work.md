@@ -9,7 +9,6 @@ The staged hardcode-first roadmap (design.md, "Development approach"). Each mile
 Prerequisites for everything else (design.md stages 1-3: hardcoded Emerald county division, region tiles, city/location metadata).
 
 - Define the salt constants (county, map, NPC, ...) as callers appear; `IdentityRng` currently takes bare numbers (only `REGION_SALT_ROUTE_*` exist so far).
-- Seed-sweep test helper (varies the player identity, restores it) for the randomization invariants; see design.md, "Randomization switches".
 - Routes: `region_route.c` gives each county its default half of every inter-county route (owner straight, other L or Z). Still to do: the county planner that bends halves around the county's own other routes and locations (the halves can overlap each other inside a county until then, and a seed-sweep test should check that they do not); when generation exists, keep generated locations off a county's outermost row and column (by construction, not testable on Emerald's table); wire the generator's routes into `GetRegionTileFlags` and `GetCountyRouteTile`, which still read the hardcoded placeholder masks; add an accessor for the route id/MAPSEC between neighbors, for NPC text about adjacent cities (the city accessors already take any county id, so a neighbor's name and theme need no special function).
 - Extend the region dump (`src/util/region_dump.c`) as more data appears: planner items and McGuffins (it prints MAPSEC numbers and key/lock ids today; the city data is already dumped). Milestones 1 and 2 consume the city accessors; the gym scripts and NPC text are untouched so far.
 - Story state storage (design.md, "Story state storage"; inventory in `vars.md`, done): the first 32 vars are temp and object-GFX, so reservations are named regions in `0x4020`-`0x40FF`, not Var0-31. Remaining steps: (1) the main-line counts are in `Emerald.md` ("Per-county storage needs"); still to count are authored-subplot stage vars (after Milestone 1a's bucketing) and the optional inter-county stories (the slice is 4 vars per county, 3 used by the main line); (4) retire Emerald vars as Milestones 1a, 2 and 3 land: the 62 legacy vars in `vars.h` shrink toward zero, and county slices become usable as they go (only the first 14 are free now). Also trim `test/vars.c`'s table as vars are retired or packed.
@@ -109,7 +108,7 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 ### Cross-cutting
 
 - Budget CPU and RAM for regeneration; decide what to cache.
-- Seed-sweep test tooling reused by all milestones.
+- Convert the region invariant tests (`test/region_*.c`) to `FOR_EACH_SWEEP_SEED` once the generator reads the seed.
 - Rewrite `README.md` as the fork's own README.
 
 ## Open design questions and unscheduled work
