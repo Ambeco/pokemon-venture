@@ -722,6 +722,28 @@ Random types and moves make matchups hard to remember, so battle menus show a da
 - Expansion already contains ~1000 Pokémon and ~1000 moves, plus mechanics such as Mega Evolution and Gigantamax. How these fit the mod is undecided; they could make fun mechanics.
 - Expansion supports building FRLG as well as Emerald (`docs/tutorials/how_to_frlg.md`).
 
+### Config choices
+
+Settings changed from upstream defaults, and what each means for the design. Unlisted settings are unchanged.
+
+Overworld Pokémon (the one that shapes later work):
+
+- `OW_POKEMON_OBJECT_EVENTS`, `OW_FOLLOWERS_ENABLED`, `WE_OW_ENCOUNTERS`: wild Pokémon appear as walking sprites on the map and walking into one starts the battle, and the lead Pokémon follows the player. `WE_OWE_SPAWN_REPLACEMENT`, shiny sparkle, despawn sound, Feebas spots and the shiny/Feebas despawn protections are on; `WE_OWE_NO_REPEL_DEXNAV_COLLISION` is on. `OW_AMBIENT_CRIES` is `OWE_PRIORITY`, `OW_TIME_OF_DAY_ENCOUNTERS` is on, and `OW_GFX_COMPRESS` is off (it costs VRAM when many OW Pokémon are loaded).
+- Encounters: the spawner draws from the map's wild tables, so generated runtime tables (Milestone 5) must be readable by it, per method (land, water) and per time of day. Route tables must be filled before the player can see a sprite, so lazy per-method generation applies only to rods, rock smash and the like.
+- Art: every encountered species needs a map sprite, so type-recolored sprites ("Type-recolored sprites") must also recolor OW and follower sprites, and `OW_SUBSTITUTE_PLACEHOLDER` covers missing ones. `OW_PKMN_OBJECTS_SHARE_PALETTES` stays off, so each OW Pokémon uses its own palette, which competes with the 16 OBJ palettes.
+- Object budget: spawned Pokémon, the follower, placeholder NPCs and runtime cutscene actors share the map's object-event table. The placeholder counts in "Building roles and NPC spawning" assume that table has room; check `OBJECT_EVENTS_COUNT` (and that spawning does not starve a cutscene actor) before the runner is written.
+
+Other changes:
+
+- Shiny: `SHINY_ODDS` 80 (about 1/820, 10x vanilla), Shiny Charm adds 2 rolls, fishing chain on. OWE sparkle makes shinies visible before battle, so the higher rate is noticeable.
+- Fishing boosts (follower friendship, proximity, time of day) are on.
+- Battle UI: `B_SHOW_TYPES` and `B_SHOW_EFFECTIVENESS` are always on. With randomized types this is what lets a player read a matchup, and it overlaps "Battle damage estimates"; that design must not duplicate it.
+- Summary: IV/EV info with exact values, move relearners (egg, TM, tutor), pre-evolution moves and reusable TMs are on. Move relearners and pre-evolution moves must be kept in mind for Milestone 6's learnset replacement; reusable TMs make TMs non-scarce, which suits generated moves.
+- Field moves: Defog and Rock Climb are enabled as field moves. The planner's eight gym HMs do not include them; decide whether they are extra traversal McGuffins or stay unused.
+- NPC followers (`FNPC_ENABLE_NPC_FOLLOWERS`) are on, usable by the cutscene runner; it costs SaveBlock3 space.
+- Instant text is on (`TEXT_SPEED_INSTANT`). `FLAG_TEXT_SPEED_INSTANT` was set to 1, which is `FLAG_TEMP_1` (cleared on every map load and used by scripts); it is harmless while `TEXT_SPEED_INSTANT` is TRUE but will toggle text speed at random if that is turned off, so set it back to 0 or a free flag then.
+- Held evolution items are usable from the bag, and ambient item descriptions show the first time an item is found.
+
 ## Development approach: hardcode first, then randomize
 
 The region starts as a hardcoded Pokémon Emerald region and is progressively abstracted and randomized, rather than building the generator first. Hardcoded content exercises the same metadata the generator will later produce, and keeps the story testable throughout.
