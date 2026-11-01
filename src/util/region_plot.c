@@ -13,16 +13,55 @@ u32 GetPlotKindCount(u32 kind)
     switch (kind)
     {
     case PLOT_KIND_GYM:     return NUM_GYM_ORDINALS;
-    case PLOT_KIND_HM:      return NUM_PLOT_HM;
     case PLOT_KIND_RIVAL:   return NUM_PLOT_RIVAL;
     case PLOT_KIND_WALLY:   return NUM_PLOT_WALLY;
     case PLOT_KIND_ARC:     return NUM_PLOT_ARC;
     case PLOT_KIND_DEVON:   return NUM_PLOT_DEVON;
     case PLOT_KIND_SPECIAL: return NUM_PLOT_SPECIAL;
     case PLOT_KIND_UTILITY: return NUM_PLOT_UTILITY;
+    case PLOT_KIND_SCRIPTED: return NUM_PLOT_SCRIPTED;
     }
     AGB_ASSERT(FALSE);
     return 0;
+}
+
+static bool32 IsHmDisplaced(u32 hm)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sEmeraldDisplacedHms); i++)
+    {
+        if (sEmeraldDisplacedHms[i].hm == hm)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+u32 GetPlotHmGym(u32 hm)
+{
+    u32 i;
+
+    for (i = 0; i < NUM_GYM_ORDINALS; i++)
+    {
+        if (sEmeraldGymHm[i] == hm)
+            return i + 1;
+    }
+    AGB_ASSERT(FALSE); // hm must be CUT..WATERFALL
+    return 0;
+}
+
+struct PlotSlot GetVanillaHmSlot(u32 hm)
+{
+    u32 i;
+    struct PlotSlot slot = GetVanillaPlotSlot(PLOT_KIND_GYM, GetPlotHmGym(hm));
+
+    for (i = 0; i < ARRAY_COUNT(sEmeraldDisplacedHms); i++)
+    {
+        if (sEmeraldDisplacedHms[i].hm == hm)
+            return sEmeraldDisplacedHms[i];
+    }
+    slot.hm = hm;
+    return slot;
 }
 
 struct PlotSlot GetVanillaPlotSlot(u32 kind, u32 ordinal)
@@ -39,6 +78,10 @@ struct PlotSlot GetVanillaPlotSlot(u32 kind, u32 ordinal)
         slot.block = gym.block;
         slot.step = gym.step;
         slot.host = GetCountyHeader(GetGymCounty(ordinal))->storyIdx;
+        slot.hm = sEmeraldGymHm[ordinal - 1];
+        slot.hmOnly = FALSE;
+        if (slot.hm != PLOT_HM_NONE && IsHmDisplaced(slot.hm))
+            slot.hm = PLOT_HM_NONE;
         return slot;
     }
     for (i = 0; i < ARRAY_COUNT(sEmeraldPlotSlots); i++)
@@ -107,7 +150,6 @@ struct PlotRange GetPlotRange(u32 kind, u32 ordinal, u32 n, u32 elite)
     switch (kind)
     {
     case PLOT_KIND_GYM:
-    case PLOT_KIND_HM:
         return GymRange(ordinal, n, elite);
     case PLOT_KIND_RIVAL:
         switch (ordinal)
@@ -148,6 +190,9 @@ struct PlotRange GetPlotRange(u32 kind, u32 ordinal, u32 n, u32 elite)
         default:
             return MakeRange(1, elite - 1);
         }
+    case PLOT_KIND_SCRIPTED:
+        AGB_ASSERT(ordinal < NUM_PLOT_SCRIPTED);
+        return MakeRange(GetVanillaPlotSlot(kind, ordinal).block, GetVanillaPlotSlot(kind, ordinal).block);
     }
     AGB_ASSERT(FALSE);
     return MakeRange(0, 0);
@@ -169,10 +214,6 @@ u32 GetPlotHostMask(u32 kind, u32 ordinal, u32 elite)
         if (ordinal == ELITE_FOUR_ORDINAL)
             return 1u << elite;
         return BlocksMask(1, lastGeneric);
-    case PLOT_KIND_HM:
-        if (ordinal == 5 || ordinal == 7 || ordinal == 8) // Surf, Dive, Waterfall
-            return MASK_WATER_HM;
-        return BlocksMask(1, lastGeneric);
     case PLOT_KIND_RIVAL:
     case PLOT_KIND_UTILITY:
         return BlocksMask(1, lastGeneric);
@@ -184,9 +225,21 @@ u32 GetPlotHostMask(u32 kind, u32 ordinal, u32 elite)
         return 1u << sEmeraldDevonBlock[ordinal];
     case PLOT_KIND_SPECIAL:
         return 1u << sEmeraldSpecialBlock[ordinal];
+    case PLOT_KIND_SCRIPTED:
+        return 1u << GetVanillaPlotSlot(kind, ordinal).block;
     }
     AGB_ASSERT(FALSE);
     return 0;
+}
+
+u32 GetPlotHmMask(u32 hm, u32 elite)
+{
+    if (hm == PLOT_HM_SURF || hm == PLOT_HM_DIVE || hm == PLOT_HM_WATERFALL)
+    {
+        AGB_ASSERT(elite == 20);
+        return MASK_WATER_HM;
+    }
+    return GetPlotHostMask(PLOT_KIND_GYM, GetPlotHmGym(hm), elite);
 }
 
 u32 ResolveVanillaPlotList(u32 index, struct PlotSlot *out, u32 maxItems)
@@ -194,14 +247,13 @@ u32 ResolveVanillaPlotList(u32 index, struct PlotSlot *out, u32 maxItems)
     u32 block = index >> 2;
     u32 step = index & 3;
     u32 count = 0;
-    u32 kind, ordinal;
+    u32 kind, ordinal, i;
 
     if (step == 3)
         return 0;
     for (kind = 0; kind < NUM_PLOT_KINDS; kind++)
     {
-        u32 first = (kind == PLOT_KIND_GYM || kind == PLOT_KIND_HM || kind == PLOT_KIND_RIVAL
-                  || kind == PLOT_KIND_WALLY) ? 1 : 0;
+        u32 first = (kind == PLOT_KIND_GYM || kind == PLOT_KIND_RIVAL || kind == PLOT_KIND_WALLY) ? 1 : 0;
         u32 end = first + GetPlotKindCount(kind);
 
         for (ordinal = first; ordinal < end; ordinal++)
@@ -215,6 +267,17 @@ u32 ResolveVanillaPlotList(u32 index, struct PlotSlot *out, u32 maxItems)
                 out[count] = slot;
             count++;
         }
+    }
+    for (i = 0; i < ARRAY_COUNT(sEmeraldDisplacedHms); i++)
+    {
+        const struct PlotSlot *hm = &sEmeraldDisplacedHms[i];
+
+        if (hm->block != block || hm->step != step)
+            continue;
+        AGB_ASSERT(count < maxItems);
+        if (count < maxItems)
+            out[count] = *hm;
+        count++;
     }
     return count < maxItems ? count : maxItems;
 }

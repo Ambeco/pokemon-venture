@@ -10,8 +10,7 @@
 // Vanilla ordinals start at 1 for these kinds, 0 for the rest.
 static u32 FirstOrdinal(u32 kind)
 {
-    return (kind == PLOT_KIND_GYM || kind == PLOT_KIND_HM || kind == PLOT_KIND_RIVAL
-         || kind == PLOT_KIND_WALLY) ? 1 : 0;
+    return (kind == PLOT_KIND_GYM || kind == PLOT_KIND_RIVAL || kind == PLOT_KIND_WALLY) ? 1 : 0;
 }
 
 static bool32 SlotInRange(struct PlotSlot slot)
@@ -25,8 +24,9 @@ static bool32 SlotInMask(struct PlotSlot slot)
 {
     u32 mask = GetPlotHostMask(slot.kind, slot.ordinal, ELITE);
 
-    // An arc beat's host is authored (its callback host included), so only its block is masked.
-    return (mask & (1u << slot.block)) && (slot.kind == PLOT_KIND_ARC || (mask & (1u << slot.host)));
+    // Arc and scripted hosts are authored (callback hosts included), so only their block is masked.
+    return (mask & (1u << slot.block))
+        && (slot.kind == PLOT_KIND_ARC || slot.kind == PLOT_KIND_SCRIPTED || (mask & (1u << slot.host)));
 }
 
 TEST("RegionPlot: Generic gym and rival windows match the Emerald.md table for n = 12, E = 20")
@@ -81,7 +81,8 @@ TEST("RegionPlot: Generic masks and the callback chance match Emerald.md")
 {
     EXPECT_EQ(GetPlotHostMask(PLOT_KIND_GYM, 1, ELITE), 0x000FFFFE);
     EXPECT_EQ(GetPlotHostMask(PLOT_KIND_RIVAL, 1, ELITE), 0x000FFFFE);
-    EXPECT_EQ(GetPlotHostMask(PLOT_KIND_HM, 5, ELITE), 0x000F8018);
+    EXPECT_EQ(GetPlotHmMask(PLOT_HM_SURF, ELITE), 0x000F8018);
+    EXPECT_EQ(GetPlotHmMask(PLOT_HM_CUT, ELITE), 0x000FFFFE);
     EXPECT_EQ(GetPlotHostMask(PLOT_KIND_ARC, 7, ELITE), 1u << 14);
     EXPECT_EQ(PLOT_CALLBACK_CHANCE, 51);
 }
@@ -97,57 +98,76 @@ TEST("RegionPlot: The water HM mask is the blocks where county x or x+1 is Ocean
             mask |= 1u << x;
     }
     // Only blocks 1-19 can host an HM, so ignore the reserved counties' bits.
-    EXPECT_EQ(mask & 0x000FFFFE, GetPlotHostMask(PLOT_KIND_HM, 5, ELITE));
+    EXPECT_EQ(mask & 0x000FFFFE, GetPlotHmMask(PLOT_HM_SURF, ELITE));
 }
 
 TEST("RegionPlot: Every vanilla slot lies in its kind's range and mask except exceptions 1, 2 and 3")
 {
-    u32 kind, ordinal, rangeMisses = 0, maskMisses = 0;
+    u32 kind, ordinal, hm, rangeMisses = 0, maskMisses = 0;
 
     for (kind = 0; kind < NUM_PLOT_KINDS; kind++)
     {
         for (ordinal = FirstOrdinal(kind); ordinal < FirstOrdinal(kind) + GetPlotKindCount(kind); ordinal++)
         {
             struct PlotSlot slot = GetVanillaPlotSlot(kind, ordinal);
-            bool32 g6 = (kind == PLOT_KIND_GYM || kind == PLOT_KIND_HM) && ordinal == 6; // Fly shares gym 6's slot
-            bool32 surf = kind == PLOT_KIND_HM && ordinal == 5;
-            bool32 strength = kind == PLOT_KIND_HM && ordinal == 4;
+            bool32 g6 = kind == PLOT_KIND_GYM && ordinal == 6;
 
             if (!SlotInRange(slot))
             {
                 rangeMisses++;
-                EXPECT(g6 || strength);
+                EXPECT(g6);
             }
             else
-                EXPECT(!g6 && !strength);
-            if (!SlotInMask(slot))
-            {
-                maskMisses++;
-                EXPECT(surf);
-            }
-            else
-                EXPECT(!surf);
+                EXPECT(!g6);
+            EXPECT(SlotInMask(slot));
         }
     }
-    EXPECT_EQ(rangeMisses, 3);
+    // HM slots: the range is the gym's, the mask is the HM's own.
+    for (hm = PLOT_HM_CUT; hm < NUM_PLOT_HM_IDS; hm++)
+    {
+        struct PlotSlot slot = GetVanillaHmSlot(hm);
+        struct PlotRange range = GetPlotRange(PLOT_KIND_GYM, GetPlotHmGym(hm), SURF_BLOCK, ELITE);
+        u32 mask = GetPlotHmMask(hm, ELITE);
+
+        // An HM at its gym's slot was range-checked with the gym.
+        if (slot.hmOnly && (slot.block < range.lo || slot.block > range.hi))
+        {
+            rangeMisses++;
+            EXPECT_EQ(hm, PLOT_HM_STRENGTH);
+        }
+        if (!(mask & (1u << slot.block)))
+        {
+            maskMisses++;
+            EXPECT_EQ(hm, PLOT_HM_SURF);
+        }
+    }
+    EXPECT_EQ(rangeMisses, 2); // gym 6 (with Fly) and Strength
     EXPECT_EQ(maskMisses, 1);
 }
 
-TEST("RegionPlot: Each HM except Strength takes its gym's slot")
+TEST("RegionPlot: Each gym's HM is at the gym's slot except Strength, which has its own entry")
 {
-    u32 ordinal;
+    u32 hm;
 
-    for (ordinal = 1; ordinal <= NUM_PLOT_HM; ordinal++)
+    for (hm = PLOT_HM_CUT; hm < NUM_PLOT_HM_IDS; hm++)
     {
-        struct PlotSlot hm = GetVanillaPlotSlot(PLOT_KIND_HM, ordinal);
-        struct PlotSlot gym = GetVanillaPlotSlot(PLOT_KIND_GYM, ordinal);
+        struct PlotSlot slot = GetVanillaHmSlot(hm);
+        struct PlotSlot gym = GetVanillaPlotSlot(PLOT_KIND_GYM, GetPlotHmGym(hm));
 
-        if (ordinal == 4)
+        EXPECT_EQ(slot.hm, hm);
+        if (hm == PLOT_HM_STRENGTH)
+        {
+            EXPECT(slot.hmOnly);
+            EXPECT_EQ(gym.hm, PLOT_HM_NONE);
             continue;
-        EXPECT_EQ(hm.block, gym.block);
-        EXPECT_EQ(hm.step, gym.step);
-        EXPECT_EQ(hm.host, gym.host);
+        }
+        EXPECT(!slot.hmOnly);
+        EXPECT_EQ(gym.hm, hm);
+        EXPECT_EQ(slot.block, gym.block);
+        EXPECT_EQ(slot.step, gym.step);
+        EXPECT_EQ(slot.host, gym.host);
     }
+    EXPECT_EQ(GetVanillaPlotSlot(PLOT_KIND_GYM, ELITE_FOUR_ORDINAL).hm, PLOT_HM_NONE);
 }
 
 TEST("RegionPlot: Step-1 slots are hosted by their block's callback host, others by the block's county")
@@ -223,13 +243,14 @@ TEST("RegionPlot: Gyms, rivals and utility ranges are ordered within their kind"
 TEST("RegionPlot: Item quotas match Emerald.md")
 {
     EXPECT_EQ(GetPlotKindCount(PLOT_KIND_GYM), 9);
-    EXPECT_EQ(GetPlotKindCount(PLOT_KIND_HM), 8);
     EXPECT_EQ(GetPlotKindCount(PLOT_KIND_RIVAL), 5);
     EXPECT_EQ(GetPlotKindCount(PLOT_KIND_WALLY), 2);
     EXPECT_EQ(GetPlotKindCount(PLOT_KIND_ARC), 15);
     EXPECT_EQ(GetPlotKindCount(PLOT_KIND_DEVON), 3);
     EXPECT_EQ(GetPlotKindCount(PLOT_KIND_SPECIAL), 3);
     EXPECT_EQ(GetPlotKindCount(PLOT_KIND_UTILITY), 8);
+    EXPECT_EQ(GetPlotKindCount(PLOT_KIND_SCRIPTED), 8);
+    EXPECT_EQ(NUM_PLOT_HM_IDS - 1, 8);
 }
 
 // Transcribed from the Emerald.md main-story-index table, not from the slot table.
@@ -238,31 +259,38 @@ struct Expected
     u8 index;
     u8 kind;
     u8 ordinal;
+    u8 hm;
+    u8 hmOnly;
 };
 
 #define ARC(i) PLOT_KIND_ARC, i
+#define GYM(i, hm) PLOT_KIND_GYM, i, hm
+#define SCRIPT(s) PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_##s
 #define UTIL(u) PLOT_KIND_UTILITY, PLOT_UTILITY_##u
 
 static const struct Expected sExpected[] =
 {
+    {0, SCRIPT(STARTER)},
     {4, PLOT_KIND_RIVAL, 1},
-    {8, ARC(0)},
+    {5, SCRIPT(POKEDEX)}, {5, SCRIPT(POKE_BALLS)}, {5, SCRIPT(RUNNING_SHOES)},
+    {8, ARC(0)}, {8, SCRIPT(WALLY_RALTS)},
     {10, PLOT_KIND_SPECIAL, PLOT_SPECIAL_WAILMER_PAIL},
-    {12, PLOT_KIND_GYM, 1}, {12, PLOT_KIND_HM, 1}, {12, ARC(1)},
+    {12, GYM(1, PLOT_HM_CUT)}, {12, ARC(1)},
     {14, PLOT_KIND_DEVON, PLOT_DEVON_RECOVERED}, {14, UTIL(POKENAV)}, {14, PLOT_KIND_RIVAL, 2},
-    {16, PLOT_KIND_GYM, 2}, {16, PLOT_KIND_HM, 2}, {16, UTIL(OLD_ROD)},
+    {16, GYM(2, PLOT_HM_FLASH)}, {16, UTIL(OLD_ROD)},
     {18, PLOT_KIND_DEVON, PLOT_DEVON_LETTER_DELIVERED},
+    {20, SCRIPT(SHIPYARD)},
     {22, PLOT_KIND_DEVON, PLOT_DEVON_GOODS_DELIVERED}, {22, ARC(2)},
     {24, PLOT_KIND_RIVAL, 3}, {24, UTIL(ITEMFINDER)},
     {28, PLOT_KIND_WALLY, 1},
-    {30, PLOT_KIND_GYM, 3}, {30, PLOT_KIND_HM, 3}, {30, UTIL(COIN_CASE)}, {30, UTIL(BICYCLE)},
-    {32, PLOT_KIND_HM, 4},
+    {30, GYM(3, PLOT_HM_ROCK_SMASH)}, {30, UTIL(COIN_CASE)}, {30, UTIL(BICYCLE)},
+    {32, GYM(4, PLOT_HM_STRENGTH), TRUE},
     {40, ARC(3)},
-    {44, ARC(4)}, {44, PLOT_KIND_GYM, 4},
+    {44, ARC(4)}, {44, GYM(4, PLOT_HM_NONE)},
     {46, PLOT_KIND_SPECIAL, PLOT_SPECIAL_GO_GOGGLES},
     {48, PLOT_KIND_RIVAL, 4}, {48, PLOT_KIND_SPECIAL, PLOT_SPECIAL_DEVON_SCOPE},
-    {49, PLOT_KIND_GYM, 5}, {49, PLOT_KIND_HM, 5},
-    {50, PLOT_KIND_GYM, 6}, {50, PLOT_KIND_HM, 6},
+    {49, GYM(5, PLOT_HM_SURF)},
+    {50, GYM(6, PLOT_HM_FLY)},
     {52, ARC(5)},
     {54, UTIL(GOOD_ROD)},
     {56, ARC(6)},
@@ -270,22 +298,23 @@ static const struct Expected sExpected[] =
     {60, PLOT_KIND_RIVAL, 5}, {60, UTIL(POKEBLOCK_CASE)},
     {61, ARC(8)},
     {62, ARC(9)},
-    {68, PLOT_KIND_GYM, 7}, {68, PLOT_KIND_HM, 7}, {68, ARC(10)}, {68, UTIL(SUPER_ROD)},
+    {68, GYM(7, PLOT_HM_DIVE)}, {68, ARC(10)}, {68, UTIL(SUPER_ROD)},
     {70, ARC(11)},
     {72, ARC(12)},
     {76, ARC(13)},
-    {77, ARC(14)}, {77, PLOT_KIND_GYM, 8}, {77, PLOT_KIND_HM, 8},
+    {77, ARC(14)}, {77, GYM(8, PLOT_HM_WATERFALL)},
     {81, PLOT_KIND_WALLY, 2},
-    {82, PLOT_KIND_GYM, 9},
+    {82, GYM(9, PLOT_HM_NONE)}, {82, SCRIPT(ELITE_FOUR)}, {82, SCRIPT(CHAMPION)},
 };
 
-static bool32 ListHas(const struct PlotSlot *list, u32 count, u32 kind, u32 ordinal)
+static bool32 ListHas(const struct PlotSlot *list, u32 count, const struct Expected *e)
 {
     u32 i;
 
     for (i = 0; i < count; i++)
     {
-        if (list[i].kind == kind && list[i].ordinal == ordinal)
+        if (list[i].kind == e->kind && list[i].ordinal == e->ordinal && list[i].hm == e->hm
+         && list[i].hmOnly == e->hmOnly)
             return TRUE;
     }
     return FALSE;
@@ -306,7 +335,7 @@ TEST("RegionPlot: The vanilla resolver reproduces the Emerald main-story-index t
             if (sExpected[i].index != index)
                 continue;
             expectedHere++;
-            EXPECT(ListHas(list, count, sExpected[i].kind, sExpected[i].ordinal));
+            EXPECT(ListHas(list, count, &sExpected[i]));
         }
         EXPECT_EQ(count, expectedHere);
         for (i = 0; i < count; i++)

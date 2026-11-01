@@ -8,15 +8,6 @@
 
 static const struct PlotSlot sEmeraldPlotSlots[] =
 {
-    // HMs (ordinal = gym ordinal)
-    SLOT(PLOT_KIND_HM, 1, 3, 0, 3),    // Cut
-    SLOT(PLOT_KIND_HM, 2, 4, 0, 4),    // Flash
-    SLOT(PLOT_KIND_HM, 3, 7, 2, 7),    // Rock Smash
-    SLOT(PLOT_KIND_HM, 4, 8, 0, 8),    // Strength (exception 3)
-    SLOT(PLOT_KIND_HM, 5, 12, 1, 2),   // Surf (Petalburg callback)
-    SLOT(PLOT_KIND_HM, 6, 12, 2, 12),  // Fly
-    SLOT(PLOT_KIND_HM, 7, 17, 0, 17),  // Dive
-    SLOT(PLOT_KIND_HM, 8, 19, 1, 18),  // Waterfall (Sootopolis callback)
     // Rival beats
     SLOT(PLOT_KIND_RIVAL, 1, 1, 0, 1),
     SLOT(PLOT_KIND_RIVAL, 2, 3, 2, 3),
@@ -49,6 +40,15 @@ static const struct PlotSlot sEmeraldPlotSlots[] =
     SLOT(PLOT_KIND_SPECIAL, PLOT_SPECIAL_WAILMER_PAIL, 2, 2, 2),
     SLOT(PLOT_KIND_SPECIAL, PLOT_SPECIAL_GO_GOGGLES, 11, 2, 11),
     SLOT(PLOT_KIND_SPECIAL, PLOT_SPECIAL_DEVON_SCOPE, 12, 0, 12),
+    // Scripted gets
+    SLOT(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_STARTER, 0, 0, 0),
+    SLOT(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKEDEX, 1, 1, 0),
+    SLOT(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKE_BALLS, 1, 1, 0),
+    SLOT(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_RUNNING_SHOES, 1, 1, 0),
+    SLOT(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_WALLY_RALTS, 2, 0, 2),
+    SLOT(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_SHIPYARD, 5, 0, 5),
+    SLOT(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_ELITE_FOUR, 20, 2, 20),
+    SLOT(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_CHAMPION, 20, 2, 20),
     // Utility items
     SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_POKENAV, 3, 2, 3),
     SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_OLD_ROD, 4, 0, 4),
@@ -58,6 +58,19 @@ static const struct PlotSlot sEmeraldPlotSlots[] =
     SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_COIN_CASE, 7, 2, 7),
     SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_POKEBLOCK_CASE, 15, 0, 15),
     SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_SUPER_ROD, 17, 0, 17),
+};
+
+// HM handed out by each gym, indexed by gym ordinal - 1.
+static const u8 sEmeraldGymHm[NUM_GYM_ORDINALS] =
+{
+    PLOT_HM_CUT, PLOT_HM_FLASH, PLOT_HM_ROCK_SMASH, PLOT_HM_STRENGTH, PLOT_HM_SURF,
+    PLOT_HM_FLY, PLOT_HM_DIVE, PLOT_HM_WATERFALL, PLOT_HM_NONE,
+};
+
+// HMs not given at their gym's slot (exception 3).
+static const struct PlotSlot sEmeraldDisplacedHms[] =
+{
+    {PLOT_KIND_GYM, 4, 8, 0, 8, PLOT_HM_STRENGTH, TRUE},
 };
 
 // Block of each callback; PLOT_NO_CALLBACK elsewhere.
