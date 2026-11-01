@@ -19,3 +19,5 @@ Procedurally generated Pokémon region mod on top of pokeemerald-expansion. Read
 - Test builds have little IWRAM: put large static test buffers in EWRAM (`static EWRAM_DATA char buf[...]`), or the link fails with "IWRAM overflowed".
 - Test files can't use initialized `.data` (the test linker script discards it): use `EWRAM_DATA` for shared test globals. `Test_MgbaPrintf` has no width flags (`%08x` prints `8x`).
 - Full `make check -j4` takes over 10 minutes: when running it in the background, set its timeout to an hour.
+- `make check TESTS='Region'` runs just the region tests (about 45, a few minutes).
+- The Grep tool silently matches nothing for brace globs like `{A,B}/scripts.inc` on this path: use `**/scripts.inc` or one path per call.
