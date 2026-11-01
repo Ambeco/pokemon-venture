@@ -735,42 +735,44 @@ Arc beats cannot use disjoint windows (design.md says ranges of a kind are disjo
 
 #### Step predicates for the read-only adapter
 
-A list is done when every mandatory get in it is true; the current index is the first list, scanning from 0, that is not done (Emerald lets some gets happen early: Fly with RB4, Strength at Rusturf, Go-Goggles, so the highest true predicate is wrong). A step-3 unlock is done when its named key's predicate holds; the 3 blockers (35, 39, 67) and Fortree's open unlock (47) are done when the previous list is. Optional gets (RB2, RB5, Wally 1, Coin Case, Harbor Mail) never hold a list: the adapter reports them but ignores them for completion (`FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE` and `FLAG_DECLINED_WALLY_BATTLE_MAUVILLE` exist for the declined cases). Setter sites were found with `setflag`/`setvar` in `data/` (non-Frlg); "?" marks a predicate whose meaning still has to be read from the surrounding script.
+A list is done when every blocking get in it is true; the current index is the first list, scanning from 0, that is not done (Emerald lets some gets happen early: Fly with RB4, Strength at Rusturf, Go-Goggles, so the highest true predicate is wrong). A step-3 unlock is done when its named key's predicate holds; the 3 blockers (35, 39, 67) and Fortree's open unlock (47) are done when the previous list is. Gets are blocking or reported-only. Blocking means vanilla forces the get (a scene or gate) or needs it by the end game; reported-only gets are reported in the done mask but never hold a list, because a skippable blocking get (the Good Rod's fisherman has decline and bag-full branches that never set its flag, and nothing later reads it) would freeze the index for good. When in doubt a get is reported-only: a forced one then costs only a hint that moves on early. So the planner's "Good Rod is mandatory" is a rule for the randomized path, not something vanilla enforces. Reported-only: RB2, RB5, Wally 1, the Museum delivery, the Shipyard visit, Shelly, Meteor Falls and Mt. Chimney beats, every utility and special item, Cut, Flash, Rock Smash, Strength and Fly, Running Shoes and the Poké Balls (no flag; `STORY_PRED_ALWAYS`). Setter sites were found with `setflag`/`setvar` in `data/` (non-Frlg), and every predicate was checked to be monotone (no `clearflag`, no lower `setvar` later). Code: `include/util/plot_stage.h`, `src/util/plot_stage.c`, data `src/data/region/emerald_plot_gets.h`, test `test/region_plot_stage.c`; the table below is the reading, the data file is the classification.
+
+Resolved readings: the Woods grunt is `VAR_PETALBURG_WOODS_STATE >= 1`, set after the battle on both paths; Stop Thief is `VAR_RUSTBORO_CITY_STATE >= 2` (the var only climbs 1 to 8; `FLAG_DEVON_GOODS_STOLEN` is cleared later); the Shipyard visit is `FLAG_DOCK_REJECTED_DEVON_GOODS` or `FLAG_DELIVERED_DEVON_GOODS` (the dock checks the latter first); RB3 is `VAR_ROUTE110_STATE >= 1` and the Itemfinder, which has no flag, is given in the same scene; RB4 is `VAR_ROUTE119_STATE >= 1`; the submarine is `VAR_SLATEPORT_HARBOR_STATE >= 2` (MagmaHideout_4F sets 1); Sky Pillar is `VAR_SKY_PILLAR_STATE >= 1`; the Good Rod's flag is set at Route118:36. The extra Route 104 rival (`FLAG_DEFEATED_RIVAL_ROUTE_104`) is RB2 at a second venue, not a sixth battle: both venues use the `TRAINER_MAY_RUSTBORO_*`/`BRENDAN` parties and set `VAR_RUSTBORO_CITY_STATE` 8 and `VAR_ROUTE104_STATE` 2, which disables the other trigger, so RB2 is `FLAG_DEFEATED_RIVAL_RUSTBORO` or `FLAG_DEFEATED_RIVAL_ROUTE_104`. `FLAG_DEFEATED_MAGMA_SPACE_CENTER` is cleared again by the Rayquaza call (MossdeepCity_SpaceCenter_2F:328), so the Space Center beat reads `VAR_MOSSDEEP_SPACE_CENTER_STATE >= 3` instead.
 
 | Index | Gets | Done when |
 | --- | --- | --- |
 | 0 | Starter | `FLAG_SYS_POKEMON_GET` (Route101:221) |
 | 4 | RB1 | `FLAG_DEFEATED_RIVAL_ROUTE103` (Route103:143) |
 | 5 | Pokédex, Poké Balls, Running Shoes | `FLAG_RECEIVED_POKEDEX_FROM_BIRCH` (Lab:548), `FLAG_RECEIVED_RUNNING_SHOES` (Littleroot:900); balls have no flag |
-| 8 | Wally has Ralts; Woods grunt | `VAR_PETALBURG_CITY_STATE >= 3` (Petalburg:47); `VAR_PETALBURG_WOODS_STATE >= 1` (PetalburgWoods:111) ? |
+| 8 | Wally has Ralts; Woods grunt | `VAR_PETALBURG_CITY_STATE >= 3` (Petalburg:47); `VAR_PETALBURG_WOODS_STATE >= 1` (PetalburgWoods:111) |
 | 10 | Wailmer Pail | `FLAG_RECEIVED_WAILMER_PAIL` |
-| 12 | G1 + Cut; Stop Thief | `FLAG_BADGE01_GET`, `FLAG_RECEIVED_HM_CUT`; `VAR_RUSTBORO_CITY_STATE >= 2` (RustboroCity:302) ? |
-| 14 | Devon Goods recovered; PokéNav; Letter; RB2 | `FLAG_RECOVERED_DEVON_GOODS`; `FLAG_RECEIVED_POKENAV`; `FLAG_RETURNED_DEVON_GOODS` (the return gives the Letter); RB2 optional (`FLAG_DEFEATED_RIVAL_RUSTBORO`) |
+| 12 | G1 + Cut; Stop Thief | `FLAG_BADGE01_GET`, `FLAG_RECEIVED_HM_CUT`; `VAR_RUSTBORO_CITY_STATE >= 2` (RustboroCity:302) |
+| 14 | Devon Goods recovered; PokéNav; Letter; RB2 | `FLAG_RECOVERED_DEVON_GOODS`; `FLAG_RECEIVED_POKENAV`; `FLAG_RETURNED_DEVON_GOODS` (the return gives the Letter); RB2 optional (`FLAG_DEFEATED_RIVAL_RUSTBORO` or `FLAG_DEFEATED_RIVAL_ROUTE_104`) |
 | 16 | G2 + Flash; Old Rod | `FLAG_BADGE02_GET`, `FLAG_RECEIVED_HM_FLASH`; `FLAG_RECEIVED_OLD_ROD` |
 | 18 | Letter delivered | `FLAG_DELIVERED_STEVEN_LETTER` |
-| 20 | Shipyard visit | `FLAG_DOCK_REJECTED_DEVON_GOODS` ? |
+| 20 | Shipyard visit | `FLAG_DOCK_REJECTED_DEVON_GOODS` or `FLAG_DELIVERED_DEVON_GOODS` |
 | 22 | Devon Goods delivered; Museum Aqua beat; Harbor Mail | `FLAG_DELIVERED_DEVON_GOODS` (both beats are one scene); Harbor Mail optional |
-| 24 | RB3; Itemfinder | `VAR_ROUTE110_STATE >= 1` (Route110:478) ? |
+| 24 | RB3; Itemfinder | `VAR_ROUTE110_STATE >= 1` (Route110:478; also the Itemfinder, which has no flag) |
 | 28 | Wally 1 | optional: `FLAG_DEFEATED_WALLY_MAUVILLE` |
 | 30 | G3 + Rock Smash; Coin Case; Bike | `FLAG_BADGE03_GET`, `FLAG_RECEIVED_HM_ROCK_SMASH`; `FLAG_RECEIVED_BIKE`; Coin Case optional (`FLAG_RECEIVED_COIN_CASE`) |
 | 32 | Strength | `FLAG_RECEIVED_HM_STRENGTH` (RusturfTunnel:60) |
 | 40 | Meteorite stolen | `FLAG_MET_ARCHIE_METEOR_FALLS` |
 | 44 | Mt. Chimney Magma beat; G4 | `FLAG_DEFEATED_EVIL_TEAM_MT_CHIMNEY`; `FLAG_BADGE04_GET` |
 | 46 | Go-Goggles | `FLAG_RECEIVED_GO_GOGGLES` |
-| 48 | RB4; Devon Scope | `VAR_ROUTE119_STATE >= 1` (Route119:145) ?; `FLAG_RECEIVED_DEVON_SCOPE` |
+| 48 | RB4; Devon Scope | `VAR_ROUTE119_STATE >= 1` (Route119:145); `FLAG_RECEIVED_DEVON_SCOPE` |
 | 49 | G5 + Surf | `FLAG_BADGE05_GET`, `FLAG_RECEIVED_HM_SURF` |
 | 50 | G6 + Fly | `FLAG_BADGE06_GET`, `FLAG_RECEIVED_HM_FLY` (set in Route119 with RB4, so true early) |
 | 52 | Shelly | `FLAG_RECEIVED_CASTFORM` (Route119_WeatherInstitute_2F:123) |
-| 54 | Good Rod | `FLAG_RECEIVED_GOOD_ROD` (setter not yet located) ? |
+| 54 | Good Rod | `FLAG_RECEIVED_GOOD_ROD` (Route118:36) |
 | 56 | Red Orb | `FLAG_RECEIVED_RED_OR_BLUE_ORB` (MtPyre_Summit:61) |
 | 57 | Magma Hideout | `FLAG_GROUDON_AWAKENED_MAGMA_HIDEOUT` |
 | 60 | RB5; Pokéblock Case | optional (`FLAG_MET_RIVAL_LILYCOVE`); `FLAG_RECEIVED_POKEBLOCK_CASE` |
-| 61 | submarine | `VAR_SLATEPORT_HARBOR_STATE >= 2` (Harbor:64) ? |
+| 61 | submarine | `VAR_SLATEPORT_HARBOR_STATE >= 2` (Harbor:64) |
 | 62 | Aqua Hideout | `FLAG_TEAM_AQUA_ESCAPED_IN_SUBMARINE` |
-| 68 | G7 + Dive; Space Center; Super Rod | `FLAG_BADGE07_GET`, `FLAG_RECEIVED_HM_DIVE`; `FLAG_DEFEATED_MAGMA_SPACE_CENTER`; `FLAG_RECEIVED_SUPER_ROD` |
+| 68 | G7 + Dive; Space Center; Super Rod | `FLAG_BADGE07_GET`, `FLAG_RECEIVED_HM_DIVE`; `VAR_MOSSDEEP_SPACE_CENTER_STATE >= 3` (the flag is cleared again later); `FLAG_RECEIVED_SUPER_ROD` |
 | 70 | Seafloor Cavern | `FLAG_KYOGRE_ESCAPED_SEAFLOOR_CAVERN` |
 | 72 | Cave of Origin | `FLAG_WALLACE_GOES_TO_SKY_PILLAR` |
-| 76 | Sky Pillar | `VAR_SKY_PILLAR_STATE >= 1` (SkyPillar_Top:127) ? |
+| 76 | Sky Pillar | `VAR_SKY_PILLAR_STATE >= 1` (SkyPillar_Top:127) |
 | 77 | Rayquaza ends the fight; G8 + Waterfall | `FLAG_SOOTOPOLIS_ARCHIE_MAXIE_LEAVE`; `FLAG_BADGE08_GET`, `FLAG_RECEIVED_HM_WATERFALL` |
 | 81 | Victory Road, Wally 2 | `FLAG_DEFEATED_WALLY_VICTORY_ROAD` |
 | 82 | League lobby, Elite Four, Champion | `FLAG_ENTERED_ELITE_FOUR`, then `FLAG_SYS_GAME_CLEAR` (set in C at the Hall of Fame) |
