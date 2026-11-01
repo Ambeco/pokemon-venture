@@ -647,7 +647,8 @@ County numbers below are the county-story-indices the code uses, in walkthrough 
 | 50 | | 2 | G6 + Fly |
 | 51 | | 3 | Unlock Weather Institute county via Surf (Route 118 river) |
 | 52 | 13 Weather Institute | 0 | Aqua beat (Shelly; Castform) |
-| 53-54 | | 1-2 | (none) |
+| 53 | | 1 | (no callback) |
+| 54 | | 2 | Good Rod (Route 118 river fisherman) |
 | 55 | | 3 | Unlock Mt. Pyre via Shelly defeated |
 | 56 | 14 Mt. Pyre | 0 | Aqua beat (Red Orb stolen; Magma Emblem) |
 | 57 | | 1 | Callback to Lavaridge (11): Magma Hideout (Emblem + Strength), Magma beat (Groudon awakened) |
@@ -691,7 +692,7 @@ Constants: E = 20 (Elite Four index), R = 3, Surf-lock block n = 12, Fly's block
 - Rival beats: RB1 1/0, RB2 3/2, RB3 6/0, RB4 12/0, RB5 15/0; Wally 1 7/0, Wally 2 20/1 (Sootopolis, Victory Road).
 - Arc beats, in arc order (Aqua unless noted): Petalburg Woods grunt 2/0, Stop Thief 3/0, Museum 5/2, Magma Meteor Falls 10/0, Magma Mt. Chimney 11/0, Shelly 13/0, Red Orb 14/0, Magma Hideout 14/1 (Lavaridge, 11), submarine 15/1 (Slateport, 5), Aqua Hideout 15/2, Magma Space Center 17/0, Seafloor Cavern 17/2, Cave of Origin 18/0, Sky Pillar 19/0, Rayquaza ends the fight 19/1 (Sootopolis). Devon Goods (recovered 3/2, Letter delivered 4/2, delivered 5/2) is part of the arc.
 - Special-item McGuffins (fixed): Wailmer Pail 2/2, Go-Goggles 11/2, Devon Scope 12/0.
-- Utility items: PokéNav 3/2, Old Rod 4/0, Itemfinder 6/0, Bicycle 7/2, Coin Case 7/2 (optional chain), Pokéblock Case 15/0, Super Rod 17/0. Not placed: the Good Rod (Route 118 river fisherman, optional in vanilla; if it becomes a list get it is 13/2), Harbor Mail (optional chain, 5/2).
+- Utility items: PokéNav 3/2, Old Rod 4/0, Itemfinder 6/0, Bicycle 7/2, Coin Case 7/2 (optional chain), Pokéblock Case 15/0, Super Rod 17/0. Good Rod 13/2 (the Route 118 river fisherman; the lakes make it mandatory). Not placed: Harbor Mail (optional chain, 5/2).
 - Tutorial lists (blocks 0 and 1) are the hardcoded ones in design.md, "Opening".
 - Callback blocks and hosts: block 1 to county 0, 12 to 2, 14 to 11, 15 to 5, 19 to 18, 20 to 18. All other blocks have no callback.
 
@@ -705,7 +706,7 @@ Constants: E = 20 (Elite Four index), R = 3, Surf-lock block n = 12, Fly's block
 
 #### Callback chance
 
-- Randomized path: p = 31/256 (about 12%, design.md). Vanilla has 5 callbacks in the 19 blocks after the tutorial (26%), forced by the list above, so p never applies to the vanilla stage. For the user to pick: keep 12% (fewer revisits than Emerald) or raise toward about 20-25%.
+- Randomized path: p = 51/256 (about 20%). Vanilla has 5 callbacks in the 19 blocks after the tutorial (26%), forced by the list above, so p never applies to the vanilla stage.
 
 #### Placeholder ranges (randomized path, for the user to check)
 
@@ -726,11 +727,11 @@ Windows are blocks (inclusive). Gyms 1-4 split blocks 1..n-1 into four windows w
 | Arc beats (authored per arc) | nominal block +-2, clipped to 2..E-1; ordered by arc sequence, several per block allowed | the blocks above | yes by construction |
 | Bicycle, Itemfinder | 1 to floor(E/2) = 1-10 | 7, 6 | yes |
 | Old Rod, PokéNav | 1 to ceil(E/3) = 1-7 | 4, 3 | yes |
-| Good Rod | ceil(E/3)+1 to floor(2E/3) = 8-13 | unplaced | |
+| Good Rod | ceil(E/3)+1 to floor(2E/3) = 8-13 | 13 | yes |
 | Super Rod | floor(2E/3)+1 to E-1 = 14-19 | 17 | yes |
 | Other utility (Coin Case, Pokéblock Case, ...) | 1 to E-1 | 7, 15 | yes |
 
-Questions inside the table: arc beats cannot use disjoint windows (design.md says ranges of a kind are disjoint) because the Emerald arc has two beats in blocks 14, 15, 17 and 19, so arc beats are ordered but not disjoint here; confirm. Quotas: 8 gyms + League, 8 HMs, 5 rival beats + 2 Wally beats, 15 arc beats + 3 Devon Goods beats (Emerald arc), 7 placed utility items.
+Arc beats cannot use disjoint windows (design.md says ranges of a kind are disjoint) because the Emerald arc has two beats in blocks 14, 15, 17 and 19. They are ordered instead: beats resolve in arc order, each beat's block is at least the previous beat's, and two beats never share a (block, step). Quotas: 8 gyms + League, 8 HMs, 5 rival beats + 2 Wally beats, 15 arc beats + 3 Devon Goods beats (Emerald arc), 8 placed utility items.
 
 #### Step predicates for the read-only adapter
 
@@ -760,6 +761,7 @@ A list is done when every mandatory get in it is true; the current index is the 
 | 49 | G5 + Surf | `FLAG_BADGE05_GET`, `FLAG_RECEIVED_HM_SURF` |
 | 50 | G6 + Fly | `FLAG_BADGE06_GET`, `FLAG_RECEIVED_HM_FLY` (set in Route119 with RB4, so true early) |
 | 52 | Shelly | `FLAG_RECEIVED_CASTFORM` (Route119_WeatherInstitute_2F:123) |
+| 54 | Good Rod | `FLAG_RECEIVED_GOOD_ROD` (setter not yet located) ? |
 | 56 | Red Orb | `FLAG_RECEIVED_RED_OR_BLUE_ORB` (MtPyre_Summit:61) |
 | 57 | Magma Hideout | `FLAG_GROUDON_AWAKENED_MAGMA_HIDEOUT` |
 | 60 | RB5; Pokéblock Case | optional (`FLAG_MET_RIVAL_LILYCOVE`); `FLAG_RECEIVED_POKEBLOCK_CASE` |
@@ -817,7 +819,7 @@ Counted from the table above, by host county (callback gets count for the host, 
 | 10 Meteor Falls | 1 | 1 | 0 | 2 |
 | 11 Lavaridge | 4 (+ callback Magma beat) | 2 | 1 (Mirage Tower and fossil pick) | 4 |
 | 12 Fortree | 4 | 2 | 0 | 4 (Wingull errand pair shared with 17) |
-| 13 Weather Institute | 1 | 1 | 0 | 1 |
+| 13 Weather Institute | 2 | 1 | 0 | 1 |
 | 14 Mt. Pyre | 1 | 1 | 0 | 2 |
 | 15 Lilycove | 3 | 2 | 2 (museum; fan club) | 11 (5 paintings) |
 | 16 Shoal Cave | 0 | 0 | 0 | 10 (4 salt, 4 shell) |
@@ -826,7 +828,7 @@ Counted from the table above, by host county (callback gets count for the host, 
 | 19 Pacifidlog | 1 | 1 | 1 (weekly TM day) | 3 |
 | 20 Ever Grande | 3 | 3 | 0 | 1 |
 
-Totals: 63 gets, 20 unlocks (blocks 0-19), 3 of them blockers (indices 35, 39, 67); about 15 chain vars and about 82 bools. At most 11 bools in any county, and about 380 flags are unused today, so a fixed 12-flag pool per county would fit (288) without packing. Not counted: post-game content (Battle Frontier, Southern Island, Regi trio, Altering Cave), the 7 Trick House and Mossdeep gym switch flags (scratch), per-city visited and landmark flags, Pokénav match-call flags, and engine vars.
+Totals: 64 gets, 20 unlocks (blocks 0-19), 3 of them blockers (indices 35, 39, 67); about 15 chain vars and about 82 bools. At most 11 bools in any county, and about 380 flags are unused today, so a fixed 12-flag pool per county would fit (288) without packing. Not counted: post-game content (Battle Frontier, Southern Island, Regi trio, Altering Cave), the 7 Trick House and Mossdeep gym switch flags (scratch), per-city visited and landmark flags, Pokénav match-call flags, and engine vars.
 
 - Only one list is current at a time, and the largest is 4 (Rustboro step 2, Mauville step 2, Mossdeep step 0), so one shared 4-bit completion mask would do. Per-county masks are only needed if a county's completed gets must survive past its list, which level-triggered completion makes unnecessary.
 - McGuffin flags: the 9 event keys in step-3 unlocks (Letter delivered, Devon Goods delivered, RB3, Meteorite stolen, Shelly defeated, Groudon awakened, blockade gone, Kyogre awakened, Cave of Origin done) all have an Emerald flag or var (see "Planner inputs", step predicates), except that RB3 has only a var. Once the main-story-index is maintained they are derivable (a key's index is below its lock's), so they need no stored flag; the 3 blockers likewise.

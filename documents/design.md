@@ -484,7 +484,7 @@ Items and placement. Each item (a kind and an ordinal: the 8 gyms, the rival bea
 - Time block x: `hash(seed, kind, ordinal)` over the valid blocks in its range.
 - Host: x itself, or, if block x has a callback and the item qualifies, the callback county y(x) (step 1). Each block has a callback with a configured chance, `hash(seed, x) < p`, so a block has at most one callback host and no item coordinates with another. An item falls back to host x if y(x) fails the kind's mask or already hosts a gym (evaluated over the gyms in ordinal order); if no prior county lies within the distance bound, the block has no callback; a gym and its HM go together (both callbacks or neither) except in the Surf block; Fly, and so gym 6, never moves to a callback.
 - Callback county: `y(x)` is a hash over the prior counties within a grid-step distance bound of x (layers 1-2 supply the geometry): 3 county steps up to and including the block that gives Fly and unbounded after it, since before Fly the player must walk back. Fly's block is a pure function of its range.
-- Callback chance p: roughly how often a normal Emerald run must revisit a prior town, about 2 of 23 blocks, raised slightly (about 12%). The tutorial's callback at block 1 satisfies the minimum of one callback in every region.
+- Callback chance p: roughly how often a normal Emerald run must revisit a prior town, about 2 of 23 blocks, raised to about 20%. The tutorial's callback at block 1 satisfies the minimum of one callback in every region.
 - Step: a hash bit chooses step 0 or 2 for a non-callback item, and step 1 for a callback.
 
 A callback is hosted in county y, which is already unlocked, and may hold a gym, a rival battle and a Rocket beat together.
