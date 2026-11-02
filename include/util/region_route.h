@@ -18,10 +18,13 @@
  * locations never sit on them. The hardcoded Emerald table does not obey this and is left as it is.
  *
  * Tiles are listed from the location toward the border. Each county plans all its halves together:
- * every half that can bend (a non-owner half that has to turn) tries its hashed bend first, and a
- * backtracking search over the others finds a set in which no two halves share a tile and none
- * passes through another location, whenever one exists. When none exists (halves with no choice
- * already collide, as in Emerald's table) every half keeps its hashed bend. Bends stay within the
+ * every half that can bend (a non-owner half that has to turn) tries its hashed bend first, then
+ * bends toward the border (hugging the county edge, where no other route runs), then toward its
+ * location; a backtracking search finds a set in which no two halves cross and none passes through
+ * another location, whenever one exists. Halves may share a run of tiles (a location on the border
+ * column can only go across, so its halves overlap there); they may not cross. When no crossing-free
+ * set exists (halves with no choice already cross, as in Emerald's table) every half keeps its
+ * hashed bend. Bends stay within the
  * location-to-border span, so halves never detour. The plan is recomputed per county and cached for
  * the last county asked about.
  */

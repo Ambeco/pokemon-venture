@@ -253,6 +253,29 @@ static u32 CollectHalves(u32 county, struct TestHalf *halves, u32 *neighbors)
     return count;
 }
 
+// Directions (bit set) a half leaves a tile in: toward the previous tile (the location for the
+// first) and the next (the border side for the last).
+static u32 TestDirections(const struct TestHalf *h, s32 bend, u32 index)
+{
+    struct RegionTilePos t = TestHalfTile(h, bend, index);
+    struct RegionTilePos prev = index == 0
+        ? (struct RegionTilePos){h->horizontal ? h->u0 : h->v0, h->horizontal ? h->v0 : h->u0}
+        : TestHalfTile(h, bend, index - 1);
+    struct RegionTilePos next = index + 1 == TestHalfTileCount(h)
+        ? (struct RegionTilePos){t.x + (h->horizontal ? h->step : 0), t.y + (h->horizontal ? 0 : h->step)}
+        : TestHalfTile(h, bend, index + 1);
+    u32 mask = 0;
+    s32 dx[2] = {(s32)prev.x - t.x, (s32)next.x - t.x};
+    s32 dy[2] = {(s32)prev.y - t.y, (s32)next.y - t.y};
+    u32 k;
+
+    for (k = 0; k < 2; k++)
+        mask |= dx[k] > 0 ? 1 : dx[k] < 0 ? 2 : dy[k] > 0 ? 4 : 8;
+    return mask;
+}
+
+// A conflict is a half through another location, or two halves sharing a tile without leaving it
+// in a common direction (a crossing; sharing a run of road is fine).
 static bool32 HasConflict(u32 county, const struct TestHalf *halves, const s32 *bends, u32 count)
 {
     u32 i, j, a, b, loc;
@@ -274,7 +297,8 @@ static bool32 HasConflict(u32 county, const struct TestHalf *halves, const s32 *
             }
             for (j = i + 1; j < count; j++)
                 for (b = 0; b < TestHalfTileCount(&halves[j]); b++)
-                    if (SamePos(t, TestHalfTile(&halves[j], bends[j], b)))
+                    if (SamePos(t, TestHalfTile(&halves[j], bends[j], b))
+                     && !(TestDirections(&halves[i], bends[i], a) & TestDirections(&halves[j], bends[j], b)))
                         return TRUE;
         }
     }
@@ -313,7 +337,7 @@ static s32 PlannedBend(u32 county, u32 neighbor, const struct TestHalf *h)
     return h->border;
 }
 
-TEST("RegionRoute: A county's halves avoid each other and its locations whenever any bend choice can")
+TEST("RegionRoute: A county's halves never cross each other or pass through its locations whenever any bend choice can avoid it")
 {
     static EWRAM_DATA struct TestHalf halves[TEST_MAX_HALVES];
     static EWRAM_DATA u32 neighbors[TEST_MAX_HALVES];

@@ -183,13 +183,46 @@ static bool32 HalfHitsPos(const struct HalfShape *shape, struct RegionTilePos po
     return FALSE;
 }
 
-static bool32 HalvesOverlap(const struct HalfShape *a, const struct HalfShape *b)
+// Bit set of the directions a half's route leaves the tile, toward its neighbors in the half. The
+// first tile's previous neighbor is the half's location; the last tile continues toward the border.
+static u32 HalfTileDirections(const struct HalfShape *shape, u32 index)
 {
-    u32 i, count = ShapeTileCount(a);
+    struct RegionTilePos tile = ShapeHalfTile(shape, index);
+    struct RegionTilePos prev = index == 0 ? ShapeTile(shape, shape->u0, shape->v0) : ShapeHalfTile(shape, index - 1);
+    struct RegionTilePos next = index + 1 == ShapeTileCount(shape)
+        ? ShapeTile(shape, (shape->horizontal ? tile.x : tile.y) + shape->step, shape->horizontal ? tile.y : tile.x)
+        : ShapeHalfTile(shape, index + 1);
+    u32 mask = 0;
 
-    for (i = 0; i < count; i++)
-        if (HalfHitsPos(b, ShapeHalfTile(a, i)))
-            return TRUE;
+    if (prev.x != tile.x)
+        mask |= prev.x > tile.x ? 1 : 2;
+    else
+        mask |= prev.y > tile.y ? 4 : 8;
+    if (next.x != tile.x)
+        mask |= next.x > tile.x ? 1 : 2;
+    else
+        mask |= next.y > tile.y ? 4 : 8;
+    return mask;
+}
+
+// Halves may share a run of tiles (the route is then one road for that stretch), but may not cross:
+// at every shared tile the two halves must leave in at least one common direction.
+static bool32 HalvesCross(const struct HalfShape *a, const struct HalfShape *b)
+{
+    u32 i, j, countA = ShapeTileCount(a), countB = ShapeTileCount(b);
+
+    for (i = 0; i < countA; i++)
+    {
+        struct RegionTilePos tile = ShapeHalfTile(a, i);
+
+        for (j = 0; j < countB; j++)
+        {
+            struct RegionTilePos other = ShapeHalfTile(b, j);
+
+            if (tile.x == other.x && tile.y == other.y && !(HalfTileDirections(a, i) & HalfTileDirections(b, j)))
+                return TRUE;
+        }
+    }
     return FALSE;
 }
 
@@ -215,13 +248,15 @@ static bool32 CanPlaceHalf(u32 county, const struct CountyPlan *plan, u32 slot)
     if (HalfHitsOtherLocation(county, &plan->shape[slot]))
         return FALSE;
     for (i = 0; i < plan->count; i++)
-        if (i != slot && plan->placed[i] && HalvesOverlap(&plan->shape[slot], &plan->shape[i]))
+        if (i != slot && plan->placed[i] && HalvesCross(&plan->shape[slot], &plan->shape[i]))
             return FALSE;
     return TRUE;
 }
 
-// Backtracks over the free halves in neighbor order, each trying its hashed bend first, so a county
-// keeps its default shapes when they do not collide and finds a collision-free set whenever one exists.
+// Backtracks over the free halves in neighbor order. Each tries its hashed bend first, then bends
+// toward the border (which hugs the county edge, where no other route runs), then toward its
+// location. A county keeps its default shapes when none cross, and finds a crossing-free set
+// whenever one exists.
 static bool32 ChooseBends(u32 county, struct CountyPlan *plan, u32 slot)
 {
     struct HalfShape *shape;
@@ -234,7 +269,10 @@ static bool32 ChooseBends(u32 county, struct CountyPlan *plan, u32 slot)
     shape = &plan->shape[slot];
     for (k = 0; k < shape->length; k++)
     {
-        shape->bend = shape->u0 + shape->step * (1 + (shape->defaultOffset + k) % shape->length);
+        u32 toBorder = shape->length - shape->defaultOffset;
+        u32 offset = k < toBorder ? shape->defaultOffset + k : shape->defaultOffset - 1 - (k - toBorder);
+
+        shape->bend = shape->u0 + shape->step * (1 + offset);
         if (!CanPlaceHalf(county, plan, slot))
             continue;
         plan->placed[slot] = TRUE;
@@ -246,8 +284,8 @@ static bool32 ChooseBends(u32 county, struct CountyPlan *plan, u32 slot)
     return FALSE;
 }
 
-// When no collision-free set exists (the halves with no choice already collide, as in Emerald's
-// table), every half keeps its hashed default.
+// When no crossing-free set exists (the halves with no choice already cross, as in Emerald's table),
+// every half keeps its hashed default.
 static void PlanCounty(u32 county, struct CountyPlan *plan)
 {
     u32 neighbor, i;
