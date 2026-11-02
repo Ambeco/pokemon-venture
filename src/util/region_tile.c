@@ -2,6 +2,7 @@
 #include "constants/region_map_sections.h"
 #include "region_tile.h"
 #include "region_route.h"
+#include "identity_seed.h"
 
 #include "data/region/emerald_tiles.h"
 
@@ -19,7 +20,8 @@ static struct RegionTilePos LocalTileToPos(u32 countyId, u32 tile)
 static const struct CountyTiles *GetCountyTiles(u32 countyId)
 {
     AGB_ASSERT(countyId < NUM_COUNTIES);
-    return &sEmeraldTiles[countyId];
+    // The assert does not stop execution in release builds; the clamp keeps GCC's bounds check quiet.
+    return &sEmeraldTiles[countyId < NUM_COUNTIES ? countyId : 0];
 }
 
 static u32 LocalTileOfRegionCell(u32 x, u32 y)
@@ -37,7 +39,8 @@ static u32 GetCountyRouteMask(u32 countyId)
 
     for (i = 0; i < tiles->numSpecials; i++)
     {
-        if (!IsSpecialLocationKindInsideCity(tiles->specials[i].kind))
+        if (tiles->specials[i].locationClass != LOCATION_CLASS_PITSTOP
+            && !IsSpecialLocationKindInsideCity(tiles->specials[i].kind))
             mask |= 1u << tiles->specials[i].tile;
     }
     for (neighbor = 0; neighbor < NUM_COUNTIES; neighbor++)
@@ -67,6 +70,55 @@ static u32 GetCountyRouteMask(u32 countyId)
     return mask;
 }
 
+// The county's route tiles that hold no location.
+static u32 GetFreeRouteMask(u32 countyId)
+{
+    const struct CountyTiles *tiles = GetCountyTiles(countyId);
+    u32 mask = GetCountyRouteMask(countyId);
+    u32 i;
+
+    for (i = 0; i < tiles->numSpecials; i++)
+    {
+        if (tiles->specials[i].locationClass != LOCATION_CLASS_PITSTOP && tiles->specials[i].tile != NO_TILE)
+            mask &= ~(1u << tiles->specials[i].tile);
+    }
+    return mask;
+}
+
+// Pitstops are dealt onto free route tiles in table order, each by a hash over what is left.
+static u32 GetPitstopLocalTile(u32 countyId, u32 index)
+{
+    const struct CountyTiles *tiles = GetCountyTiles(countyId);
+    u32 free = GetFreeRouteMask(countyId);
+    u32 i, tile = 0;
+
+    AGB_ASSERT(index < tiles->numSpecials);
+    for (i = 0; i <= index && i < tiles->numSpecials; i++)
+    {
+        u32 pick;
+
+        if (tiles->specials[i].locationClass != LOCATION_CLASS_PITSTOP)
+            continue;
+        AGB_ASSERT(free != 0); // no free route tile: the county has no room for this pitstop
+        pick = IdentityHash(GetPlayerIdentitySeed(), REGION_SALT_PITSTOP, countyId << 8 | i) % __builtin_popcount(free);
+        for (tile = 0; ; tile++)
+        {
+            if ((free & (1u << tile)) && pick-- == 0)
+                break;
+        }
+        free &= ~(1u << tile);
+    }
+    return tile;
+}
+
+static u32 GetSpecialLocalTile(u32 countyId, u32 index)
+{
+    const struct CountyTiles *tiles = GetCountyTiles(countyId);
+
+    return tiles->specials[index].locationClass == LOCATION_CLASS_PITSTOP
+        ? GetPitstopLocalTile(countyId, index) : tiles->specials[index].tile;
+}
+
 u32 GetRegionTileFlags(u32 x, u32 y)
 {
     u32 countyId = GetCountyFromRegionCell(x, y);
@@ -79,7 +131,7 @@ u32 GetRegionTileFlags(u32 x, u32 y)
         flags |= TILE_CITY;
     for (i = 0; i < tiles->numSpecials; i++)
     {
-        if (tiles->specials[i].tile == tile)
+        if (GetSpecialLocalTile(countyId, i) == tile)
             flags |= TILE_SPECIAL;
     }
     if (GetCountyRouteMask(countyId) & (1u << tile))
@@ -115,10 +167,17 @@ struct SpecialLocation GetCountySpecialLocation(u32 countyId, u32 index)
     struct SpecialLocation location;
 
     AGB_ASSERT(index < tiles->numSpecials);
-    location.pos = LocalTileToPos(countyId, tiles->specials[index].tile);
+    location.pos = LocalTileToPos(countyId, GetSpecialLocalTile(countyId, index));
     location.mapSec = tiles->specials[index].mapSec;
     location.kind = tiles->specials[index].kind;
+    location.locationClass = tiles->specials[index].locationClass;
     return location;
+}
+
+u32 GetCountySpecialLocationClass(u32 countyId, u32 index)
+{
+    AGB_ASSERT(index < GetCountyTiles(countyId)->numSpecials);
+    return GetCountyTiles(countyId)->specials[index].locationClass;
 }
 
 u32 GetCountyRouteTileCount(u32 countyId)

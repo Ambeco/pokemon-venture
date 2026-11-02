@@ -20,20 +20,29 @@ static bool32 IsPosInCounty(u32 countyId, struct RegionTilePos pos)
     return GetCountyFromRegionCell(pos.x, pos.y) == countyId;
 }
 
+// Routed locations: the city, then the landmarks and detours (pitstops are not routed).
 static struct RegionTilePos LocationOf(u32 countyId, u32 index)
 {
+    u32 i;
+
     if (DoesCountyHaveCity(countyId))
     {
         if (index == 0)
             return GetCountyCityPos(countyId);
         index--;
     }
-    return GetCountySpecialLocation(countyId, index).pos;
+    for (i = 0; ; i++)
+        if (GetCountySpecialLocationClass(countyId, i) != LOCATION_CLASS_PITSTOP && index-- == 0)
+            return GetCountySpecialLocation(countyId, i).pos;
 }
 
 static u32 LocationCountOf(u32 countyId)
 {
-    return DoesCountyHaveCity(countyId) + GetCountySpecialLocationCount(countyId);
+    u32 i, count = DoesCountyHaveCity(countyId);
+
+    for (i = 0; i < GetCountySpecialLocationCount(countyId); i++)
+        count += GetCountySpecialLocationClass(countyId, i) != LOCATION_CLASS_PITSTOP;
+    return count;
 }
 
 // Runs the following statement for each ordered pair of counties joined by a route that both have a location.
@@ -455,7 +464,7 @@ TEST("RegionRoute: An outside-city special location is joined to its city by a s
                 u32 count = GetCountyIntraRouteTileCount(county, i);
                 struct RegionTilePos city, prev = location.pos;
 
-                if (!DoesCountyHaveCity(county) || IsSpecialLocationKindInsideCity(location.kind))
+                if (!DoesCountyHaveCity(county) || IsSpecialLocationKindInsideCity(location.kind) || location.locationClass == LOCATION_CLASS_PITSTOP)
                 {
                     EXPECT_EQ(count, 0);
                     continue;
@@ -530,6 +539,17 @@ static u32 CountRoutesCovering(u32 county, struct RegionTilePos pos, u32 *only)
     return n;
 }
 
+// A pitstop sits on a route tile that keeps its owner.
+static bool32 IsPitstopTile(u32 county, struct RegionTilePos pos)
+{
+    u32 i;
+
+    for (i = 0; i < GetCountySpecialLocationCount(county); i++)
+        if (GetCountySpecialLocationClass(county, i) == LOCATION_CLASS_PITSTOP && SamePos(GetCountySpecialLocation(county, i).pos, pos))
+            return TRUE;
+    return FALSE;
+}
+
 TEST("RegionRoute: Every plain route tile has one owner that covers it, and other tiles have none")
 {
     u32 si, seed = 0, county, x, y;
@@ -549,7 +569,7 @@ TEST("RegionRoute: Every plain route tile has one owner that covers it, and othe
                 u32 only = 0;
 
                 county = GetCountyFromRegionCell(x, y);
-                if (flags == TILE_ROUTE)
+                if (flags == TILE_ROUTE || IsPitstopTile(county, pos))
                 {
                     EXPECT_NE(id, ROUTE_ID_NONE);
                     EXPECT(RouteCovers(county, id, pos));

@@ -2,10 +2,20 @@
 #include "identity_seed.h"
 #include "region_route.h"
 
-// Location 0 is the city when the county has one, then the special locations in order.
+// Location 0 is the city when the county has one, then the landmarks and detours in table order.
+// Pitstops are placed after routes, so routes never see them.
+static bool32 IsRoutedSpecial(u32 countyId, u32 index)
+{
+    return GetCountySpecialLocationClass(countyId, index) != LOCATION_CLASS_PITSTOP;
+}
+
 static u32 GetLocationCount(u32 countyId)
 {
-    return DoesCountyHaveCity(countyId) + GetCountySpecialLocationCount(countyId);
+    u32 i, count = DoesCountyHaveCity(countyId);
+
+    for (i = 0; i < GetCountySpecialLocationCount(countyId); i++)
+        count += IsRoutedSpecial(countyId, i);
+    return count;
 }
 
 static bool32 IsCityLocation(u32 countyId, u32 index)
@@ -15,13 +25,19 @@ static bool32 IsCityLocation(u32 countyId, u32 index)
 
 static struct RegionTilePos GetLocationPos(u32 countyId, u32 index)
 {
+    u32 i;
+
     if (DoesCountyHaveCity(countyId))
     {
         if (index == 0)
             return GetCountyCityPos(countyId);
         index--;
     }
-    return GetCountySpecialLocation(countyId, index).pos;
+    for (i = 0; ; i++)
+    {
+        if (IsRoutedSpecial(countyId, i) && index-- == 0)
+            return GetCountySpecialLocation(countyId, i).pos;
+    }
 }
 
 // Counties that `county` itself routes to: the capital and adjacent story indices, else the
@@ -213,6 +229,8 @@ static bool32 GetIntraShape(u32 county, u32 specialIndex, struct HalfShape *shap
     bool32 horizontal;
 
     if (!DoesCountyHaveCity(county))
+        return FALSE;
+    if (!IsRoutedSpecial(county, specialIndex))
         return FALSE;
     location = GetCountySpecialLocation(county, specialIndex);
     if (IsSpecialLocationKindInsideCity(location.kind))

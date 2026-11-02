@@ -237,6 +237,7 @@ static void DumpCounty(struct LineWriter *w, RegionDumpLineFn emit, u32 id)
         PutChar(w, ',');
         PutNum(w, s.pos.y);
         PutChar(w, ')');
+        PutChar(w, "tldp"[s.locationClass]); // town, landmark, detour, pitstop
     }
     if (i == 0)
         PutStr(w, "none");

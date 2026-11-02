@@ -198,3 +198,32 @@ TEST("RegionTile: The generated route halves are route tiles, and no route tile 
         }
     }
 }
+
+TEST("RegionTile: A pitstop sits on a free route tile; every county with locations has a city or a routed place")
+{
+    u32 id, i;
+
+    for (id = 0; id < NUM_COUNTIES; id++)
+    {
+        u32 routed = DoesCountyHaveCity(id);
+
+        for (i = 0; i < GetCountySpecialLocationCount(id); i++)
+        {
+            struct SpecialLocation s = GetCountySpecialLocation(id, i);
+
+            routed += s.locationClass != LOCATION_CLASS_PITSTOP;
+            EXPECT_EQ(IsSpecialLocationKindInsideCity(s.kind), s.locationClass == LOCATION_CLASS_TOWN);
+            if (s.locationClass == LOCATION_CLASS_PITSTOP)
+                EXPECT_EQ(GetRegionTileFlags(s.pos.x, s.pos.y), TILE_ROUTE | TILE_SPECIAL);
+        }
+        if (GetCountySpecialLocationCount(id) != 0)
+            EXPECT_GT(routed, 0); // the cityless-county pitstop fallback is not implemented
+    }
+}
+
+TEST("RegionTile: Only landmarks are on the map")
+{
+    EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_LANDMARK}), TRUE);
+    EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_DETOUR}), FALSE);
+    EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_PITSTOP}), FALSE);
+}

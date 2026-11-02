@@ -25,6 +25,8 @@
 
 #define MAX_SPECIAL_LOCATIONS_PER_COUNTY 6
 
+#define REGION_SALT_PITSTOP 7
+
 enum RegionTileFlags
 {
     TILE_CITY    = 1 << 0,
@@ -71,12 +73,29 @@ enum TownLocationKind
     NUM_LOCATION_KINDS,
 };
 
+// A property of the place, not of its kind (design.md, "Special locations"). Landmarks and detours are
+// routed; only landmarks appear on the region-map screen. A pitstop is placed on a free route tile
+// after routes are final, so routes never see it.
+enum LocationClass
+{
+    LOCATION_CLASS_TOWN, // inside a city
+    LOCATION_CLASS_LANDMARK,
+    LOCATION_CLASS_DETOUR,
+    LOCATION_CLASS_PITSTOP,
+};
+
 struct SpecialLocation
 {
     struct RegionTilePos pos;
     u8 mapSec;
     u8 kind; // enum RouteLocationKind or enum TownLocationKind
+    u8 locationClass; // enum LocationClass
 };
+
+static inline bool32 IsLocationOnMap(const struct SpecialLocation *location)
+{
+    return location->locationClass == LOCATION_CLASS_LANDMARK;
+}
 
 static inline bool32 IsSpecialLocationKindInsideCity(u32 kind)
 {
@@ -97,7 +116,11 @@ u32 GetCountyCityMapSec(u32 countyId);
 
 u32 GetCountySpecialLocationCount(u32 countyId);
 
+// A pitstop's position is a free route tile, so asking for it plans the county's routes.
 struct SpecialLocation GetCountySpecialLocation(u32 countyId, u32 index);
+
+// enum LocationClass, without the position lookup (safe inside route planning).
+u32 GetCountySpecialLocationClass(u32 countyId, u32 index);
 
 // Includes the tiles of the county's outside-city special locations.
 u32 GetCountyRouteTileCount(u32 countyId);
