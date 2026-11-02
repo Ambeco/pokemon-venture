@@ -36,11 +36,11 @@ static u32 LocationCountOf(u32 countyId)
     return DoesCountyHaveCity(countyId) + GetCountySpecialLocationCount(countyId);
 }
 
-// Runs the following statement for each ordered pair of adjacent counties that both have a location.
+// Runs the following statement for each ordered pair of counties joined by a route that both have a location.
 #define FOR_EACH_ROUTE_PAIR(a, b, posA, posB) \
     for (a = 0; a < NUM_COUNTIES; a++) \
         for (b = 0; b < NUM_COUNTIES; b++) \
-            if (AreCountiesAdjacent(a, b) && GetCountyPairRouteEndpoints(a, b, &posA, &posB))
+            if (DoCountiesHaveRoute(a, b) && GetCountyPairRouteEndpoints(a, b, &posA, &posB))
 
 TEST("RegionRoute: Endpoints are the same whichever county asks")
 {
@@ -236,7 +236,7 @@ static u32 CollectHalves(u32 county, struct TestHalf *halves, u32 *neighbors)
         u32 crossing, owner, left, top, right, bottom;
         struct TestHalf *h = &halves[count];
 
-        if (!AreCountiesAdjacent(county, n) || !GetCountyPairRouteEndpoints(county, n, &mine, &theirs))
+        if (!DoCountiesHaveRoute(county, n) || !GetCountyPairRouteEndpoints(county, n, &mine, &theirs))
             continue;
         GetRouteBorderCrossing(county, n, &crossing, &owner);
         GetCountyRegionBounds(county, &left, &top, &right, &bottom);

@@ -328,7 +328,7 @@ static void PlanCounty(u32 county, struct CountyPlan *plan)
     plan->count = 0;
     for (neighbor = 0; neighbor < NUM_COUNTIES && plan->count < MAX_COUNTY_NEIGHBORS; neighbor++)
     {
-        if (AreCountiesAdjacent(county, neighbor) && GetHalfShape(county, neighbor, &plan->shape[plan->count]))
+        if (DoCountiesHaveRoute(county, neighbor) && GetHalfShape(county, neighbor, &plan->shape[plan->count]))
         {
             plan->neighbor[plan->count] = neighbor;
             plan->placed[plan->count] = !plan->shape[plan->count].isFree;
@@ -351,7 +351,7 @@ u32 GetCountyRouteHalfTileCount(u32 county, u32 neighbor)
 {
     struct HalfShape shape;
 
-    if (!GetHalfShape(county, neighbor, &shape))
+    if (!DoCountiesHaveRoute(county, neighbor) || !GetHalfShape(county, neighbor, &shape))
         return 0;
     return ShapeTileCount(&shape);
 }
