@@ -69,4 +69,10 @@ u32 GetCountyIntraRouteTileCount(u32 county, u32 specialIndex);
 
 struct RegionTilePos GetCountyIntraRouteTile(u32 county, u32 specialIndex, u32 index);
 
+// Route id owning a plain route tile, or ROUTE_ID_NONE for a tile that is not on a route or holds a
+// location. Where routes share a run of road, the run belongs to the one that opens first (the
+// later of its two counties' story indices; an intra-county route opens with its county), ties to
+// the lower route id. Route-story-indices and locks read the owner, so every tile has exactly one.
+u32 GetRegionTileRouteId(u32 x, u32 y);
+
 #endif // GUARD_REGION_ROUTE_H

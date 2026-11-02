@@ -140,6 +140,8 @@ struct CountyPlan
     u8 count;
     u8 interCount;
     u8 routeId[MAX_COUNTY_ROUTES];
+    u8 opensAt[MAX_COUNTY_ROUTES]; // story index at which the route opens, which decides tile ownership
+    u8 owner[COUNTY_TILES_W * COUNTY_TILES_H]; // slot owning each tile (x - left, y - top), 0xFF = none
     bool8 placed[MAX_COUNTY_ROUTES];
     struct HalfShape shape[MAX_COUNTY_ROUTES];
 };
@@ -412,6 +414,28 @@ static void RestoreDefaultBends(struct CountyPlan *plan, u32 from, u32 end)
     }
 }
 
+// A shared run belongs to the sharing route that opens first, ties to the lower route id, so the
+// road is walkable before any later route's lock.
+static void AssignTileOwners(u32 county, struct CountyPlan *plan)
+{
+    u32 left, top, right, bottom, slot, i;
+
+    GetCountyRegionBounds(county, &left, &top, &right, &bottom);
+    memset(plan->owner, 0xFF, sizeof(plan->owner));
+    for (slot = 0; slot < plan->count; slot++)
+    {
+        for (i = 0; i < ShapeTileCount(&plan->shape[slot]); i++)
+        {
+            struct RegionTilePos tile = ShapeHalfTile(&plan->shape[slot], i);
+            u8 *owner = &plan->owner[tile.x - left + (tile.y - top) * COUNTY_TILES_W];
+
+            if (*owner == 0xFF || plan->opensAt[slot] < plan->opensAt[*owner]
+                || (plan->opensAt[slot] == plan->opensAt[*owner] && plan->routeId[slot] < plan->routeId[*owner]))
+                *owner = slot;
+        }
+    }
+}
+
 // Inter-county halves are planned first, as a set. Then the intra-county routes are fitted around
 // them as a second set, so a crowded county can never make the halves give up their crossing-free
 // solution. When a set has no crossing-free solution (shapes with no choice already cross, as in
@@ -426,6 +450,7 @@ static void PlanCounty(u32 county, struct CountyPlan *plan)
         if (DoCountiesHaveRoute(county, neighbor) && GetHalfShape(county, neighbor, &plan->shape[plan->count]))
         {
             plan->routeId[plan->count] = neighbor;
+            plan->opensAt[plan->count] = max(GetCountyHeader(county)->storyIdx, GetCountyHeader(neighbor)->storyIdx);
             plan->placed[plan->count] = !plan->shape[plan->count].isFree;
             plan->count++;
         }
@@ -438,6 +463,7 @@ static void PlanCounty(u32 county, struct CountyPlan *plan)
         if (GetIntraShape(county, i, &plan->shape[plan->count]))
         {
             plan->routeId[plan->count] = ROUTE_ID_TO_SPECIAL(i);
+            plan->opensAt[plan->count] = GetCountyHeader(county)->storyIdx;
             plan->count++;
         }
     }
@@ -445,6 +471,7 @@ static void PlanCounty(u32 county, struct CountyPlan *plan)
         plan->placed[i] = i < plan->interCount || !plan->shape[i].isFree;
     if (!ChooseBends(county, plan, plan->interCount, plan->count))
         RestoreDefaultBends(plan, plan->interCount, plan->count);
+    AssignTileOwners(county, plan);
 }
 
 u32 GetCountyRouteHalfTileCount(u32 county, u32 neighbor)
@@ -509,4 +536,22 @@ struct RegionTilePos GetCountyIntraRouteTile(u32 county, u32 specialIndex, u32 i
     if (shape == NULL)
         return GetLocationPos(county, 0);
     return ShapeHalfTile(shape, index);
+}
+
+u32 GetRegionTileRouteId(u32 x, u32 y)
+{
+    u32 county = GetCountyFromRegionCell(x, y);
+    const struct CountyPlan *plan = GetCachedPlan(county);
+    u32 left, top, right, bottom, i, slot;
+
+    for (i = 0; i < GetLocationCount(county); i++)
+    {
+        struct RegionTilePos pos = GetLocationPos(county, i);
+
+        if (pos.x == x && pos.y == y)
+            return ROUTE_ID_NONE;
+    }
+    GetCountyRegionBounds(county, &left, &top, &right, &bottom);
+    slot = plan->owner[x - left + (y - top) * COUNTY_TILES_W];
+    return slot == 0xFF ? ROUTE_ID_NONE : plan->routeId[slot];
 }

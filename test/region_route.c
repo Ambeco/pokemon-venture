@@ -495,3 +495,72 @@ TEST("RegionRoute: Intra-county routes avoid other locations (an axis or bend al
         }
     }
 }
+
+static bool32 RouteCovers(u32 county, u32 routeId, struct RegionTilePos pos)
+{
+    u32 i, count;
+
+    if (routeId < NUM_COUNTIES)
+    {
+        count = DoCountiesHaveRoute(county, routeId) ? GetCountyRouteHalfTileCount(county, routeId) : 0;
+        for (i = 0; i < count; i++)
+            if (SamePos(GetCountyRouteHalfTile(county, routeId, i), pos))
+                return TRUE;
+        return FALSE;
+    }
+    count = GetCountyIntraRouteTileCount(county, routeId - NUM_COUNTIES);
+    for (i = 0; i < count; i++)
+        if (SamePos(GetCountyIntraRouteTile(county, routeId - NUM_COUNTIES, i), pos))
+            return TRUE;
+    return FALSE;
+}
+
+static u32 CountRoutesCovering(u32 county, struct RegionTilePos pos, u32 *only)
+{
+    u32 id, n = 0;
+
+    for (id = 0; id < ROUTE_ID_TO_SPECIAL(MAX_SPECIAL_LOCATIONS_PER_COUNTY); id++)
+    {
+        if (RouteCovers(county, id, pos))
+        {
+            n++;
+            *only = id;
+        }
+    }
+    return n;
+}
+
+TEST("RegionRoute: Every plain route tile has one owner that covers it, and other tiles have none")
+{
+    u32 si, seed = 0, county, x, y;
+    (void)seed;
+
+    FOR_EACH_SWEEP_SEED(si, seed)
+    {
+        if (si >= 2)
+            break;
+        for (y = 0; y < REGION_H; y++)
+        {
+            for (x = 0; x < REGION_W; x++)
+            {
+                u32 flags = GetRegionTileFlags(x, y);
+                u32 id = GetRegionTileRouteId(x, y);
+                struct RegionTilePos pos = {x, y};
+                u32 only = 0;
+
+                county = GetCountyFromRegionCell(x, y);
+                if (flags == TILE_ROUTE)
+                {
+                    EXPECT_NE(id, ROUTE_ID_NONE);
+                    EXPECT(RouteCovers(county, id, pos));
+                    if (CountRoutesCovering(county, pos, &only) == 1)
+                        EXPECT_EQ(id, only);
+                }
+                else
+                {
+                    EXPECT_EQ(id, ROUTE_ID_NONE);
+                }
+            }
+        }
+    }
+}
