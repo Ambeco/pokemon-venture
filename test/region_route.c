@@ -564,3 +564,75 @@ TEST("RegionRoute: Every plain route tile has one owner that covers it, and othe
         }
     }
 }
+
+TEST("RegionRoute: A lock is on its route, on no location, and past every tile its route shares")
+{
+    u32 a, b, i, locks = 0, missing = 0;
+    struct RegionTilePos posA, posB;
+
+    FOR_EACH_ROUTE_PAIR(a, b, posA, posB)
+    {
+        struct RegionTilePos lock;
+        u32 gated, early, late, only, n;
+        bool32 onEarly;
+
+        if (a > b)
+            continue;
+        if (!GetRouteLock(a, b, &lock, &gated))
+        {
+            missing++;
+            continue;
+        }
+        locks++;
+        early = GetCountyHeader(a)->storyIdx < GetCountyHeader(b)->storyIdx ? a : b;
+        late = early == a ? b : a;
+        EXPECT_EQ(gated, late);
+        onEarly = RouteCovers(early, late, lock);
+        EXPECT(onEarly || RouteCovers(late, early, lock));
+        for (i = 0; i < LocationCountOf(early); i++)
+            EXPECT(!SamePos(lock, LocationOf(early, i)));
+        for (i = 0; i < LocationCountOf(late); i++)
+            EXPECT(!SamePos(lock, LocationOf(late, i)));
+        if (onEarly)
+        {
+            u32 count = GetCountyRouteHalfTileCount(early, late);
+
+            // Nothing from the lock to the later end is shared with another route of the earlier county.
+            for (i = 0; i < count; i++)
+            {
+                struct RegionTilePos t = GetCountyRouteHalfTile(early, late, i);
+
+                if (SamePos(t, lock))
+                    break;
+            }
+            for (; i < count; i++)
+            {
+                n = CountRoutesCovering(early, GetCountyRouteHalfTile(early, late, i), &only);
+                EXPECT_EQ(n, 1);
+            }
+        }
+    }
+    EXPECT_GT(locks, 0);
+    // Emerald's table may leave some routes without a tile (locations adjacent across a border).
+    EXPECT_LT(missing, locks);
+}
+
+TEST("RegionRoute: An intra-county lock is on its route and on no location")
+{
+    u32 county, i, k;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        for (i = 0; i < GetCountySpecialLocationCount(county); i++)
+        {
+            struct RegionTilePos lock;
+            bool32 gatesCity;
+
+            if (GetCountyIntraRouteTileCount(county, i) == 0 || !GetCountyIntraRouteLock(county, i, &lock, &gatesCity))
+                continue;
+            EXPECT(RouteCovers(county, ROUTE_ID_TO_SPECIAL(i), lock));
+            for (k = 0; k < LocationCountOf(county); k++)
+                EXPECT(!SamePos(lock, LocationOf(county, k)));
+        }
+    }
+}

@@ -26,7 +26,8 @@
  * set exists (halves with no choice already cross, as in Emerald's table) every half keeps its
  * hashed bend. Bends stay within the
  * location-to-border span, so halves never detour. The plan is recomputed per county and cached for
- * the last county asked about.
+ * the last county asked about. Halves exist only toward neighbors DoCountiesHaveRoute joins. The
+ * plan also holds the intra-county routes, tile ownership and the lock positions (see the accessors).
  */
 
 #include "global.h"
@@ -74,5 +75,17 @@ struct RegionTilePos GetCountyIntraRouteTile(u32 county, u32 specialIndex, u32 i
 // later of its two counties' story indices; an intra-county route opens with its county), ties to
 // the lower route id. Route-story-indices and locks read the owner, so every tile has exactly one.
 u32 GetRegionTileRouteId(u32 x, u32 y);
+
+// Tile of the lock on the inter-county route between two counties, and the county whose location it
+// guards (the one with the higher story index; the lock sits on the earlier county's half). The
+// lock is on the first tile after the last tile that half shares with another of the county's
+// routes, so the road cannot be joined after it; if the half is empty or all shared, it is the
+// later half's border tile. FALSE if the counties have no route or the route has no tile. Only the
+// position is decided here; which McGuffin opens it comes from the planner.
+bool32 GetRouteLock(u32 countyA, u32 countyB, struct RegionTilePos *pos, u32 *gatedCounty);
+
+// Same for an intra-county route. The earlier end is the special location when the main route into
+// the county arrives there, else the city; *gatesCity is TRUE when the special location is earlier.
+bool32 GetCountyIntraRouteLock(u32 county, u32 specialIndex, struct RegionTilePos *pos, bool32 *gatesCity);
 
 #endif // GUARD_REGION_ROUTE_H

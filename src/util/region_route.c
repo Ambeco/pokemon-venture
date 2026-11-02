@@ -555,3 +555,106 @@ u32 GetRegionTileRouteId(u32 x, u32 y)
     slot = plan->owner[x - left + (y - top) * COUNTY_TILES_W];
     return slot == 0xFF ? ROUTE_ID_NONE : plan->routeId[slot];
 }
+
+static bool32 IsTileSharedByOther(const struct CountyPlan *plan, u32 slot, struct RegionTilePos pos)
+{
+    u32 j;
+
+    for (j = 0; j < plan->count; j++)
+        if (j != slot && HalfHitsPos(&plan->shape[j], pos))
+            return TRUE;
+    return FALSE;
+}
+
+// Walking order index of the first tile after the last tile the route shares with another route
+// (a lock any earlier could be bypassed by joining the road after it), or -1 if no tile is left.
+static s32 GetLockIndex(const struct CountyPlan *plan, u32 slot, bool32 reversed)
+{
+    const struct HalfShape *shape = &plan->shape[slot];
+    s32 count = ShapeTileCount(shape), i, lastShared = -1;
+
+    for (i = 0; i < count; i++)
+    {
+        struct RegionTilePos tile = ShapeHalfTile(shape, reversed ? count - 1 - i : i);
+
+        if (IsTileSharedByOther(plan, slot, tile))
+            lastShared = i;
+    }
+    return lastShared + 1 < count ? lastShared + 1 : -1;
+}
+
+static s32 FindSlot(const struct CountyPlan *plan, u32 routeId)
+{
+    u32 i;
+
+    for (i = 0; i < plan->count; i++)
+        if (plan->routeId[i] == routeId)
+            return i;
+    return -1;
+}
+
+bool32 GetRouteLock(u32 countyA, u32 countyB, struct RegionTilePos *pos, u32 *gatedCounty)
+{
+    u32 early = GetCountyHeader(countyA)->storyIdx < GetCountyHeader(countyB)->storyIdx ? countyA : countyB;
+    u32 late = early == countyA ? countyB : countyA;
+    const struct CountyPlan *plan;
+    s32 slot, index;
+
+    if (!DoCountiesHaveRoute(countyA, countyB))
+        return FALSE;
+    plan = GetCachedPlan(early);
+    slot = FindSlot(plan, late);
+    index = slot < 0 ? -1 : GetLockIndex(plan, slot, FALSE);
+    if (index >= 0)
+    {
+        *pos = ShapeHalfTile(&plan->shape[slot], index);
+        *gatedCounty = late;
+        return TRUE;
+    }
+    // The earlier half is empty or entirely shared: gate at the border tile on the later side.
+    plan = GetCachedPlan(late);
+    slot = FindSlot(plan, early);
+    if (slot < 0 || ShapeTileCount(&plan->shape[slot]) == 0)
+        return FALSE;
+    *pos = ShapeHalfTile(&plan->shape[slot], ShapeTileCount(&plan->shape[slot]) - 1);
+    *gatedCounty = late;
+    return TRUE;
+}
+
+// The county's first place: where the main route into it arrives (the city for county 0).
+static struct RegionTilePos GetCountyFirstPlace(u32 county)
+{
+    u32 n, best = NUM_COUNTIES;
+    struct RegionTilePos mine, theirs;
+
+    for (n = 0; n < NUM_COUNTIES; n++)
+    {
+        if (DoCountiesHaveRoute(county, n) && GetCountyHeader(n)->storyIdx < GetCountyHeader(county)->storyIdx
+            && (best == NUM_COUNTIES || GetCountyHeader(n)->storyIdx > GetCountyHeader(best)->storyIdx))
+            best = n;
+    }
+    if (best != NUM_COUNTIES && GetCountyPairRouteEndpoints(county, best, &mine, &theirs))
+        return mine;
+    return GetLocationPos(county, 0);
+}
+
+bool32 GetCountyIntraRouteLock(u32 county, u32 specialIndex, struct RegionTilePos *pos, bool32 *gatesCity)
+{
+    const struct CountyPlan *plan = GetCachedPlan(county);
+    struct RegionTilePos first = GetCountyFirstPlace(county);
+    struct RegionTilePos special;
+    s32 slot = FindSlot(plan, ROUTE_ID_TO_SPECIAL(specialIndex)), index;
+    bool32 reversed;
+
+    if (slot < 0)
+        return FALSE;
+    special = GetCountySpecialLocation(county, specialIndex).pos;
+    // The special location is earlier only when the main route arrives there; otherwise the city is.
+    reversed = !(first.x == special.x && first.y == special.y);
+    *gatesCity = !reversed;
+    index = GetLockIndex(plan, slot, reversed);
+    if (index < 0)
+        return FALSE;
+    *pos = ShapeHalfTile(&plan->shape[slot], reversed ? (s32)ShapeTileCount(&plan->shape[slot]) - 1 - index : index);
+    return TRUE;
+}
