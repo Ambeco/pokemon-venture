@@ -36,7 +36,7 @@ This forces single-pass generation with no recursion or transitive operations, a
 - Each county is 5x4 "region tiles" (5 wide, 4 tall). A region tile is one cell of the Hoenn region map, which is 28x15 cells (`MAP_WIDTH`/`MAP_HEIGHT` in `src/field/region_map.c`; cell contents in `src/data/region_map/region_map_layout.h`).
 - 6x4 counties of 5x4 tiles is 30x16, so the first tile column of the first county column, the last tile column of the last county column, and the top tile row of the top county row are off limits, leaving 28x15. The top row is dropped (not the bottom) because the city name overlay covers the top-right 13x1 tiles and the Nav covers the bottom-right 13x2 tiles, so this leaves both the top and bottom counties 2 usable rows in those corners, where dropping the bottom would leave the bottom-right county only 1. The 6x4 grid of 5x4-tile counties was chosen over the inverse (5x4 counties of 6x4 tiles) because it yields more locations on the map and shorter routes between them.
 - If a county's population is above zero, it places a settlement at a random region tile, except that the county's bottom row and rightmost column are excluded (unless the county is in the bottom row or rightmost column of counties), which keeps space between cities. Population is 0-3 (2 bits); population 0 never generates a city.
-- Every county always has a special location, whether or not it has a city.
+- Every county always has a special location (a landmark or detour; a pitstop only as the emergency fallback below), whether or not it has a city.
 - Some counties instead hold a reserved end-game special location (see Reserved legendary locations). Layer 2 reserves them while assigning county-story-indices, so they are known before layer 3 places anything.
 - With a city, the special location is placed either in or adjacent to the city (50%), or on a random non-adjacent region tile (50%).
 - Without a city (population 0), the special location is necessarily not in a city, and it is what routes attach to.
@@ -107,6 +107,13 @@ Special locations are either inside a city or outside one (mirroring mainline ga
 
 - Outside cities: Viridian Forest, Mt. Moon, Bill's House, Dark Tunnel (Rock Tunnel), Power Plant, S.S. Anne, Safari Zone, Whirlpool Islands (Seafoam Islands), Victory Road tunnel.
 - Inside cities: Museum, burgled house, Pokémon Tower, Game Corner, Celadon Mall, Mansion, Silph Co. tower.
+
+Outside-city places come in three classes, a property of the individual place rather than of its kind (Rock Tunnel and Dark Tunnel are both tunnels):
+
+- Landmark: has coordinates and is routed like any location, and also appears on the region-map screen (Mt. Chimney, Southern Island, Mt. Pyre, Viridian Forest, Mt. Moon, Rock Tunnel, Power Plant, Seafoam Islands, Victory Road).
+- Detour: has coordinates and is routed identically, but does not appear on the map (Dark Tunnel, Bill's House).
+- Pitstop: not a location as far as the headers and route placement are concerned. Pitstops are placed after the routes are final, on route region tiles that are otherwise empty (no location, no other pitstop), and are dealt out to counties by a coprime stride over the pitstop list, so none repeats. Because they sit on existing routes, they need no routes of their own, which keeps the number of intra-county routes (and so route de-overlapping) down: roadside stops and similar small places should be pitstops rather than detours.
+- Emergency fallback: a county with no city that cannot place a landmark or detour places a pitstop as if it were a detour, so the player can still route through it. This should never be needed.
 
 The design is intended to be able, in principle, to generate the Red/Blue region map. How to represent the underground tunnels around Saffron (the Underground Path, not Diglett's Cave) is TBD.
 
