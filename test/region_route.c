@@ -1,6 +1,7 @@
 #include "global.h"
 #include "test/test.h"
 #include "region_route.h"
+#include "test/seed_sweep.h"
 
 // Properties are written over the county accessors so they become seed-sweep tests later.
 
@@ -71,9 +72,11 @@ TEST("RegionRoute: Endpoints are a closest pair of locations")
 
 TEST("RegionRoute: Both counties agree on the border crossing, which is one location's row or column")
 {
-    u32 a, b, crossing, owner, crossingBack, ownerBack;
+    u32 si, seed = 0, a, b, crossing, owner, crossingBack, ownerBack;
+    (void)seed;
     struct RegionTilePos posA, posB;
 
+    FOR_EACH_SWEEP_SEED(si, seed)
     FOR_EACH_ROUTE_PAIR(a, b, posA, posB)
     {
         bool32 horizontal = COUNTY_Y(a) == COUNTY_Y(b);
@@ -91,9 +94,11 @@ TEST("RegionRoute: Both counties agree on the border crossing, which is one loca
 
 TEST("RegionRoute: Each half is connected, inside its county, and ends at the crossing on the border")
 {
-    u32 a, b, i, crossing, owner;
+    u32 si, seed = 0, a, b, i, crossing, owner;
+    (void)seed;
     struct RegionTilePos posA, posB;
 
+    FOR_EACH_SWEEP_SEED(si, seed)
     FOR_EACH_ROUTE_PAIR(a, b, posA, posB)
     {
         bool32 horizontal = COUNTY_Y(a) == COUNTY_Y(b);
@@ -127,26 +132,35 @@ TEST("RegionRoute: Each half is connected, inside its county, and ends at the cr
 
 TEST("RegionRoute: The two halves meet across the border and total a shortest route")
 {
-    u32 a, b;
+    u32 si, seed = 0, a, b;
+    (void)seed;
     struct RegionTilePos posA, posB;
 
-    FOR_EACH_ROUTE_PAIR(a, b, posA, posB)
+    // Alternating counties replans each time, so this sweeps fewer seeds than the others.
+    FOR_EACH_SWEEP_SEED(si, seed)
     {
-        u32 countA = GetCountyRouteHalfTileCount(a, b);
-        u32 countB = GetCountyRouteHalfTileCount(b, a);
-        struct RegionTilePos endA = countA > 0 ? GetCountyRouteHalfTile(a, b, countA - 1) : posA;
-        struct RegionTilePos endB = countB > 0 ? GetCountyRouteHalfTile(b, a, countB - 1) : posB;
+        if (si >= 8)
+            break;
+        FOR_EACH_ROUTE_PAIR(a, b, posA, posB)
+        {
+            u32 countA = GetCountyRouteHalfTileCount(a, b);
+            u32 countB = GetCountyRouteHalfTileCount(b, a);
+            struct RegionTilePos endA = countA > 0 ? GetCountyRouteHalfTile(a, b, countA - 1) : posA;
+            struct RegionTilePos endB = countB > 0 ? GetCountyRouteHalfTile(b, a, countB - 1) : posB;
 
-        EXPECT_EQ(Distance(endA, endB), 1);
-        EXPECT_EQ(countA + countB + 1, Distance(posA, posB));
+            EXPECT_EQ(Distance(endA, endB), 1);
+            EXPECT_EQ(countA + countB + 1, Distance(posA, posB));
+        }
     }
 }
 
 TEST("RegionRoute: The owner's half is straight and every half leaves toward its neighbor")
 {
-    u32 a, b, crossing, owner;
+    u32 si, seed = 0, a, b, crossing, owner;
+    (void)seed;
     struct RegionTilePos posA, posB;
 
+    FOR_EACH_SWEEP_SEED(si, seed)
     FOR_EACH_ROUTE_PAIR(a, b, posA, posB)
     {
         bool32 horizontal = COUNTY_Y(a) == COUNTY_Y(b);
@@ -175,4 +189,192 @@ TEST("RegionRoute: The owner's half is straight and every half leaves toward its
                 EXPECT_EQ(last.x, posA.x);
         }
     }
+}
+
+// An independent description of one half, with the bend as a parameter, to brute-force the planner.
+struct TestHalf
+{
+    bool8 horizontal;
+    bool8 isFree;
+    s16 step, u0, v0, border, crossing, length;
+};
+
+#define TEST_MAX_HALVES 4
+#define TEST_MAX_TILES 40
+
+static struct RegionTilePos TestHalfTile(const struct TestHalf *h, s32 bend, u32 index)
+{
+    s32 across = abs(h->crossing - h->v0);
+    s32 vStep = h->crossing >= h->v0 ? 1 : -1;
+    s32 lead = (bend - h->u0) * h->step;
+    s32 u, v;
+    struct RegionTilePos pos;
+
+    if (index < lead)
+        u = h->u0 + h->step * (index + 1), v = h->v0;
+    else if (index - lead < across)
+        u = bend, v = h->v0 + vStep * (index - lead + 1);
+    else
+        u = bend + h->step * (index - lead - across + 1), v = h->crossing;
+    pos.x = h->horizontal ? u : v;
+    pos.y = h->horizontal ? v : u;
+    return pos;
+}
+
+static u32 TestHalfTileCount(const struct TestHalf *h)
+{
+    return h->length + abs(h->crossing - h->v0);
+}
+
+static u32 CollectHalves(u32 county, struct TestHalf *halves, u32 *neighbors)
+{
+    u32 n, count = 0;
+
+    for (n = 0; n < NUM_COUNTIES; n++)
+    {
+        struct RegionTilePos mine, theirs;
+        u32 crossing, owner, left, top, right, bottom;
+        struct TestHalf *h = &halves[count];
+
+        if (!AreCountiesAdjacent(county, n) || !GetCountyPairRouteEndpoints(county, n, &mine, &theirs))
+            continue;
+        GetRouteBorderCrossing(county, n, &crossing, &owner);
+        GetCountyRegionBounds(county, &left, &top, &right, &bottom);
+        h->horizontal = COUNTY_Y(county) == COUNTY_Y(n);
+        h->step = (h->horizontal ? COUNTY_X(n) > COUNTY_X(county) : COUNTY_Y(n) > COUNTY_Y(county)) ? 1 : -1;
+        h->u0 = h->horizontal ? mine.x : mine.y;
+        h->v0 = h->horizontal ? mine.y : mine.x;
+        h->border = h->horizontal ? (h->step > 0 ? right : left) : (h->step > 0 ? bottom : top);
+        h->crossing = crossing;
+        h->length = (h->border - h->u0) * h->step;
+        h->isFree = owner != county && h->length > 0 && crossing != h->v0;
+        neighbors[count++] = n;
+    }
+    return count;
+}
+
+static bool32 HasConflict(u32 county, const struct TestHalf *halves, const s32 *bends, u32 count)
+{
+    u32 i, j, a, b, loc;
+
+    for (i = 0; i < count; i++)
+    {
+        for (a = 0; a < TestHalfTileCount(&halves[i]); a++)
+        {
+            struct RegionTilePos t = TestHalfTile(&halves[i], bends[i], a);
+
+            for (loc = 0; loc < LocationCountOf(county); loc++)
+            {
+                struct RegionTilePos l = LocationOf(county, loc);
+                bool32 isStart = (halves[i].horizontal ? l.x : l.y) == halves[i].u0
+                    && (halves[i].horizontal ? l.y : l.x) == halves[i].v0;
+
+                if (!isStart && SamePos(t, l))
+                    return TRUE;
+            }
+            for (j = i + 1; j < count; j++)
+                for (b = 0; b < TestHalfTileCount(&halves[j]); b++)
+                    if (SamePos(t, TestHalfTile(&halves[j], bends[j], b)))
+                        return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+static bool32 AnyBendComboWorks(u32 county, const struct TestHalf *halves, s32 *bends, u32 count, u32 slot)
+{
+    s32 k;
+
+    if (slot == count)
+        return !HasConflict(county, halves, bends, count);
+    if (!halves[slot].isFree)
+        return AnyBendComboWorks(county, halves, bends, count, slot + 1);
+    for (k = 1; k <= halves[slot].length; k++)
+    {
+        bends[slot] = halves[slot].u0 + halves[slot].step * k;
+        if (AnyBendComboWorks(county, halves, bends, count, slot + 1))
+            return TRUE;
+    }
+    return FALSE;
+}
+
+// A planned half's bend: the u coordinate of its first step across.
+static s32 PlannedBend(u32 county, u32 neighbor, const struct TestHalf *h)
+{
+    u32 i;
+
+    for (i = 0; i < GetCountyRouteHalfTileCount(county, neighbor); i++)
+    {
+        struct RegionTilePos t = GetCountyRouteHalfTile(county, neighbor, i);
+
+        if ((h->horizontal ? t.y : t.x) != h->v0)
+            return h->horizontal ? t.x : t.y;
+    }
+    return h->border;
+}
+
+TEST("RegionRoute: A county's halves avoid each other and its locations whenever any bend choice can")
+{
+    static EWRAM_DATA struct TestHalf halves[TEST_MAX_HALVES];
+    static EWRAM_DATA u32 neighbors[TEST_MAX_HALVES];
+    s32 bends[TEST_MAX_HALVES], planned[TEST_MAX_HALVES];
+    u32 si, seed = 0, county, i, count, solvable = 0, free = 0;
+    (void)seed;
+
+    FOR_EACH_SWEEP_SEED(si, seed)
+    {
+        for (county = 0; county < NUM_COUNTIES; county++)
+        {
+            count = CollectHalves(county, halves, neighbors);
+            ASSUME(count <= TEST_MAX_HALVES);
+            for (i = 0; i < count; i++)
+            {
+                bends[i] = planned[i] = halves[i].isFree ? PlannedBend(county, neighbors[i], &halves[i]) : halves[i].border;
+                free += halves[i].isFree;
+            }
+            if (AnyBendComboWorks(county, halves, bends, count, 0))
+            {
+                solvable++;
+                EXPECT(!HasConflict(county, halves, planned, count));
+            }
+        }
+    }
+    // Guards against the test passing vacuously.
+    EXPECT_GT(free, 0);
+    EXPECT_GT(solvable, 0);
+}
+
+TEST("RegionRoute: Bends vary with the seed")
+{
+    static EWRAM_DATA struct TestHalf halves[TEST_MAX_HALVES];
+    static EWRAM_DATA u32 neighbors[TEST_MAX_HALVES];
+    u32 si, seed = 0, county, i, count, distinct = 0;
+    (void)seed;
+    s32 first = 0;
+    bool32 found = FALSE;
+
+    for (county = 0; county < NUM_COUNTIES && !found; county++)
+    {
+        FOR_EACH_SWEEP_SEED(si, seed)
+        {
+            count = CollectHalves(county, halves, neighbors);
+            for (i = 0; i < count; i++)
+            {
+                s32 bend;
+
+                if (!halves[i].isFree || halves[i].length < 2)
+                    continue;
+                bend = PlannedBend(county, neighbors[i], &halves[i]);
+                if (!found)
+                    first = bend;
+                found = TRUE;
+                distinct += bend != first;
+                break;
+            }
+            if (!found)
+                break;
+        }
+    }
+    ASSUME(found);
+    EXPECT_GT(distinct, 0);
 }

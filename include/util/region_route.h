@@ -17,8 +17,13 @@
  * Border rows and columns are the outermost of a county. Routes may cross them but generated
  * locations never sit on them. The hardcoded Emerald table does not obey this and is left as it is.
  *
- * Tiles are listed from the location toward the border. The county planner that bends routes
- * around each other does not exist yet, so halves use the default shape and may overlap.
+ * Tiles are listed from the location toward the border. Each county plans all its halves together:
+ * every half that can bend (a non-owner half that has to turn) tries its hashed bend first, and a
+ * backtracking search over the others finds a set in which no two halves share a tile and none
+ * passes through another location, whenever one exists. When none exists (halves with no choice
+ * already collide, as in Emerald's table) every half keeps its hashed bend. Bends stay within the
+ * location-to-border span, so halves never detour. The plan is recomputed per county and cached for
+ * the last county asked about.
  */
 
 #include "global.h"
