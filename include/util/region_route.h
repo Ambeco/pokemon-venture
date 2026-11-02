@@ -35,6 +35,12 @@
 #define REGION_SALT_ROUTE_BEND     1
 #define REGION_SALT_ROUTE_CROSSING 3
 
+// TRUE iff the route rules (design.md, "Route generation") join two adjacent counties: either one
+// routes to the other because it is the capital or has an adjacent story index, or because it is
+// the other's highest-indexed neighbor when nothing else qualifies. Symmetric. This says nothing
+// about locations; a county without any yields empty halves.
+bool32 DoCountiesHaveRoute(u32 countyA, u32 countyB);
+
 // Picks the closest pair of locations (city or special) between two adjacent counties; ties prefer
 // cities, then lower location index. posA is in countyA, posB in countyB. FALSE if either county
 // has no location.

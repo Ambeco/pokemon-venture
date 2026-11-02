@@ -1,6 +1,7 @@
 #include "global.h"
 #include "constants/region_map_sections.h"
 #include "region_tile.h"
+#include "region_route.h"
 
 #include "data/region/emerald_tiles.h"
 
@@ -26,17 +27,32 @@ static u32 LocalTileOfRegionCell(u32 x, u32 y)
     return (x + 1) % COUNTY_TILES_W + ((y + 1) % COUNTY_TILES_H) * COUNTY_TILES_W;
 }
 
-// routeMask lists only the plain route tiles; an outside-city location is a route tile too.
-static u32 GetCountyRouteMask(const struct CountyTiles *tiles)
+// The county's halves of its generated routes plus its outside-city locations. A road that
+// crosses a city tile is absorbed by the city, so route tiles never carry TILE_CITY.
+static u32 GetCountyRouteMask(u32 countyId)
 {
-    u32 mask = tiles->routeMask;
-    u32 i;
+    const struct CountyTiles *tiles = GetCountyTiles(countyId);
+    u32 mask = 0;
+    u32 neighbor, i;
 
     for (i = 0; i < tiles->numSpecials; i++)
     {
         if (!IsSpecialLocationKindInsideCity(tiles->specials[i].kind))
             mask |= 1u << tiles->specials[i].tile;
     }
+    for (neighbor = 0; neighbor < NUM_COUNTIES; neighbor++)
+    {
+        if (!DoCountiesHaveRoute(countyId, neighbor))
+            continue;
+        for (i = 0; i < GetCountyRouteHalfTileCount(countyId, neighbor); i++)
+        {
+            struct RegionTilePos pos = GetCountyRouteHalfTile(countyId, neighbor, i);
+
+            mask |= 1u << LocalTileOfRegionCell(pos.x, pos.y);
+        }
+    }
+    if (tiles->cityTile != NO_TILE)
+        mask &= ~(1u << tiles->cityTile);
     return mask;
 }
 
@@ -55,7 +71,7 @@ u32 GetRegionTileFlags(u32 x, u32 y)
         if (tiles->specials[i].tile == tile)
             flags |= TILE_SPECIAL;
     }
-    if (GetCountyRouteMask(tiles) & (1u << tile))
+    if (GetCountyRouteMask(countyId) & (1u << tile))
         flags |= TILE_ROUTE;
     return flags;
 }
@@ -96,12 +112,12 @@ struct SpecialLocation GetCountySpecialLocation(u32 countyId, u32 index)
 
 u32 GetCountyRouteTileCount(u32 countyId)
 {
-    return __builtin_popcount(GetCountyRouteMask(GetCountyTiles(countyId)));
+    return __builtin_popcount(GetCountyRouteMask(countyId));
 }
 
 struct RegionTilePos GetCountyRouteTile(u32 countyId, u32 index)
 {
-    u32 mask = GetCountyRouteMask(GetCountyTiles(countyId));
+    u32 mask = GetCountyRouteMask(countyId);
     u32 tile;
 
     AGB_ASSERT(index < __builtin_popcount(mask));

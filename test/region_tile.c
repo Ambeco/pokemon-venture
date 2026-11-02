@@ -2,6 +2,7 @@
 #include "constants/region_map_sections.h"
 #include "test/test.h"
 #include "region_tile.h"
+#include "region_route.h"
 
 // Invariants are written over the accessors so they become seed-sweep tests once the generator exists.
 
@@ -175,4 +176,25 @@ TEST("RegionTile: Emerald cities sit in their Emerald.md counties")
     EXPECT_EQ(GetCountyCityMapSec(COUNTY_ID(4, 0)), MAPSEC_LILYCOVE_CITY);
     EXPECT_EQ(GetCountyCityMapSec(COUNTY_ID(1, 3)), MAPSEC_LITTLEROOT_TOWN);
     EXPECT_EQ(GetCountySpecialLocationCount(COUNTY_ID(2, 0)), 6);
+}
+
+TEST("RegionTile: The generated route halves are route tiles, and no route tile is a city tile")
+{
+    u32 a, b, i;
+
+    for (a = 0; a < NUM_COUNTIES; a++)
+    {
+        for (b = 0; b < NUM_COUNTIES; b++)
+        {
+            if (!DoCountiesHaveRoute(a, b))
+                continue;
+            for (i = 0; i < GetCountyRouteHalfTileCount(a, b); i++)
+            {
+                struct RegionTilePos pos = GetCountyRouteHalfTile(a, b, i);
+                u32 flags = GetRegionTileFlags(pos.x, pos.y);
+
+                EXPECT_EQ((flags & TILE_ROUTE) != 0, (flags & TILE_CITY) == 0);
+            }
+        }
+    }
 }

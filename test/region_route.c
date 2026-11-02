@@ -402,3 +402,40 @@ TEST("RegionRoute: Bends vary with the seed")
     ASSUME(found);
     EXPECT_GT(distinct, 0);
 }
+
+TEST("RegionRoute: DoCountiesHaveRoute is symmetric and only for adjacent counties")
+{
+    u32 a, b;
+
+    for (a = 0; a < NUM_COUNTIES; a++)
+    {
+        for (b = 0; b < NUM_COUNTIES; b++)
+        {
+            EXPECT_EQ(DoCountiesHaveRoute(a, b), DoCountiesHaveRoute(b, a));
+            if (!AreCountiesAdjacent(a, b))
+                EXPECT_EQ(DoCountiesHaveRoute(a, b), FALSE);
+        }
+    }
+}
+
+TEST("RegionRoute: Every county routes to its capital neighbor, its story-index neighbors, and has at least one route")
+{
+    u32 a, b;
+    const struct RegionHeader *region = GetRegionHeader();
+
+    for (a = 0; a < NUM_COUNTIES; a++)
+    {
+        u32 routes = 0;
+
+        for (b = 0; b < NUM_COUNTIES; b++)
+        {
+            if (!AreCountiesAdjacent(a, b))
+                continue;
+            if (b == region->capital || GetCountyHeader(a)->storyIdx + 1 == GetCountyHeader(b)->storyIdx
+                || GetCountyHeader(b)->storyIdx + 1 == GetCountyHeader(a)->storyIdx)
+                EXPECT(DoCountiesHaveRoute(a, b));
+            routes += DoCountiesHaveRoute(a, b);
+        }
+        EXPECT_GT(routes, 0);
+    }
+}

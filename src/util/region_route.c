@@ -24,6 +24,41 @@ static struct RegionTilePos GetLocationPos(u32 countyId, u32 index)
     return GetCountySpecialLocation(countyId, index).pos;
 }
 
+// Counties that `county` itself routes to: the capital and adjacent story indices, else the
+// highest-indexed neighbor.
+static bool32 CountyRoutesTo(u32 county, u32 neighbor)
+{
+    const struct RegionHeader *region = GetRegionHeader();
+    u32 storyIdx = GetCountyHeader(county)->storyIdx;
+    u32 other, best = 0, bestIdx = 0;
+    bool32 any = FALSE;
+
+    for (other = 0; other < NUM_COUNTIES; other++)
+    {
+        u32 otherIdx = GetCountyHeader(other)->storyIdx;
+
+        if (!AreCountiesAdjacent(county, other))
+            continue;
+        if (other == region->capital || otherIdx + 1 == storyIdx || otherIdx == storyIdx + 1)
+        {
+            if (other == neighbor)
+                return TRUE;
+            any = TRUE;
+        }
+        if (otherIdx >= bestIdx)
+        {
+            bestIdx = otherIdx;
+            best = other;
+        }
+    }
+    return !any && best == neighbor;
+}
+
+bool32 DoCountiesHaveRoute(u32 countyA, u32 countyB)
+{
+    return AreCountiesAdjacent(countyA, countyB) && (CountyRoutesTo(countyA, countyB) || CountyRoutesTo(countyB, countyA));
+}
+
 bool32 GetCountyPairRouteEndpoints(u32 countyA, u32 countyB, struct RegionTilePos *posA, struct RegionTilePos *posB)
 {
     // Scored over the lower-id county first, so the winner does not depend on argument order.
