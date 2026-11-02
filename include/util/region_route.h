@@ -34,6 +34,12 @@
 
 #define REGION_SALT_ROUTE_BEND     1
 #define REGION_SALT_ROUTE_CROSSING 3
+#define REGION_SALT_ROUTE_INTRA    5
+
+// Route ids: a route to a neighbor county is that county's id; an intra-county route is named by
+// the index of its special location.
+#define ROUTE_ID_TO_SPECIAL(index) (NUM_COUNTIES + (index))
+#define ROUTE_ID_NONE              0xFF
 
 // TRUE iff the route rules (design.md, "Route generation") join two adjacent counties: either one
 // routes to the other because it is the capital or has an adjacent story index, or because it is
@@ -55,5 +61,12 @@ bool32 GetRouteBorderCrossing(u32 countyA, u32 countyB, u32 *crossing, u32 *owne
 u32 GetCountyRouteHalfTileCount(u32 county, u32 neighbor);
 
 struct RegionTilePos GetCountyRouteHalfTile(u32 county, u32 neighbor, u32 index);
+
+// Intra-county route from the county's index-th special location to its city, excluding both
+// ends. 0 if the county has no city or the location is inside the city. Planned with the halves,
+// so its bends avoid them when possible; it may share a run with a half but is fitted after them.
+u32 GetCountyIntraRouteTileCount(u32 county, u32 specialIndex);
+
+struct RegionTilePos GetCountyIntraRouteTile(u32 county, u32 specialIndex, u32 index);
 
 #endif // GUARD_REGION_ROUTE_H

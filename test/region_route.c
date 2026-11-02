@@ -439,3 +439,59 @@ TEST("RegionRoute: Every county routes to its capital neighbor, its story-index 
         EXPECT_GT(routes, 0);
     }
 }
+
+TEST("RegionRoute: An outside-city special location is joined to its city by a shortest connected route")
+{
+    u32 si, seed = 0, county, i, j;
+    (void)seed;
+
+    FOR_EACH_SWEEP_SEED(si, seed)
+    {
+        for (county = 0; county < NUM_COUNTIES; county++)
+        {
+            for (i = 0; i < GetCountySpecialLocationCount(county); i++)
+            {
+                struct SpecialLocation location = GetCountySpecialLocation(county, i);
+                u32 count = GetCountyIntraRouteTileCount(county, i);
+                struct RegionTilePos city, prev = location.pos;
+
+                if (!DoesCountyHaveCity(county) || IsSpecialLocationKindInsideCity(location.kind))
+                {
+                    EXPECT_EQ(count, 0);
+                    continue;
+                }
+                city = GetCountyCityPos(county);
+                EXPECT_EQ(count + 1, Distance(location.pos, city));
+                for (j = 0; j < count; j++)
+                {
+                    struct RegionTilePos tile = GetCountyIntraRouteTile(county, i, j);
+
+                    EXPECT(IsPosInCounty(county, tile));
+                    EXPECT(!SamePos(tile, city));
+                    EXPECT_EQ(Distance(prev, tile), 1);
+                    prev = tile;
+                }
+                EXPECT_EQ(Distance(prev, city), 1);
+            }
+        }
+    }
+}
+
+TEST("RegionRoute: Intra-county routes avoid other locations (an axis or bend always can in Emerald's table)")
+{
+    u32 county, i, j, k;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        for (i = 0; i < GetCountySpecialLocationCount(county); i++)
+        {
+            for (j = 0; j < GetCountyIntraRouteTileCount(county, i); j++)
+            {
+                struct RegionTilePos tile = GetCountyIntraRouteTile(county, i, j);
+
+                for (k = 0; k < LocationCountOf(county); k++)
+                    EXPECT(!SamePos(tile, LocationOf(county, k)) || SamePos(tile, GetCountySpecialLocation(county, i).pos));
+            }
+        }
+    }
+}

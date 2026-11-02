@@ -124,19 +124,24 @@ struct HalfShape
 {
     bool8 horizontal;
     bool8 isFree; // the bend can change the shape; only a non-owner half that has to turn
+    bool8 omitLast; // an intra-county route ends at its city, which is not listed
     s16 step;
     s16 u0, v0, border, crossing, bend;
     s16 length, defaultOffset;
 };
 
 #define MAX_COUNTY_NEIGHBORS 4
+#define MAX_COUNTY_ROUTES    (MAX_COUNTY_NEIGHBORS + MAX_SPECIAL_LOCATIONS_PER_COUNTY)
 
+// Shapes [0, interCount) are halves of inter-county routes (routeId = neighbor county); the rest run
+// from an outside-city special location to the county's city (routeId = ROUTE_ID_TO_SPECIAL(index)).
 struct CountyPlan
 {
     u8 count;
-    u8 neighbor[MAX_COUNTY_NEIGHBORS];
-    bool8 placed[MAX_COUNTY_NEIGHBORS];
-    struct HalfShape shape[MAX_COUNTY_NEIGHBORS];
+    u8 interCount;
+    u8 routeId[MAX_COUNTY_ROUTES];
+    bool8 placed[MAX_COUNTY_ROUTES];
+    struct HalfShape shape[MAX_COUNTY_ROUTES];
 };
 
 static bool32 GetHalfShape(u32 county, u32 neighbor, struct HalfShape *shape)
@@ -172,6 +177,55 @@ static bool32 GetHalfShape(u32 county, u32 neighbor, struct HalfShape *shape)
               county << 24 | shape->u0 << 16 | shape->v0 << 8 | shape->crossing) % shape->length;
     shape->bend = shape->length == 0 ? shape->border : shape->u0 + shape->step * (1 + shape->defaultOffset);
     shape->isFree = owner != county && shape->length > 0 && shape->crossing != shape->v0;
+    shape->omitLast = FALSE;
+    return TRUE;
+}
+
+static void BuildIntraShape(u32 county, struct RegionTilePos from, struct RegionTilePos city, bool32 horizontal, struct HalfShape *shape)
+{
+    shape->horizontal = horizontal;
+    shape->u0 = horizontal ? from.x : from.y;
+    shape->v0 = horizontal ? from.y : from.x;
+    shape->border = horizontal ? city.x : city.y;
+    shape->crossing = horizontal ? city.y : city.x;
+    shape->step = shape->border >= shape->u0 ? 1 : -1;
+    shape->length = (shape->border - shape->u0) * shape->step;
+    shape->defaultOffset = shape->length == 0 ? 0
+        : IdentityHash(GetPlayerIdentitySeed(), REGION_SALT_ROUTE_BEND + horizontal,
+              (county << 24 | shape->u0 << 16 | shape->v0 << 8 | shape->crossing) ^ 0x80000000) % shape->length;
+    shape->bend = shape->length == 0 ? shape->border : shape->u0 + shape->step * (1 + shape->defaultOffset);
+    shape->isFree = shape->length > 0 && shape->crossing != shape->v0;
+    shape->omitLast = TRUE;
+}
+
+static bool32 CanAvoidLocations(u32 county, struct HalfShape *shape);
+
+// The route from an outside-city special location to the city, in the same axis space as a half:
+// the run along u ends at the city, whose coordinates play the part of the border and crossing.
+// The axis is a hash, so some routes leave their location sideways and some vertically, unless
+// that axis would force the route through another location.
+static bool32 GetIntraShape(u32 county, u32 specialIndex, struct HalfShape *shape)
+{
+    struct SpecialLocation location;
+    struct RegionTilePos city;
+    bool32 horizontal;
+
+    if (!DoesCountyHaveCity(county))
+        return FALSE;
+    location = GetCountySpecialLocation(county, specialIndex);
+    if (IsSpecialLocationKindInsideCity(location.kind))
+        return FALSE;
+    city = GetCountyCityPos(county);
+    horizontal = IdentityHash(GetPlayerIdentitySeed(), REGION_SALT_ROUTE_INTRA, county << 8 | specialIndex) & 1;
+    BuildIntraShape(county, location.pos, city, horizontal, shape);
+    if (!CanAvoidLocations(county, shape))
+    {
+        struct HalfShape other;
+
+        BuildIntraShape(county, location.pos, city, !horizontal, &other);
+        if (CanAvoidLocations(county, &other))
+            *shape = other;
+    }
     return TRUE;
 }
 
@@ -184,9 +238,14 @@ static struct RegionTilePos ShapeTile(const struct HalfShape *shape, s32 u, s32 
     return pos;
 }
 
-static u32 ShapeTileCount(const struct HalfShape *shape)
+static u32 ShapeFullCount(const struct HalfShape *shape)
 {
     return shape->length + abs(shape->crossing - shape->v0);
+}
+
+static u32 ShapeTileCount(const struct HalfShape *shape)
+{
+    return ShapeFullCount(shape) - shape->omitLast;
 }
 
 static struct RegionTilePos ShapeHalfTile(const struct HalfShape *shape, u32 index)
@@ -224,7 +283,7 @@ static u32 HalfTileDirections(const struct HalfShape *shape, u32 index)
 {
     struct RegionTilePos tile = ShapeHalfTile(shape, index);
     struct RegionTilePos prev = index == 0 ? ShapeTile(shape, shape->u0, shape->v0) : ShapeHalfTile(shape, index - 1);
-    struct RegionTilePos next = index + 1 == ShapeTileCount(shape)
+    struct RegionTilePos next = index + 1 == ShapeFullCount(shape)
         ? ShapeTile(shape, (shape->horizontal ? tile.x : tile.y) + shape->step, shape->horizontal ? tile.y : tile.x)
         : ShapeHalfTile(shape, index + 1);
     u32 mask = 0;
@@ -270,9 +329,31 @@ static bool32 HalfHitsOtherLocation(u32 county, const struct HalfShape *shape)
     {
         struct RegionTilePos pos = GetLocationPos(county, i);
 
+        if (shape->omitLast && IsCityLocation(county, i))
+            continue;
         if ((pos.x != start.x || pos.y != start.y) && HalfHitsPos(shape, pos))
             return TRUE;
     }
+    return FALSE;
+}
+
+// Whether some bend keeps the shape off every other location.
+static bool32 CanAvoidLocations(u32 county, struct HalfShape *shape)
+{
+    s16 saved = shape->bend;
+    u32 k;
+
+    for (k = 0; k < (shape->isFree ? shape->length : 1); k++)
+    {
+        if (shape->isFree)
+            shape->bend = shape->u0 + shape->step * (1 + k);
+        if (!HalfHitsOtherLocation(county, shape))
+        {
+            shape->bend = saved;
+            return TRUE;
+        }
+    }
+    shape->bend = saved;
     return FALSE;
 }
 
@@ -288,18 +369,17 @@ static bool32 CanPlaceHalf(u32 county, const struct CountyPlan *plan, u32 slot)
     return TRUE;
 }
 
-// Backtracks over the free halves in neighbor order. Each tries its hashed bend first, then bends
-// toward the border (which hugs the county edge, where no other route runs), then toward its
-// location. A county keeps its default shapes when none cross, and finds a crossing-free set
-// whenever one exists.
-static bool32 ChooseBends(u32 county, struct CountyPlan *plan, u32 slot)
+// Backtracks over the free shapes in [slot, end) in plan order. Each tries its hashed bend first,
+// then bends toward the border (which hugs the county edge, where no other route runs), then toward
+// its location. Finds a crossing-free set whenever one exists.
+static bool32 ChooseBends(u32 county, struct CountyPlan *plan, u32 slot, u32 end)
 {
     struct HalfShape *shape;
     u32 k;
 
-    while (slot < plan->count && !plan->shape[slot].isFree)
+    while (slot < end && !plan->shape[slot].isFree)
         slot++;
-    if (slot == plan->count)
+    if (slot == end)
         return TRUE;
     shape = &plan->shape[slot];
     for (k = 0; k < shape->length; k++)
@@ -311,7 +391,7 @@ static bool32 ChooseBends(u32 county, struct CountyPlan *plan, u32 slot)
         if (!CanPlaceHalf(county, plan, slot))
             continue;
         plan->placed[slot] = TRUE;
-        if (ChooseBends(county, plan, slot + 1))
+        if (ChooseBends(county, plan, slot + 1, end))
             return TRUE;
         plan->placed[slot] = FALSE;
     }
@@ -319,8 +399,23 @@ static bool32 ChooseBends(u32 county, struct CountyPlan *plan, u32 slot)
     return FALSE;
 }
 
-// When no crossing-free set exists (the halves with no choice already cross, as in Emerald's table),
-// every half keeps its hashed default.
+static void RestoreDefaultBends(struct CountyPlan *plan, u32 from, u32 end)
+{
+    u32 i;
+
+    for (i = from; i < end; i++)
+    {
+        struct HalfShape *shape = &plan->shape[i];
+
+        if (shape->isFree)
+            shape->bend = shape->u0 + shape->step * (1 + shape->defaultOffset);
+    }
+}
+
+// Inter-county halves are planned first, as a set. Then the intra-county routes are fitted around
+// them as a second set, so a crowded county can never make the halves give up their crossing-free
+// solution. When a set has no crossing-free solution (shapes with no choice already cross, as in
+// Emerald's table), its shapes keep their hashed defaults.
 static void PlanCounty(u32 county, struct CountyPlan *plan)
 {
     u32 neighbor, i;
@@ -330,21 +425,26 @@ static void PlanCounty(u32 county, struct CountyPlan *plan)
     {
         if (DoCountiesHaveRoute(county, neighbor) && GetHalfShape(county, neighbor, &plan->shape[plan->count]))
         {
-            plan->neighbor[plan->count] = neighbor;
+            plan->routeId[plan->count] = neighbor;
             plan->placed[plan->count] = !plan->shape[plan->count].isFree;
             plan->count++;
         }
     }
-    if (!ChooseBends(county, plan, 0))
+    plan->interCount = plan->count;
+    if (!ChooseBends(county, plan, 0, plan->interCount))
+        RestoreDefaultBends(plan, 0, plan->interCount);
+    for (i = 0; i < GetCountySpecialLocationCount(county) && plan->count < MAX_COUNTY_ROUTES; i++)
     {
-        for (i = 0; i < plan->count; i++)
+        if (GetIntraShape(county, i, &plan->shape[plan->count]))
         {
-            struct HalfShape *shape = &plan->shape[i];
-
-            if (shape->isFree)
-                shape->bend = shape->u0 + shape->step * (1 + shape->defaultOffset);
+            plan->routeId[plan->count] = ROUTE_ID_TO_SPECIAL(i);
+            plan->count++;
         }
     }
+    for (i = 0; i < plan->count; i++)
+        plan->placed[i] = i < plan->interCount || !plan->shape[i].isFree;
+    if (!ChooseBends(county, plan, plan->interCount, plan->count))
+        RestoreDefaultBends(plan, plan->interCount, plan->count);
 }
 
 u32 GetCountyRouteHalfTileCount(u32 county, u32 neighbor)
@@ -356,7 +456,7 @@ u32 GetCountyRouteHalfTileCount(u32 county, u32 neighbor)
     return ShapeTileCount(&shape);
 }
 
-// A walk over one half calls this once per tile, so the last county's plan is kept.
+// A walk over one route calls this once per tile, so the last county's plan is kept.
 static const struct CountyPlan *GetCachedPlan(u32 county)
 {
     static EWRAM_DATA struct CountyPlan sPlan;
@@ -373,15 +473,40 @@ static const struct CountyPlan *GetCachedPlan(u32 county)
     return &sPlan;
 }
 
-struct RegionTilePos GetCountyRouteHalfTile(u32 county, u32 neighbor, u32 index)
+static const struct HalfShape *FindShape(u32 county, u32 routeId)
 {
     const struct CountyPlan *plan = GetCachedPlan(county);
     u32 i;
 
-    AGB_ASSERT(index < GetCountyRouteHalfTileCount(county, neighbor));
     for (i = 0; i < plan->count; i++)
-        if (plan->neighbor[i] == neighbor)
-            return ShapeHalfTile(&plan->shape[i], index);
-    AGB_ASSERT(FALSE);
-    return GetLocationPos(county, 0);
+        if (plan->routeId[i] == routeId)
+            return &plan->shape[i];
+    return NULL;
+}
+
+struct RegionTilePos GetCountyRouteHalfTile(u32 county, u32 neighbor, u32 index)
+{
+    const struct HalfShape *shape = FindShape(county, neighbor);
+
+    AGB_ASSERT(shape != NULL && index < ShapeTileCount(shape));
+    if (shape == NULL)
+        return GetLocationPos(county, 0);
+    return ShapeHalfTile(shape, index);
+}
+
+u32 GetCountyIntraRouteTileCount(u32 county, u32 specialIndex)
+{
+    const struct HalfShape *shape = FindShape(county, ROUTE_ID_TO_SPECIAL(specialIndex));
+
+    return shape == NULL ? 0 : ShapeTileCount(shape);
+}
+
+struct RegionTilePos GetCountyIntraRouteTile(u32 county, u32 specialIndex, u32 index)
+{
+    const struct HalfShape *shape = FindShape(county, ROUTE_ID_TO_SPECIAL(specialIndex));
+
+    AGB_ASSERT(shape != NULL && index < ShapeTileCount(shape));
+    if (shape == NULL)
+        return GetLocationPos(county, 0);
+    return ShapeHalfTile(shape, index);
 }

@@ -51,6 +51,17 @@ static u32 GetCountyRouteMask(u32 countyId)
             mask |= 1u << LocalTileOfRegionCell(pos.x, pos.y);
         }
     }
+    for (i = 0; i < tiles->numSpecials; i++)
+    {
+        u32 j;
+
+        for (j = 0; j < GetCountyIntraRouteTileCount(countyId, i); j++)
+        {
+            struct RegionTilePos pos = GetCountyIntraRouteTile(countyId, i, j);
+
+            mask |= 1u << LocalTileOfRegionCell(pos.x, pos.y);
+        }
+    }
     if (tiles->cityTile != NO_TILE)
         mask &= ~(1u << tiles->cityTile);
     return mask;
