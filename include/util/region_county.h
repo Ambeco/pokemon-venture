@@ -97,7 +97,8 @@ struct CountyHeader
     u32 population:2;       // 0 = no settlement, 1 village, 2 town, 3 city
     u32 keyId:3;            // jump ordinal 1-7 whose key this county holds, 0 = none; its lock is at storyIdx + 1
     u32 port:1;
-    u32 reserved:7;
+    u32 enclaveOnly:1;      // reserved end-game county holding only Enclaves: no city, no routes (design.md, "Enclaves")
+    u32 reserved:6;
 } __attribute__((packed));
 
 STATIC_ASSERT(sizeof(struct CountyHeader) == 3, CountyHeaderIs3Bytes);
@@ -129,6 +130,8 @@ u32 GetCountyByStoryIdx(u32 idx);
 u32 GetEliteFourStoryIdx(void);
 
 bool32 IsCountyReserved(u32 countyId);
+
+bool32 IsCountyEnclaveOnly(u32 countyId);
 
 bool32 IsCountyEliteFour(u32 countyId);
 

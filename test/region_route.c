@@ -442,10 +442,13 @@ TEST("RegionRoute: Every county routes to its capital neighbor, its story-index 
                 continue;
             if (b == region->capital || GetCountyHeader(a)->storyIdx + 1 == GetCountyHeader(b)->storyIdx
                 || GetCountyHeader(b)->storyIdx + 1 == GetCountyHeader(a)->storyIdx)
-                EXPECT(DoCountiesHaveRoute(a, b));
+                EXPECT_EQ(DoCountiesHaveRoute(a, b), !IsCountyEnclaveOnly(a) && !IsCountyEnclaveOnly(b));
             routes += DoCountiesHaveRoute(a, b);
         }
-        EXPECT_GT(routes, 0);
+        if (IsCountyEnclaveOnly(a))
+            EXPECT_EQ(routes, 0);
+        else
+            EXPECT_GT(routes, 0);
     }
 }
 

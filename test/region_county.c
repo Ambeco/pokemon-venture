@@ -139,6 +139,20 @@ TEST("RegionCounty: Spare header bits are zero")
         EXPECT_EQ((u32)GetCountyHeader(i)->reserved, 0);
 }
 
+TEST("RegionCounty: Enclave-only counties are reserved, cityless, and not the capital")
+{
+    u32 i;
+
+    for (i = 0; i < NUM_COUNTIES; i++)
+    {
+        if (!IsCountyEnclaveOnly(i))
+            continue;
+        EXPECT(IsCountyReserved(i));
+        EXPECT_EQ((u32)GetCountyHeader(i)->population, 0);
+        EXPECT(i != GetRegionHeader()->capital);
+    }
+}
+
 TEST("RegionCounty: Biomes expand through the subset into the 25-biome grid")
 {
     const struct RegionHeader *region = GetRegionHeader();

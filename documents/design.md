@@ -53,7 +53,7 @@ A few special locations are reserved for legendaries: 2-3 after roughly the 7th 
 
 An Enclave is a special location with no routes and no route-story-index, reached only by an NPC script (a boat, a ticket), such as Southern Island. It is a third place class alongside landmark/detour/pitstop (below), and not a route tile.
 
-- A reserved end-game county may hold only an Enclave. That county then has no city and no routes at all, and no county-story-index neighbor rule applies to it. It is unlocked like any county: the main plot planner places its unlock at step 3 of another county's block. Every port city lists the Enclave as a destination once the story has passed that unlock point, so the destination menu is the only access.
+- A reserved end-game county may hold only Enclaves (a layer-2 header flag, `enclaveOnly`). Enclaves are not on the region-map screen. That county then has no city and no routes at all, and no county-story-index neighbor rule applies to it. It is unlocked like any county: the main plot planner places its unlock at step 3 of another county's block. Every port city lists the Enclave as a destination once the story has passed that unlock point, so the destination menu is the only access.
 - Any other county may also hold Enclaves, but must have at least one non-Enclave special location (or a city), so it keeps something routable.
 - An Enclave never counts as the county's ordinary special location, and McGuffins never depend on it.
 
@@ -118,7 +118,7 @@ Special locations are either inside a city or outside one (mirroring mainline ga
 
 Outside-city places come in three classes, a property of the individual place rather than of its kind (Rock Tunnel and Dark Tunnel are both tunnels):
 
-- Landmark: anything with a map icon. Has coordinates and is routed like any location, and also appears on the region-map screen (Mt. Chimney, Southern Island, Mt. Pyre, Viridian Forest, Mt. Moon, Rock Tunnel, Power Plant, Seafoam Islands, Victory Road).
+- Landmark: anything with a map icon. Has coordinates and is routed like any location, and also appears on the region-map screen (Mt. Chimney, Mt. Pyre, Viridian Forest, Mt. Moon, Rock Tunnel, Power Plant, Seafoam Islands, Victory Road).
 - Detour: has coordinates and is routed identically, but does not appear on the map (Dark Tunnel, Bill's House).
 - Pitstop: not a location as far as the headers and route placement are concerned. Pitstops are placed after the routes are final, on route region tiles that are otherwise empty (no location, no other pitstop), and are dealt out to counties by a coprime stride over the pitstop list, so none repeats. Because they sit on existing routes, they need no routes of their own, which keeps the number of intra-county routes (and so route de-overlapping) down: roadside stops and similar small places should be pitstops rather than detours.
 - Classifying a place: anything with a map icon is a landmark. A route end that is not a city, landmark or another route is always a detour, and so is a place where a route ends at another route. The remaining places are mostly pitstops, and a few of the more interesting ones are bumped up to detours by hand.

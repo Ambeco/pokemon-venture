@@ -1,7 +1,7 @@
 // Hardcoded Emerald tile roles (design.md, "Development approach", stage 2). Which places go in
 // which county is in Emerald.md; positions inside a county are placeholders nudged toward Hoenn.
 // A special location's kind decides whether it is inside the city (then it must sit on the city's
-// tile) or outside (then it is also a route tile). Route tiles come from region_route.c. Landmarks are the places with a map icon in Emerald (Mt. Chimney, Mt. Pyre, Southern Island, Safari Zone, Battle Frontier). Pitstops are the default. Detours are the cityless counties' routed places (Meteor Falls, Shoal Cave, Route 119, Route 117) the story dungeons (Magma and Aqua Hideouts, Sky Pillar, Seafloor Cavern, New Mauville) and a few interesting ones that also give a crowded county more route tiles for its pitstops (Sealed Chamber, Mirage Tower, Desert Ruins).
+// tile) or outside (then it is also a route tile). Route tiles come from region_route.c. Landmarks are the places with a map icon in Emerald (Mt. Chimney, Mt. Pyre, Safari Zone). Enclaves are the script-only places (Southern Island, Mirage Island, Battle Frontier, Artisan Cave). Pitstops are the default. Detours are the cityless counties' routed places (Meteor Falls, Shoal Cave, Route 119, Route 117) the story dungeons (Magma and Aqua Hideouts, Sky Pillar, Seafloor Cavern, New Mauville) and a few interesting ones that also give a crowded county more route tiles for its pitstops (Sealed Chamber, Mirage Tower, Desert Ruins).
 
 #define NO_TILE 0xFF
 
@@ -13,6 +13,7 @@
 #define SPECIAL(lx, ly, sec, kind)  {T(lx, ly), sec, kind, LOCATION_CLASS_TOWN}
 #define LANDMARK(lx, ly, sec, kind) {T(lx, ly), sec, kind, LOCATION_CLASS_LANDMARK}
 #define DETOUR(lx, ly, sec, kind)   {T(lx, ly), sec, kind, LOCATION_CLASS_DETOUR}
+#define ENCLAVE(lx, ly, sec, kind)  {T(lx, ly), sec, kind, LOCATION_CLASS_ENCLAVE}
 #define PITSTOP(sec, kind)          {NO_TILE, sec, kind, LOCATION_CLASS_PITSTOP}
 
 struct SpecialTile
@@ -71,9 +72,9 @@ static const struct CountyTiles sEmeraldTiles[NUM_COUNTIES] =
     [COUNTY_ID(1, 3)] = {T(2, 2), MAPSEC_LITTLEROOT_TOWN, 1, {PITSTOP(MAPSEC_ABANDONED_SHIP, ROUTE_LOCATION_WRECK)}},
     [COUNTY_ID(2, 3)] = {T(2, 1), MAPSEC_SLATEPORT_CITY, 1, {SPECIAL(2, 1, MAPSEC_SLATEPORT_CITY, TOWN_LOCATION_MUSEUM)}},
     [COUNTY_ID(3, 3)] = {NO_TILE, MAPSEC_NONE, 2,
-        {DETOUR(2, 2, MAPSEC_SEALED_CHAMBER, ROUTE_LOCATION_UNDERWATER), LANDMARK(3, 3, MAPSEC_SOUTHERN_ISLAND, ROUTE_LOCATION_ISLAND)}},
+        {DETOUR(2, 2, MAPSEC_SEALED_CHAMBER, ROUTE_LOCATION_UNDERWATER), ENCLAVE(3, 3, MAPSEC_SOUTHERN_ISLAND, ROUTE_LOCATION_ISLAND)}},
     [COUNTY_ID(4, 3)] = {T(2, 2), MAPSEC_PACIFIDLOG_TOWN, 1, {DETOUR(3, 1, MAPSEC_SKY_PILLAR, ROUTE_LOCATION_TOWER)}},
     [COUNTY_ID(5, 3)] = {NO_TILE, MAPSEC_NONE, 3,
-        {PITSTOP(MAPSEC_MIRAGE_ISLAND, ROUTE_LOCATION_ISLAND), LANDMARK(2, 2, MAPSEC_BATTLE_FRONTIER, ROUTE_LOCATION_ISLAND),
-         PITSTOP(MAPSEC_ARTISAN_CAVE, ROUTE_LOCATION_CAVE)}},
+        {ENCLAVE(1, 2, MAPSEC_MIRAGE_ISLAND, ROUTE_LOCATION_ISLAND), ENCLAVE(2, 2, MAPSEC_BATTLE_FRONTIER, ROUTE_LOCATION_ISLAND),
+         ENCLAVE(3, 2, MAPSEC_ARTISAN_CAVE, ROUTE_LOCATION_CAVE)}},
 };

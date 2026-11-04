@@ -110,7 +110,7 @@ TEST("RegionCity: Inside-city special locations share the city's tile and outsid
             }
             else
             {
-                EXPECT_EQ(flags, TILE_ROUTE | TILE_SPECIAL);
+                EXPECT_EQ(flags, loc.locationClass == LOCATION_CLASS_ENCLAVE ? TILE_SPECIAL : (TILE_ROUTE | TILE_SPECIAL));
             }
         }
     }

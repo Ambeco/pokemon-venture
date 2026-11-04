@@ -99,7 +99,7 @@ TEST("RegionTile: Special locations are distinct tiles, and a route tile is shar
             u32 flags = GetRegionTileFlags(a.pos.x, a.pos.y);
 
             EXPECT(flags & TILE_SPECIAL);
-            EXPECT_EQ((flags & TILE_ROUTE) != 0, !IsSpecialLocationKindInsideCity(a.kind));
+            EXPECT_EQ((flags & TILE_ROUTE) != 0, !IsSpecialLocationKindInsideCity(a.kind) && a.locationClass != LOCATION_CLASS_ENCLAVE);
             for (j = i + 1; j < GetCountySpecialLocationCount(id); j++)
             {
                 struct SpecialLocation b = GetCountySpecialLocation(id, j);
@@ -206,17 +206,27 @@ TEST("RegionTile: A pitstop sits on a free route tile; every county with locatio
     for (id = 0; id < NUM_COUNTIES; id++)
     {
         u32 routed = DoesCountyHaveCity(id);
+        u32 enclaves = 0;
 
         for (i = 0; i < GetCountySpecialLocationCount(id); i++)
         {
             struct SpecialLocation s = GetCountySpecialLocation(id, i);
 
-            routed += s.locationClass != LOCATION_CLASS_PITSTOP;
+            routed += s.locationClass != LOCATION_CLASS_PITSTOP && s.locationClass != LOCATION_CLASS_ENCLAVE;
+            enclaves += s.locationClass == LOCATION_CLASS_ENCLAVE;
             EXPECT_EQ(IsSpecialLocationKindInsideCity(s.kind), s.locationClass == LOCATION_CLASS_TOWN);
             if (s.locationClass == LOCATION_CLASS_PITSTOP)
                 EXPECT_EQ(GetRegionTileFlags(s.pos.x, s.pos.y), TILE_ROUTE | TILE_SPECIAL);
+            if (s.locationClass == LOCATION_CLASS_ENCLAVE)
+                EXPECT_EQ(GetRegionTileFlags(s.pos.x, s.pos.y), TILE_SPECIAL);
         }
-        if (GetCountySpecialLocationCount(id) != 0)
+        if (IsCountyEnclaveOnly(id))
+        {
+            EXPECT_EQ(routed, 0);
+            EXPECT_EQ(enclaves, GetCountySpecialLocationCount(id));
+            EXPECT_EQ(GetCountyRouteTileCount(id), 0);
+        }
+        else if (GetCountySpecialLocationCount(id) != 0)
             EXPECT_GT(routed, 0); // the cityless-county pitstop fallback is not implemented
     }
 }
@@ -226,4 +236,5 @@ TEST("RegionTile: Only landmarks are on the map")
     EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_LANDMARK}), TRUE);
     EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_DETOUR}), FALSE);
     EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_PITSTOP}), FALSE);
+    EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_ENCLAVE}), FALSE);
 }

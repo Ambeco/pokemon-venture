@@ -3,10 +3,12 @@
 #include "region_route.h"
 
 // Location 0 is the city when the county has one, then the landmarks and detours in table order.
-// Pitstops are placed after routes, so routes never see them.
+// Pitstops are placed after routes, so routes never see them; enclaves have no routes.
 static bool32 IsRoutedSpecial(u32 countyId, u32 index)
 {
-    return GetCountySpecialLocationClass(countyId, index) != LOCATION_CLASS_PITSTOP;
+    u32 locationClass = GetCountySpecialLocationClass(countyId, index);
+
+    return locationClass != LOCATION_CLASS_PITSTOP && locationClass != LOCATION_CLASS_ENCLAVE;
 }
 
 static u32 GetLocationCount(u32 countyId)
@@ -53,7 +55,7 @@ static bool32 CountyRoutesTo(u32 county, u32 neighbor)
     {
         u32 otherIdx = GetCountyHeader(other)->storyIdx;
 
-        if (!AreCountiesAdjacent(county, other))
+        if (!AreCountiesAdjacent(county, other) || IsCountyEnclaveOnly(other))
             continue;
         if (other == region->capital || otherIdx + 1 == storyIdx || otherIdx == storyIdx + 1)
         {
@@ -72,7 +74,8 @@ static bool32 CountyRoutesTo(u32 county, u32 neighbor)
 
 bool32 DoCountiesHaveRoute(u32 countyA, u32 countyB)
 {
-    return AreCountiesAdjacent(countyA, countyB) && (CountyRoutesTo(countyA, countyB) || CountyRoutesTo(countyB, countyA));
+    return AreCountiesAdjacent(countyA, countyB) && !IsCountyEnclaveOnly(countyA) && !IsCountyEnclaveOnly(countyB)
+        && (CountyRoutesTo(countyA, countyB) || CountyRoutesTo(countyB, countyA));
 }
 
 bool32 GetCountyPairRouteEndpoints(u32 countyA, u32 countyB, struct RegionTilePos *posA, struct RegionTilePos *posB)

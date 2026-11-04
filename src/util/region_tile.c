@@ -40,6 +40,7 @@ static u32 GetCountyRouteMask(u32 countyId)
     for (i = 0; i < tiles->numSpecials; i++)
     {
         if (tiles->specials[i].locationClass != LOCATION_CLASS_PITSTOP
+            && tiles->specials[i].locationClass != LOCATION_CLASS_ENCLAVE
             && !IsSpecialLocationKindInsideCity(tiles->specials[i].kind))
             mask |= 1u << tiles->specials[i].tile;
     }

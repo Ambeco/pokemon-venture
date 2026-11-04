@@ -75,13 +75,15 @@ enum TownLocationKind
 
 // A property of the place, not of its kind (design.md, "Special locations"). Landmarks and detours are
 // routed; only landmarks appear on the region-map screen. A pitstop is placed on a free route tile
-// after routes are final, so routes never see it.
+// after routes are final, so routes never see it. An enclave has a tile but is neither routed nor a
+// route tile, and is not on the map.
 enum LocationClass
 {
     LOCATION_CLASS_TOWN, // inside a city
     LOCATION_CLASS_LANDMARK,
     LOCATION_CLASS_DETOUR,
     LOCATION_CLASS_PITSTOP,
+    LOCATION_CLASS_ENCLAVE, // no routes; reached by script (design.md, "Enclaves")
 };
 
 struct SpecialLocation

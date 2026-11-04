@@ -56,6 +56,11 @@ bool32 IsCountyReserved(u32 countyId)
     return GetCountyHeader(countyId)->storyIdx > GetEliteFourStoryIdx();
 }
 
+bool32 IsCountyEnclaveOnly(u32 countyId)
+{
+    return GetCountyHeader(countyId)->enclaveOnly;
+}
+
 bool32 IsCountyEliteFour(u32 countyId)
 {
     return GetCountyHeader(countyId)->storyIdx == GetEliteFourStoryIdx();
