@@ -151,13 +151,13 @@ Ordinary caves are outside only; the Cave of Origin, Hoenn's single in-city cave
 | Pokémon Daycare | Route 117 | outside | roadside building |
 | Seafloor Cavern | Route 128 | outside | underwater |
 | Sealed Chamber | Route 134 | outside | underwater |
-| Southern Island | Southern Hoenn | outside | island |
+| Southern Island | Southern Hoenn | Enclave (boat/Eon Ticket) | island |
 | Abandoned Ship | Route 108 | outside | wreck |
 | Granite Cave | Route 106 | outside | cave |
 | Sky Pillar | North of Route 131 | outside | tower |
-| Mirage Island | Route 130 | outside | island |
-| Battle Frontier | South of Route 130 | outside | island |
-| Artisan Cave | Battle Frontier | outside | cave |
+| Mirage Island | Route 130 | Enclave (script) | island |
+| Battle Frontier | South of Route 130 | Enclave (boat) | island |
+| Artisan Cave | Battle Frontier | Enclave (inside Battle Frontier) | cave |
 | Victory Road | By Ever Grande | outside | tunnel |
 | Birch's Lab | Littleroot | inside | institution |
 | Devon Corporation | Rustboro | inside | institution |

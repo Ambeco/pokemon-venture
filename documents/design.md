@@ -36,7 +36,7 @@ This forces single-pass generation with no recursion or transitive operations, a
 - Each county is 5x4 "region tiles" (5 wide, 4 tall). A region tile is one cell of the Hoenn region map, which is 28x15 cells (`MAP_WIDTH`/`MAP_HEIGHT` in `src/field/region_map.c`; cell contents in `src/data/region_map/region_map_layout.h`).
 - 6x4 counties of 5x4 tiles is 30x16, so the first tile column of the first county column, the last tile column of the last county column, and the top tile row of the top county row are off limits, leaving 28x15. The top row is dropped (not the bottom) because the city name overlay covers the top-right 13x1 tiles and the Nav covers the bottom-right 13x2 tiles, so this leaves both the top and bottom counties 2 usable rows in those corners, where dropping the bottom would leave the bottom-right county only 1. The 6x4 grid of 5x4-tile counties was chosen over the inverse (5x4 counties of 6x4 tiles) because it yields more locations on the map and shorter routes between them.
 - If a county's population is above zero, it places a settlement at a random region tile, except that the county's bottom row and rightmost column are excluded (unless the county is in the bottom row or rightmost column of counties), which keeps space between cities. Population is 0-3 (2 bits); population 0 never generates a city.
-- Every county always has a special location (a landmark or detour; a pitstop only as the emergency fallback below), whether or not it has a city.
+- Every county always has a special location (a landmark or detour; a pitstop only as the emergency fallback below), whether or not it has a city. A reserved end-game county may instead hold only an Enclave (see Enclaves).
 - Some counties instead hold a reserved end-game special location (see Reserved legendary locations). Layer 2 reserves them while assigning county-story-indices, so they are known before layer 3 places anything.
 - With a city, the special location is placed either in or adjacent to the city (50%), or on a random non-adjacent region tile (50%).
 - Without a city (population 0), the special location is necessarily not in a city, and it is what routes attach to.
@@ -48,6 +48,14 @@ A few special locations are reserved for legendaries: 2-3 after roughly the 7th 
 - If the county has a city, routes are generated for the city as if the reserved location did not exist, then one extra route runs from the city to the reserved location. That route and the location get end-game route-story-indices (100+), above every ordinary index.
 - If the county has no city, routes generate as normal, and the reserved location is the county's ordinary special location and what routes attach to.
 - In a county with a city, McGuffins gating progress out of the county require only the city's subplot, never the reserved location's. The reserved location is an optional dead end.
+
+### Enclaves
+
+An Enclave is a special location with no routes and no route-story-index, reached only by an NPC script (a boat, a ticket), such as Southern Island. It is a third place class alongside landmark/detour/pitstop (below), and not a route tile.
+
+- A reserved end-game county may hold only an Enclave. That county then has no city and no routes at all, and no county-story-index neighbor rule applies to it. For now it is unlocked from any port city (the ferry mechanism of "Ports"); a proper per-Enclave unlock is future work.
+- Any other county may also hold Enclaves, but must have at least one non-Enclave special location (or a city), so it keeps something routable.
+- An Enclave never counts as the county's ordinary special location, and McGuffins never depend on it.
 
 ### Settlement types
 
