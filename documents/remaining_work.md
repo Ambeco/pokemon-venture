@@ -94,7 +94,7 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 ### Milestone 10: Cities and special locations randomized within each county
 
 - Layer-3 placement (city placement away from county edges, special location rules, themes, names, island formation) and layer-4 route generation; generated region-map display, fly points, and name popups.
-- Enclaves (design.md, "Enclaves"): implement the Enclave class in layer 2/3 (Enclave-only end-game counties, the at-least-one-non-Enclave rule elsewhere), the any-port unlock stub (should fail loudly if no port exists), and a real per-Enclave unlock; the Emerald tables still list Southern Island, Mirage Island and the Battle Frontier as routed.
+- Enclaves (design.md, "Enclaves"): implement the Enclave class in layer 2/3 (Enclave-only end-game counties, the at-least-one-non-Enclave rule elsewhere), the planner unlock plot point for each Enclave county, the port destination menu that checks it (should fail loudly if the region has no port), and a more specific per-Enclave access mechanism later; the Emerald tables still list Southern Island, Mirage Island and the Battle Frontier as routed.
 - Reserved legendary locations: write the separate algorithm that picks which reserved county is the solo post-Elite-Four one and ties the other 2-3 into the gym order (gym order need not follow county-story-index, and reserved counties hold the last indices, after the Elite Four's). Also decide how a county without an index is reached, since it lacks the usual lower neighbor route, and what step 5's "about 19" is exactly (24 counties = 20 indices 0-19, Elite Four, and 3 reserved).
 
 ### Milestone 11: Procedural county-story-indices
