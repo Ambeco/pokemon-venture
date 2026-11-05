@@ -626,7 +626,7 @@ Only subplot beats need converting; trainer text, item pickups, trainer-defeated
 
 Defined for the end state, not for Emerald, so NPC talk never needs redesign:
 
-- Subplot descriptor: linear stages; per stage the hint texts, story-state texts and trigger place (by role); the requirements above; rewards; and the key/lock it produces. A subplot that unlocks a location describes its output as a key for the gates on the routes into that location, not as "unlock X". A subplot supplies its own blocker scripts (the person who stands in the way, with texts) for now.
+- Subplot descriptor: linear stages; per stage the hint texts, story-state texts and trigger place (by role) (hints are the six distance-by-state lists of "City planning"); the requirements above; rewards; and the key/lock it produces. A subplot that unlocks a location describes its output as a key for the gates on the routes into that location, not as "unlock X". A subplot supplies its own blocker scripts (the person who stands in the way, with texts) for now.
 - Stage accessor: reads and writes a subplot's stage by slot (the county's reserved vars, see "Story state storage"), never by subplot identity, so moving a subplot moves no state. A subplot that is a main-plot step has no state of its own: not started or current comes from the main-story-index (see "Main plot planner"), and done or partly done from the county's completion mask. Subplots internal to a county use that county's reserved vars. Callers cannot tell the difference. The main-story-index is not maintained until the main arc is ported (Milestone 3), so until then main-line stages come from the adapter over Emerald's vars.
 - Built so far (, , hosts in , tests in ):  (stages with hint and state text, trigger role, done-predicate for adapter stages; required roles, minimum badges and produced key), / by (county, slot) over the county slice (var 0 of a slice is the completion mask, vars 1-3 are slots; only counties whose slice is free of legacy vars can host),  as the NPC-talk query, and the script specials / (VAR_0x8004 = slot, county from the current map's MAPSEC, a city for now). The Lilycove Museum exhibit hall (county (4,0), slot 0) is the first ported subplot. Adapter subplots reuse  and are read-only. Requirements, produced keys and parameterized hints are declared but not yet consumed.
 - NPC-talk query: reads only descriptor, accessor and placement, and returns the text to say. It cannot tell a ported subplot from an adapter-backed one.
@@ -658,6 +658,23 @@ Checked against Petalburg gym/Surf, Devon Goods and Granite Cave/Flash in Emeral
 - Placeholder NPC objects per host map: 2 for each building role, 3 for a gym, 1 for a service building (its own NPC is fixed), 4 for a city's outdoor map, none for routes. The 16 shared `VAR_OBJ_GFX_ID_*` vars are set by the host map's on-transition script, so the limit is per map, not per game; a city map already spends 1-2 of them on the rival, so 4 is well inside it. Placeholders hide through temp flags (cleared on map load), so they cost no saved flags.
 - Runtime NPC spawning is needed only for cutscene actors (an NPC runs up to the player and off again), because a generated route or city has no object in the right place. The generic cutscene runner builds an object template at runtime and spawns it (`SpawnSpecialObjectEvent`, as the player avatar does); to be confirmed when the runner is written. Subplot NPCs inside buildings never spawn at runtime: placeholders cover them, and the rejected alternative below explains why.
 - Route hint NPCs (Milestone 1) are not decided here.
+
+### City planning
+
+A city is laid out by its county (layer 5/6), in this order. Steps 5-8 are what the subplot descriptor's hint and actor fields serve.
+
+1. Districts: usually one district covers the whole city. A subplot may ask for two, separated by obstacles and one narrow choke point closed by a lock (usually an NPC, or an HM or item). The planner must know which routes the player can enter yet (from the story indices), and every route entrance must be in the first district. The second district either touches no route, or guards routes the player cannot reach yet: the inner-county routes when the city is entered from an inter-county route, or the way on to the next county when leaving.
+2. Paths connect the routes. Large cities get rectangular city blocks, possibly several tiles wide; small towns get meandering paths one tile wide.
+3. Buildings (including city special locations) are placed against paths without covering one, and the path must reach their door. Buildings may shift paths slightly if connectivity is kept, unless that costs too much time. Placing a building also decides how many generic NPCs it holds.
+4. Decoration fills the space between buildings: paving, dirt, grass, flowers, rocks. Paths are usually paved in cities and dirt in towns, with grass in villages.
+5. One hinter NPC per main-story slot hosted in the county.
+6. Each subplot in the county (not only in the city) may place hinters: a subplot outside the city may want none, and one inside may want hinters for a few of its stages.
+7. More generic NPCs fill out the population.
+8. Each subplot hosted by this city may place actor NPCs, which the owning subplot controls entirely.
+
+Generic NPCs get context about where they are and say a random matching line ("This is my brother!", "The flowers in this city smell wonderful!").
+
+Hint texts: every main-story slot and subplot has six lists, by distance (far: the NPC is in another city or county; close: the NPC is at the place) and by story state (before, current, after). Far-and-current is "I heard Team Rocket took over Celadon..."; close-and-current is "What are those guys doing there?"; close-and-after is "You saved us!". An empty list for the current distance and state falls back to generic NPC text. An NPC says the same thing every time while the state holds. The lists let different cities give different hints; the close lists need not be lists.
 
 ### NPC dialogue
 

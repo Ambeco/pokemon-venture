@@ -26,6 +26,8 @@ Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design.md, 
 - Once the descriptor and McGuffin abstraction exist, also abstract Kanto's subplots and McGuffins (`data/maps/*_Frlg` scripts, `src/data/trainers_frlg.*`; notes.md) and add them to the subplot and McGuffin lists.
 - Done when: the accessor and adapter pass tests, one subplot is ported (Lilycove Museum, met), and the NPC-talk query returns the right stage for it. The swap itself is Milestone 2's done-when.
 
+- Rework `SubplotStage` hint text into the six distance-by-state lists (design.md, "City planning"), add actor and hinter placement hooks, and write the city planner's hinter steps; the two-district split (step 1) needs the route-entry knowledge from the story indices.
+
 ### Milestone 1: NPC texts shuffled, still hinting the current arcs and subplot
 
 Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when subplots are ported.
