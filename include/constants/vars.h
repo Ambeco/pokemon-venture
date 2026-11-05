@@ -76,7 +76,7 @@
 
 // legacy: Emerald story vars not yet retired. They overlay the last county slices and the reserve
 // until the main arc and subplots are ported; retiring one frees its address for county use.
-#define LEGACY_VARS_COUNT          62
+#define LEGACY_VARS_COUNT          61
 #define LEGACY_VARS_START          (RESERVED_VARS_END + 1 - LEGACY_VARS_COUNT)
 #define LEGACY_VARS_END            RESERVED_VARS_END
 
@@ -237,7 +237,7 @@
 #define VAR_BRINEY_HOUSE_STATE                           (LEGACY_VARS_START + 0x19)
 #define VAR_LITTLEROOT_INTRO_STATE                       (LEGACY_VARS_START + 0x1A)
 #define VAR_MAUVILLE_GYM_STATE                           (LEGACY_VARS_START + 0x1B)
-#define VAR_LILYCOVE_MUSEUM_2F_STATE                     (LEGACY_VARS_START + 0x1C)
+#define VAR_GIFT_UNUSED_7                                (LEGACY_VARS_START + 0x1C) // var is written to, but never read
 #define VAR_BRINEY_LOCATION                              (LEGACY_VARS_START + 0x1D)
 #define VAR_PETALBURG_WOODS_STATE                        (LEGACY_VARS_START + 0x1E)
 #define VAR_RUSTURF_TUNNEL_STATE                         (LEGACY_VARS_START + 0x1F)
@@ -270,7 +270,6 @@
 #define VAR_GIFT_UNUSED_4                                (LEGACY_VARS_START + 0x3A) // Var is written to, but never read
 #define VAR_GIFT_UNUSED_5                                (LEGACY_VARS_START + 0x3B) // Var is written to, but never read
 #define VAR_GIFT_UNUSED_6                                (LEGACY_VARS_START + 0x3C) // Var is written to, but never read
-#define VAR_GIFT_UNUSED_7                                (LEGACY_VARS_START + 0x3D) // var is written to, but never read
 
 #define VARS_END                                         0x40FF
 #define VARS_COUNT                                       (VARS_END - VARS_START + 1)

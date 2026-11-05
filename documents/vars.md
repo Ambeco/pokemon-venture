@@ -2,7 +2,7 @@
 
 Inventory of Emerald's saved vars (`include/constants/vars.h`, `0x4000`-`0x40FF`), for allocating story-state regions (design.md, "Story state storage"). Counts are word-matches of `VAR_*` in `data/`, `src/`, `test/` and `include/` (excluding `vars.h`). Usage descriptions come from names, comments and reference counts; verify the code before merging or repurposing any var. `vars_frlg.h` defines a second, overlapping FRLG var set (same addresses, `_FRLG` names) that no Emerald-build code references; ignore it.
 
-Totals: 16 temp + 16 object-GFX vars (not persistent), 224 persistent vars `0x4020`-`0x40FF`, each in exactly one bucket: 56 free now, 10 freeable with a trivial edit, 106 keep (65 minigame/facility + 41 engine), 52 retire (39 main arc + 13 subplot). The 106 keep vars are the size of the minigame and engine blocks; `test/vars.c` lists every persistent var with its block.
+Totals: 16 temp + 16 object-GFX vars (not persistent), 224 persistent vars `0x4020`-`0x40FF`, each in exactly one bucket: 56 free now, 10 freeable with a trivial edit, 106 keep (65 minigame/facility + 41 engine), 52 retire (39 main arc + 13 subplot; 1 already retired). The 106 keep vars are the size of the minigame and engine blocks; `test/vars.c` lists every persistent var with its block.
 
 ## Free now (56, no references anywhere)
 
@@ -52,14 +52,14 @@ Rule (design.md, "Story state storage"): content with a lot of non-script code (
 
 Rival, Birch, Aqua/Magma, Devon, Wally, Elite Four and the other cross-county storylines: `BIRCH_STATE 4049`, `BIRCH_LAB_STATE 4084`, `LITTLEROOT_TOWN_STATE 4050`, `LITTLEROOT_HOUSES_STATE_MAY/BRENDAN 4082/408C`, `LITTLEROOT_RIVAL_STATE 408D`, `LITTLEROOT_INTRO_STATE 4092`, `OLDALE_TOWN_STATE 4051`, `OLDALE_RIVAL_STATE 40C7`, `ROUTE101_STATE 4060`, `PETALBURG_GYM_STATE 4085` (also the implicit badge counter), `PETALBURG_CITY_STATE 4057`, `RUSTBORO_CITY_STATE 405A`, `SLATEPORT_CITY_STATE 4058`, `MOSSDEEP_CITY_STATE 405D`, `SOOTOPOLIS_CITY_STATE 405E` (67 refs, the busiest), `SOOTOPOLIS_WALLACE_STATE 40D8`, `MT_PYRE_STATE 40B9`, `DEVON_CORP_3F_STATE 408F`, `BRINEY_HOUSE_STATE 4090`, `BRINEY_LOCATION 4096`, `BOARD_BRINEY_BOAT_STATE 408E`, `STEVENS_HOUSE_STATE 40C6`, `SEAFLOOR_CAVERN_STATE 40A2`, `HAS_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT 40D9`, `SKY_PILLAR_STATE/RAYQUAZA_CRY_DONE 40CA/40D7`, `ELITE_4_STATE 409C`, `MAUVILLE_GYM_STATE 4093`, `LAVARIDGE_TOWN_STATE 4053`, `SCOTT_STATE 40D1`, `SCOTT_PETALBURG_ENCOUNTER 40C9`, `ROUTE104/110/116/118/119/121/128_STATE 4063/4069/406F/4071/4072/4074/407B`.
 
-## Retire as ported: city and special-location subplots (13, Milestones 1a and 2)
+## Retire as ported: city and special-location subplots (12 left, Milestones 1a and 2)
 
-`SLATEPORT_HARBOR_STATE 40A0`, `SLATEPORT_MUSEUM_1F_STATE 40AA`, `SLATEPORT_OUTSIDE_MUSEUM_STATE 40D2`, `LILYCOVE_MUSEUM_2F_STATE 4094`, `PETALBURG_WOODS_STATE 4098`, `RUSTURF_TUNNEL_STATE 409A`, `METEOR_FALLS_STATE 40BF`, `JAGGED_PASS_STATE 40C8`, `VICTORY_ROAD_1F_STATE 40C3`, `NEW_MAUVILLE_STATE 40BA`, `SOOTOPOLIS_MYSTERY_EVENTS_STATE 40C0`, `MOSSDEEP_SPACE_CENTER_STATE/STAIR_GUARD_STATE 409F/409E`. The location-bound minigames above stay as minigame-block vars instead of being retired.
+`SLATEPORT_HARBOR_STATE 40A0`, `SLATEPORT_MUSEUM_1F_STATE 40AA`, `SLATEPORT_OUTSIDE_MUSEUM_STATE 40D2`, `PETALBURG_WOODS_STATE 4098`, `RUSTURF_TUNNEL_STATE 409A`, `METEOR_FALLS_STATE 40BF`, `JAGGED_PASS_STATE 40C8`, `VICTORY_ROAD_1F_STATE 40C3`, `NEW_MAUVILLE_STATE 40BA`, `SOOTOPOLIS_MYSTERY_EVENTS_STATE 40C0`, `MOSSDEEP_SPACE_CENTER_STATE/STAIR_GUARD_STATE 409F/409E`. The location-bound minigames above stay as minigame-block vars instead of being retired.
 
 ## Slice size
 
 - Supply: 224 persistent vars - 106 keep = 118 for county slices and the story vars (the main-story-index plus about 4 optional-story vars, so 5).
 - Demand per county, from `Emerald.md` ("Per-county storage needs"): one completion mask plus at most 2 chain vars (Slateport and Lilycove; the Trick House's 5 moved to the minigame block), so 3. One whole var is left for authored subplots (not yet counted).
 - Result: 4 vars per county x 24 counties = 96, leaving 22 reserve (the 5 story vars, 17 spare). 5 per county (120) does not fit: 224 - 106 - 5 = 113 < 120.
-- Until the legacy vars (62 = 52 retire + 10 trivial) are retired, they occupy the last 40 county vars and the 22 reserve, so only the first 14 county slices are free to use.
+- Until the legacy vars (61 = 51 retire + 10 trivial) are retired, they occupy the last 40 county vars and the 22 reserve, so only the first 14 county slices are free to use.
 - Packing the keep vars (daily, Trick House, step counters, records, secret base, Frontier scratch: about 30 vars) would allow 5 per county; not planned.

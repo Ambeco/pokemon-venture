@@ -57,8 +57,15 @@ LilycoveCity_LilycoveMuseum_2F_EventScript_SetToughPainting::
 	end
 
 LilycoveCity_LilycoveMuseum_2F_OnFrame:
-	map_script_2 VAR_LILYCOVE_MUSEUM_2F_STATE, 0, LilycoveCity_LilycoveMuseum_2F_EventScript_ShowExhibitHall
+	map_script_2 VAR_TEMP_0, 0, LilycoveCity_LilycoveMuseum_2F_EventScript_CheckExhibitHall
 	.2byte 0
+
+LilycoveCity_LilycoveMuseum_2F_EventScript_CheckExhibitHall::
+	setvar VAR_TEMP_0, 1
+	setvar VAR_0x8004, 0
+	special GetCurrentSubplotStage
+	goto_if_eq VAR_RESULT, 0, LilycoveCity_LilycoveMuseum_2F_EventScript_ShowExhibitHall
+	end
 
 LilycoveCity_LilycoveMuseum_2F_EventScript_ShowExhibitHall::
 	lockall
@@ -76,11 +83,9 @@ LilycoveCity_LilycoveMuseum_2F_EventScript_ShowExhibitHall::
 	applymovement LOCALID_PLAYER, LilycoveCity_LilycoveMuseum_2F_Movement_PlayerWalkInPlaceLeft
 	waitmovement 0
 	msgbox LilycoveCity_LilycoveMuseum_2F_Text_PleaseObtainPaintingsForExhibit, MSGBOX_SIGN
-#ifdef UBFIX
-	setvar VAR_LILYCOVE_MUSEUM_2F_STATE, 1
-#else
-	copyvar VAR_LILYCOVE_MUSEUM_2F_STATE, 1, warn=FALSE
-#endif
+	setvar VAR_0x8004, 0
+	setvar VAR_0x8005, 1
+	special SetCurrentSubplotStage
 	releaseall
 	end
 
