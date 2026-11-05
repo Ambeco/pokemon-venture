@@ -4,7 +4,7 @@
 #include "region_county.h"
 #include "region_plot.h"
 
-#define SURF_BLOCK 12
+#define SURF_BLOCK 11
 #define ELITE      20
 
 // Vanilla ordinals start at 1 for these kinds, 0 for the rest.
@@ -29,9 +29,9 @@ static bool32 SlotInMask(struct PlotSlot slot)
         && (slot.kind == PLOT_KIND_ARC || slot.kind == PLOT_KIND_SCRIPTED || (mask & (1u << slot.host)));
 }
 
-TEST("RegionPlot: Generic gym and rival windows match the Emerald.md table for n = 12, E = 20")
+TEST("RegionPlot: Generic gym and rival windows match the Emerald.md table for n = 11, E = 20")
 {
-    static const u8 expected[][2] = {{1, 3}, {4, 6}, {7, 9}, {10, 11}, {12, 12}, {13, 15}, {16, 17}, {18, 19}, {20, 20}};
+    static const u8 expected[][2] = {{1, 3}, {4, 5}, {6, 8}, {9, 10}, {11, 11}, {12, 14}, {15, 17}, {18, 19}, {20, 20}};
     u32 i;
     struct PlotRange r;
 
@@ -46,13 +46,13 @@ TEST("RegionPlot: Generic gym and rival windows match the Emerald.md table for n
     r = GetPlotRange(PLOT_KIND_RIVAL, 2, SURF_BLOCK, ELITE);
     EXPECT_EQ(r.lo, 2); EXPECT_EQ(r.hi, 3);
     r = GetPlotRange(PLOT_KIND_RIVAL, 3, SURF_BLOCK, ELITE);
-    EXPECT_EQ(r.lo, 4); EXPECT_EQ(r.hi, 9);
+    EXPECT_EQ(r.lo, 4); EXPECT_EQ(r.hi, 8);
     r = GetPlotRange(PLOT_KIND_RIVAL, 4, SURF_BLOCK, ELITE);
-    EXPECT_EQ(r.lo, 10); EXPECT_EQ(r.hi, 12);
+    EXPECT_EQ(r.lo, 9); EXPECT_EQ(r.hi, 11);
     r = GetPlotRange(PLOT_KIND_RIVAL, 5, SURF_BLOCK, ELITE);
-    EXPECT_EQ(r.lo, 13); EXPECT_EQ(r.hi, 17);
+    EXPECT_EQ(r.lo, 12); EXPECT_EQ(r.hi, 17);
     r = GetPlotRange(PLOT_KIND_WALLY, 1, SURF_BLOCK, ELITE);
-    EXPECT_EQ(r.lo, 7); EXPECT_EQ(r.hi, 9);
+    EXPECT_EQ(r.lo, 6); EXPECT_EQ(r.hi, 8);
     r = GetPlotRange(PLOT_KIND_WALLY, 2, SURF_BLOCK, ELITE);
     EXPECT_EQ(r.lo, 20); EXPECT_EQ(r.hi, 20);
 }
@@ -101,7 +101,7 @@ TEST("RegionPlot: The water HM mask is the blocks where county x or x+1 is Ocean
     EXPECT_EQ(mask & 0x000FFFFE, GetPlotHmMask(PLOT_HM_SURF, ELITE));
 }
 
-TEST("RegionPlot: Every vanilla slot lies in its kind's range and mask except exceptions 1, 2 and 3")
+TEST("RegionPlot: Every vanilla slot lies in its kind's range and mask except exceptions 1, 2 and 3 (gym 4, Surf's mask, Strength) and the rival's")
 {
     u32 kind, ordinal, hm, rangeMisses = 0, maskMisses = 0;
 
@@ -110,15 +110,15 @@ TEST("RegionPlot: Every vanilla slot lies in its kind's range and mask except ex
         for (ordinal = FirstOrdinal(kind); ordinal < FirstOrdinal(kind) + GetPlotKindCount(kind); ordinal++)
         {
             struct PlotSlot slot = GetVanillaPlotSlot(kind, ordinal);
-            bool32 g6 = kind == PLOT_KIND_GYM && ordinal == 6;
+            bool32 expected = (kind == PLOT_KIND_GYM && ordinal == 4) || (kind == PLOT_KIND_RIVAL && ordinal == 4);
 
             if (!SlotInRange(slot))
             {
                 rangeMisses++;
-                EXPECT(g6);
+                EXPECT(expected);
             }
             else
-                EXPECT(!g6);
+                EXPECT(!expected);
             EXPECT(SlotInMask(slot));
         }
     }
@@ -141,7 +141,7 @@ TEST("RegionPlot: Every vanilla slot lies in its kind's range and mask except ex
             EXPECT_EQ(hm, PLOT_HM_SURF);
         }
     }
-    EXPECT_EQ(rangeMisses, 2); // gym 6 (with Fly) and Strength
+    EXPECT_EQ(rangeMisses, 3); // gym 4 (shares the Surf block), RB4 (after Shelly) and Strength
     EXPECT_EQ(maskMisses, 1);
 }
 
@@ -197,7 +197,7 @@ TEST("RegionPlot: Step-1 slots are hosted by their block's callback host, others
     }
     EXPECT_EQ(callbacks, 6);
     EXPECT_EQ(GetPlotCallbackHost(1), 0);
-    EXPECT_EQ(GetPlotCallbackHost(12), 2);
+    EXPECT_EQ(GetPlotCallbackHost(11), 2);
     EXPECT_EQ(GetPlotCallbackHost(14), 11);
     EXPECT_EQ(GetPlotCallbackHost(15), 5);
     EXPECT_EQ(GetPlotCallbackHost(19), 18);
@@ -287,12 +287,12 @@ static const struct Expected sExpected[] =
     {32, GYM(4, PLOT_HM_STRENGTH), TRUE},
     {40, ARC(3)},
     {44, ARC(4)}, {44, GYM(4, PLOT_HM_NONE)},
+    {45, GYM(5, PLOT_HM_SURF)},
     {46, PLOT_KIND_SPECIAL, PLOT_SPECIAL_GO_GOGGLES},
-    {48, PLOT_KIND_RIVAL, 4}, {48, PLOT_KIND_SPECIAL, PLOT_SPECIAL_DEVON_SCOPE},
-    {49, GYM(5, PLOT_HM_SURF)},
-    {50, GYM(6, PLOT_HM_FLY)},
-    {52, ARC(5)},
-    {54, UTIL(GOOD_ROD)},
+    {48, ARC(5)},
+    {50, PLOT_KIND_RIVAL, 4}, {50, UTIL(GOOD_ROD)},
+    {52, PLOT_KIND_SPECIAL, PLOT_SPECIAL_DEVON_SCOPE},
+    {54, GYM(6, PLOT_HM_FLY)},
     {56, ARC(6)},
     {57, ARC(7)},
     {60, PLOT_KIND_RIVAL, 5}, {60, UTIL(POKEBLOCK_CASE)},

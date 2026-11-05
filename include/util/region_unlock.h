@@ -19,7 +19,7 @@
  * Some vanilla unlocks have no get to name: the player is only expected to have passed somewhere.
  * Those are PLOT_UNLOCK_IMPLICIT, with an enum PlotImplicit saying which vanilla event stands in
  * for the key. An implicit key is not a planner item, so it is exempt from "a key is an item of its
- * own block" (Fortree's stand-in, the Route 119 rival, is a block 12 get).
+ * own block".
  *
  * Intra-county locks are the county's private choice (design.md, "Main plot planner", rules) and
  * come back as PLOT_UNLOCK_COUNTY_PRIVATE with the id of a McGuffin from the county's reserved pool.
@@ -48,7 +48,6 @@ enum PlotImplicit
 {
     PLOT_IMPLICIT_NONE,
     PLOT_IMPLICIT_FIERY_PATH_ENTERED, // Fallarbor: the way in is through Fiery Path
-    PLOT_IMPLICIT_ROUTE119_RIVAL,     // Fortree: the rival on Route 119 north (Fortree access in the walkthrough)
 };
 
 #define MCGUFFIN_IDS_PER_COUNTY    8 // at least MAX_SPECIAL_LOCATIONS_PER_COUNTY

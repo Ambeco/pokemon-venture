@@ -26,7 +26,7 @@ TEST("RegionUnlock: Every key is a vanilla item of its own block, before the unl
     }
 }
 
-TEST("RegionUnlock: Emerald's blockers are blocks 9 and 16, and Fallarbor and Fortree are implicit")
+TEST("RegionUnlock: Emerald's blockers are blocks 9 and 16, and Fallarbor is implicit")
 {
     u32 block;
 
@@ -36,10 +36,10 @@ TEST("RegionUnlock: Emerald's blockers are blocks 9 and 16, and Fallarbor and Fo
 
         if (block == 9 || block == 16)
             EXPECT_EQ(type, PLOT_UNLOCK_BLOCKER);
-        else if (block == 8 || block == 11)
+        else if (block == 8)
         {
             EXPECT_EQ(type, PLOT_UNLOCK_IMPLICIT);
-            EXPECT_EQ(GetPlotBlockUnlock(block).implicit, block == 8 ? PLOT_IMPLICIT_FIERY_PATH_ENTERED : PLOT_IMPLICIT_ROUTE119_RIVAL);
+            EXPECT_EQ(GetPlotBlockUnlock(block).implicit, PLOT_IMPLICIT_FIERY_PATH_ENTERED);
         }
         else
             EXPECT_EQ(type, PLOT_UNLOCK_KEYS);

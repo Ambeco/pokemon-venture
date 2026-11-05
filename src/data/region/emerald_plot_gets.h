@@ -104,9 +104,9 @@ static const struct PlotGetDesc sEmeraldHmGets[NUM_PLOT_HM_IDS] =
 };
 
 // Step-3 unlocks whose key is not a get of the same block's lists. Every other unlock's key is one
-// of those gets, and the two blockers (39, 67) have none, so they are done with the block. The two
-// implicit unlocks (35 Fallarbor, 47 Fortree) read the vanilla event that stands in for their key;
-// REPORTED, because the player can skip Fiery Path and Fortree's rival is a block 12 get.
+// of those gets, and the two blockers (39, 67) have none, so they are done with the block. The implicit
+// unlock (35 Fallarbor) reads the vanilla event that stands in for its key; REPORTED, because the
+// player can skip Fiery Path.
 struct PlotUnlockEntry
 {
     u8 index;
@@ -117,5 +117,4 @@ static const struct PlotUnlockEntry sEmeraldPlotUnlocks[] =
 {
     {15, GET(PLOT_GET_BLOCKING, FLAG_P(FLAG_RETURNED_DEVON_GOODS))}, // the Letter
     {35, GET(PLOT_GET_REPORTED, FLAG_P(FLAG_LANDMARK_FIERY_PATH))},
-    {47, GET(PLOT_GET_REPORTED, VAR_P(VAR_ROUTE119_STATE, 1))},
 };

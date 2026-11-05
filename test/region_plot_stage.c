@@ -45,10 +45,10 @@ static const struct Step sWalkthrough[] =
     SETF(FLAG_DELIVERED_STEVEN_LETTER, 24),
     SETV(VAR_ROUTE110_STATE, 1, 30),
     SETF(FLAG_BADGE03_GET, 44),
-    SETF(FLAG_BADGE04_GET, 48),
-    SETV(VAR_ROUTE119_STATE, 1, 49),
-    SETF(FLAG_BADGE05_GET, 49),
+    SETF(FLAG_BADGE04_GET, 45),
+    SETF(FLAG_BADGE05_GET, 45),
     SETF(FLAG_RECEIVED_HM_SURF, 50),
+    SETV(VAR_ROUTE119_STATE, 1, 54),
     SETF(FLAG_BADGE06_GET, 56),
     SETF(FLAG_RECEIVED_RED_OR_BLUE_ORB, 57),
     SETF(FLAG_GROUDON_AWAKENED_MAGMA_HIDEOUT, 61),
@@ -131,20 +131,20 @@ TEST("RegionPlotStage: A true later predicate does not skip an earlier undone li
     EXPECT_EQ(GetMainStoryIndex(), 0);
 }
 
-TEST("RegionPlotStage: Fly and Badge 6 granted with RB4 do not pass the Surf list")
+TEST("RegionPlotStage: Fly, RB4 and Badge 6 granted early do not pass the Surf list")
 {
     u32 i;
 
-    for (i = 0; i < ARRAY_COUNT(sWalkthrough) && sWalkthrough[i].expected < 48; i++)
+    for (i = 0; i < ARRAY_COUNT(sWalkthrough) && sWalkthrough[i].expected < 45; i++)
         Apply(&sWalkthrough[i]);
     Apply(&sWalkthrough[i]);
-    EXPECT_EQ(GetMainStoryIndex(), 48);
+    EXPECT_EQ(GetMainStoryIndex(), 45);
     FlagSet(FLAG_RECEIVED_HM_FLY);
-    EXPECT_EQ(GetMainStoryIndex(), 48);
+    EXPECT_EQ(GetMainStoryIndex(), 45);
     VarSet(VAR_ROUTE119_STATE, 1);
-    EXPECT_EQ(GetMainStoryIndex(), 49);
+    EXPECT_EQ(GetMainStoryIndex(), 45);
     FlagSet(FLAG_BADGE06_GET);
-    EXPECT_EQ(GetMainStoryIndex(), 49);
+    EXPECT_EQ(GetMainStoryIndex(), 45);
     FlagSet(FLAG_BADGE05_GET);
     FlagSet(FLAG_RECEIVED_HM_SURF);
     EXPECT_EQ(GetMainStoryIndex(), 56);
@@ -178,12 +178,12 @@ TEST("RegionPlotStage: RB2 is reported at either venue and never blocks")
 
 TEST("RegionPlotStage: A gym list holds on its badge and HM, a displaced HM stands alone")
 {
-    struct PlotListStage stage = GetPlotListStage(49);
+    struct PlotListStage stage = GetPlotListStage(45);
 
     EXPECT_EQ(stage.numGets, 2); // G5 badge, Surf
     EXPECT_EQ(stage.blockingMask, 0x3);
     FlagSet(FLAG_RECEIVED_HM_SURF);
-    stage = GetPlotListStage(49);
+    stage = GetPlotListStage(45);
     EXPECT_EQ(stage.doneMask, 0x2);
     EXPECT(!IsPlotListDone(&stage)); // badge still missing
 
@@ -199,28 +199,24 @@ TEST("RegionPlotStage: A gym list holds on its badge and HM, a displaced HM stan
     EXPECT_EQ(stage.numGets, 2); // Mt. Chimney beat, G4 badge
 }
 
-TEST("RegionPlotStage: Only the Letter and the two implicit unlocks have a get; other step-3 lists are empty")
+TEST("RegionPlotStage: Only the Letter and the Fallarbor implicit unlock have a get; other step-3 lists are empty")
 {
     u32 index;
 
     for (index = 3; index < NUM_MAIN_INDICES; index += 4)
-        EXPECT_EQ(GetPlotListStage(index).numGets, (index == 15 || index == 35 || index == 47) ? 1 : 0);
+        EXPECT_EQ(GetPlotListStage(index).numGets, (index == 15 || index == 35) ? 1 : 0);
     EXPECT_EQ(GetPlotListStage(15).blockingMask, 1);
     EXPECT_EQ(GetPlotListStage(15).doneMask, 0);
     FlagSet(FLAG_RETURNED_DEVON_GOODS);
     EXPECT_EQ(GetPlotListStage(15).doneMask, 1);
 }
 
-TEST("RegionPlotStage: Fallarbor's unlock reads Fiery Path and Fortree's the Route 119 rival, neither blocking")
+TEST("RegionPlotStage: Fallarbor's unlock reads Fiery Path and never blocks")
 {
     EXPECT_EQ(GetPlotListStage(35).blockingMask, 0);
     EXPECT_EQ(GetPlotListStage(35).doneMask, 0);
     FlagSet(FLAG_LANDMARK_FIERY_PATH);
     EXPECT_EQ(GetPlotListStage(35).doneMask, 1);
-    EXPECT_EQ(GetPlotListStage(47).blockingMask, 0);
-    EXPECT_EQ(GetPlotListStage(47).doneMask, 0);
-    VarSet(VAR_ROUTE119_STATE, 1);
-    EXPECT_EQ(GetPlotListStage(47).doneMask, 1);
 }
 
 TEST("RegionPlotStage: Every vanilla slot has a descriptor")
@@ -232,7 +228,7 @@ TEST("RegionPlotStage: Every vanilla slot has a descriptor")
     {
         u32 count = ResolveVanillaPlotList(index, slots, ARRAY_COUNT(slots));
         struct PlotListStage stage = GetPlotListStage(index);
-        u32 expectedGets = (index == 15 || index == 35 || index == 47) ? 1 : 0;
+        u32 expectedGets = (index == 15 || index == 35) ? 1 : 0;
 
         for (i = 0; i < count; i++)
         {

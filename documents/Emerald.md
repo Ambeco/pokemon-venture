@@ -10,12 +10,12 @@ Each county holds at most one city, with the caves and other special locations s
 
 | Row | x=0 | x=1 | x=2 | x=3 | x=4 | x=5 |
 | --- | --- | --- | --- | --- | --- | --- |
-| y=0 | 40. Meteor Falls (requires Waterfall); Desert Underpass (requires Elite Four) | 36. Fallarbor; Glass Workshop | 42. Lavaridge + Gym 4; Mt. Chimney; Fiery Path; Jagged Pass (requires 52/Mt. Pyre); Magma Hideout (requires 52/Mt. Pyre); Mirage Tower; Desert Ruins | 44. Fortree + Gym 6; Rival Battle 4; HM Fly; Ancient Tomb (requires Flash) | 56. Lilycove; Scorched Slab; Ancient Ruins; Safari Zone; Dept. Store; Contest Hall; Rival Battle 5; Aqua Hideout | 60. Shoal Cave (requires Surf); Treasure Hunter's House |
-| y=1 | 12. Rustboro + Gym 1; Devon Corporation; Rival Battle 2; HM Cut | 32. Verdanturf; Rusturf Tunnel (requires Cut); HM Strength | 28. Mauville + Gym 3; Rival Battle 3; Game Corner; HM Rock Smash; New Mauville (requires Surf); Trainer Hill (requires Elite Four) | 48. Berry Master; Weather Institute | 52. Mt. Pyre | 64. Mossdeep + Gym 7; Game Corner; Space Center; HM Dive |
+| y=0 | 40. Meteor Falls (requires Waterfall); Desert Underpass (requires Elite Four) | 36. Fallarbor; Glass Workshop | 42. Lavaridge + Gym 4; Mt. Chimney; Fiery Path; Jagged Pass (requires 52/Mt. Pyre); Magma Hideout (requires 52/Mt. Pyre); Mirage Tower; Desert Ruins | 44. Weather Institute; Route 119; Rival Battle 4; Good Rod (Route 118 fisherman) | 56. Lilycove; Scorched Slab; Ancient Ruins; Safari Zone; Dept. Store; Contest Hall; Rival Battle 5; Aqua Hideout | 60. Shoal Cave (requires Surf); Treasure Hunter's House |
+| y=1 | 12. Rustboro + Gym 1; Devon Corporation; Rival Battle 2; HM Cut | 32. Verdanturf; Rusturf Tunnel (requires Cut); HM Strength | 28. Mauville + Gym 3; Rival Battle 3; Game Corner; HM Rock Smash; New Mauville (requires Surf); Trainer Hill (requires Elite Four) | 48. Fortree + Gym 6; HM Fly; Devon Scope (Route 120); Ancient Tomb (requires Flash); Berry Master | 52. Mt. Pyre | 64. Mossdeep + Gym 7; Game Corner; Space Center; HM Dive |
 | y=2 | 8. Petalburg + Gym 5; Petalburg Woods; Pretty Petal Flower Shop; HM Surf (requires Gym 5) | 4. Oldale; Rival Battle 1; Altering Cave (requires Elite Four) | 24. Cycling Road; Trick House; Pokémon Daycare | (empty) | 72. Sootopolis + Gym 8; HM Waterfall; Cave of Origin | 68. Ever Grande + Elite Four; Seafloor Cavern |
 | y=3 | 16. Dewford + Gym 2; HM Flash; Granite Cave (requires Flash); Island Cave (requires Surf) | 0. Littleroot; Birch's Lab; Abandoned Ship (requires Surf and Dive) | 20. Slateport; Shipyard (requires Devon Goods); Museum | 84. Sealed Chamber; Southern Island (requires Eon Ticket) | 80. Pacifidlog; Sky Pillar | 76. Mirage Island; Battle Frontier (requires Elite Four); Artisan Cave (requires Elite Four) |
 
-Lavaridge is 42 (between Meteor Falls and Fortree) to keep the existing numbering.
+Lavaridge is 42 (between Meteor Falls and the Weather Institute) to keep the existing numbering. The walkthrough reaches the Weather Institute (Route 119, Shelly) before Fortree, so the cell north of Mauville, (3,0), holds the Weather Institute and (3,1) holds Fortree: Hoenn's real order is kept by swapping the cells' contents, not the story indices, so consecutive indices stay adjacent (Lavaridge (2,0), then (3,0), (3,1), then Mt. Pyre (4,1)).
 
 Terrain and biome per county. Hoenn is mostly rainforest, so it uses the warm, wet biome subset (humidity 1-4, the three hottest temperature columns). Temperature falls from the top row (hottest column) downward; the desert north of Mauville is faked with Thorn forest, and the smaller one at (0,0) with Savanna. Ocean counties get a biome too, for surf, dive and fishing encounters: the maximum-humidity row, from Tropical rainforest in the top row down to Temperate giant rainforest in the bottom two rows. Dewford's island is too small for its own biome, so (0,3) is Ocean.
 
@@ -594,7 +594,7 @@ Levels the walkthrough lists, per place in tutorial order. `wild` is the land, c
 
 Emerald fitted to the main plot planner (design.md, "Main plot planner"): one row per main-story-index `4x + s`. Step 0 and 2 list gets, step 1 is the optional callback (host named), step 3 unlocks county x+1 via the named McGuffin. Gets within a list are unordered for the planner; the county picks the order, so "G4 then Surf" inside a list means the county's script orders them. `G1`-`G8` are gyms (each with its HM), `RB1`-`RB5` rival battles, `Magma`/`Aqua` beats are the Rocket-equivalent arc beats. Verdanturf, Fallarbor and the Shoal Cave county have no mandatory gets.
 
-County numbers below are the county-story-indices the code uses, in walkthrough order and unique. They differ from the county table above for the counties after Lavaridge: that table's Lavaridge (42) becomes 11, Fortree 11 becomes 12, Weather Institute 12 becomes 13, Mt. Pyre 13 becomes 14, Lilycove 14 becomes 15, Shoal Cave 15 becomes 16, Mossdeep 16 becomes 17, Ever Grande 17 becomes 20, Pacifidlog 20 becomes 19, Mirage Island 19 becomes 21 and the Sealed Chamber 21 becomes 22. Route-story-index is 4 times the county number. The empty county (3,2) takes 23.
+County numbers below are the county-story-indices the code uses, in walkthrough order and unique. They differ from the county table above for the counties after Lavaridge: that table's Lavaridge (42) becomes 11, Fortree becomes 13, the Weather Institute 12, Mt. Pyre 13 becomes 14, Lilycove 14 becomes 15, Shoal Cave 15 becomes 16, Mossdeep 16 becomes 17, Ever Grande 17 becomes 20, Pacifidlog 20 becomes 19, Mirage Island 19 becomes 21 and the Sealed Chamber 21 becomes 22. Route-story-index is 4 times the county number. The empty county (3,2) takes 23.
 
 | Index | County | Step | Contents |
 | --- | --- | --- | --- |
@@ -639,17 +639,17 @@ County numbers below are the county-story-indices the code uses, in walkthrough 
 | 41-42 | | 1-2 | (none) |
 | 43 | | 3 | Unlock Lavaridge via Meteorite stolen (cable car) |
 | 44 | 11 Lavaridge | 0 | Magma beat (Mt. Chimney, Meteorite recovered); G4 (Strength already held) |
-| 45 | | 1 | (no callback) |
+| 45 | | 1 | Callback to Petalburg (2): G5 + Surf (Norman, Wally's father) |
 | 46 | | 2 | Go-Goggles (rival meeting outside the gym) |
-| 47 | | 3 | Unlock Fortree via the Route 119 rival (implicit: `VAR_ROUTE119_STATE >= 1`, which is RB4, a block 12 get; unconfirmed reading of the walkthrough) |
-| 48 | 12 Fortree | 0 | RB4 (Route 119 north); Devon Scope (Route 120) |
-| 49 | | 1 | Callback to Petalburg (2): G5 + Surf (Norman, Wally's father) |
-| 50 | | 2 | G6 + Fly |
-| 51 | | 3 | Unlock Weather Institute county via Surf (Route 118 river) |
-| 52 | 13 Weather Institute | 0 | Aqua beat (Shelly; Castform) |
+| 47 | | 3 | Unlock the Weather Institute county via Surf (Route 118 river) |
+| 48 | 12 Weather Institute | 0 | Aqua beat (Shelly; Castform) |
+| 49 | | 1 | (no callback) |
+| 50 | | 2 | RB4 (Route 119 north); Good Rod (Route 118 river fisherman) |
+| 51 | | 3 | Unlock Fortree via RB4 |
+| 52 | 13 Fortree | 0 | Devon Scope (Route 120) |
 | 53 | | 1 | (no callback) |
-| 54 | | 2 | Good Rod (Route 118 river fisherman) |
-| 55 | | 3 | Unlock Mt. Pyre via Shelly defeated |
+| 54 | | 2 | G6 + Fly |
+| 55 | | 3 | Unlock Mt. Pyre via G6 (Aqua rushes toward Mt. Pyre) |
 | 56 | 14 Mt. Pyre | 0 | Aqua beat (Red Orb stolen; Magma Emblem) |
 | 57 | | 1 | Callback to Lavaridge (11): Magma Hideout (Emblem + Strength), Magma beat (Groudon awakened) |
 | 58 | | 2 | (none) |
@@ -677,29 +677,29 @@ County numbers below are the county-story-indices the code uses, in walkthrough 
 | 83 | | 3 | Unlock the reserved counties via the Hall of Fame (open) |
 | 84-95 | 21-23 reserved | 0-3 | Post-game; open (Mirage Island, Sealed Chamber and the empty county) |
 
-Callbacks: 6 in about 21 blocks (indices 5, 49, 57, 61, 77, 81), four of them after Fly. No block has two different callback hosts.
+Callbacks: 6 in about 21 blocks (indices 5, 45, 57, 61, 77, 81), four of them after Fly. No block has two different callback hosts.
 
 ### Planner inputs
 
 What the main plot planner (design.md, "Main plot planner") reads for Emerald. Two layers, because the table above cannot come out of the hash formulas (step bits, callback hashes and the callback chance are random): the vanilla slots below override the hash outcome while the planner's randomization bit is off (design.md, "Vanilla stage overrides"), and the generic constants further down are what the randomized path uses. Every vanilla slot below is checked against the generic ranges and masks; the ones that fall outside are the numbered exceptions above.
 
-Constants: E = 20 (Elite Four index), R = 3, Surf-lock block n = 12, Fly's block 12. County-story-indices are in `emerald_region.h` (table above).
+Constants: E = 20 (Elite Four index), R = 3, Surf-lock block n = 11, Fly's block 13. County-story-indices are in `emerald_region.h` (table above).
 
 #### Vanilla slots (block/step, from the table above)
 
-- Gyms (`sEmeraldGymSlots`, host in brackets when it is not the block's county): G1 3/0, G2 4/0, G3 7/2, G4 11/0, G5 12/1 (Petalburg, 2), G6 12/2, G7 17/0, G8 19/1 (Sootopolis, 18), League lobby 20/2.
-- HMs (each takes its gym's slot, except Strength): Cut 3/0, Flash 4/0, Rock Smash 7/2, Strength 8/0 (exception 3), Surf 12/1 (Petalburg), Fly 12/2, Dive 17/0, Waterfall 19/1 (Sootopolis).
-- Rival beats: RB1 1/0, RB2 3/2, RB3 6/0, RB4 12/0, RB5 15/0; Wally 1 7/0, Wally 2 20/1 (Sootopolis, Victory Road).
+- Gyms (`sEmeraldGymSlots`, host in brackets when it is not the block's county): G1 3/0, G2 4/0, G3 7/2, G4 11/0, G5 11/1 (Petalburg, 2), G6 13/2, G7 17/0, G8 19/1 (Sootopolis, 18), League lobby 20/2.
+- HMs (each takes its gym's slot, except Strength): Cut 3/0, Flash 4/0, Rock Smash 7/2, Strength 8/0 (exception 3), Surf 11/1 (Petalburg), Fly 13/2, Dive 17/0, Waterfall 19/1 (Sootopolis).
+- Rival beats: RB1 1/0, RB2 3/2, RB3 6/0, RB4 12/2, RB5 15/0; Wally 1 7/0, Wally 2 20/1 (Sootopolis, Victory Road).
 - Arc beats, in arc order (Aqua unless noted): Petalburg Woods grunt 2/0, Stop Thief 3/0, Museum 5/2, Magma Meteor Falls 10/0, Magma Mt. Chimney 11/0, Shelly 13/0, Red Orb 14/0, Magma Hideout 14/1 (Lavaridge, 11), submarine 15/1 (Slateport, 5), Aqua Hideout 15/2, Magma Space Center 17/0, Seafloor Cavern 17/2, Cave of Origin 18/0, Sky Pillar 19/0, Rayquaza ends the fight 19/1 (Sootopolis). Devon Goods (recovered 3/2, Letter delivered 4/2, delivered 5/2) is part of the arc.
-- Special-item McGuffins (fixed): Wailmer Pail 2/2, Go-Goggles 11/2, Devon Scope 12/0.
-- Utility items: PokéNav 3/2, Old Rod 4/0, Itemfinder 6/0, Bicycle 7/2, Coin Case 7/2 (optional chain), Pokéblock Case 15/0, Super Rod 17/0. Good Rod 13/2 (the Route 118 river fisherman; the lakes make it mandatory). Not placed: Harbor Mail (optional chain, 5/2).
+- Special-item McGuffins (fixed): Wailmer Pail 2/2, Go-Goggles 11/2, Devon Scope 13/0.
+- Utility items: PokéNav 3/2, Old Rod 4/0, Itemfinder 6/0, Bicycle 7/2, Coin Case 7/2 (optional chain), Pokéblock Case 15/0, Super Rod 17/0. Good Rod 12/2 (the Route 118 river fisherman; the lakes make it mandatory). Not placed: Harbor Mail (optional chain, 5/2).
 - Tutorial lists (blocks 0 and 1) are the hardcoded ones in design.md, "Opening".
-- Callback blocks and hosts: block 1 to county 0, 12 to 2, 14 to 11, 15 to 5, 19 to 18, 20 to 18. All other blocks have no callback.
+- Callback blocks and hosts: block 1 to county 0, 11 to 2, 14 to 11, 15 to 5, 19 to 18, 20 to 18. All other blocks have no callback.
 
 #### Host masks (bit i = county-story-index i)
 
 - Gym and gym HM (Cut, Flash, Rock Smash, Strength): 1-19 (`0x000FFFFE`); county 0 only as a callback.
-- Water HM (Surf, Dive, Waterfall): blocks where county x or x+1 is Ocean terrain: 3, 4, 15-19 (`0x000F8018`). The vanilla Surf block 12 is outside it (Route 118's river between two land counties; exception 2).
+- Water HM (Surf, Dive, Waterfall): blocks where county x or x+1 is Ocean terrain: 3, 4, 15-19 (`0x000F8018`). The vanilla Surf block 11 is outside it (Route 118's river between two land counties; exception 2).
 - Rival beats and utility items: 1-19 (`0x000FFFFE`).
 - Arc beats: each beat's own host only (the location kind it needs exists once); the mask is the beat's block.
 - A callback host y(x) must pass the kind's mask and, for a gym, have a settlement.
@@ -710,24 +710,24 @@ Constants: E = 20 (Elite Four index), R = 3, Surf-lock block n = 12, Fly's block
 
 #### Placeholder ranges (randomized path, for the user to check)
 
-Windows are blocks (inclusive). Gyms 1-4 split blocks 1..n-1 into four windows with cut points ceil(k(n-1)/4); gyms 6-8 split n+1..E-1 into three with cut points n + ceil(k(E-1-n)/3). With n = 12, E = 20 these evaluate as shown; "vanilla" is the vanilla block.
+Windows are blocks (inclusive). Gyms 1-4 split blocks 1..n-1 into four windows with cut points ceil(k(n-1)/4); gyms 6-8 split n+1..E-1 into three with cut points n + ceil(k(E-1-n)/3). With n = 11, E = 20 these evaluate as shown; "vanilla" is the vanilla block.
 
-| Item | Range (n=12, E=20) | Vanilla | In range |
+| Item | Range (n=11, E=20) | Vanilla | In range |
 | --- | --- | --- | --- |
-| G1 / G2 / G3 / G4 | 1-3 / 4-6 / 7-9 / 10-11 | 3 / 4 / 7 / 11 | yes |
-| G5 (Surf gym) | n only: 12 | 12 | yes |
-| G6 (Fly, never a callback) / G7 / G8 | 13-15 / 16-17 / 18-19 | 12 / 17 / 19 | G6 no (exception 1) |
+| G1 / G2 / G3 / G4 | 1-3 / 4-5 / 6-8 / 9-10 | 3 / 4 / 7 / 11 | G4 no (exception 1) |
+| G5 (Surf gym) | n only: 11 | 11 | yes |
+| G6 (Fly, never a callback) / G7 / G8 | 12-14 / 15-17 / 18-19 | 13 / 17 / 19 | yes |
 | HMs | the gym's slot (Strength included in the randomized path) | | Strength no (exception 3) |
 | RB1 | 1 (tutorial) | 1 | yes |
 | RB2 (before G1's window ends) | 2 to cut 1 = 2-3 | 3 | yes |
-| RB3 (gyms 2-3) | 4-9 | 6 | yes |
-| RB4 (gyms 4-5) | 10-12 | 12 | yes |
-| RB5 (gyms 6-7) | 13-17 | 15 | yes |
-| Wally 1 / Wally 2 | G3's window 7-9 / E only: 20 | 7 / 20 | yes |
+| RB3 (gyms 2-3) | 4-8 | 6 | yes |
+| RB4 (gyms 4-5) | 9-11 | 12 | no (exception 16) |
+| RB5 (gyms 6-7) | 12-17 | 15 | yes |
+| Wally 1 / Wally 2 | G3's window 6-8 / E only: 20 | 7 / 20 | yes |
 | Arc beats (authored per arc) | nominal block +-2, clipped to 2..E-1; ordered by arc sequence, several per block allowed | the blocks above | yes by construction |
 | Bicycle, Itemfinder | 1 to floor(E/2) = 1-10 | 7, 6 | yes |
 | Old Rod, PokéNav | 1 to ceil(E/3) = 1-7 | 4, 3 | yes |
-| Good Rod | ceil(E/3)+1 to floor(2E/3) = 8-13 | 13 | yes |
+| Good Rod | ceil(E/3)+1 to floor(2E/3) = 8-13 | 12 | yes |
 | Super Rod | floor(2E/3)+1 to E-1 = 14-19 | 17 | yes |
 | Other utility (Coin Case, Pokéblock Case, ...) | 1 to E-1 | 7, 15 | yes |
 
@@ -759,11 +759,11 @@ Resolved readings: the Woods grunt is `VAR_PETALBURG_WOODS_STATE >= 1`, set afte
 | 40 | Meteorite stolen | `FLAG_MET_ARCHIE_METEOR_FALLS` |
 | 44 | Mt. Chimney Magma beat; G4 | `FLAG_DEFEATED_EVIL_TEAM_MT_CHIMNEY`; `FLAG_BADGE04_GET` |
 | 46 | Go-Goggles | `FLAG_RECEIVED_GO_GOGGLES` |
-| 48 | RB4; Devon Scope | `VAR_ROUTE119_STATE >= 1` (Route119:145); `FLAG_RECEIVED_DEVON_SCOPE` |
-| 49 | G5 + Surf | `FLAG_BADGE05_GET`, `FLAG_RECEIVED_HM_SURF` |
-| 50 | G6 + Fly | `FLAG_BADGE06_GET`, `FLAG_RECEIVED_HM_FLY` (set in Route119 with RB4, so true early) |
-| 52 | Shelly | `FLAG_RECEIVED_CASTFORM` (Route119_WeatherInstitute_2F:123) |
-| 54 | Good Rod | `FLAG_RECEIVED_GOOD_ROD` (Route118:36) |
+| 45 | G5 + Surf | `FLAG_BADGE05_GET`, `FLAG_RECEIVED_HM_SURF` |
+| 48 | Shelly | `FLAG_RECEIVED_CASTFORM` (Route119_WeatherInstitute_2F:123) |
+| 50 | RB4; Good Rod | `VAR_ROUTE119_STATE >= 1` (Route119:145); `FLAG_RECEIVED_GOOD_ROD` (Route118:36) |
+| 52 | Devon Scope | `FLAG_RECEIVED_DEVON_SCOPE` |
+| 54 | G6 + Fly | `FLAG_BADGE06_GET`, `FLAG_RECEIVED_HM_FLY` (set in Route119 with RB4, so true early) |
 | 56 | Red Orb | `FLAG_RECEIVED_RED_OR_BLUE_ORB` (MtPyre_Summit:61) |
 | 57 | Magma Hideout | `FLAG_GROUDON_AWAKENED_MAGMA_HIDEOUT` |
 | 60 | RB5; Pokéblock Case | optional (`FLAG_MET_RIVAL_LILYCOVE`); `FLAG_RECEIVED_POKEBLOCK_CASE` |
@@ -783,7 +783,7 @@ Unlock keys that are not a get's own predicate: Pokédex lock at Oldale (index 7
 
 HMs other than Fly, each with the Emerald locks it opens (chain entry numbers); every use needs the HM and its gym's badge:
 
-- Cut: Petalburg Woods trees (15). Flash: Granite Cave B1F-B2F (33), Ancient Tomb (95), Victory Road (132); see design.md, "Dark maps". Rock Smash: Rusturf debris (24, unlocks Verdanturf, index 31), Granite Cave B2F rocks (51), Desert Ruins (74), Mirage Tower (75), Seafloor Cavern (117). Strength: Fiery Path tunnels (57), Magma Hideout (102), Seafloor Cavern (117), Victory Road (132). Surf: Route 103 east (7), seas (31), Route 118 (52, unlocks Weather Institute, index 51), Route 115 (79), Abandoned Ship (81), New Mauville (84), Mt. Pyre route (99), Route 124 (108), Sky Pillar route (122). Dive: Abandoned Ship hidden floor (115), Seafloor Cavern (117), Sootopolis entrance (119, unlocks index 71), Sealed Chamber (123). Waterfall: Meteor Falls (64), Ever Grande (131, unlocks index 79).
+- Cut: Petalburg Woods trees (15). Flash: Granite Cave B1F-B2F (33), Ancient Tomb (95), Victory Road (132); see design.md, "Dark maps". Rock Smash: Rusturf debris (24, unlocks Verdanturf, index 31), Granite Cave B2F rocks (51), Desert Ruins (74), Mirage Tower (75), Seafloor Cavern (117). Strength: Fiery Path tunnels (57), Magma Hideout (102), Seafloor Cavern (117), Victory Road (132). Surf: Route 103 east (7), seas (31), Route 118 (52, unlocks the Weather Institute county, index 47), Route 115 (79), Abandoned Ship (81), New Mauville (84), Mt. Pyre route (99), Route 124 (108), Sky Pillar route (122). Dive: Abandoned Ship hidden floor (115), Seafloor Cavern (117), Sootopolis entrance (119, unlocks index 71), Sealed Chamber (123). Waterfall: Meteor Falls (64), Ever Grande (131, unlocks index 79).
 - Special items (as designed, fixed in this stage): Go-Goggles (Route 111 desert, 54), Devon Scope (Route 120 bridge and Fortree gym entrance, 92 and 94), Wailmer Pail (the planner's placeholder lock for Rustboro, index 11; vanilla Emerald has no lock there).
 - Not traversal: the Bicycle (a utility item; it gates the Cycling Road and Jagged Pass optionally), the Basement Key, Storage Key and Magma Emblem (subplot and arc keys), Fly (a convenience, never a lock).
 
@@ -820,8 +820,8 @@ Counted from the table above, by host county (callback gets count for the host, 
 | 9 Fallarbor | 0 | 0 | 1 (Glass Workshop 17 values plus Fossil Maniac 3) | 5 |
 | 10 Meteor Falls | 1 | 1 | 0 | 2 |
 | 11 Lavaridge | 4 (+ callback Magma beat) | 2 | 1 (Mirage Tower and fossil pick) | 4 |
-| 12 Fortree | 4 | 2 | 0 | 4 (Wingull errand pair shared with 17) |
-| 13 Weather Institute | 2 | 1 | 0 | 1 |
+| 12 Weather Institute | 3 | 2 | 0 | 1 |
+| 13 Fortree | 3 | 2 | 0 | 4 (Wingull errand pair shared with 17) |
 | 14 Mt. Pyre | 1 | 1 | 0 | 2 |
 | 15 Lilycove | 3 | 2 | 2 (museum; fan club) | 11 (5 paintings) |
 | 16 Shoal Cave | 0 | 0 | 0 | 10 (4 salt, 4 shell) |
@@ -839,21 +839,23 @@ Totals: 64 gets, 20 unlocks (blocks 0-19), 2 of them blockers (indices 39, 67) a
 
 Numbered so they can be struck off as the rules or the table change.
 
-1. G5 (Petalburg, the step-1 callback) and G6 (Fortree, step 2) share block 12, so the Surf gym and Fly's gym are adjacent in the story; encoded in `GetGymSlot`. Kept because gyms 5 and 6 in adjacent blocks would feel odd in a generated region.
-2. Surf's unlock (index 51) opens a land county (Weather Institute, across Route 118's river), not an ocean county, and the Surf lock is block 12 rather than "the ocean county's dead end".
+1. G4 (Lavaridge, step 0) and G5 (Petalburg, the step-1 callback) share the Surf block 11, so G4 lies outside its window 9-10; encoded in `GetGymSlot`. Lavaridge's gym precedes Surf, which opens the Weather Institute county from Lavaridge's block, and a callback host cannot be a county that is not yet unlocked.
+2. Surf's unlock (index 47) opens a land county (the Weather Institute, across Route 118's river), not an ocean county, and the Surf lock is block 11 rather than "the ocean county's dead end".
 3. Strength is given at Rusturf Tunnel (index 32), long before G4 (index 44), instead of with its gym. Emerald-only; the algorithm keeps an HM at its gym's time.
 4. Ports (design.md, "Ports"): the algorithm puts the port county first and the ocean county right after it, but here Dewford (ocean, 4) precedes Slateport (port, 5), and Briney's first trip starts at Petalburg's Route 104, not at a port city. Swapping them would put Slateport's Devon Goods delivery before Dewford's Letter. Also the third port, Lilycove (15), is later than the rule would place it (about index 10-13). Keep as an exception unless the story order changes.
-5. G5's callback to Petalburg is 5 county steps from Fortree, beyond the pre-Fly bound of 3. Hardcoded exception.
+5. G5's callback to Petalburg is 4 county steps from Lavaridge, beyond the pre-Fly bound of 3. Hardcoded exception.
 6. Devon Goods: Peeko and the Take-Down are hosted on Route 116 (inter-county route 3-8), not inside the Rusturf Tunnel in county 8; Dewford to Slateport is keyed on "Letter delivered" (block 4's own get) instead of Devon Goods; the delivery is a block-5 get that relies on index order, not a key check.
 7. Fiery Path, Route 111 north and Route 112 north are walked on the way to Fallarbor before county 11 unlocks, so they move into county 8's cell. Verdanturf's cell is otherwise nearly empty.
 8. Rival Battle 3 moves from the Mauville cell to the Cycling Road cell (Route 110).
 9. Seafloor Cavern moves from the Ever Grande cell to Mossdeep's. Victory Road lives in Sootopolis's cell, so Wally battle 2 is a callback.
 10. Mt. Pyre (14) is forced before Lilycove (15); Emerald lets the player visit Lilycove first.
-11. Blocks 9 and 16 have no mandatory gets, so their unlocks need blocker McGuffins that vanilla Emerald lacks (or a tiny subplot each). Blocks 8 and 11 (Fallarbor, Fortree) have no get to name either, so their unlocks are implicit: Fiery Path entered, and the Route 119 rival (a block 12 get, so Fortree's key is not from its own block).
+11. Blocks 9 and 16 have no mandatory gets, so their unlocks need blocker McGuffins that vanilla Emerald lacks (or a tiny subplot each). Block 8 (Fallarbor) has no get to name either, so its unlock is implicit: Fiery Path entered.
 12. Verdanturf's unlock uses Rock Smash + Dynamo Badge, which also gates Route 117; vanilla leaves it open.
 13. The Elite Four county has two gates: Waterfall + Rain Badge into Ever Grande, and 8 badges into the League lobby.
 14. The empty county (3,2) must take a reserved index (23) and holds no legendary location.
 15. Sealed Chamber and the Regi trio are mid-game in Emerald but post-Elite Four here (reserved counties).
+16. RB4 (block 12, step 2) lies outside its window 9-11: the Route 119 rival follows Shelly, and Surf's block 11 precedes the Weather Institute county.
+17. Fortree's city sits in cell (3,1) and the Weather Institute in (3,0), the reverse of the real map, so the story order Weather Institute, then Fortree keeps every consecutive pair of counties adjacent.
 
 ### Optional content with inter-county story
 

@@ -20,9 +20,9 @@ static const struct PlotUnlock sEmeraldUnlocks[] =
     IMPLICIT_UNLOCK(PLOT_IMPLICIT_FIERY_PATH_ENTERED),                      // 8 -> Fallarbor (via Fiery Path)
     BLOCKER_UNLOCK,                                                         // 9 -> Meteor Falls
     KEY_UNLOCK(PLOT_KIND_ARC, 3),                                           // 10 -> Lavaridge (Meteorite stolen)
-    IMPLICIT_UNLOCK(PLOT_IMPLICIT_ROUTE119_RIVAL),                          // 11 -> Fortree (Route 119 rival, a block 12 get)
-    KEY_UNLOCK(PLOT_KIND_GYM, 5),                                           // 12 -> Weather Institute (Surf)
-    KEY_UNLOCK(PLOT_KIND_ARC, 5),                                           // 13 -> Mt. Pyre (Shelly)
+    KEY_UNLOCK(PLOT_KIND_GYM, 5),                                           // 11 -> Weather Institute (Surf)
+    KEY_UNLOCK(PLOT_KIND_RIVAL, 4),                                         // 12 -> Fortree (Route 119 rival)
+    KEY_UNLOCK(PLOT_KIND_GYM, 6),                                           // 13 -> Mt. Pyre (Fortree gym; Aqua rushes to Mt. Pyre)
     KEY_UNLOCK(PLOT_KIND_ARC, 7),                                           // 14 -> Lilycove (Groudon awakened)
     KEY_UNLOCK(PLOT_KIND_ARC, 9),                                           // 15 -> Shoal Cave (blockade gone)
     BLOCKER_UNLOCK,                                                         // 16 -> Mossdeep

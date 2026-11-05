@@ -186,19 +186,21 @@ TEST("RegionCity: Gym slots strictly increase with the ordinal and callbacks com
     }
 }
 
-TEST("RegionCity: Emerald Surf block 12 gives gym 5 as a Petalburg callback and gym 6 in Fortree, with no ocean lock")
+TEST("RegionCity: Emerald Surf block 11 gives gym 5 as a Petalburg callback beside gym 4, gym 6 is in Fortree, and no ocean county follows")
 {
     struct GymSlot g5 = GetGymSlot(5);
     struct GymSlot g6 = GetGymSlot(6);
     u32 fortreeIdx = GetCountyHeader(GetGymCounty(6))->storyIdx;
-    u32 afterTerrain = GetCountyHeader(GetCountyByStoryIdx(13))->terrain;
+    u32 afterTerrain = GetCountyHeader(GetCountyByStoryIdx(12))->terrain;
 
-    EXPECT_EQ(g5.block, 12);
+    EXPECT_EQ(GetGymSlot(4).block, 11);
+    EXPECT_EQ(GetGymSlot(4).step, 0);
+    EXPECT_EQ(g5.block, 11);
     EXPECT_EQ(g5.step, 1);
     EXPECT_EQ(GetGymCounty(5), COUNTY_ID(0, 2));
-    EXPECT_EQ(g6.block, 12);
+    EXPECT_EQ(g6.block, 13);
     EXPECT_EQ(g6.step, 2);
-    EXPECT_EQ(GetGymCounty(6), COUNTY_ID(3, 0));
-    EXPECT_EQ(fortreeIdx, 12);
+    EXPECT_EQ(GetGymCounty(6), COUNTY_ID(3, 1));
+    EXPECT_EQ(fortreeIdx, 13);
     EXPECT_NE(afterTerrain, COUNTY_TERRAIN_OCEAN);
 }

@@ -52,7 +52,7 @@ static bool32 IsInterestingExtra(const char *line)
 {
     static const char *const needles[] =
     {
-        "story=1 ", "story=10 ", "story=12 ", "enclave ", "plot 0 ", "plot 3 ", "plot 49 ", "plot 83 ",
+        "story=1 ", "story=10 ", "story=12 ", "story=13 ", "enclave ", "plot 0 ", "plot 3 ", "plot 45 ", "plot 83 ",
     };
     u32 i;
 
@@ -190,10 +190,11 @@ TEST("RegionDump: Lock lines name the tile, the gated county and the planner key
 {
     Dump();
     EXPECT_GT(sLockLines, 0);
-    // Oldale (story 1) is gated by the Starter, Fortree's unlock (block 11) is the Route 119
-    // rival, and the Meteor Falls unlock (block 9) is a blocker.
+    // Oldale (story 1) is gated by the Starter, the Weather Institute county (12) by Surf, Fortree (13) by the
+    // Route 119 rival, and the Meteor Falls unlock (block 9) is a blocker.
     EXPECT(FindLine("lock ", "story=1 keys=scripted0") != NULL);
-    EXPECT(FindLine("lock ", "story=12 implicit=2") != NULL);
+    EXPECT(FindLine("lock ", "story=12 keys=gym5") != NULL);
+    EXPECT(FindLine("lock ", "story=13 keys=rival4") != NULL);
     EXPECT(FindLine("lock ", "story=10 blocker") != NULL);
 }
 
@@ -211,6 +212,6 @@ TEST("RegionDump: One plot line per main-story-index through the Elite Four bloc
     EXPECT_EQ(sPlotLines, 4 * (GetEliteFourStoryIdx() + 1));
     EXPECT(FindLine("plot 0 ", "scripted0") != NULL);
     EXPECT(FindLine("plot 3 ", "unlock keys=scripted0") != NULL);
-    EXPECT(FindLine("plot 49 ", "gym5+hm5@county2") != NULL); // Surf's gym, the Petalburg callback
+    EXPECT(FindLine("plot 45 ", "gym5+hm5@county2") != NULL); // Surf's gym, the Petalburg callback
     EXPECT(FindLine("plot 83 ", "unlock keys=scripted7") != NULL);
 }

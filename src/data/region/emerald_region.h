@@ -8,7 +8,8 @@
     ((BIOME_HUMIDITY(biome) - EMERALD_BIOME_HUMIDITY_BASE) * BIOME_SUBSET_TEMPERATURE_LEVELS \
      + BIOME_TEMPERATURE(biome) - EMERALD_BIOME_TEMPERATURE_BASE)
 
-// Indexed by COUNTY_ID(x, y). Lavaridge is inserted between Meteor Falls and Fortree, the empty
+// Indexed by COUNTY_ID(x, y). The Weather Institute county (3,0) precedes Fortree (3,1) as in the walkthrough, and
+// their contents are placed so consecutive indices stay adjacent. Lavaridge is inserted between Meteor Falls and Fortree, the empty
 // county takes the last walk index, Ever Grande is the Elite Four (index 20 = 23 - R) and Sootopolis
 // precedes it, so the layer-2 rules hold. A key sits at the county before each non-adjacent step; its lock is the next index.
 static const struct RegionHeader sEmeraldRegion =
@@ -24,14 +25,14 @@ static const struct RegionHeader sEmeraldRegion =
         [COUNTY_ID(0, 0)] = {COUNTY_TERRAIN_MOUNTAIN, SUBSET_BIOME(BIOME_SAVANNA), 10, 0, 3, 0},
         [COUNTY_ID(1, 0)] = {COUNTY_TERRAIN_MOUNTAIN, SUBSET_BIOME(BIOME_SAVANNA), 9, 1, 0, 0},
         [COUNTY_ID(2, 0)] = {COUNTY_TERRAIN_MOUNTAIN, SUBSET_BIOME(BIOME_THORN_FOREST), 11, 1, 0, 0},
-        [COUNTY_ID(3, 0)] = {COUNTY_TERRAIN_LAND, SUBSET_BIOME(BIOME_TROPICAL_RAINFOREST), 12, 2, 0, 0},
+        [COUNTY_ID(3, 0)] = {COUNTY_TERRAIN_LAND, SUBSET_BIOME(BIOME_TROPICAL_RAINFOREST), 12, 0, 0, 0},
         [COUNTY_ID(4, 0)] = {COUNTY_TERRAIN_LAND, SUBSET_BIOME(BIOME_TROPICAL_SEASONAL_RAINFOREST), 15, 3, 0, 1},
         [COUNTY_ID(5, 0)] = {COUNTY_TERRAIN_OCEAN, SUBSET_BIOME(BIOME_TROPICAL_RAINFOREST), 16, 0, 0, 0},
         // y=1
         [COUNTY_ID(0, 1)] = {COUNTY_TERRAIN_LAND, SUBSET_BIOME(BIOME_TEMPERATE_WOODLAND), 3, 3, 1, 0},
         [COUNTY_ID(1, 1)] = {COUNTY_TERRAIN_MOUNTAIN, SUBSET_BIOME(BIOME_SAVANNA), 8, 1, 0, 0},
         [COUNTY_ID(2, 1)] = {COUNTY_TERRAIN_LAND, SUBSET_BIOME(BIOME_MANGROVE_SWAMP), 7, 3, 0, 0},
-        [COUNTY_ID(3, 1)] = {COUNTY_TERRAIN_LAND, SUBSET_BIOME(BIOME_MANGROVE_SWAMP), 13, 0, 0, 0},
+        [COUNTY_ID(3, 1)] = {COUNTY_TERRAIN_LAND, SUBSET_BIOME(BIOME_MANGROVE_SWAMP), 13, 2, 0, 0},
         [COUNTY_ID(4, 1)] = {COUNTY_TERRAIN_LAND, SUBSET_BIOME(BIOME_TROPICAL_FRESHWATER_SWAMP_FOREST), 14, 0, 0, 0},
         [COUNTY_ID(5, 1)] = {COUNTY_TERRAIN_OCEAN, SUBSET_BIOME(BIOME_TROPICAL_FRESHWATER_SWAMP_FOREST), 17, 2, 4, 0},
         // y=2

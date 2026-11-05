@@ -22,8 +22,6 @@ static const struct CountyCity sEmeraldCities[NUM_COUNTIES] =
     [COUNTY_ID(2, 0)] = {.theme = CITY_THEME_HOT_SPRINGS,
         .roles = CITY_COMMON | BUILDING_GYM | BUILDING_HERB_SHOP | BUILDING_HOT_SPRINGS,
         GYM(4, TYPE_FIRE, TRAINER_FLANNERY_1)},
-    [COUNTY_ID(3, 0)] = {.theme = CITY_THEME_TREETOP, .roles = CITY_COMMON | BUILDING_GYM | BUILDING_SERVICE,
-        GYM(6, TYPE_FLYING, TRAINER_WINONA_1)},
     [COUNTY_ID(4, 0)] = {.theme = CITY_THEME_CAPITAL_COAST,
         .roles = CITY_COMMON | BUILDING_MOTEL | BUILDING_FAN_CLUB | BUILDING_SERVICE},
     // y=1
@@ -32,6 +30,8 @@ static const struct CountyCity sEmeraldCities[NUM_COUNTIES] =
     [COUNTY_ID(1, 1)] = {.theme = CITY_THEME_HIGHLAND, .roles = CITY_COMMON},
     [COUNTY_ID(2, 1)] = {.theme = CITY_THEME_ENTERTAINMENT, .roles = CITY_COMMON | BUILDING_GYM,
         GYM(3, TYPE_ELECTRIC, TRAINER_WATTSON_1)},
+    [COUNTY_ID(3, 1)] = {.theme = CITY_THEME_TREETOP, .roles = CITY_COMMON | BUILDING_GYM | BUILDING_SERVICE,
+        GYM(6, TYPE_FLYING, TRAINER_WINONA_1)},
     [COUNTY_ID(5, 1)] = {.theme = CITY_THEME_CHERISH, .roles = CITY_COMMON | BUILDING_GYM,
         GYM(7, TYPE_PSYCHIC, TRAINER_TATE_AND_LIZA_1)},
     // y=2
@@ -52,16 +52,16 @@ static const struct CountyCity sEmeraldCities[NUM_COUNTIES] =
     [COUNTY_ID(4, 3)] = {.theme = CITY_THEME_OCEAN_SUNRISE, .roles = BUILDING_POKEMON_CENTER | BUILDING_SERVICE},
 };
 
-// Planner inputs, indexed by gym ordinal - 1. Block = county-story-index. Gyms 5 and 6 are the
-// Emerald-only Surf exception: both in Fortree's block 12, Petalburg's as the step-1 callback.
+// Planner inputs, indexed by gym ordinal - 1. Block = county-story-index. Gyms 4 and 5 are the
+// Emerald-only Surf exception: both in the Surf block 11, Petalburg's as the step-1 callback.
 static const struct GymSlot sEmeraldGymSlots[NUM_GYM_ORDINALS] =
 {
     {3, 0},   // 1 Rustboro
     {4, 0},   // 2 Dewford
     {7, 2},   // 3 Mauville
     {11, 0},  // 4 Lavaridge
-    {12, 1},  // 5 Petalburg (callback)
-    {12, 2},  // 6 Fortree
+    {11, 1},  // 5 Petalburg (callback)
+    {13, 2},  // 6 Fortree
     {17, 0},  // 7 Mossdeep
     {19, 1},  // 8 Sootopolis (callback from Pacifidlog's block, after Rayquaza ends the fight)
     {20, 2},  // 9 Ever Grande (League lobby)

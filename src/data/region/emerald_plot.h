@@ -2,7 +2,7 @@
 // Hosts are county-story-indices: the block itself unless step 1 (a callback).
 
 // Surf-lock block n.
-#define EMERALD_SURF_BLOCK 12
+#define EMERALD_SURF_BLOCK 11
 
 #define SLOT(kind, ordinal, block, step, host) {kind, ordinal, block, step, host}
 
@@ -12,7 +12,7 @@ static const struct PlotSlot sEmeraldPlotSlots[] =
     SLOT(PLOT_KIND_RIVAL, 1, 1, 0, 1),
     SLOT(PLOT_KIND_RIVAL, 2, 3, 2, 3),
     SLOT(PLOT_KIND_RIVAL, 3, 6, 0, 6),
-    SLOT(PLOT_KIND_RIVAL, 4, 12, 0, 12),
+    SLOT(PLOT_KIND_RIVAL, 4, 12, 2, 12),
     SLOT(PLOT_KIND_RIVAL, 5, 15, 0, 15),
     SLOT(PLOT_KIND_WALLY, 1, 7, 0, 7),
     SLOT(PLOT_KIND_WALLY, 2, 20, 1, 18),  // Victory Road
@@ -22,7 +22,7 @@ static const struct PlotSlot sEmeraldPlotSlots[] =
     SLOT(PLOT_KIND_ARC, 2, 5, 2, 5),    // Aqua: Museum
     SLOT(PLOT_KIND_ARC, 3, 10, 0, 10),  // Magma: Meteor Falls
     SLOT(PLOT_KIND_ARC, 4, 11, 0, 11),  // Magma: Mt. Chimney
-    SLOT(PLOT_KIND_ARC, 5, 13, 0, 13),  // Aqua: Shelly
+    SLOT(PLOT_KIND_ARC, 5, 12, 0, 12),  // Aqua: Shelly
     SLOT(PLOT_KIND_ARC, 6, 14, 0, 14),  // Aqua: Red Orb
     SLOT(PLOT_KIND_ARC, 7, 14, 1, 11),  // Magma: Hideout (Lavaridge callback)
     SLOT(PLOT_KIND_ARC, 8, 15, 1, 5),   // Aqua: submarine (Slateport callback)
@@ -39,7 +39,7 @@ static const struct PlotSlot sEmeraldPlotSlots[] =
     // Special-item McGuffins (fixed)
     SLOT(PLOT_KIND_SPECIAL, PLOT_SPECIAL_WAILMER_PAIL, 2, 2, 2),
     SLOT(PLOT_KIND_SPECIAL, PLOT_SPECIAL_GO_GOGGLES, 11, 2, 11),
-    SLOT(PLOT_KIND_SPECIAL, PLOT_SPECIAL_DEVON_SCOPE, 12, 0, 12),
+    SLOT(PLOT_KIND_SPECIAL, PLOT_SPECIAL_DEVON_SCOPE, 13, 0, 13),
     // Scripted gets
     SLOT(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_STARTER, 0, 0, 0),
     SLOT(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKEDEX, 1, 1, 0),
@@ -52,7 +52,7 @@ static const struct PlotSlot sEmeraldPlotSlots[] =
     // Utility items
     SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_POKENAV, 3, 2, 3),
     SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_OLD_ROD, 4, 0, 4),
-    SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_GOOD_ROD, 13, 2, 13),
+    SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_GOOD_ROD, 12, 2, 12),
     SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_ITEMFINDER, 6, 0, 6),
     SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_BICYCLE, 7, 2, 7),
     SLOT(PLOT_KIND_UTILITY, PLOT_UTILITY_COIN_CASE, 7, 2, 7),
@@ -83,7 +83,7 @@ struct PlotCallback
 static const struct PlotCallback sEmeraldPlotCallbacks[] =
 {
     {1, 0},
-    {12, 2},
+    {11, 2},
     {14, 11},
     {15, 5},
     {19, 18},
@@ -93,8 +93,8 @@ static const struct PlotCallback sEmeraldPlotCallbacks[] =
 // Authored nominal block of each arc beat; the randomized range is this +-2, clipped.
 static const u8 sEmeraldArcNominalBlock[NUM_PLOT_ARC] =
 {
-    2, 3, 5, 10, 11, 13, 14, 14, 15, 15, 17, 17, 18, 19, 19,
+    2, 3, 5, 10, 11, 12, 14, 14, 15, 15, 17, 17, 18, 19, 19,
 };
 
 static const u8 sEmeraldDevonBlock[NUM_PLOT_DEVON] = {3, 4, 5};
-static const u8 sEmeraldSpecialBlock[NUM_PLOT_SPECIAL] = {2, 11, 12};
+static const u8 sEmeraldSpecialBlock[NUM_PLOT_SPECIAL] = {2, 11, 13};
