@@ -22,11 +22,9 @@
 
 #include "global.h"
 #include "region_county.h"
+#include "constants/identity_salts.h"
 
 #define MAX_SPECIAL_LOCATIONS_PER_COUNTY 6
-
-#define REGION_SALT_PITSTOP      7
-#define REGION_SALT_PITSTOP_DEAL 9
 
 enum RegionTileFlags
 {

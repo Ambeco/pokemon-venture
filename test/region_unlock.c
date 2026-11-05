@@ -1,5 +1,6 @@
 #include "global.h"
 #include "test/test.h"
+#include "test/seed_sweep.h"
 #include "plot_stage.h"
 #include "region_county.h"
 #include "region_route.h"
@@ -25,7 +26,7 @@ TEST("RegionUnlock: Every key is a vanilla item of its own block, before the unl
     }
 }
 
-TEST("RegionUnlock: Emerald's blockers and open unlocks are blocks 8, 9, 16 and 11")
+TEST("RegionUnlock: Emerald's blockers are blocks 9 and 16, and Fallarbor and Fortree are implicit")
 {
     u32 block;
 
@@ -33,10 +34,13 @@ TEST("RegionUnlock: Emerald's blockers and open unlocks are blocks 8, 9, 16 and 
     {
         u32 type = GetPlotBlockUnlock(block).type;
 
-        if (block == 8 || block == 9 || block == 16)
+        if (block == 9 || block == 16)
             EXPECT_EQ(type, PLOT_UNLOCK_BLOCKER);
-        else if (block == 11)
-            EXPECT_EQ(type, PLOT_UNLOCK_OPEN);
+        else if (block == 8 || block == 11)
+        {
+            EXPECT_EQ(type, PLOT_UNLOCK_IMPLICIT);
+            EXPECT_EQ(GetPlotBlockUnlock(block).implicit, block == 8 ? PLOT_IMPLICIT_FIERY_PATH_ENTERED : PLOT_IMPLICIT_ROUTE119_RIVAL);
+        }
         else
             EXPECT_EQ(type, PLOT_UNLOCK_KEYS);
     }
@@ -115,6 +119,7 @@ TEST("RegionUnlock: A route lock carries the unlock of the county it gates")
     }
     EXPECT_GT(locks, 0);
     EXPECT_GT(open + blockers, 0);
+    (void)open;
 }
 
 TEST("RegionUnlock: Intra-county locks are county-private")
@@ -134,7 +139,55 @@ TEST("RegionUnlock: Intra-county locks are county-private")
             found++;
             EXPECT_EQ(key.type, PLOT_UNLOCK_COUNTY_PRIVATE);
             EXPECT_EQ(key.numKeys, 0);
+            EXPECT_LT(key.mcguffinId, NUM_COUNTY_MCGUFFIN_IDS);
         }
     }
     EXPECT_GT(found, 0);
+}
+
+TEST("RegionUnlock: County McGuffin pools are disjoint, in range, and clear of cross-county ids")
+{
+    u32 i, seed;
+
+    FOR_EACH_SWEEP_SEED(i, seed)
+    {
+        u8 used[NUM_COUNTY_MCGUFFIN_IDS] = {0};
+        u32 county, k, kind;
+
+        for (county = 0; county < NUM_COUNTIES; county++)
+        {
+            for (k = 0; k < MCGUFFIN_IDS_PER_COUNTY; k++)
+            {
+                u32 id = GetCountyMcGuffinId(county, k);
+
+                EXPECT_LT(id, NUM_COUNTY_MCGUFFIN_IDS);
+                EXPECT_EQ(used[id], 0);
+                used[id] = 1;
+            }
+        }
+        for (kind = 0; kind < NUM_PLOT_KINDS; kind++)
+        {
+            u32 id = GetPlotItemMcGuffinId(kind, 3);
+
+            EXPECT_GE(id, NUM_COUNTY_MCGUFFIN_IDS);
+            EXPECT_LT(id, NUM_COUNTY_MCGUFFIN_IDS + NUM_CROSS_MCGUFFIN_IDS);
+            EXPECT_EQ(id, GetPlotItemMcGuffinId(kind, 3));
+        }
+    }
+}
+
+TEST("RegionUnlock: A county's pool varies with the seed")
+{
+    u32 i, seed, first = 0, different = 0;
+
+    FOR_EACH_SWEEP_SEED(i, seed)
+    {
+        u32 id = GetCountyMcGuffinId(5, 2);
+
+        if (i == 0)
+            first = id;
+        else
+            different += id != first;
+    }
+    EXPECT_GT(different, 0);
 }

@@ -632,7 +632,7 @@ County numbers below are the county-story-indices the code uses, in walkthrough 
 | 31 | | 3 | Unlock Verdanturf via Rock Smash + Dynamo Badge (Rusturf debris) |
 | 32 | 8 Verdanturf | 0 | Strength (Rusturf Tunnel; Emerald-only exception 3) |
 | 33-34 | | 1-2 | (none) |
-| 35 | | 3 | Unlock Fallarbor via a blocker |
+| 35 | | 3 | Unlock Fallarbor via Fiery Path entered (implicit: `FLAG_LANDMARK_FIERY_PATH`; Magma blocks Mt. Chimney, so the way is Fiery Path to Route 112 north and Route 113) |
 | 36-38 | 9 Fallarbor | 0-2 | (none) |
 | 39 | | 3 | Unlock Meteor Falls via a blocker |
 | 40 | 10 Meteor Falls | 0 | Magma beat (Meteorite stolen, Archie appears) |
@@ -641,7 +641,7 @@ County numbers below are the county-story-indices the code uses, in walkthrough 
 | 44 | 11 Lavaridge | 0 | Magma beat (Mt. Chimney, Meteorite recovered); G4 (Strength already held) |
 | 45 | | 1 | (no callback) |
 | 46 | | 2 | Go-Goggles (rival meeting outside the gym) |
-| 47 | | 3 | Unlock Fortree (open; no lock) |
+| 47 | | 3 | Unlock Fortree via the Route 119 rival (implicit: `VAR_ROUTE119_STATE >= 1`, which is RB4, a block 12 get; unconfirmed reading of the walkthrough) |
 | 48 | 12 Fortree | 0 | RB4 (Route 119 north); Devon Scope (Route 120) |
 | 49 | | 1 | Callback to Petalburg (2): G5 + Surf (Norman, Wally's father) |
 | 50 | | 2 | G6 + Fly |
@@ -735,7 +735,7 @@ Arc beats cannot use disjoint windows (design.md says ranges of a kind are disjo
 
 #### Step predicates for the read-only adapter
 
-A list is done when every blocking get in it is true; the current index is the first list, scanning from 0, that is not done (Emerald lets some gets happen early: Fly with RB4, Strength at Rusturf, Go-Goggles, so the highest true predicate is wrong). A step-3 unlock is done when its named key's predicate holds; the 3 blockers (35, 39, 67) and Fortree's open unlock (47) are done when the previous list is. Gets are blocking or reported-only. Blocking means vanilla forces the get (a scene or gate) or needs it by the end game; reported-only gets are reported in the done mask but never hold a list, because a skippable blocking get (the Good Rod's fisherman has decline and bag-full branches that never set its flag, and nothing later reads it) would freeze the index for good. When in doubt a get is reported-only: a forced one then costs only a hint that moves on early. So the planner's "Good Rod is mandatory" is a rule for the randomized path, not something vanilla enforces. Reported-only: RB2, RB5, Wally 1, the Museum delivery, the Shipyard visit, Shelly, Meteor Falls and Mt. Chimney beats, every utility and special item, Cut, Flash, Rock Smash, Strength and Fly, Running Shoes and the Poké Balls (no flag; `STORY_PRED_ALWAYS`). Setter sites were found with `setflag`/`setvar` in `data/` (non-Frlg), and every predicate was checked to be monotone (no `clearflag`, no lower `setvar` later). Code: `include/util/plot_stage.h`, `src/util/plot_stage.c`, data `src/data/region/emerald_plot_gets.h`, test `test/region_plot_stage.c`; the table below is the reading, the data file is the classification.
+A list is done when every blocking get in it is true; the current index is the first list, scanning from 0, that is not done (Emerald lets some gets happen early: Fly with RB4, Strength at Rusturf, Go-Goggles, so the highest true predicate is wrong). A step-3 unlock is done when its named key's predicate holds; the 2 blockers (39, 67) are done when the previous list is, and the implicit unlocks (35 Fiery Path entered, 47 the Route 119 rival) read their stand-in event, reported-only. Gets are blocking or reported-only. Blocking means vanilla forces the get (a scene or gate) or needs it by the end game; reported-only gets are reported in the done mask but never hold a list, because a skippable blocking get (the Good Rod's fisherman has decline and bag-full branches that never set its flag, and nothing later reads it) would freeze the index for good. When in doubt a get is reported-only: a forced one then costs only a hint that moves on early. So the planner's "Good Rod is mandatory" is a rule for the randomized path, not something vanilla enforces. Reported-only: RB2, RB5, Wally 1, the Museum delivery, the Shipyard visit, Shelly, Meteor Falls and Mt. Chimney beats, every utility and special item, Cut, Flash, Rock Smash, Strength and Fly, Running Shoes and the Poké Balls (no flag; `STORY_PRED_ALWAYS`). Setter sites were found with `setflag`/`setvar` in `data/` (non-Frlg), and every predicate was checked to be monotone (no `clearflag`, no lower `setvar` later). Code: `include/util/plot_stage.h`, `src/util/plot_stage.c`, data `src/data/region/emerald_plot_gets.h`, test `test/region_plot_stage.c`; the table below is the reading, the data file is the classification.
 
 Resolved readings: the Woods grunt is `VAR_PETALBURG_WOODS_STATE >= 1`, set after the battle on both paths; Stop Thief is `VAR_RUSTBORO_CITY_STATE >= 2` (the var only climbs 1 to 8; `FLAG_DEVON_GOODS_STOLEN` is cleared later); the Shipyard visit is `FLAG_DOCK_REJECTED_DEVON_GOODS` or `FLAG_DELIVERED_DEVON_GOODS` (the dock checks the latter first); RB3 is `VAR_ROUTE110_STATE >= 1` and the Itemfinder, which has no flag, is given in the same scene; RB4 is `VAR_ROUTE119_STATE >= 1`; the submarine is `VAR_SLATEPORT_HARBOR_STATE >= 2` (MagmaHideout_4F sets 1); Sky Pillar is `VAR_SKY_PILLAR_STATE >= 1`; the Good Rod's flag is set at Route118:36. The extra Route 104 rival (`FLAG_DEFEATED_RIVAL_ROUTE_104`) is RB2 at a second venue, not a sixth battle: both venues use the `TRAINER_MAY_RUSTBORO_*`/`BRENDAN` parties and set `VAR_RUSTBORO_CITY_STATE` 8 and `VAR_ROUTE104_STATE` 2, which disables the other trigger, so RB2 is `FLAG_DEFEATED_RIVAL_RUSTBORO` or `FLAG_DEFEATED_RIVAL_ROUTE_104`. `FLAG_DEFEATED_MAGMA_SPACE_CENTER` is cleared again by the Rayquaza call (MossdeepCity_SpaceCenter_2F:328), so the Space Center beat reads `VAR_MOSSDEEP_SPACE_CENTER_STATE >= 3` instead.
 
@@ -800,7 +800,7 @@ A person standing in the way until a boolean. Emerald has these (chain entry, wh
 | 13/77 | Norman, Petalburg gym | 4 badges (derived stage, design.md "Interface rules") |
 | 36, 55 | Aqua grunts at the Museum, Magma grunts at the cable car | arc beats owned by the arc (main arc bucket); not generic blockers |
 
-The three planner blockers (indices 35, 39, 67: unlocks into Fallarbor, Meteor Falls and Mossdeep) have no Emerald counterpart yet. Until the pool grows (design.md, "Blocker McGuffins"), subplots author their own blocker scripts; the first generic blockers are those three, written as one parameterized "NPC blocks the route until the index passes step s" script.
+The two planner blockers (indices 39, 67: unlocks into Meteor Falls and Mossdeep) have no Emerald counterpart yet. Until the pool grows (design.md, "Blocker McGuffins"), subplots author their own blocker scripts; the first generic blockers are those two, written as one parameterized "NPC blocks the route until the index passes step s" script.
 
 ### Per-county storage needs
 
@@ -830,7 +830,7 @@ Counted from the table above, by host county (callback gets count for the host, 
 | 19 Pacifidlog | 1 | 1 | 1 (weekly TM day) | 3 |
 | 20 Ever Grande | 3 | 3 | 0 | 1 |
 
-Totals: 64 gets, 20 unlocks (blocks 0-19), 3 of them blockers (indices 35, 39, 67); about 15 chain vars and about 82 bools. At most 11 bools in any county, and about 380 flags are unused today, so a fixed 12-flag pool per county would fit (288) without packing. Not counted: post-game content (Battle Frontier, Southern Island, Regi trio, Altering Cave), the 7 Trick House and Mossdeep gym switch flags (scratch), per-city visited and landmark flags, Pokénav match-call flags, and engine vars.
+Totals: 64 gets, 20 unlocks (blocks 0-19), 2 of them blockers (indices 39, 67) and 2 implicit (35, 47); about 15 chain vars and about 82 bools. At most 11 bools in any county, and about 380 flags are unused today, so a fixed 12-flag pool per county would fit (288) without packing. Not counted: post-game content (Battle Frontier, Southern Island, Regi trio, Altering Cave), the 7 Trick House and Mossdeep gym switch flags (scratch), per-city visited and landmark flags, Pokénav match-call flags, and engine vars.
 
 - Only one list is current at a time, and the largest is 4 (Rustboro step 2, Mauville step 2, Mossdeep step 0), so one shared 4-bit completion mask would do. Per-county masks are only needed if a county's completed gets must survive past its list, which level-triggered completion makes unnecessary.
 - McGuffin flags: the 9 event keys in step-3 unlocks (Letter delivered, Devon Goods delivered, RB3, Meteorite stolen, Shelly defeated, Groudon awakened, blockade gone, Kyogre awakened, Cave of Origin done) all have an Emerald flag or var (see "Planner inputs", step predicates), except that RB3 has only a var. Once the main-story-index is maintained they are derivable (a key's index is below its lock's), so they need no stored flag; the 3 blockers likewise.
@@ -849,7 +849,7 @@ Numbered so they can be struck off as the rules or the table change.
 8. Rival Battle 3 moves from the Mauville cell to the Cycling Road cell (Route 110).
 9. Seafloor Cavern moves from the Ever Grande cell to Mossdeep's. Victory Road lives in Sootopolis's cell, so Wally battle 2 is a callback.
 10. Mt. Pyre (14) is forced before Lilycove (15); Emerald lets the player visit Lilycove first.
-11. Blocks 8, 9 and 16 have no mandatory gets, so their unlocks need blocker McGuffins that vanilla Emerald lacks (or a tiny subplot each). Block 11's unlock into Fortree (index 47) has no lock at all: the step is open.
+11. Blocks 9 and 16 have no mandatory gets, so their unlocks need blocker McGuffins that vanilla Emerald lacks (or a tiny subplot each). Blocks 8 and 11 (Fallarbor, Fortree) have no get to name either, so their unlocks are implicit: Fiery Path entered, and the Route 119 rival (a block 12 get, so Fortree's key is not from its own block).
 12. Verdanturf's unlock uses Rock Smash + Dynamo Badge, which also gates Route 117; vanilla leaves it open.
 13. The Elite Four county has two gates: Waterfall + Rain Badge into Ever Grande, and 8 badges into the League lobby.
 14. The empty county (3,2) must take a reserved index (23) and holds no legendary location.

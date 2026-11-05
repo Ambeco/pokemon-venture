@@ -1,4 +1,5 @@
 #include "global.h"
+#include "identity_seed.h"
 #include "region_county.h"
 #include "region_route.h"
 #include "region_unlock.h"
@@ -51,5 +52,35 @@ bool32 GetCountyIntraRouteLockKey(u32 county, u32 specialIndex, struct RegionTil
         return FALSE;
     key->type = PLOT_UNLOCK_COUNTY_PRIVATE;
     key->numKeys = 0;
+    key->implicit = PLOT_IMPLICIT_NONE;
+    key->mcguffinId = GetCountyMcGuffinId(county, specialIndex);
     return TRUE;
+}
+
+static u32 Gcd(u32 a, u32 b)
+{
+    while (b != 0)
+    {
+        u32 t = a % b;
+
+        a = b;
+        b = t;
+    }
+    return a;
+}
+
+u32 GetCountyMcGuffinId(u32 countyId, u32 index)
+{
+    u32 stride = 1 + IdentityHash(GetPlayerIdentitySeed(), REGION_SALT_MCGUFFIN_STRIDE, 0) % (NUM_COUNTY_MCGUFFIN_IDS - 1);
+
+    AGB_ASSERT(countyId < NUM_COUNTIES && index < MCGUFFIN_IDS_PER_COUNTY);
+    while (Gcd(stride, NUM_COUNTY_MCGUFFIN_IDS) != 1)
+        stride = stride % (NUM_COUNTY_MCGUFFIN_IDS - 1) + 1;
+    return (countyId * MCGUFFIN_IDS_PER_COUNTY + index) * stride % NUM_COUNTY_MCGUFFIN_IDS;
+}
+
+u32 GetPlotItemMcGuffinId(u32 kind, u32 ordinal)
+{
+    return NUM_COUNTY_MCGUFFIN_IDS
+        + IdentityHash(GetPlayerIdentitySeed(), REGION_SALT_MCGUFFIN_CROSS, kind << 8 | ordinal) % NUM_CROSS_MCGUFFIN_IDS;
 }

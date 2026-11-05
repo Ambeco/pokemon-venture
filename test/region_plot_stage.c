@@ -199,16 +199,28 @@ TEST("RegionPlotStage: A gym list holds on its badge and HM, a displaced HM stan
     EXPECT_EQ(stage.numGets, 2); // Mt. Chimney beat, G4 badge
 }
 
-TEST("RegionPlotStage: Only the Letter unlock has a key; other step-3 lists are empty")
+TEST("RegionPlotStage: Only the Letter and the two implicit unlocks have a get; other step-3 lists are empty")
 {
     u32 index;
 
     for (index = 3; index < NUM_MAIN_INDICES; index += 4)
-        EXPECT_EQ(GetPlotListStage(index).numGets, index == 15 ? 1 : 0);
+        EXPECT_EQ(GetPlotListStage(index).numGets, (index == 15 || index == 35 || index == 47) ? 1 : 0);
     EXPECT_EQ(GetPlotListStage(15).blockingMask, 1);
     EXPECT_EQ(GetPlotListStage(15).doneMask, 0);
     FlagSet(FLAG_RETURNED_DEVON_GOODS);
     EXPECT_EQ(GetPlotListStage(15).doneMask, 1);
+}
+
+TEST("RegionPlotStage: Fallarbor's unlock reads Fiery Path and Fortree's the Route 119 rival, neither blocking")
+{
+    EXPECT_EQ(GetPlotListStage(35).blockingMask, 0);
+    EXPECT_EQ(GetPlotListStage(35).doneMask, 0);
+    FlagSet(FLAG_LANDMARK_FIERY_PATH);
+    EXPECT_EQ(GetPlotListStage(35).doneMask, 1);
+    EXPECT_EQ(GetPlotListStage(47).blockingMask, 0);
+    EXPECT_EQ(GetPlotListStage(47).doneMask, 0);
+    VarSet(VAR_ROUTE119_STATE, 1);
+    EXPECT_EQ(GetPlotListStage(47).doneMask, 1);
 }
 
 TEST("RegionPlotStage: Every vanilla slot has a descriptor")
@@ -220,7 +232,7 @@ TEST("RegionPlotStage: Every vanilla slot has a descriptor")
     {
         u32 count = ResolveVanillaPlotList(index, slots, ARRAY_COUNT(slots));
         struct PlotListStage stage = GetPlotListStage(index);
-        u32 expectedGets = (index == 15) ? 1 : 0;
+        u32 expectedGets = (index == 15 || index == 35 || index == 47) ? 1 : 0;
 
         for (i = 0; i < count; i++)
         {

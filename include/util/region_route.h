@@ -33,10 +33,6 @@
 #include "global.h"
 #include "region_tile.h"
 
-#define REGION_SALT_ROUTE_BEND     1
-#define REGION_SALT_ROUTE_CROSSING 3
-#define REGION_SALT_ROUTE_INTRA    5
-
 // Route ids: a route to a neighbor county is that county's id; an intra-county route is named by
 // the index of its special location.
 #define ROUTE_ID_TO_SPECIAL(index) (NUM_COUNTIES + (index))

@@ -279,7 +279,12 @@ static void PutUnlock(struct LineWriter *w, const struct PlotUnlock *unlock)
         PutStr(w, "blocker");
         break;
     case PLOT_UNLOCK_COUNTY_PRIVATE:
-        PutStr(w, "county-private");
+        PutStr(w, "county-private id=");
+        PutNum(w, unlock->mcguffinId);
+        break;
+    case PLOT_UNLOCK_IMPLICIT:
+        PutStr(w, "implicit=");
+        PutNum(w, unlock->implicit);
         break;
     default:
         PutStr(w, "keys=");

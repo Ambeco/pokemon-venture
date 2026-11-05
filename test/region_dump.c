@@ -52,7 +52,7 @@ static bool32 IsInterestingExtra(const char *line)
 {
     static const char *const needles[] =
     {
-        "story=1 ", "story=9 ", "story=12 ", "enclave ", "plot 0 ", "plot 3 ", "plot 49 ", "plot 83 ",
+        "story=1 ", "story=10 ", "story=12 ", "enclave ", "plot 0 ", "plot 3 ", "plot 49 ", "plot 83 ",
     };
     u32 i;
 
@@ -190,11 +190,11 @@ TEST("RegionDump: Lock lines name the tile, the gated county and the planner key
 {
     Dump();
     EXPECT_GT(sLockLines, 0);
-    // Oldale (story 1) is gated by the Starter, Fortree's unlock (block 11) is open, and the
-    // Fallarbor unlock (block 8) is a blocker.
+    // Oldale (story 1) is gated by the Starter, Fortree's unlock (block 11) is the Route 119
+    // rival, and the Meteor Falls unlock (block 9) is a blocker.
     EXPECT(FindLine("lock ", "story=1 keys=scripted0") != NULL);
-    EXPECT(FindLine("lock ", "story=12 open") != NULL);
-    EXPECT(FindLine("lock ", "story=9 blocker") != NULL);
+    EXPECT(FindLine("lock ", "story=12 implicit=2") != NULL);
+    EXPECT(FindLine("lock ", "story=10 blocker") != NULL);
 }
 
 TEST("RegionDump: Enclave lines list every Enclave with its unlock index and map flag")
