@@ -231,10 +231,11 @@ TEST("RegionTile: A pitstop sits on a free route tile; every county with locatio
     }
 }
 
-TEST("RegionTile: Only landmarks are on the map")
+TEST("RegionTile: Only landmarks and flagged enclaves are on the map")
 {
     EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_LANDMARK}), TRUE);
     EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_DETOUR}), FALSE);
     EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_PITSTOP}), FALSE);
     EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_ENCLAVE}), FALSE);
+    EXPECT_EQ(IsLocationOnMap(&(struct SpecialLocation){.locationClass = LOCATION_CLASS_ENCLAVE, .enclaveOnMap = TRUE}), TRUE);
 }

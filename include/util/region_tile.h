@@ -76,7 +76,7 @@ enum TownLocationKind
 // A property of the place, not of its kind (design.md, "Special locations"). Landmarks and detours are
 // routed; only landmarks appear on the region-map screen. A pitstop is placed on a free route tile
 // after routes are final, so routes never see it. An enclave has a tile but is neither routed nor a
-// route tile, and is not on the map.
+// route tile, and is on the map only if its enclaveOnMap flag is set.
 enum LocationClass
 {
     LOCATION_CLASS_TOWN, // inside a city
@@ -92,11 +92,13 @@ struct SpecialLocation
     u8 mapSec;
     u8 kind; // enum RouteLocationKind or enum TownLocationKind
     u8 locationClass; // enum LocationClass
+    u8 enclaveOnMap; // enclaves only: shown on the region map once unlocked
 };
 
 static inline bool32 IsLocationOnMap(const struct SpecialLocation *location)
 {
-    return location->locationClass == LOCATION_CLASS_LANDMARK;
+    return location->locationClass == LOCATION_CLASS_LANDMARK
+        || (location->locationClass == LOCATION_CLASS_ENCLAVE && location->enclaveOnMap);
 }
 
 static inline bool32 IsSpecialLocationKindInsideCity(u32 kind)

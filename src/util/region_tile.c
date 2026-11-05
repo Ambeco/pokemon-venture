@@ -172,6 +172,7 @@ struct SpecialLocation GetCountySpecialLocation(u32 countyId, u32 index)
     location.mapSec = tiles->specials[index].mapSec;
     location.kind = tiles->specials[index].kind;
     location.locationClass = tiles->specials[index].locationClass;
+    location.enclaveOnMap = tiles->specials[index].enclaveOnMap;
     return location;
 }
 
