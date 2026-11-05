@@ -1,9 +1,11 @@
 #include "global.h"
 #include "test/test.h"
 #include "region_dump.h"
+#include "region_county.h"
 #include "region_tile.h"
 
-#define MAX_DUMP_LINES 100
+#define MAX_DUMP_LINES (1 + (REGION_H + COUNTY_ROWS - 1) + 3 * NUM_COUNTIES)
+#define MAX_EXTRA_LINES 40
 
 static EWRAM_DATA char sLines[MAX_DUMP_LINES][REGION_DUMP_LINE_SIZE];
 static u32 sNumLines;
@@ -42,27 +44,65 @@ static bool32 StrHas(const char *s, const char *needle)
     return len == 0;
 }
 
+static EWRAM_DATA char sExtra[MAX_EXTRA_LINES][REGION_DUMP_LINE_SIZE];
+static u32 sNumExtra;
+static u32 sLockLines, sEnclaveLines, sPlotLines;
+
+static bool32 IsInterestingExtra(const char *line)
+{
+    static const char *const needles[] =
+    {
+        "story=1 ", "story=9 ", "story=12 ", "enclave ", "plot 0 ", "plot 3 ", "plot 49 ", "plot 83 ",
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(needles); i++)
+    {
+        if (StrHas(line, needles[i]))
+            return TRUE;
+    }
+    return FALSE;
+}
+
+// The first MAX_DUMP_LINES lines are kept; later ones only counted, and the interesting ones kept.
 static void Collect(const char *line)
 {
     u32 i;
+    char *dest;
 
-    ASSUME(sNumLines < MAX_DUMP_LINES);
-    for (i = 0; line[i]; i++)
-        sLines[sNumLines][i] = line[i];
-    sLines[sNumLines][i] = '\0';
+    if (sNumLines < MAX_DUMP_LINES)
+    {
+        dest = sLines[sNumLines];
+    }
+    else
+    {
+        sLockLines += StrStartsWith(line, "lock ");
+        sEnclaveLines += StrStartsWith(line, "enclave ");
+        sPlotLines += StrStartsWith(line, "plot ");
+        dest = NULL;
+        if (IsInterestingExtra(line) && sNumExtra < MAX_EXTRA_LINES)
+            dest = sExtra[sNumExtra++];
+    }
     sNumLines++;
+    if (dest == NULL)
+        return;
+    for (i = 0; line[i]; i++)
+        dest[i] = line[i];
+    dest[i] = '\0';
 }
 
 static void Dump(void)
 {
     sNumLines = 0;
+    sNumExtra = 0;
+    sLockLines = sEnclaveLines = sPlotLines = 0;
     DumpRegion(Collect);
 }
 
 TEST("RegionDump: Emits a header, the map with county separators, and three lines per county")
 {
     Dump();
-    EXPECT_EQ(sNumLines, 1 + (REGION_H + COUNTY_ROWS - 1) + 3 * NUM_COUNTIES);
+    EXPECT_GE(sNumLines, 1 + (REGION_H + COUNTY_ROWS - 1) + 3 * NUM_COUNTIES);
     EXPECT(StrStartsWith(sLines[0], "region: capital=4 reserved=3"));
 }
 
@@ -132,4 +172,45 @@ TEST("RegionDump: City lines carry the name, theme, roles and gym, and special l
     EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(1, 3) + 1], "gym=0"));
     EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(0, 0) + 2], ":cave@("));
     EXPECT(StrHas(sLines[base + 3 * COUNTY_ID(2, 3) + 2], ":museum@("));
+}
+
+static const char *FindLine(const char *prefix, const char *needle)
+{
+    u32 i;
+
+    for (i = 0; i < sNumExtra; i++)
+    {
+        if (StrStartsWith(sExtra[i], prefix) && StrHas(sExtra[i], needle))
+            return sExtra[i];
+    }
+    return NULL;
+}
+
+TEST("RegionDump: Lock lines name the tile, the gated county and the planner key")
+{
+    Dump();
+    EXPECT_GT(sLockLines, 0);
+    // Oldale (story 1) is gated by the Starter, Fortree's unlock (block 11) is open, and the
+    // Fallarbor unlock (block 8) is a blocker.
+    EXPECT(FindLine("lock ", "story=1 keys=scripted0") != NULL);
+    EXPECT(FindLine("lock ", "story=12 open") != NULL);
+    EXPECT(FindLine("lock ", "story=9 blocker") != NULL);
+}
+
+TEST("RegionDump: Enclave lines list every Enclave with its unlock index and map flag")
+{
+    Dump();
+    EXPECT_EQ(sEnclaveLines, 4);
+    EXPECT(FindLine("enclave ", "unlock=83 on-map") != NULL);
+    EXPECT(FindLine("enclave ", "unlock=83 hidden") != NULL);
+}
+
+TEST("RegionDump: One plot line per main-story-index through the Elite Four block")
+{
+    Dump();
+    EXPECT_EQ(sPlotLines, 4 * (GetEliteFourStoryIdx() + 1));
+    EXPECT(FindLine("plot 0 ", "scripted0") != NULL);
+    EXPECT(FindLine("plot 3 ", "unlock keys=scripted0") != NULL);
+    EXPECT(FindLine("plot 49 ", "gym5+hm5@county2") != NULL); // Surf's gym, the Petalburg callback
+    EXPECT(FindLine("plot 83 ", "unlock keys=scripted7") != NULL);
 }

@@ -25,7 +25,8 @@
 
 #define MAX_SPECIAL_LOCATIONS_PER_COUNTY 6
 
-#define REGION_SALT_PITSTOP 7
+#define REGION_SALT_PITSTOP      7
+#define REGION_SALT_PITSTOP_DEAL 9
 
 enum RegionTileFlags
 {
@@ -128,6 +129,15 @@ u32 GetCountySpecialLocationClass(u32 countyId, u32 index);
 
 // Includes the tiles of the county's outside-city special locations.
 u32 GetCountyRouteTileCount(u32 countyId);
+
+// Route tiles of the county that hold no location: the room for its pitstops.
+u32 GetCountyFreeRouteTileCount(u32 countyId);
+
+// The pitstops of the hardcoded table in county order, as the pool the dealer (region_pitstop.h)
+// draws from. A pool entry is a place without a tile or a county.
+u32 GetPitstopPoolCount(void);
+
+struct SpecialLocation GetPitstopPoolEntry(u32 poolIndex);
 
 // Region cell of the index-th route tile of the county, in row-major order.
 struct RegionTilePos GetCountyRouteTile(u32 countyId, u32 index);

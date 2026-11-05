@@ -5,8 +5,12 @@
 #include "battle_main.h"
 #include "region_city.h"
 #include "region_county.h"
+#include "region_plot.h"
 #include "region_tile.h"
+#include "region_unlock.h"
 #include "region_dump.h"
+
+#define MAX_PLOT_DUMP_ITEMS 12
 
 struct LineWriter
 {
@@ -244,6 +248,170 @@ static void DumpCounty(struct LineWriter *w, RegionDumpLineFn emit, u32 id)
     Flush(w, emit);
 }
 
+static const char *const sPlotKindNames[NUM_PLOT_KINDS] =
+{
+    [PLOT_KIND_GYM] = "gym",
+    [PLOT_KIND_RIVAL] = "rival",
+    [PLOT_KIND_WALLY] = "wally",
+    [PLOT_KIND_ARC] = "arc",
+    [PLOT_KIND_DEVON] = "devon",
+    [PLOT_KIND_SPECIAL] = "special",
+    [PLOT_KIND_UTILITY] = "utility",
+    [PLOT_KIND_SCRIPTED] = "scripted",
+};
+
+static void PutKeyRef(struct LineWriter *w, u32 kind, u32 ordinal)
+{
+    PutStr(w, sPlotKindNames[kind]);
+    PutNum(w, ordinal);
+}
+
+static void PutUnlock(struct LineWriter *w, const struct PlotUnlock *unlock)
+{
+    u32 i;
+
+    switch (unlock->type)
+    {
+    case PLOT_UNLOCK_OPEN:
+        PutStr(w, "open");
+        break;
+    case PLOT_UNLOCK_BLOCKER:
+        PutStr(w, "blocker");
+        break;
+    case PLOT_UNLOCK_COUNTY_PRIVATE:
+        PutStr(w, "county-private");
+        break;
+    default:
+        PutStr(w, "keys=");
+        for (i = 0; i < unlock->numKeys; i++)
+        {
+            if (i != 0)
+                PutChar(w, '+');
+            PutKeyRef(w, unlock->keys[i].kind, unlock->keys[i].ordinal);
+        }
+        break;
+    }
+}
+
+static void PutPos(struct LineWriter *w, u32 x, u32 y)
+{
+    PutStr(w, "@(");
+    PutNum(w, x);
+    PutChar(w, ',');
+    PutNum(w, y);
+    PutChar(w, ')');
+}
+
+static void DumpLocks(struct LineWriter *w, RegionDumpLineFn emit)
+{
+    u32 a, b;
+
+    for (a = 0; a < NUM_COUNTIES; a++)
+    {
+        for (b = a + 1; b < NUM_COUNTIES; b++)
+        {
+            struct RegionTilePos pos;
+            struct PlotUnlock key;
+            u32 gated;
+
+            if (!AreCountiesAdjacent(a, b) || !GetRouteLockKey(a, b, &pos, &gated, &key))
+                continue;
+            PutStr(w, "lock ");
+            PutNum(w, a);
+            PutChar(w, '-');
+            PutNum(w, b);
+            PutChar(w, ' ');
+            PutPos(w, pos.x, pos.y);
+            PutStr(w, " gates=");
+            PutNum(w, gated);
+            PutStr(w, " story=");
+            PutNum(w, GetCountyHeader(gated)->storyIdx);
+            PutChar(w, ' ');
+            PutUnlock(w, &key);
+            Flush(w, emit);
+        }
+    }
+}
+
+static void DumpEnclaves(struct LineWriter *w, RegionDumpLineFn emit)
+{
+    u32 id, i;
+
+    for (id = 0; id < NUM_COUNTIES; id++)
+    {
+        for (i = 0; i < GetCountySpecialLocationCount(id); i++)
+        {
+            struct SpecialLocation s;
+            u32 unlockIndex;
+
+            if (GetCountySpecialLocationClass(id, i) != LOCATION_CLASS_ENCLAVE)
+                continue;
+            s = GetCountySpecialLocation(id, i);
+            PutStr(w, "enclave county=");
+            PutNum(w, id);
+            PutStr(w, " mapsec=");
+            PutNum(w, s.mapSec);
+            PutChar(w, ':');
+            PutStr(w, sLocationKindNames[s.kind]);
+            PutStr(w, " unlock=");
+            if (GetCountyUnlockIndex(id, &unlockIndex))
+                PutNum(w, unlockIndex);
+            else
+                PutStr(w, "start");
+            PutStr(w, IsLocationOnMap(&s) ? " on-map" : " hidden");
+            Flush(w, emit);
+        }
+    }
+}
+
+// One line per main-story-index: the items of the vanilla list, or the unlock key at step 3.
+static void DumpPlot(struct LineWriter *w, RegionDumpLineFn emit)
+{
+    struct PlotSlot slots[MAX_PLOT_DUMP_ITEMS];
+    u32 index, i;
+
+    for (index = 0; index < 4 * (GetEliteFourStoryIdx() + 1); index++)
+    {
+        PutStr(w, "plot ");
+        PutNum(w, index);
+        PutStr(w, " x=");
+        PutNum(w, index >> 2);
+        PutStr(w, " step=");
+        PutNum(w, index & 3);
+        PutStr(w, ":");
+        if ((index & 3) == 3)
+        {
+            struct PlotUnlock unlock = GetPlotBlockUnlock(index >> 2);
+
+            PutStr(w, " unlock ");
+            PutUnlock(w, &unlock);
+        }
+        else
+        {
+            u32 count = ResolveVanillaPlotList(index, slots, MAX_PLOT_DUMP_ITEMS);
+
+            for (i = 0; i < count; i++)
+            {
+                PutChar(w, ' ');
+                PutKeyRef(w, slots[i].kind, slots[i].ordinal);
+                if (slots[i].hm != PLOT_HM_NONE)
+                {
+                    PutStr(w, "+hm");
+                    PutNum(w, slots[i].hm);
+                }
+                if ((index & 3) == 1)
+                {
+                    PutStr(w, "@county");
+                    PutNum(w, slots[i].host);
+                }
+            }
+            if (count == 0)
+                PutStr(w, " -");
+        }
+        Flush(w, emit);
+    }
+}
+
 void DumpRegion(RegionDumpLineFn emit)
 {
     struct LineWriter w = {.len = 0};
@@ -259,6 +427,9 @@ void DumpRegion(RegionDumpLineFn emit)
     DumpMap(&w, emit);
     for (id = 0; id < NUM_COUNTIES; id++)
         DumpCounty(&w, emit, id);
+    DumpLocks(&w, emit);
+    DumpEnclaves(&w, emit);
+    DumpPlot(&w, emit);
 }
 
 static void EmitToLog(const char *line)

@@ -182,6 +182,46 @@ u32 GetCountySpecialLocationClass(u32 countyId, u32 index)
     return GetCountyTiles(countyId)->specials[index].locationClass;
 }
 
+u32 GetCountyFreeRouteTileCount(u32 countyId)
+{
+    return __builtin_popcount(GetFreeRouteMask(countyId));
+}
+
+u32 GetPitstopPoolCount(void)
+{
+    u32 id, i, count = 0;
+
+    for (id = 0; id < NUM_COUNTIES; id++)
+    {
+        for (i = 0; i < sEmeraldTiles[id].numSpecials; i++)
+            count += sEmeraldTiles[id].specials[i].locationClass == LOCATION_CLASS_PITSTOP;
+    }
+    return count;
+}
+
+struct SpecialLocation GetPitstopPoolEntry(u32 poolIndex)
+{
+    u32 id, i;
+    struct SpecialLocation location = {};
+
+    for (id = 0; id < NUM_COUNTIES; id++)
+    {
+        for (i = 0; i < sEmeraldTiles[id].numSpecials; i++)
+        {
+            const struct SpecialTile *special = &sEmeraldTiles[id].specials[i];
+
+            if (special->locationClass != LOCATION_CLASS_PITSTOP || poolIndex-- != 0)
+                continue;
+            location.mapSec = special->mapSec;
+            location.kind = special->kind;
+            location.locationClass = LOCATION_CLASS_PITSTOP;
+            return location;
+        }
+    }
+    AGB_ASSERT(FALSE); // poolIndex must be below GetPitstopPoolCount()
+    return location;
+}
+
 u32 GetCountyRouteTileCount(u32 countyId)
 {
     return __builtin_popcount(GetCountyRouteMask(countyId));
