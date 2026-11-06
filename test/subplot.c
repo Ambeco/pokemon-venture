@@ -6,6 +6,7 @@
 #include "event_data.h"
 #include "region_city.h"
 #include "subplot.h"
+#include "string_util.h"
 
 #define LILYCOVE COUNTY_ID(4, 0)
 
@@ -247,4 +248,73 @@ TEST("Subplot: The hint query treats adapter and stored subplots alike")
 TEST("Subplot: A county is found from its city's MAPSEC")
 {
     EXPECT_EQ(GetCountyFromCityMapSec(MAPSEC_LILYCOVE_CITY), LILYCOVE);
+}
+
+TEST("Subplot: Ported subplots anchor every stage to a real place")
+{
+    u32 county, slot, stage;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        for (slot = 0; slot < SUBPLOTS_PER_COUNTY; slot++)
+        {
+            const struct SubplotDesc *desc = GetCountySubplot(county, slot);
+
+            if (desc == NULL)
+                continue;
+            for (stage = 0; stage < desc->numStages; stage++)
+            {
+                const struct BeatAnchor *anchor = &desc->stages[stage].anchor;
+
+                EXPECT(anchor->kind <= BEAT_ANCHOR_DOOR);
+                EXPECT(anchor->locationKind == BEAT_LOCATION_NONE || anchor->locationKind < NUM_LOCATION_KINDS);
+                EXPECT(anchor->routeId == ROUTE_ID_NONE || anchor->routeId < NUM_COUNTIES + MAX_SPECIAL_LOCATIONS_PER_COUNTY);
+                EXPECT(anchor->role != 0 || anchor->locationKind != BEAT_LOCATION_NONE || anchor->routeId != ROUTE_ID_NONE);
+            }
+        }
+    }
+}
+
+TEST("Subplot: The Lilycove Museum beat is the curator in the museum")
+{
+    const struct BeatAnchor *anchor = &GetCountySubplot(LILYCOVE, 0)->stages[0].anchor;
+
+    EXPECT_EQ(anchor->kind, BEAT_ANCHOR_NPC);
+    EXPECT_EQ(anchor->locationKind, TOWN_LOCATION_MUSEUM);
+}
+
+TEST("Subplot: A hinter's distance follows the anchor's city")
+{
+    const struct BeatAnchor *anchor = &GetCountySubplot(LILYCOVE, 0)->stages[0].anchor;
+    u32 county;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        if (county == LILYCOVE)
+            EXPECT_EQ(GetBeatDistance(LILYCOVE, anchor, county), SUBPLOT_CLOSE);
+        else
+            EXPECT_EQ(GetBeatDistance(LILYCOVE, anchor, county), SUBPLOT_FAR);
+    }
+}
+
+TEST("Subplot: The anchor reference names the building, location, road or city")
+{
+    u8 buf[64];
+    struct BeatAnchor door = {BEAT_ANCHOR_DOOR, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_POKEMON_CENTER};
+    struct BeatAnchor house = {BEAT_ANCHOR_DOOR, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE};
+    struct BeatAnchor museum = GetCountySubplot(LILYCOVE, 0)->stages[0].anchor;
+    struct BeatAnchor road = {BEAT_ANCHOR_ROUTE_ROUTE, LILYCOVE, COUNTY_ID(4, 1), BEAT_LOCATION_NONE, 0};
+    struct BeatAnchor outdoors = {BEAT_ANCHOR_ITEM, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0};
+
+    WriteBeatAnchorReference(buf, LILYCOVE, &door);
+    EXPECT_EQ(StringCompare(buf, COMPOUND_STRING("near the POKéMON CENTER")), 0);
+    WriteBeatAnchorReference(buf, LILYCOVE, &house);
+    EXPECT_EQ(StringCompare(buf, COMPOUND_STRING("near the house")), 0);
+    EXPECT_EQ(WriteBeatAnchorReference(buf, LILYCOVE, &museum) - buf, StringLength(COMPOUND_STRING("near the MUSEUM")));
+    EXPECT_EQ(StringCompare(buf, COMPOUND_STRING("near the MUSEUM")), 0);
+    WriteBeatAnchorReference(buf, LILYCOVE, &road);
+    EXPECT_EQ(StringCompareN(buf, COMPOUND_STRING("near the road to "), StringLength(COMPOUND_STRING("near the road to "))), 0);
+    EXPECT_EQ(StringCompare(buf + StringLength(COMPOUND_STRING("near the road to ")), GetCountyCityName(LILYCOVE)), 0);
+    WriteBeatAnchorReference(buf, LILYCOVE, &outdoors);
+    EXPECT_EQ(buf[0], COMPOUND_STRING("in ")[0]);
 }

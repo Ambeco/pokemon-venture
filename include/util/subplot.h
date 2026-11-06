@@ -17,6 +17,7 @@
 
 #include "global.h"
 #include "plot_stage.h"
+#include "region_route.h"
 
 #define SUBPLOTS_PER_COUNTY (VARS_PER_COUNTY - 1)
 #define COUNTY_VAR_SLICES_FREE ((LEGACY_VARS_START - COUNTY_VARS_START) / VARS_PER_COUNTY)
@@ -42,6 +43,30 @@ enum SubplotBeatState
     SUBPLOT_AFTER,
 };
 
+// What triggers a beat (design.md, "City planning", beat placement).
+enum BeatAnchorKind
+{
+    BEAT_ANCHOR_NPC,            // immobile NPC
+    BEAT_ANCHOR_ITEM,           // immobile item
+    BEAT_ANCHOR_ROUTE_ROUTE,    // transition between routeId and routeId2
+    BEAT_ANCHOR_ROUTE_LOCATION, // transition between routeId and the in-county special location of locationKind
+    BEAT_ANCHOR_DOOR,           // door of the building with `role`
+};
+
+#define BEAT_LOCATION_NONE 0xFF
+
+// Where a beat is triggered. An NPC or item stands in the building `role`, in the special location
+// `locationKind`, on `routeId`, or, with none of those set, outdoors in the city. All anchors of a subplot
+// belong to its host county, whose city is the anchor's city.
+struct BeatAnchor
+{
+    u8 kind;
+    u8 routeId;       // ROUTE_ID_NONE if not on a route
+    u8 routeId2;      // ROUTE_ROUTE only
+    u8 locationKind;  // enum RouteLocationKind or TownLocationKind, BEAT_LOCATION_NONE if none
+    u16 role;         // BuildingRole bit, 0 if none
+};
+
 struct SubplotTextList
 {
     const u8 *const *texts;
@@ -63,7 +88,7 @@ struct SubplotStageHints
 struct SubplotStage
 {
     struct SubplotStageHints hints;
-    u16 triggerRole;            // BuildingRole bit of the building where the stage's beat happens; 0 = outdoors
+    struct BeatAnchor anchor;   // where the stage's beat is triggered
     u16 hinterRoles;            // BuildingRole bits of the buildings where this stage's hinters may stand; 0 = anywhere in the county
     u8 numHinters;              // hinter NPCs the county must place for this stage, 0 = none
     struct StoryPredicate done; // adapter backend only: stage reached; stage 0 is the default and never tested
@@ -117,6 +142,16 @@ const u8 *GetCountySlotHintAbout(u32 countyId, u32 slot, u32 beat, u32 distance,
 
 // Actors this subplot wants present at `stage`: fills `out` (up to maxOut) and returns the total count.
 u32 GetSubplotActors(const struct SubplotDesc *desc, u32 stage, const struct SubplotActor **out, u32 maxOut);
+
+// City whose people are "close" to the anchor: the host county's, since subplots are single-county.
+u32 GetBeatAnchorCounty(u32 hostCounty, const struct BeatAnchor *anchor);
+
+// SUBPLOT_CLOSE iff the hinter stands in the anchor's city, else SUBPLOT_FAR.
+u32 GetBeatDistance(u32 hostCounty, const struct BeatAnchor *anchor, u32 hinterCounty);
+
+// Writes the reference for hint texts ("near the POKéMON CENTER", "near the road to SLATEPORT CITY", or
+// "in LILYCOVE CITY" when the anchor names no place) at dst and returns the end of the string.
+u8 *WriteBeatAnchorReference(u8 *dst, u32 hostCounty, const struct BeatAnchor *anchor);
 
 // County whose city has this MAPSEC; asserts there is none.
 u32 GetCountyFromCityMapSec(u32 mapSec);

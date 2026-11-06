@@ -6,8 +6,8 @@ enum LilycoveMuseumStage
     LILYCOVE_MUSEUM_EXHIBIT_SHOWN,
 };
 
-// The museum is an in-city special location, not a BuildingRole yet, so no role is required or triggered.
-// Hinters may stand anywhere in the county, one per stage.
+// The museum is an in-city special location, not a BuildingRole, so the curator (an immobile NPC) is anchored
+// by its location kind. Hinters may stand anywhere in the county, one per stage.
 static const struct SubplotStage sLilycoveMuseumStages[] =
 {
     [LILYCOVE_MUSEUM_EXHIBIT_NOT_SHOWN] =
@@ -19,6 +19,7 @@ static const struct SubplotStage sLilycoveMuseumStages[] =
             .closeCurrent = gText_Lilycove_Exhibit0CloseCurrent,
             .closeAfter = gText_Lilycove_Exhibit0CloseAfter,
         },
+        .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, TOWN_LOCATION_MUSEUM, 0},
         .numHinters = 1,
     },
     [LILYCOVE_MUSEUM_EXHIBIT_SHOWN] =
@@ -29,6 +30,7 @@ static const struct SubplotStage sLilycoveMuseumStages[] =
             .closeBefore = gText_Lilycove_Exhibit1CloseBefore,
             .closeCurrent = gText_Lilycove_Exhibit1CloseCurrent,
         },
+        .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, TOWN_LOCATION_MUSEUM, 0},
         .numHinters = 1,
     },
 };

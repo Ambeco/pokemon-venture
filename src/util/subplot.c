@@ -5,6 +5,7 @@
 #include "global.fieldmap.h"
 #include "region_city.h"
 #include "region_tile.h"
+#include "string_util.h"
 #include "subplot.h"
 
 static const u8 gText_Lilycove_Exhibit0FarCurrent[] = _("I heard the new exhibit hall at the\nLILYCOVE MUSEUM is about to open.");
@@ -189,6 +190,98 @@ u32 GetCountyFromCityMapSec(u32 mapSec)
         return 0;
     }
     return 0;
+}
+
+static const u8 *const sBuildingRoleNames[] =
+{
+    COMPOUND_STRING("POKéMON CENTER"), COMPOUND_STRING("MART"), COMPOUND_STRING("GYM"), COMPOUND_STRING("POKéMON LEAGUE"), COMPOUND_STRING("home"), COMPOUND_STRING("bedroom"), COMPOUND_STRING("MARKET"),
+    COMPOUND_STRING("MOTEL"), COMPOUND_STRING("HERB SHOP"), COMPOUND_STRING("HOT SPRINGS"), COMPOUND_STRING("HALL"), COMPOUND_STRING("FAN CLUB"), COMPOUND_STRING("SCHOOL"), COMPOUND_STRING("SERVICE house"),
+    COMPOUND_STRING("house"),
+};
+
+static const u8 *const sLocationKindNames[] =
+{
+    [ROUTE_LOCATION_CAVE] = COMPOUND_STRING("cave"),
+    [ROUTE_LOCATION_TUNNEL] = COMPOUND_STRING("tunnel"),
+    [ROUTE_LOCATION_VOLCANO] = COMPOUND_STRING("volcano"),
+    [ROUTE_LOCATION_MOUNTAIN] = COMPOUND_STRING("mountain"),
+    [ROUTE_LOCATION_FOREST] = COMPOUND_STRING("forest"),
+    [ROUTE_LOCATION_RUINS] = COMPOUND_STRING("ruins"),
+    [ROUTE_LOCATION_TOWER] = COMPOUND_STRING("tower"),
+    [ROUTE_LOCATION_HIDEOUT] = COMPOUND_STRING("hideout"),
+    [ROUTE_LOCATION_ISLAND] = COMPOUND_STRING("island"),
+    [ROUTE_LOCATION_UNDERWATER] = COMPOUND_STRING("undersea spot"),
+    [ROUTE_LOCATION_WRECK] = COMPOUND_STRING("wreck"),
+    [ROUTE_LOCATION_PARK] = COMPOUND_STRING("park"),
+    [ROUTE_LOCATION_FACILITY] = COMPOUND_STRING("facility"),
+    [ROUTE_LOCATION_ROADSIDE_BUILDING] = COMPOUND_STRING("roadside building"),
+    [ROUTE_LOCATION_ROUTE_FEATURE] = COMPOUND_STRING("landmark"),
+    [TOWN_LOCATION_MUSEUM] = COMPOUND_STRING("MUSEUM"),
+    [TOWN_LOCATION_ENTERTAINMENT] = COMPOUND_STRING("entertainment hall"),
+    [TOWN_LOCATION_STORE] = COMPOUND_STRING("DEPT. STORE"),
+    [TOWN_LOCATION_HARBOR] = COMPOUND_STRING("harbor"),
+    [TOWN_LOCATION_INSTITUTION] = COMPOUND_STRING("institute"),
+    [TOWN_LOCATION_SACRED_CAVE] = COMPOUND_STRING("sacred cave"),
+};
+
+static const u8 sNearThe[] = _("near the ");
+static const u8 sNearTheRoadTo[] = _("near the road to ");
+static const u8 sNearTheRoad[] = _("near the road");
+static const u8 sInCity[] = _("in ");
+
+u32 GetBeatAnchorCounty(u32 hostCounty, const struct BeatAnchor *anchor)
+{
+    return hostCounty;
+}
+
+u32 GetBeatDistance(u32 hostCounty, const struct BeatAnchor *anchor, u32 hinterCounty)
+{
+    return hinterCounty == GetBeatAnchorCounty(hostCounty, anchor) ? SUBPLOT_CLOSE : SUBPLOT_FAR;
+}
+
+u8 *WriteBeatAnchorReference(u8 *dst, u32 hostCounty, const struct BeatAnchor *anchor)
+{
+    u32 bit;
+
+    if (anchor->role != 0)
+    {
+        assertf((anchor->role & (anchor->role - 1)) == 0, "anchor role 0x%x has several bits; did you mean one BuildingRole?", anchor->role)
+        {
+            return dst;
+        }
+        for (bit = 0; bit < ARRAY_COUNT(sBuildingRoleNames); bit++)
+        {
+            if (anchor->role == 1u << bit)
+                break;
+        }
+        assertf(bit < ARRAY_COUNT(sBuildingRoleNames), "anchor role 0x%x has no name; did you mean to add it to sBuildingRoleNames?", anchor->role)
+        {
+            return dst;
+        }
+        StringAppend(StringCopy(dst, sNearThe), sBuildingRoleNames[bit]);
+        return dst + StringLength(dst);
+    }
+    if (anchor->locationKind != BEAT_LOCATION_NONE)
+    {
+        assertf(anchor->locationKind < ARRAY_COUNT(sLocationKindNames), "anchor location kind %d >= %d", anchor->locationKind, ARRAY_COUNT(sLocationKindNames))
+        {
+            return dst;
+        }
+        StringAppend(StringCopy(dst, sNearThe), sLocationKindNames[anchor->locationKind]);
+        return dst + StringLength(dst);
+    }
+    if (anchor->routeId < NUM_COUNTIES && DoesCountyHaveCity(anchor->routeId))
+    {
+        StringAppend(StringCopy(dst, sNearTheRoadTo), GetCountyCityName(anchor->routeId));
+        return dst + StringLength(dst);
+    }
+    if (anchor->routeId != ROUTE_ID_NONE)
+    {
+        StringCopy(dst, sNearTheRoad);
+        return dst + StringLength(dst);
+    }
+    StringAppend(StringCopy(dst, sInCity), GetCountyCityName(hostCounty));
+    return dst + StringLength(dst);
 }
 
 static u32 GetCurrentMapCounty(void)
