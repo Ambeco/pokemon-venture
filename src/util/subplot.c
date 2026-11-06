@@ -7,10 +7,20 @@
 #include "region_tile.h"
 #include "subplot.h"
 
-static const u8 gText_LilycoveMuseumHint_NotShown[] = _("I heard the new exhibit hall at the\nMUSEUM is about to open.");
-static const u8 gText_LilycoveMuseumHint_Shown[] = _("The MUSEUM's exhibit hall is open now.\nThey want paintings for it!");
-static const u8 gText_LilycoveMuseumState_NotShown[] = _("The curator is still preparing the\nexhibit hall.");
-static const u8 gText_LilycoveMuseumState_Shown[] = _("The curator is asking trainers for\npaintings to hang in the exhibit hall.");
+static const u8 gText_Lilycove_Exhibit0FarCurrent[] = _("I heard the new exhibit hall at the\nLILYCOVE MUSEUM is about to open.");
+static const u8 gText_Lilycove_Exhibit0FarAfter0[] = _("The LILYCOVE MUSEUM finally opened its\nnew exhibit hall, I heard.");
+static const u8 gText_Lilycove_Exhibit0FarAfter1[] = _("Did you hear? The exhibit hall at the\nLILYCOVE MUSEUM is open.");
+static const u8 gText_Lilycove_Exhibit0CloseCurrent[] = _("The curator is still busy preparing the\nexhibit hall.");
+static const u8 gText_Lilycove_Exhibit0CloseAfter[] = _("The exhibit hall is open at last!\nThe curator must be so relieved.");
+static const u8 gText_Lilycove_Exhibit1FarCurrent[] = _("The LILYCOVE MUSEUM's exhibit hall is\nopen, and they want paintings for it!");
+static const u8 gText_Lilycove_Exhibit1CloseBefore[] = _("There's talk of a new exhibit hall\nhere. It's not ready yet, though.");
+static const u8 gText_Lilycove_Exhibit1CloseCurrent[] = _("The curator is asking trainers for\npaintings to hang in the exhibit hall.");
+
+static const u8 *const sLilycoveExhibit0FarAfter[] =
+{
+    gText_Lilycove_Exhibit0FarAfter0,
+    gText_Lilycove_Exhibit0FarAfter1,
+};
 
 #include "data/region/emerald_subplots.h"
 
@@ -95,20 +105,74 @@ void SetCountySlotStage(u32 countyId, u32 slot, u32 stage)
     SetSubplotStage(countyId, slot, GetCountySubplot(countyId, slot), stage);
 }
 
-const u8 *GetSubplotText(const struct SubplotDesc *desc, u32 stage, u32 kind)
+u32 GetSubplotBeatState(u32 subplotStage, u32 beat)
 {
-    assertf(desc != NULL && stage < desc->numStages, "no subplot stage %d", stage)
+    if (subplotStage < beat)
+        return SUBPLOT_BEFORE;
+    return subplotStage == beat ? SUBPLOT_CURRENT : SUBPLOT_AFTER;
+}
+
+static const u8 *PickFromList(const struct SubplotTextList *list, u32 selector)
+{
+    if (list->count == 0)
+        return NULL;
+    return list->texts[selector % list->count];
+}
+
+const u8 *GetSubplotHint(const struct SubplotDesc *desc, u32 subplotStage, u32 beat, u32 distance, u32 selector)
+{
+    const struct SubplotStageHints *hints;
+    u32 state;
+
+    assertf(desc != NULL && beat < desc->numStages, "no subplot stage %d", beat)
     {
         return NULL;
     }
-    return kind == SUBPLOT_TEXT_HINT ? desc->stages[stage].hintText : desc->stages[stage].stateText;
+    hints = &desc->stages[beat].hints;
+    state = GetSubplotBeatState(subplotStage, beat);
+    if (distance == SUBPLOT_FAR)
+    {
+        if (state == SUBPLOT_BEFORE)
+            return PickFromList(&hints->farBefore, selector);
+        return state == SUBPLOT_CURRENT ? hints->farCurrent : PickFromList(&hints->farAfter, selector);
+    }
+    if (state == SUBPLOT_BEFORE)
+        return hints->closeBefore;
+    return state == SUBPLOT_CURRENT ? hints->closeCurrent : hints->closeAfter;
 }
 
-const u8 *GetCountySlotText(u32 countyId, u32 slot, u32 kind)
+const u8 *GetCountySlotHintAbout(u32 countyId, u32 slot, u32 beat, u32 distance, u32 selector)
 {
     const struct SubplotDesc *desc = GetCountySubplot(countyId, slot);
 
-    return GetSubplotText(desc, GetSubplotStage(countyId, slot, desc), kind);
+    return GetSubplotHint(desc, GetSubplotStage(countyId, slot, desc), beat, distance, selector);
+}
+
+const u8 *GetCountySlotHint(u32 countyId, u32 slot, u32 distance, u32 selector)
+{
+    const struct SubplotDesc *desc = GetCountySubplot(countyId, slot);
+    u32 stage = GetSubplotStage(countyId, slot, desc);
+
+    return GetSubplotHint(desc, stage, stage, distance, selector);
+}
+
+u32 GetSubplotActors(const struct SubplotDesc *desc, u32 stage, const struct SubplotActor **out, u32 maxOut)
+{
+    u32 i, total = 0;
+
+    assertf(desc != NULL, "no subplot to list actors for")
+    {
+        return 0;
+    }
+    for (i = 0; i < desc->numActors; i++)
+    {
+        if (stage < desc->actors[i].firstStage || stage > desc->actors[i].lastStage)
+            continue;
+        if (total < maxOut)
+            out[total] = &desc->actors[i];
+        total++;
+    }
+    return total;
 }
 
 u32 GetCountyFromCityMapSec(u32 mapSec)

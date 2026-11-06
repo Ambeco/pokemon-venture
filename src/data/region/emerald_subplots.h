@@ -7,17 +7,29 @@ enum LilycoveMuseumStage
 };
 
 // The museum is an in-city special location, not a BuildingRole yet, so no role is required or triggered.
+// Hinters may stand anywhere in the county, one per stage.
 static const struct SubplotStage sLilycoveMuseumStages[] =
 {
     [LILYCOVE_MUSEUM_EXHIBIT_NOT_SHOWN] =
     {
-        .hintText = gText_LilycoveMuseumHint_NotShown,
-        .stateText = gText_LilycoveMuseumState_NotShown,
+        .hints =
+        {
+            .farCurrent = gText_Lilycove_Exhibit0FarCurrent,
+            .farAfter = {sLilycoveExhibit0FarAfter, ARRAY_COUNT(sLilycoveExhibit0FarAfter)},
+            .closeCurrent = gText_Lilycove_Exhibit0CloseCurrent,
+            .closeAfter = gText_Lilycove_Exhibit0CloseAfter,
+        },
+        .numHinters = 1,
     },
     [LILYCOVE_MUSEUM_EXHIBIT_SHOWN] =
     {
-        .hintText = gText_LilycoveMuseumHint_Shown,
-        .stateText = gText_LilycoveMuseumState_Shown,
+        .hints =
+        {
+            .farCurrent = gText_Lilycove_Exhibit1FarCurrent,
+            .closeBefore = gText_Lilycove_Exhibit1CloseBefore,
+            .closeCurrent = gText_Lilycove_Exhibit1CloseCurrent,
+        },
+        .numHinters = 1,
     },
 };
 
