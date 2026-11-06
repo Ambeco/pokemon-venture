@@ -685,7 +685,7 @@ Hint texts: every main-story slot and subplot has six hint entries, by distance 
 
 A hinter bound to beat b says the before entry while the subplot's current index is below b, current while equal, and after once above; the query takes the distance from the placement, never from the stage.
 
-News: each Pokémon Center has a newspaper, TV or reading NPC giving "the news". If the player is not in the county hosting the current main-story beat, it says that beat's current far text. In the right county it asks the county which subplot or location is blocking the beat and says that one's current hint instead, which makes the next step easy to find without nagging.
+News: each Pokémon Center has a newspaper, TV or reading NPC giving "the news". If the player is not in the county hosting the current main-story beat, it says that beat's current far text. In the right county it asks the county which subplot or location is blocking the beat and says that one's current hint instead, which makes the next step easy to find without nagging. Possible refinement: a separate required (non-NULL) news string per beat, so the news never depends on the optional hint entries and no beat can lack one.
 
 Where an entry is missing or an empty list, the NPC falls back to generic NPC text. An NPC says the same thing every time while the state holds. The far lists let NPCs in different cities give different hints.
 

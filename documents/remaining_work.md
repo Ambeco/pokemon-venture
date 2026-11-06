@@ -28,7 +28,7 @@ Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design.md, 
 
 - Write the city planner's hinter steps (design.md, "City planning"; the descriptor's hinter and actor fields exist, unused). Two-district cities are V2; V1 locks sit at doors and route ends.
 - Check what Emerald and FRLG use for path surfaces in villages, towns and cities, and settle the paving, dirt and grass rule (design.md, "City planning" step 4).
-- Pokémon Center news object (design.md, "City planning"): a talk special that picks the current main-beat far text, or the blocking subplot's current hint when the player is in the host county; needs the planner and a way to name the blocking subplot.
+- Pokémon Center news object (design.md, "City planning"): a talk special that picks the current main-beat far text, or the blocking subplot's current hint when the player is in the host county; needs the planner and a way to name the blocking subplot. Decide whether each beat gets its own required news string instead of reusing the hint entries.
 - Decide how a stage records whether its beat is in the host city or on an adjacent route start (`triggerRole` 0 conflates outdoors with unspecified), so the planner can choose close or far per hinter.
 
 ### Milestone 1: NPC texts shuffled, still hinting the current arcs and subplot
