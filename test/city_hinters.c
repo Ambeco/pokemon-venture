@@ -25,6 +25,23 @@ TEST("CityHinters: Lilycove holds one hinter per museum stage, close, bound to t
     EXPECT_EQ(subplot, 2);
 }
 
+// LilycoveCity_EventScript_Man3 and _RichBoy call `subplot_hinter 0, 0, 0` and `subplot_hinter 0, 1, 1`.
+TEST("CityHinters: Lilycove's hinter NPCs are bound with the slot, beat and selector the planner gives")
+{
+    struct HinterPlacement out[MAX_COUNTY_HINTERS];
+    u32 count = PlanCountyHinters(LILYCOVE, out, ARRAY_COUNT(out));
+
+    ASSUME(count >= 2);
+    EXPECT_EQ(out[0].kind, HINTER_SUBPLOT);
+    EXPECT_EQ(out[0].slot, 0);
+    EXPECT_EQ(out[0].beat, 0);
+    EXPECT_EQ(out[0].selector, 0);
+    EXPECT_EQ(out[1].kind, HINTER_SUBPLOT);
+    EXPECT_EQ(out[1].slot, 0);
+    EXPECT_EQ(out[1].beat, 1);
+    EXPECT_EQ(out[1].selector, 1);
+}
+
 TEST("CityHinters: Every county plans within capacity, with unique selectors and valid roles")
 {
     u32 county;

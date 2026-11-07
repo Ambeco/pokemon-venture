@@ -26,7 +26,7 @@ Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design.md, 
 - Once the descriptor and McGuffin abstraction exist, also abstract Kanto's subplots and McGuffins (`data/maps/*_Frlg` scripts, `src/data/trainers_frlg.*`; notes.md) and add them to the subplot and McGuffin lists.
 - Done when: the accessor and adapter pass tests, one subplot is ported (Lilycove Museum, met), and the NPC-talk query returns the right stage for it. The swap itself is Milestone 2's done-when.
 
-- Hinter follow-ups (`city_hinters.h`): bind planned hinters to NPCs at map load and call `ShowCurrentSubplotHint` from their scripts (no script uses it yet); author main-beat hint texts (main hinters have none); decide who places far hinters for subplots hosted in other counties.
+- Hinter follow-ups (`city_hinters.h`): bind hinters to NPCs for generated maps at map load (Emerald's Lilycove binds its two by hand); author main-beat hint texts (main hinters have none); decide who places far hinters for subplots hosted in other counties.
 - Check what Emerald and FRLG use for path surfaces in villages, towns and cities, and settle the paving, dirt and grass rule (design.md, "City planning" step 4).
 - Pokémon Center news object (design.md, "City planning"): a talk special that picks the current main-beat far text, or the blocking subplot's current hint when the player is in the host county; needs the planner and a way to name the blocking subplot. Decide whether each beat gets its own required news string instead of reusing the hint entries.
 

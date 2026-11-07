@@ -49,6 +49,11 @@ LilycoveCity_EventScript_ReceivedBerry::
 	end
 
 LilycoveCity_EventScript_Man3::
+	subplot_hinter 0, 0, 0
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_Man3Generic
+	end
+
+LilycoveCity_EventScript_Man3Generic::
 	msgbox LilycoveCity_Text_ContestHallInTown, MSGBOX_NPC
 	end
 
@@ -66,6 +71,11 @@ LilycoveCity_EventScript_GirlAquaGone::
 	end
 
 LilycoveCity_EventScript_RichBoy::
+	subplot_hinter 0, 1, 1
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_RichBoyGeneric
+	end
+
+LilycoveCity_EventScript_RichBoyGeneric::
 	msgbox LilycoveCity_Text_ImFromKanto, MSGBOX_NPC
 	end
 

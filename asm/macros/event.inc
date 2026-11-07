@@ -2949,3 +2949,10 @@
 	getbraillestringwidth \text
 	call EventScript_BrailleCursorWaitButton
 	.endm
+
+	.macro subplot_hinter slot:req, beat:req, selector:req
+	setvar VAR_0x8004, \slot
+	setvar VAR_0x8005, \beat
+	setvar VAR_0x8006, \selector
+	call Common_EventScript_TrySubplotHint
+	.endm
