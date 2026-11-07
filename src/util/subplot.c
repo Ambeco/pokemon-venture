@@ -1,4 +1,5 @@
 #include "global.h"
+#include "constants/characters.h"
 #include "constants/vars.h"
 #include "assertf.h"
 #include "event_data.h"
@@ -14,7 +15,7 @@ static const u8 gText_Lilycove_Exhibit0FarAfter1[] = _("Did you hear? The exhibi
 static const u8 gText_Lilycove_Exhibit0CloseCurrent[] = _("The curator is still busy preparing the\nexhibit hall.");
 static const u8 gText_Lilycove_Exhibit0CloseAfter[] = _("The exhibit hall is open at last!\nThe curator must be so relieved.");
 static const u8 gText_Lilycove_Exhibit1FarCurrent[] = _("The LILYCOVE MUSEUM's exhibit hall is\nopen, and they want paintings for it!");
-static const u8 gText_Lilycove_Exhibit1CloseBefore[] = _("There's talk of a new exhibit hall\nhere. It's not ready yet, though.");
+static const u8 gText_Lilycove_Exhibit1CloseBefore[] = _("There's talk of a new exhibit hall\n{HINT_ANCHOR}. It's not ready yet, though.");
 static const u8 gText_Lilycove_Exhibit1CloseCurrent[] = _("The curator is asking trainers for\npaintings to hang in the exhibit hall.");
 
 static const u8 *const sLilycoveExhibit0FarAfter[] =
@@ -284,6 +285,29 @@ u8 *WriteBeatAnchorReference(u8 *dst, u32 hostCounty, const struct BeatAnchor *a
     return dst + StringLength(dst);
 }
 
+u8 *ExpandHintTemplate(u8 *dst, const u8 *src, u32 hostCounty, const struct BeatAnchor *anchor)
+{
+    while (*src != EOS)
+    {
+        if (src[0] == PLACEHOLDER_BEGIN && src[1] == PLACEHOLDER_ID_HINT_ANCHOR)
+        {
+            dst = WriteBeatAnchorReference(dst, hostCounty, anchor);
+            src += 2;
+        }
+        else if (src[0] == PLACEHOLDER_BEGIN)
+        {
+            *dst++ = *src++;
+            *dst++ = *src++;
+        }
+        else
+        {
+            *dst++ = *src++;
+        }
+    }
+    *dst = EOS;
+    return dst;
+}
+
 static u32 GetCurrentMapCounty(void)
 {
     return GetCountyFromCityMapSec(gMapHeader.regionMapSectionId);
@@ -299,4 +323,33 @@ void GetCurrentSubplotStage(void)
 void SetCurrentSubplotStage(void)
 {
     SetCountySlotStage(GetCurrentMapCounty(), gSpecialVar_0x8004, gSpecialVar_0x8005);
+}
+
+// Script special: VAR_0x8004 = slot, VAR_0x8005 = beat, VAR_0x8006 = the NPC's selector. Puts the hinter's
+// text in gStringVar4 and sets VAR_RESULT = TRUE; FALSE (buffer untouched) means "say generic text". The
+// hinter stands in the host city, so it is always close.
+void ShowCurrentSubplotHint(void)
+{
+    u32 county = GetCurrentMapCounty();
+    u32 slot = gSpecialVar_0x8004;
+    u32 beat = gSpecialVar_0x8005;
+    const struct SubplotDesc *desc = GetCountySubplot(county, slot);
+    const u8 *text;
+
+    gSpecialVar_Result = FALSE;
+    assertf(desc != NULL && beat < desc->numStages, "county %d slot %d has no stage %d to hint about; did the script set VAR_0x8004 (slot) and VAR_0x8005 (beat)?", county, slot, beat)
+    {
+        return;
+    }
+    text = GetCountySlotHintAbout(county, slot, beat, SUBPLOT_CLOSE, gSpecialVar_0x8006);
+    if (text == NULL)
+        return;
+    ExpandHintTemplate(gStringVar4, text, county, &desc->stages[beat].anchor);
+    gSpecialVar_Result = TRUE;
+}
+
+// Script special: VAR_0x8004 = main-story-index s; VAR_RESULT = TRUE once the index is past s.
+void IsMainStoryIndexPast(void)
+{
+    gSpecialVar_Result = GetMainStoryIndex() > gSpecialVar_0x8004;
 }

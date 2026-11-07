@@ -351,6 +351,8 @@ MAXIE          = FD 0B
 KYOGRE         = FD 0C
 GROUDON        = FD 0D
 REGION         = FD 0E
+@ subplot hint templates: replaced by ExpandHintTemplate before StringExpandPlaceholders sees it
+HINT_ANCHOR    = FD 0F
 
 @ battle string placeholders
 

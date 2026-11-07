@@ -318,3 +318,25 @@ TEST("Subplot: The anchor reference names the building, location, road or city")
     WriteBeatAnchorReference(buf, LILYCOVE, &outdoors);
     EXPECT_EQ(buf[0], COMPOUND_STRING("in ")[0]);
 }
+
+TEST("Subplot: A hint template expands {HINT_ANCHOR} to the anchor reference and copies the rest")
+{
+    u8 out[96];
+    const struct BeatAnchor *anchor = &GetCountySubplot(LILYCOVE, 0)->stages[0].anchor;
+    static const u8 sTemplate[] = _("Go {HINT_ANCHOR}, {PLAYER}!");
+
+    ExpandHintTemplate(out, sTemplate, LILYCOVE, anchor);
+    EXPECT_EQ(StringCompare(out, COMPOUND_STRING("Go near the MUSEUM, {PLAYER}!")), 0);
+}
+
+TEST("Subplot: The Lilycove close-before hint names the museum through the template")
+{
+    u8 out[96];
+    const struct SubplotDesc *desc = GetCountySubplot(LILYCOVE, 0);
+    const u8 *text = GetSubplotHint(desc, 0, 1, SUBPLOT_CLOSE, 0);
+
+    ASSUME(text != NULL);
+    ExpandHintTemplate(out, text, LILYCOVE, &desc->stages[1].anchor);
+    EXPECT(StringLength(out) > StringLength(text) - 4);
+    EXPECT(StringCompareN(out, COMPOUND_STRING("There's talk of a new exhibit hall\nnear the MUSEUM."), 40) == 0);
+}

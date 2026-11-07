@@ -641,3 +641,5 @@ gSpecials::
 	def_special CheckAddCoins
 	def_special GetCurrentSubplotStage
 	def_special SetCurrentSubplotStage
+	def_special ShowCurrentSubplotHint
+	def_special IsMainStoryIndexPast

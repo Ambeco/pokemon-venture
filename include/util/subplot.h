@@ -153,6 +153,10 @@ u32 GetBeatDistance(u32 hostCounty, const struct BeatAnchor *anchor, u32 hinterC
 // "in LILYCOVE CITY" when the anchor names no place) at dst and returns the end of the string.
 u8 *WriteBeatAnchorReference(u8 *dst, u32 hostCounty, const struct BeatAnchor *anchor);
 
+// Copies the hint template src to dst, replacing each {HINT_ANCHOR} with WriteBeatAnchorReference's phrase.
+// Other placeholders pass through for StringExpandPlaceholders. Returns the end (the EOS).
+u8 *ExpandHintTemplate(u8 *dst, const u8 *src, u32 hostCounty, const struct BeatAnchor *anchor);
+
 // County whose city has this MAPSEC; asserts there is none.
 u32 GetCountyFromCityMapSec(u32 mapSec);
 
