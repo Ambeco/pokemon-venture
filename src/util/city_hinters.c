@@ -8,6 +8,8 @@
 #include "script.h"
 #include "string_util.h"
 #include "event_data.h"
+#include "global.fieldmap.h"
+#include "region_tile.h"
 #include "subplot.h"
 
 #define NUM_MAIN_INDICES (NUM_COUNTIES * 4)
@@ -213,6 +215,70 @@ u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance)
     dst = StringCopy(dst, phrase->lead);
     dst = WriteBeatAnchorReference(dst, host, &anchor);
     return StringCopy(dst, phrase->tail);
+}
+
+bool32 WriteSubplotNews(u8 *dst, u32 county, u32 slot)
+{
+    const struct SubplotDesc *desc = GetCountySubplot(county, slot);
+    u32 stage;
+    const u8 *text;
+
+    if (desc == NULL)
+        return FALSE;
+    stage = GetSubplotStage(county, slot, desc);
+    text = GetCountySlotHint(county, slot, SUBPLOT_CLOSE, 0);
+    if (text == NULL)
+        return FALSE;
+    ExpandHintTemplate(dst, text, county, &desc->stages[stage].anchor);
+    return TRUE;
+}
+
+static bool32 FindProducingSubplot(u32 county, const struct PlotSlot *item, u32 *slot)
+{
+    u32 s;
+
+    for (s = 0; s < SUBPLOTS_PER_COUNTY; s++)
+    {
+        const struct SubplotDesc *desc = GetCountySubplot(county, s);
+
+        if (desc != NULL && DoesSubplotProduce(desc, item->kind, item->ordinal))
+        {
+            *slot = s;
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+bool32 WritePokemonCenterNews(u8 *dst, u32 mainIndex, u32 playerCounty)
+{
+    struct PlotSlot item;
+    u32 beat, host, slot;
+
+    if (mainIndex >= MAIN_STORY_INDEX_POSTGAME)
+        return FALSE;
+    // An empty list is passed at once, so the news is about the first list from here that has a host.
+    for (beat = mainIndex; beat < NUM_MAIN_INDICES && !GetMainBeatHost(beat, &host); beat++)
+        ;
+    // The hint names the host's city, so a cityless host cannot be hinted at.
+    if (beat >= NUM_MAIN_INDICES || !DoesCountyHaveCity(host))
+        return FALSE;
+    if (host != playerCounty)
+    {
+        WriteMainBeatHint(dst, beat, SUBPLOT_FAR);
+        return TRUE;
+    }
+    if (GetFirstUndonePlotSlot(beat, &item) && FindProducingSubplot(host, &item, &slot) && WriteSubplotNews(dst, host, slot))
+        return TRUE;
+    WriteMainBeatHint(dst, beat, SUBPLOT_CLOSE);
+    return TRUE;
+}
+
+// Script special for the Pokémon Center's news NPC, standing in a city. VAR_RESULT = TRUE with the news in
+// gStringVar4, or FALSE (say generic text).
+void ShowPokemonCenterNews(void)
+{
+    gSpecialVar_Result = WritePokemonCenterNews(gStringVar4, GetMainStoryIndex(), GetCountyFromCityMapSec(gMapHeader.regionMapSectionId));
 }
 
 // Script special: VAR_0x8004 = the hinter's county-hosted main-story-index (HinterPlacement.slot),

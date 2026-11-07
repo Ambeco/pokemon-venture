@@ -54,6 +54,18 @@ u32 GetHinterRoleCapacity(u32 role);
 // from or close to its host city, and returns the end. The phrase follows the first item of the list.
 u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance);
 
+// Writes the current close hint of the county's subplot in `slot` (with its anchor expanded) at dst. FALSE
+// when there is no subplot or it has no text there.
+bool32 WriteSubplotNews(u8 *dst, u32 county, u32 slot);
+
+/**
+ * The Pokémon Center news about the list at or after `mainIndex` that has a host. Away from the host
+ * county it is the far main-beat hint. In the host county it is the current close hint of the subplot
+ * that produces the first blocking get still undone (`producesMainGet`), else the close main-beat hint.
+ * FALSE (generic text, dst untouched) in the postgame or when the host has no city.
+ */
+bool32 WritePokemonCenterNews(u8 *dst, u32 mainIndex, u32 playerCounty);
+
 // Fills out (up to maxOut) with the county's hinters and returns the total count. Asserts if over capacity.
 u32 PlanCountyHinters(u32 countyId, struct HinterPlacement *out, u32 maxOut);
 

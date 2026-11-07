@@ -158,6 +158,11 @@ const u8 *GetCountySlotHint(u32 countyId, u32 slot, u32 distance, u32 selector)
     return GetSubplotHint(desc, stage, stage, distance, selector);
 }
 
+bool32 DoesSubplotProduce(const struct SubplotDesc *desc, u32 kind, u32 ordinal)
+{
+    return desc->producesMainGet && desc->mainGet.kind == kind && desc->mainGet.ordinal == ordinal;
+}
+
 u32 GetSubplotActors(const struct SubplotDesc *desc, u32 stage, const struct SubplotActor **out, u32 maxOut)
 {
     u32 i, total = 0;

@@ -94,6 +94,33 @@ struct PlotListStage GetPlotListStage(u32 index)
     return stage;
 }
 
+bool32 GetFirstUndonePlotSlot(u32 index, struct PlotSlot *out)
+{
+    struct PlotSlot slots[MAX_GETS_PER_LIST];
+    struct PlotListStage stage;
+    u32 count, i, bit = 0;
+
+    if ((index & 3) == 3)
+        return FALSE;
+    stage = GetPlotListStage(index);
+    count = ResolveVanillaPlotList(index, slots, ARRAY_COUNT(slots));
+    for (i = 0; i < count; i++)
+    {
+        struct PlotGetDesc descs[2];
+        u32 j, numDescs = GetPlotSlotGetDescs(&slots[i], descs);
+
+        for (j = 0; j < numDescs; j++, bit++)
+        {
+            if ((stage.blockingMask & ~stage.doneMask) & (1u << bit))
+            {
+                *out = slots[i];
+                return TRUE;
+            }
+        }
+    }
+    return FALSE;
+}
+
 u32 GetMainStoryIndex(void)
 {
     u32 index;

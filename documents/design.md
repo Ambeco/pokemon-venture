@@ -693,7 +693,7 @@ Route blockers: `data/scripts/route_blocker.inc` holds one generic script per pu
 
 A hinter bound to beat b says the before entry while the subplot's current index is below b, current while equal, and after once above; the query takes the distance from the placement, never from the stage.
 
-News: each Pokémon Center has a newspaper, TV or reading NPC giving "the news". If the player is not in the county hosting the current main-story beat, it says that beat's current far text. In the right county it asks the county which subplot or location is blocking the beat and says that one's current hint instead, which makes the next step easy to find without nagging. Possible refinement: a separate required (non-NULL) news string per beat, so the news never depends on the optional hint entries and no beat can lack one.
+News: each Pokémon Center has a newspaper, TV or reading NPC giving "the news" (`WritePokemonCenterNews`, special `ShowPokemonCenterNews`, `city_hinters.h`). It is about the first list at or after the main-story-index that has a host (an empty list is passed at once). If the player is not in the host county, it says that beat's far main-beat hint. In the host county it names the blocking subplot: the first blocking get still undone in the list (`GetFirstUndonePlotSlot`), matched to a host-county subplot that declares it produces that planner item (`SubplotDesc.producesMainGet` and `mainGet`, tested by `DoesSubplotProduce`), and says that subplot's current close hint, so the next step is easy to find without nagging. With no producing subplot (a gym, a rival beat, a blocker: the blocker is a location rather than a subplot) it says the close main-beat hint instead. It stays generic in the postgame and when the host has no city. Beats get no separate news strings: the far main-beat text is generated, and a subplot's current entries are required by the descriptor, so the news cannot lack one.
 
 Where an entry is missing or an empty list, the NPC falls back to generic NPC text. An NPC says the same thing every time while the state holds. The far lists let NPCs in different cities give different hints.
 
@@ -1071,3 +1071,14 @@ Pros:
 
 Cons:
 - Roughly doubles the always-resident data for values a per-county hash gives for free.
+
+### A separate required news string per main beat
+
+Each beat would carry its own authored news line for the Pokémon Center, instead of reusing the hint entries.
+
+Pros:
+- The news could be worded as news rather than as an NPC's hearsay.
+
+Cons:
+- Unneeded: the far main-beat text is generated, so it exists for every beat, and a subplot's `farCurrent` and `closeCurrent` are already required by the descriptor.
+- One more string per beat and per subplot stage, to author and keep consistent with the hints.

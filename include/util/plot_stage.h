@@ -78,6 +78,10 @@ u32 GetVanillaPlotGetEntryCount(void);
 
 struct PlotListStage GetPlotListStage(u32 index);
 
+// The first placed item of the list with a get that is blocking and not done, else FALSE. A step-3 list
+// names no item (its gets are unlocks), so it is always FALSE.
+bool32 GetFirstUndonePlotSlot(u32 index, struct PlotSlot *out);
+
 static inline bool32 IsPlotListDone(const struct PlotListStage *stage)
 {
     return (stage->doneMask & stage->blockingMask) == stage->blockingMask;

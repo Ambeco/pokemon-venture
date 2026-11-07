@@ -18,6 +18,7 @@
 #include "global.h"
 #include "plot_stage.h"
 #include "region_route.h"
+#include "region_unlock.h"
 
 #define SUBPLOTS_PER_COUNTY (VARS_PER_COUNTY - 1)
 #define COUNTY_VAR_SLICES_FREE ((LEGACY_VARS_START - COUNTY_VARS_START) / VARS_PER_COUNTY)
@@ -111,6 +112,8 @@ struct SubplotDesc
     u16 requiredRoles; // BuildingRole bits the host city must have
     u8 minBadges;      // badges the host's progress must allow before the subplot starts
     u8 producedKey;    // McGuffin id this subplot's completion gives, 0 = none
+    bool8 producesMainGet; // completion is a get of a main-plot list: mainGet names it, and the news points at this subplot
+    struct PlotKeyRef mainGet;
     const struct SubplotStage *stages;
     const struct SubplotActor *actors;
 };
@@ -139,6 +142,9 @@ const u8 *GetCountySlotHint(u32 countyId, u32 slot, u32 distance, u32 selector);
 
 // As above for any beat, e.g. an NPC recalling a stage the subplot has passed.
 const u8 *GetCountySlotHintAbout(u32 countyId, u32 slot, u32 beat, u32 distance, u32 selector);
+
+// TRUE iff completing the subplot is the planner item (kind, ordinal); a gym item names its HM too.
+bool32 DoesSubplotProduce(const struct SubplotDesc *desc, u32 kind, u32 ordinal);
 
 // Actors this subplot wants present at `stage`: fills `out` (up to maxOut) and returns the total count.
 u32 GetSubplotActors(const struct SubplotDesc *desc, u32 stage, const struct SubplotActor **out, u32 maxOut);
