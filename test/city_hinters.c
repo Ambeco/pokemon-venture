@@ -3,6 +3,8 @@
 #include "city_hinters.h"
 #include "region_city.h"
 #include "region_county.h"
+#include "string_util.h"
+#include "constants/characters.h"
 #include "subplot.h"
 
 #define LILYCOVE COUNTY_ID(4, 0)
@@ -146,4 +148,42 @@ TEST("CityHinters: Role capacities follow the placeholder budget")
     EXPECT_EQ(GetHinterRoleCapacity(BUILDING_GYM), 3);
     EXPECT_EQ(GetHinterRoleCapacity(BUILDING_SERVICE), 1);
     EXPECT_EQ(GetHinterRoleCapacity(BUILDING_POKEMON_CENTER), 2);
+}
+
+TEST("CityHinters: Every main beat has a hint with its host city, far and close")
+{
+    static EWRAM_DATA u8 sBuf[200];
+    u32 index, host, checked = 0;
+
+    for (index = 0; index < NUM_COUNTIES * 4; index++)
+    {
+        u8 *end;
+
+        if (!GetMainBeatHost(index, &host) || !DoesCountyHaveCity(host))
+            continue;
+        end = WriteMainBeatHint(sBuf, index, SUBPLOT_FAR);
+        EXPECT(end > sBuf && end - sBuf < 120);
+        EXPECT(sBuf[0] != EOS);
+        end = WriteMainBeatHint(sBuf, index, SUBPLOT_CLOSE);
+        EXPECT(end > sBuf);
+        checked++;
+    }
+    EXPECT(checked > 0);
+}
+
+TEST("CityHinters: Far and close main-beat hints open differently and name the city")
+{
+    static EWRAM_DATA u8 sFar[200], sClose[200];
+    u32 index, host;
+
+    for (index = 0; index < NUM_COUNTIES * 4; index++)
+    {
+        if (GetMainBeatHost(index, &host) && DoesCountyHaveCity(host))
+            break;
+    }
+    ASSUME(index < NUM_COUNTIES * 4);
+    WriteMainBeatHint(sFar, index, SUBPLOT_FAR);
+    WriteMainBeatHint(sClose, index, SUBPLOT_CLOSE);
+    EXPECT(StringCompare(sFar, sClose) != 0);
+    EXPECT(StringLength(sFar) > StringLength(GetCountyCityName(host)));
 }

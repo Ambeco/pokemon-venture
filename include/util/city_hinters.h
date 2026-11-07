@@ -50,6 +50,10 @@ u32 GetNextMainBeat(u32 index);
 // Placeholder NPC capacity of a building role, or of outdoors for role 0.
 u32 GetHinterRoleCapacity(u32 role);
 
+// Writes the hint about main-story-index `index` (which must have a host) at dst, for a hinter that is far
+// from or close to its host city, and returns the end. The phrase follows the first item of the list.
+u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance);
+
 // Fills out (up to maxOut) with the county's hinters and returns the total count. Asserts if over capacity.
 u32 PlanCountyHinters(u32 countyId, struct HinterPlacement *out, u32 maxOut);
 

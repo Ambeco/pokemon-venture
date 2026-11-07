@@ -5,6 +5,9 @@
 #include "plot_stage.h"
 #include "region_plot.h"
 #include "region_unlock.h"
+#include "script.h"
+#include "string_util.h"
+#include "event_data.h"
 #include "subplot.h"
 
 #define NUM_MAIN_INDICES (NUM_COUNTIES * 4)
@@ -156,4 +159,74 @@ u32 PlanCountyHinters(u32 countyId, struct HinterPlacement *out, u32 maxOut)
         }
     }
     return total;
+}
+
+struct MainBeatPhrase
+{
+    const u8 *lead; // follows "I heard " or "Word around town is "; the anchor reference comes next
+    const u8 *tail;
+};
+
+static const struct MainBeatPhrase sMainBeatPhrases[NUM_PLOT_KINDS] =
+{
+    [PLOT_KIND_GYM] = {COMPOUND_STRING("the GYM "), COMPOUND_STRING(" is taking on challengers.")},
+    [PLOT_KIND_RIVAL] = {COMPOUND_STRING("your rival was looking for you "), COMPOUND_STRING(".")},
+    [PLOT_KIND_WALLY] = {COMPOUND_STRING("a frail boy named WALLY was seen "), COMPOUND_STRING(".")},
+    [PLOT_KIND_ARC] = {COMPOUND_STRING("something odd is going on "), COMPOUND_STRING(".")},
+    [PLOT_KIND_DEVON] = {COMPOUND_STRING("DEVON CORP. has an errand to run "), COMPOUND_STRING(".")},
+    [PLOT_KIND_SPECIAL] = {COMPOUND_STRING("someone "), COMPOUND_STRING(" is giving away a handy gadget.")},
+    [PLOT_KIND_UTILITY] = {COMPOUND_STRING("someone "), COMPOUND_STRING(" is handing out a useful tool.")},
+    [PLOT_KIND_SCRIPTED] = {COMPOUND_STRING("big things are happening "), COMPOUND_STRING(".")},
+};
+
+static const struct MainBeatPhrase sMainBeatBlockerPhrase =
+    {COMPOUND_STRING("somebody "), COMPOUND_STRING(" is blocking the road onward.")};
+
+static const u8 sFarOpening[] = _("I heard ");
+static const u8 sCloseOpening[] = _("Word around town is ");
+
+u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance)
+{
+    struct PlotSlot items[MAX_GETS_PER_LIST];
+    const struct MainBeatPhrase *phrase;
+    struct BeatAnchor anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0};
+    u32 host;
+
+    assertf(GetMainBeatHost(index, &host), "main-story-index %d has no host, so nothing to hint at; did you mean GetNextMainBeat()?", index)
+    {
+        return dst;
+    }
+    if ((index & 3) == 3)
+    {
+        phrase = &sMainBeatBlockerPhrase;
+    }
+    else
+    {
+        ResolveVanillaPlotList(index, items, ARRAY_COUNT(items));
+        assertf(items[0].kind < NUM_PLOT_KINDS && sMainBeatPhrases[items[0].kind].lead != NULL, "no main-beat hint phrase for plot kind %d (index %d); did you mean to add it to sMainBeatPhrases?", items[0].kind, index)
+        {
+            return dst;
+        }
+        phrase = &sMainBeatPhrases[items[0].kind];
+    }
+    dst = StringCopy(dst, distance == SUBPLOT_CLOSE ? sCloseOpening : sFarOpening);
+    dst = StringCopy(dst, phrase->lead);
+    dst = WriteBeatAnchorReference(dst, host, &anchor);
+    return StringCopy(dst, phrase->tail);
+}
+
+// Script special: VAR_0x8004 = the hinter's county-hosted main-story-index (HinterPlacement.slot),
+// VAR_0x8005 = its target beat. Puts the hint in gStringVar4 and sets VAR_RESULT = TRUE only while the
+// player has finished the hinter's own beat but not yet the target; else FALSE (say generic text).
+void ShowMainBeatHint(void)
+{
+    u32 own = gSpecialVar_0x8004, target = gSpecialVar_0x8005, host, hinterHost, current = GetMainStoryIndex();
+
+    gSpecialVar_Result = FALSE;
+    if (current <= own || current > target)
+        return;
+    if (!GetMainBeatHost(own, &hinterHost) || !GetMainBeatHost(target, &host))
+        return;
+    WriteMainBeatHint(gStringVar4, target, host == hinterHost ? SUBPLOT_CLOSE : SUBPLOT_FAR);
+    gSpecialVar_Result = TRUE;
 }
