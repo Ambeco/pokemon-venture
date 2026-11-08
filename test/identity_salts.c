@@ -12,6 +12,7 @@ static const u8 sSalts[][2] =
     {REGION_SALT_PITSTOP_DEAL, 1},
     {REGION_SALT_MCGUFFIN_STRIDE, 1},
     {REGION_SALT_MCGUFFIN_CROSS, 1},
+    {NPC_SALT_NEWS_GENERIC, 1},
 };
 
 TEST("IdentitySalts: No two salts share a value")

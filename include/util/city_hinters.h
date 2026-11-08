@@ -59,10 +59,11 @@ u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance);
 bool32 WriteSubplotNews(u8 *dst, u32 county, u32 slot);
 
 /**
- * The Pokémon Center news about the list at or after `mainIndex` that has a host. Away from the host
- * county it is the far main-beat hint. In the host county it is the current close hint of the subplot
- * that produces the first blocking get still undone (`producesMainGet`), else the close main-beat hint.
- * FALSE (generic text, dst untouched) in the postgame or when the host has no city.
+ * The Pokémon Center news about the main-story-index's list. Away from the host county it is the far
+ * main-beat hint. In the host county it is the current close hint of the subplot that produces the first
+ * blocking get still undone (`producesMainGet`), else the close main-beat hint. With no host (the
+ * postgame, a non-blocker step-3 unlock) or a host without a city, it is one generic line chosen by
+ * county from a small pool of Emerald's TV lines. Always writes text and returns TRUE.
  */
 bool32 WritePokemonCenterNews(u8 *dst, u32 mainIndex, u32 playerCounty);
 

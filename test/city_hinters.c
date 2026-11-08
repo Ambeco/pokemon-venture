@@ -165,7 +165,7 @@ TEST("CityHinters: News away from the host is the far main-beat hint; in the hos
     EXPECT_EQ(StringCompare(sNews, sExpect), 0);
 }
 
-TEST("CityHinters: News has text or says generic for every index and county, and none in the postgame")
+TEST("CityHinters: News always has text for every index and county")
 {
     static EWRAM_DATA u8 sNews[200];
     u32 index, county;
@@ -177,18 +177,26 @@ TEST("CityHinters: News has text or says generic for every index and county, and
             if (!DoesCountyHaveCity(county))
                 continue;
             sNews[0] = EOS;
-            if (WritePokemonCenterNews(sNews, index, county))
-            {
-                EXPECT(sNews[0] != EOS);
-                EXPECT(StringLength(sNews) < ARRAY_COUNT(sNews) - 1);
-            }
-            else
-            {
-                EXPECT_EQ(sNews[0], EOS);
-            }
+            EXPECT(WritePokemonCenterNews(sNews, index, county));
+            EXPECT(sNews[0] != EOS);
+            EXPECT(StringLength(sNews) < ARRAY_COUNT(sNews) - 1);
         }
     }
-    EXPECT(!WritePokemonCenterNews(sNews, MAIN_STORY_INDEX_POSTGAME, 0));
+}
+
+TEST("CityHinters: Postgame and host-less news is generic, fixed per county")
+{
+    static EWRAM_DATA u8 sA[200], sB[200];
+    u32 county;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        if (!DoesCountyHaveCity(county))
+            continue;
+        WritePokemonCenterNews(sA, MAIN_STORY_INDEX_POSTGAME, county);
+        WritePokemonCenterNews(sB, MAIN_STORY_INDEX_POSTGAME, county);
+        EXPECT_EQ(StringCompare(sA, sB), 0);
+    }
 }
 
 TEST("CityHinters: A subplot counts as producing only the planner item it names")
