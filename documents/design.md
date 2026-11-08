@@ -905,6 +905,14 @@ The existing tips man at each gym entrance also gives party-specific advice from
 - Which party Pokémon have types weak defensively against the gym type.
 - Species found in the current county, at an equal or lower route-story-index, with a type advantage over the gym type.
 
+## End-to-end tests
+
+Two tiers. `make check` (the headless `mgba-rom-test` ROM) covers logic and game state, including real maps and NPC scripts through `Test_LoadMap` (`include/test/map_loaded.h`); it has no VBlank, so nothing reaches VRAM or OAM, and no real key handling. `test/e2e` covers what needs those: UI as drawn, real input and multi-screen flows. Use the e2e tier only when the in-ROM tier cannot cover a scenario.
+
+`test/e2e` drives the built `pokeemerald.gba` headlessly through libmgba using node-mgba (pinned), at about 1000x real time. Tests are JSON (`test/e2e/README.md`): a snapshot recipe, key presses with a configurable delay, expectations on memory (by symbol name from `pokeemerald.map`, with game text decoded through `charmap.txt`), and an optional screenshot region compared against a committed golden image.
+
+Snapshots are built from boot rather than committed: a recipe presses through New Game, then `teleport()` writes the save block's location and position and points `gMain.callback2` at `CB2_LoadMap`, which is what a warp does. Savestates embed ROM addresses, so they are cached per ROM hash and recipe code and rebuilt when either changes. The runner refuses a `.gba` and `.map` that are not from the same link. Animated parts of a screen (the message prompt) are masked in waits and in golden comparisons. A failing test writes its screenshot, diff, RAM dumps and a savestate to a gitignored `out/` folder, which is how a failure is investigated. It stays out of `make check` until it is stable and cheap enough.
+
 ## Alternatives considered
 
 ### Reserving the first 32 vars by position
@@ -1082,3 +1090,37 @@ Pros:
 Cons:
 - Unneeded: the far main-beat text is generated, so it exists for every beat, and a subplot's `farCurrent` and `closeCurrent` are already required by the descriptor.
 - One more string per beat and per subplot stage, to author and keep consistent with the hints.
+
+### Driving the Windows mGBA through its GDB server
+
+Pros:
+- Already installed; a standard debugger protocol.
+
+Cons:
+- No key input, savestate loading or screenshots over the protocol, so those need another channel anyway.
+- Only the Qt build opens the server; the SDL build did not.
+
+### Lua scripting inside mGBA (`mgba-qt --script`, or the mgba-mcp wrapper)
+
+Pros:
+- Full emulator API (keys, memory, screenshots, states) inside the emulator.
+
+Cons:
+- The Windows 0.10.5 build rejects `--script` and `-S`, so a script can only be loaded by hand in the GUI.
+- Elsewhere it needs `mgba-qt` plus a virtual display, and the process has to be killed because quitting from Lua is unreliable.
+
+### Python bindings to libmgba (libmgba-py or mGBA's own)
+
+Pros:
+- Headless, with keys, memory and a video buffer.
+
+Cons:
+- Must be built from source; no install route, undocumented mGBA version, savestate loading undocumented, last commit Dec 2024.
+
+### Only the in-ROM test harness
+
+Pros:
+- Fastest, already in `make check`.
+
+Cons:
+- Without VBlank nothing reaches VRAM or OAM, so a UI bug such as text overflowing its box is invisible; no screenshots; keys bypass the game's own input reading. Kept as the first tier.
