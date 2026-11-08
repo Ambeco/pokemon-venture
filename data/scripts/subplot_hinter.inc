@@ -14,3 +14,17 @@ Common_EventScript_TrySubplotHint::
 	closemessage
 	release
 	return
+
+@ Pokémon Center news NPC (design.md, "City planning"): the NPC's own script is
+@     goto Common_EventScript_PokemonCenterNews
+@ ShowPokemonCenterNews always has a text (generic lines are its fallback), so the NPC needs no text of its own.
+Common_EventScript_PokemonCenterNews::
+	lock
+	faceplayer
+	special ShowPokemonCenterNews
+	special ShowFieldMessageStringVar4
+	waitmessage
+	waitbuttonpress
+	closemessage
+	release
+	end

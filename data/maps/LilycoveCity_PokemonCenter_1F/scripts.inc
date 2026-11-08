@@ -32,7 +32,7 @@ LilycoveCity_PokemonCenter_1F_EventScript_Nurse::
 	end
 
 LilycoveCity_PokemonCenter_1F_EventScript_Boy::
-	msgbox LilycoveCity_PokemonCenter_1F_Text_HowManyKindsOfPokemon, MSGBOX_NPC
+	goto Common_EventScript_PokemonCenterNews
 	end
 
 LilycoveCity_PokemonCenter_1F_EventScript_Maniac::
@@ -47,12 +47,6 @@ LilycoveCity_PokemonCenter_1F_EventScript_ManiacBadTeamGone::
 	msgbox LilycoveCity_PokemonCenter_1F_Text_HaventSeenRottenScoundrels, MSGBOX_DEFAULT
 	release
 	end
-
-LilycoveCity_PokemonCenter_1F_Text_HowManyKindsOfPokemon:
-	.string "I wonder how many kinds of POKéMON\n"
-	.string "there are in the world.\p"
-	.string "It'd be great to cross seas and\n"
-	.string "trade POKéMON with people far away.$"
 
 LilycoveCity_PokemonCenter_1F_Text_HeardAboutRottenScoundrels:
 	.string "I've been hearing about some rotten\n"
