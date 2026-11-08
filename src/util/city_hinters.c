@@ -270,10 +270,11 @@ static const u8 sVagueFar[] = _("There's a story about something\nunfolding near
 static const u8 sVagueClose[] = _("Something is unfolding right here in\n");
 static const u8 sVagueEnd[] = _(".");
 
-// The county's city, else its first landmark or detour, so the vague news still leads the player there.
+// The county's city, else its first landmark or detour, else its first Enclave (an Enclave-only county), so
+// the vague news still leads the player there. NULL only for Emerald's one empty county.
 static const u8 *GetCountyNewsPlaceName(u32 county)
 {
-    u32 i, class;
+    u32 i, class, enclave = GetCountySpecialLocationCount(county);
 
     if (DoesCountyHaveCity(county))
         return GetCountyCityName(county);
@@ -282,7 +283,11 @@ static const u8 *GetCountyNewsPlaceName(u32 county)
         class = GetCountySpecialLocationClass(county, i);
         if (class == LOCATION_CLASS_LANDMARK || class == LOCATION_CLASS_DETOUR)
             return gRegionMapEntries[GetCountySpecialLocation(county, i).mapSec].name;
+        if (class == LOCATION_CLASS_ENCLAVE && enclave == GetCountySpecialLocationCount(county))
+            enclave = i;
     }
+    if (enclave < GetCountySpecialLocationCount(county))
+        return gRegionMapEntries[GetCountySpecialLocation(county, enclave).mapSec].name;
     return NULL;
 }
 
