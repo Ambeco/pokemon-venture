@@ -114,7 +114,8 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 - Convert the region invariant tests (`test/region_*.c`) to `FOR_EACH_SWEEP_SEED` once the generator reads the seed.
 - Rewrite `README.md` as the fork's own README.
 - End-to-end tests, step 2: rewrite the byte-level checks in `test/pokemon_center_news.c` (and the Lilycove hinter checks) on `Test_LoadMap` + `ScriptContext_SetupScript` (see `include/test/map_loaded.h`); extend to `waitmessage`/button-press flows and `addobject` scripts, and to generated maps.
-- End-to-end tests, step 2: scripted gameplay in a full emulator. No headless mGBA with scripting exists on this machine (WSL has no `mgba`, `mgba-qt` or `xvfb-run`). Build or install mGBA with Lua or its Python bindings, boot the normal ROM headless, debug-warp or load a save state to a map, press A at the NPC, then read `gStringVar4` or a screenshot (this also lets Claude look at the game). Drive it from a script outside `make check` first; add a make target once stable. Needs a way to set the story state (save states, or a debug var write) and a fixed seed.
+- Main-beat hint text (`WriteMainBeatHint`, so the Pokémon Center news) has no line breaks, so it overflows the message box and garbles glyphs (found by `test/e2e`: Lilycove's Pokémon Center Boy). Wrap it with `BreakStringAutomatic` inside the writers, so the `gStringVar4` comparisons in `test/pokemon_center_news.c` stay consistent, then add a screenshot golden to that e2e test.
+- End-to-end tests (`test/e2e/README.md`): add scenarios (the Lilycove city hinters, a generated map, button-press flows) and a make target or CI step; consider a fixed-seed recipe for generated regions.
 
 ## Open design questions and unscheduled work
 

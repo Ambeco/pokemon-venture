@@ -1,0 +1,12 @@
+{
+  "name": "pokemon-venture-e2e",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end tests that drive the built ROM headlessly through libmgba (node-mgba); see README.md",
+  "scripts": {
+    "test": "node run.mjs"
+  },
+  "dependencies": {
+    "node-mgba": "0.3.2"
+  }
+}

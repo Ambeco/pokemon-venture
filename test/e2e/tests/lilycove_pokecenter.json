@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Lilycove Pokemon Center: the Boy's news text is the main-beat hint",
+    "snapshot": "lilycove_pokecenter_below_boy",
+    "steps": [
+      { "press": "UP" },
+      { "press": "A" },
+      { "waitStable": true }
+    ],
+    "expect": [
+      { "symbol": "gStringVar4", "text": "I heard big things are happening in LITTLEROOT TOWN." }
+    ]
+  },
+  {
+    "name": "Lilycove Pokemon Center: the Maniac's message box",
+    "snapshot": "lilycove_pokecenter_below_boy",
+    "steps": [
+      { "press": "RIGHT" },
+      { "press": "A" },
+      { "waitStable": true }
+    ],
+    "expect": [
+      { "symbol": "gStringVar4", "text": "I’ve been hearing about some rotten\nscoundrels who steal POKéMON and rip\\loff METEORITES." }
+    ],
+    "screenshot": { "region": { "x": 0, "y": 104, "width": 240, "height": 56 }, "golden": "goldens/lilycove_pokecenter_maniac_box.png" }
+  }
+]
