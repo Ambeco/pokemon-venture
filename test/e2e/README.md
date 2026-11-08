@@ -31,10 +31,11 @@ It is not part of `make check`.
       "name": "unique, human-readable",
       "snapshot": "recipe name",
       "inputDelayFrames": 12,                       // optional; default 12 (~0.2 s) before each press
+      "settleFrames": 120,                          // optional; frames run after the last step, before any check
       "steps": [
         { "press": "UP" },                          // optional "hold" (default 6) and "delay"
         { "wait": 30 },
-        { "waitStable": true }                      // until the screen stops changing; ignores the message prompt
+        { "waitStable": true }                      // until the screen stops changing; avoid on maps with water/flower animation
       ],
       "expect": [
         { "symbol": "gStringVar4", "text": "decoded game text, \n and \\p for control codes" },

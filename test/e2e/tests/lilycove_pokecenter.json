@@ -4,8 +4,7 @@
     "snapshot": "lilycove_pokecenter_below_boy",
     "steps": [
       { "press": "UP" },
-      { "press": "A" },
-      { "waitStable": true }
+      { "press": "A" }
     ],
     "expect": [
       { "symbol": "gStringVar4", "text": "I heard big things are happening in LITTLEROOT TOWN." }
@@ -16,8 +15,7 @@
     "snapshot": "lilycove_pokecenter_below_boy",
     "steps": [
       { "press": "RIGHT" },
-      { "press": "A" },
-      { "waitStable": true }
+      { "press": "A" }
     ],
     "expect": [
       { "symbol": "gStringVar4", "text": "I’ve been hearing about some rotten\nscoundrels who steal POKéMON and rip\\loff METEORITES." }

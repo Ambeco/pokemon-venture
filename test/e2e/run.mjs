@@ -45,6 +45,10 @@ function parseHex(s) {
   return Buffer.from(clean, "hex");
 }
 
+// Frames to run after the last step before checking anything. Fixed, not "until still": water, flowers and
+// the message prompt animate forever, and the emulator is deterministic, so a frame count is reproducible.
+const DEFAULT_SETTLE_FRAMES = 120;
+
 async function runSteps(game, test) {
   const delay = test.inputDelayFrames ?? DEFAULT_INPUT_DELAY_FRAMES;
   for (const [i, step] of (test.steps ?? []).entries()) {
@@ -58,6 +62,7 @@ async function runSteps(game, test) {
       throw new Error(`${where}: ${e.message}`);
     }
   }
+  await game.tick(test.settleFrames ?? DEFAULT_SETTLE_FRAMES);
 }
 
 async function checkMemory(game, expect) {
