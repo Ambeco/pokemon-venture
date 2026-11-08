@@ -206,6 +206,22 @@ TEST("CityHinters: A step-3 list with no host still points at its block's county
     EXPECT(found > 0);
 }
 
+TEST("CityHinters: A beat hosted in a county without a city is vague news naming its landmark or detour")
+{
+    static EWRAM_DATA u8 sNews[200], sGeneric[200];
+    u32 index, host;
+
+    WritePokemonCenterNews(sGeneric, MAIN_STORY_INDEX_POSTGAME, 0);
+    for (index = 0; index < MAIN_STORY_INDEX_POSTGAME; index++)
+    {
+        if (!GetMainBeatHost(index, &host) || DoesCountyHaveCity(host))
+            continue;
+        WritePokemonCenterNews(sNews, index, (host + 1) % NUM_COUNTIES);
+        EXPECT(sNews[0] != EOS);
+        EXPECT(StringCompare(sNews, sGeneric) != 0 || GetCountySpecialLocationCount(host) == 0);
+    }
+}
+
 TEST("CityHinters: Postgame and host-less news is generic, fixed per county")
 {
     static EWRAM_DATA u8 sA[200], sB[200];

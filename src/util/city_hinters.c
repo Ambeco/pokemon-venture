@@ -11,6 +11,7 @@
 #include "global.fieldmap.h"
 #include "identity_seed.h"
 #include "constants/identity_salts.h"
+#include "region_map.h"
 #include "region_tile.h"
 #include "subplot.h"
 
@@ -269,6 +270,32 @@ static const u8 sVagueFar[] = _("There's a story about something\nunfolding near
 static const u8 sVagueClose[] = _("Something is unfolding right here in\n");
 static const u8 sVagueEnd[] = _(".");
 
+// The county's city, else its first landmark or detour, so the vague news still leads the player there.
+static const u8 *GetCountyNewsPlaceName(u32 county)
+{
+    u32 i, class;
+
+    if (DoesCountyHaveCity(county))
+        return GetCountyCityName(county);
+    for (i = 0; i < GetCountySpecialLocationCount(county); i++)
+    {
+        class = GetCountySpecialLocationClass(county, i);
+        if (class == LOCATION_CLASS_LANDMARK || class == LOCATION_CLASS_DETOUR)
+            return gRegionMapEntries[GetCountySpecialLocation(county, i).mapSec].name;
+    }
+    return NULL;
+}
+
+static bool32 WriteVagueNews(u8 *dst, u32 county, u32 playerCounty)
+{
+    const u8 *name = GetCountyNewsPlaceName(county);
+
+    if (name == NULL)
+        return FALSE;
+    StringAppend(StringAppend(StringCopy(dst, county == playerCounty ? sVagueClose : sVagueFar), name), sVagueEnd);
+    return TRUE;
+}
+
 bool32 WritePokemonCenterNews(u8 *dst, u32 mainIndex, u32 playerCounty)
 {
     struct PlotSlot item;
@@ -283,24 +310,15 @@ bool32 WritePokemonCenterNews(u8 *dst, u32 mainIndex, u32 playerCounty)
     {
         // A step-3 unlock that is no blocker (the Letter) has no beat to describe, but block x's county is
         // still where it happens. The county knows no details yet.
-        if ((mainIndex & 3) == 3 && DoesCountyHaveCity(host = GetCountyByStoryIdx(mainIndex >> 2)))
-        {
-            if (host == playerCounty)
-                StringAppend(StringCopy(dst, sVagueClose), GetCountyCityName(host));
-            else
-                StringAppend(StringCopy(dst, sVagueFar), GetCountyCityName(host));
-            StringAppend(dst, sVagueEnd);
-        }
-        else
-        {
+        if ((mainIndex & 3) != 3 || !WriteVagueNews(dst, GetCountyByStoryIdx(mainIndex >> 2), playerCounty))
             WriteGenericNews(dst, playerCounty);
-        }
         return TRUE;
     }
-    // The hint names the host's city, so a cityless host has none.
+    // The beat hint names the host's city, so a cityless host gets the vague news about its landmark.
     if (!DoesCountyHaveCity(host))
     {
-        WriteGenericNews(dst, playerCounty);
+        if (!WriteVagueNews(dst, host, playerCounty))
+            WriteGenericNews(dst, playerCounty);
         return TRUE;
     }
     if (host != playerCounty)
