@@ -184,6 +184,28 @@ TEST("CityHinters: News always has text for every index and county")
     }
 }
 
+TEST("CityHinters: A step-3 list with no host still points at its block's county, vaguely")
+{
+    static EWRAM_DATA u8 sFar[200], sClose[200], sCity[200];
+    u32 index, host, county, found = 0;
+
+    for (index = 3; index < MAIN_STORY_INDEX_POSTGAME; index += 4)
+    {
+        if (GetMainBeatHost(index, &host) || GetPlotListStage(index).blockingMask == 0)
+            continue;
+        county = GetCountyByStoryIdx(index >> 2);
+        if (!DoesCountyHaveCity(county))
+            continue;
+        WritePokemonCenterNews(sFar, index, (county + 1) % NUM_COUNTIES);
+        WritePokemonCenterNews(sClose, index, county);
+        StringCopy(sCity, GetCountyCityName(county));
+        EXPECT(StringCompare(sFar, sClose) != 0);
+        EXPECT(StringLength(sFar) > StringLength(sCity));
+        found++;
+    }
+    EXPECT(found > 0);
+}
+
 TEST("CityHinters: Postgame and host-less news is generic, fixed per county")
 {
     static EWRAM_DATA u8 sA[200], sB[200];

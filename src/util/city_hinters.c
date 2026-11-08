@@ -265,14 +265,40 @@ static void WriteGenericNews(u8 *dst, u32 playerCounty)
     StringCopy(dst, sGenericNews[IdentityHash(GetPlayerIdentitySeed(), NPC_SALT_NEWS_GENERIC, playerCounty) % ARRAY_COUNT(sGenericNews)]);
 }
 
+static const u8 sVagueFar[] = _("There's a story about something\nunfolding near ");
+static const u8 sVagueClose[] = _("Something is unfolding right here in\n");
+static const u8 sVagueEnd[] = _(".");
+
 bool32 WritePokemonCenterNews(u8 *dst, u32 mainIndex, u32 playerCounty)
 {
     struct PlotSlot item;
     u32 host, slot;
 
-    // GetMainStoryIndex() only rests on a list with a host, except at the postgame and on a step-3 unlock
-    // that is no blocker (the Letter); the hint also names the host's city, so a cityless host has none.
-    if (mainIndex >= MAIN_STORY_INDEX_POSTGAME || !GetMainBeatHost(mainIndex, &host) || !DoesCountyHaveCity(host))
+    if (mainIndex >= MAIN_STORY_INDEX_POSTGAME)
+    {
+        WriteGenericNews(dst, playerCounty);
+        return TRUE;
+    }
+    if (!GetMainBeatHost(mainIndex, &host))
+    {
+        // A step-3 unlock that is no blocker (the Letter) has no beat to describe, but block x's county is
+        // still where it happens. The county knows no details yet.
+        if ((mainIndex & 3) == 3 && DoesCountyHaveCity(host = GetCountyByStoryIdx(mainIndex >> 2)))
+        {
+            if (host == playerCounty)
+                StringAppend(StringCopy(dst, sVagueClose), GetCountyCityName(host));
+            else
+                StringAppend(StringCopy(dst, sVagueFar), GetCountyCityName(host));
+            StringAppend(dst, sVagueEnd);
+        }
+        else
+        {
+            WriteGenericNews(dst, playerCounty);
+        }
+        return TRUE;
+    }
+    // The hint names the host's city, so a cityless host has none.
+    if (!DoesCountyHaveCity(host))
     {
         WriteGenericNews(dst, playerCounty);
         return TRUE;
