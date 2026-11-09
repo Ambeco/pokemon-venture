@@ -659,6 +659,26 @@ Checked against Petalburg gym/Surf, Devon Goods and Granite Cave/Flash in Emeral
 - Runtime NPC spawning is needed only for cutscene actors (an NPC runs up to the player and off again), because a generated route or city has no object in the right place. The generic cutscene runner builds an object template at runtime and spawns it (`SpawnSpecialObjectEvent`, as the player avatar does); to be confirmed when the runner is written. Subplot NPCs inside buildings never spawn at runtime: placeholders cover them, and the rejected alternative below explains why.
 - Route hint NPCs (Milestone 1) are not decided here.
 
+#### County planning and subplot placement
+
+A county plans its subplots algorithmically from the seed, in this order, and stores none of it (like the main-story order):
+
+1. Unique buildings: a coprime-stride deal picks the unique buildings a county has beyond its generic ones.
+2. Attached subplots: the county looks at the main-story beats it hosts, its locations and its unique buildings, and takes the subplots attached to them (Pokémon Tower: Fuji held by Rocket, a Marowak, and a Silph Scope as a consumed key). An attached subplot is never shuffled, so its requirements hold by construction.
+3. Generic subplots: a second coprime-stride deal picks from the generic pool. A candidate that fails `CheckSubplotPlacement` for the county is skipped to the next stride step. The pool will be short once everything is randomized, so more are added from FRLG or custom.
+4. McGuffins to provide: the county reads the main-story beats it hosts for the keys it must supply. The fallback NPC guarantees them: a generic one-role subplot whose first stage hints its requirement (badges, a key) and whose second gives the McGuffin. Completability then follows from construction.
+5. Location order: the county reads which locations carry inter-county routes, and those counties' story indices, to order its locations.
+6. Slot details: the county derives each subplot slot's details (route ends, building doorways) on demand.
+
+Slots. A county slice has `SUBPLOTS_PER_COUNTY` (3) subplot vars. Slot 0 is the county chain: its value is a position over the concatenated stages of the county's serial subplots, which the accessor resolves to (subplot, stage) by cumulative stage counts, so any number of serial subplots share one var. Slots 1 and 2 hold optional subplots. A chain entry that needs an optional subplot done (parallel but required) consumes a host-pool key that the optional subplot produces, so no further mechanism is needed. Packing stages into 2-3 bits, or more vars per county, is revisited once subplots are generic and the distribution of stage counts is known.
+
+City planning asks the stages that are current for the actors and triggers to place. Actors are placed per stage: a stage that has passed places nothing of its predecessor (Route 101: the professor, the Zigzagoon and the bag exist only in the tutorial's stage), and cutscene actors are spawned and removed at runtime, so the placeholder budget only counts the current stage's actors per map.
+
+Triggers belong to the anchor, so a stage cannot ask for a trigger at a place it has no anchor for. A trigger runs a cutscene and advances the stage when it ends, which keeps no extra state. Defeating an NPC is a trigger only for immobile story actors, which confines it to anchor locations. An anchor may also have a proximity radius (about 4 tiles): coming within it starts a cutscene in which an actor approaches from behind, or appears at the anchor (a door) and approaches the player. A map-load check of the player's tile, not a ROM `coord_event`, fires them, since a generated map has no such events. The trigger list so far (incomplete):
+
+- Enter a map or route at this stage; stand in front of a building door; leave a building; reach a route end or finish a route; come within N tiles of an anchor; talk to an anchor NPC; defeat an immobile story actor; interact with an anchor item; cross a chokepoint (route to location, blocker); chain from the previous scene's end; use a field move or key item at an anchor (Silph Scope, Cut); a battle outcome (win, catch a given Pokémon, flee); the main-story-index crossing a value, seen at the next map load (level-triggered); time of day or weather (not needed yet).
+- An actor enters by approaching from behind, emerging from a door or approaching from the anchor; it leaves by running back or forward, walking to the anchor and vanishing, going through a door, or teleporting.
+
 ### City planning
 
 A city is laid out by its county (layer 5/6), in this order. Steps 5-8 are what the subplot descriptor's hint and actor fields serve. The hard part will be building and path placement (steps 2-3), not the story hooks.
@@ -981,6 +1001,17 @@ Pros:
 Cons:
 - Subplots cannot move between cities, which is what stage 5 needs.
 - Conflicts with procedural buildings, where maps are not fixed.
+
+### Packing subplot stages into 2-3 bits, or more vars per county
+
+Give each subplot a 2-3 bit field instead of a var, or raise `VARS_PER_COUNTY`.
+
+Pros:
+- More subplots per county without a chain.
+
+Cons:
+- More vars needs the legacy vars retired first, so it blocks progress.
+- Bit packing complicates the accessor before the distribution of stage counts is known.
 
 ### Runtime-spawned NPCs for every subplot beat
 
