@@ -20,4 +20,7 @@ Procedurally generated Pokémon region mod on top of pokeemerald-expansion. Read
 - Test files can't use initialized `.data` (the test linker script discards it): use `EWRAM_DATA` for shared test globals. `Test_MgbaPrintf` has no width flags (`%08x` prints `8x`).
 - Full `make check -j4` takes over 10 minutes: when running it in the background, set its timeout to an hour.
 - `make check TESTS='Region'` runs just the region tests (about 45, a few minutes).
+- Don't edit repo files with Windows Python `open()`: it rewrites LF files as CRLF. Use Edit/Write, or run Python inside WSL.
+- The Bash tool is Git-Bash: multi-line strings and `/tmp` paths passed to `wsl ... bash -lc "..."` get mangled. Write a script to `//wsl.localhost/Ubuntu/tmp/x.sh` and run `wsl -d Ubuntu -- bash -lc "bash /tmp/x.sh"`, then delete it.
+- `make e2e` runs `test/e2e` (needs a built ROM; falls back to `powershell.exe` for Node). Not part of `make check`.
 - The Grep tool silently matches nothing for brace globs like `{A,B}/scripts.inc` on this path: use `**/scripts.inc` or one path per call.
