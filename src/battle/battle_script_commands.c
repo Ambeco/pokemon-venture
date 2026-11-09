@@ -32,6 +32,7 @@
 #include "string_util.h"
 #include "pokemon_icon.h"
 #include "caps.h"
+#include "story_mode.h"
 #include "m4a.h"
 #include "mail.h"
 #include "event_data.h"
@@ -1694,6 +1695,12 @@ static void Cmd_datahpupdate(void)
     if (gBattleControllerExecFlags)
         return;
 
+    if (IsStoryModeOn() && IsOnPlayerSide(battler) && !(gBattleTypeFlags & BATTLE_TYPE_LINK))
+    {
+        s16 *damage = cmd->updateState == PASSIVE_HP_UPDATE ? &gBattleStruct->passiveHpUpdate[battler] : &gBattleStruct->moveDamage[battler];
+
+        *damage = StoryMode_ClampPlayerDamage(*damage, gBattleMons[battler].hp);
+    }
 
     switch (cmd->updateState)
     {

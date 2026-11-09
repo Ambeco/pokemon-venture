@@ -46,6 +46,7 @@
 #include "script.h"
 #include "field_name_box.h"
 #include "wild_encounter_ow.h"
+#include "story_mode.h"
 #include "constants/battle_frontier.h"
 #include "constants/battle_setup.h"
 #include "constants/event_objects.h"
@@ -367,7 +368,8 @@ static void DoStandardWildBattle(bool32 isDouble)
         VarSet(VAR_TEMP_E, 0);
         gBattleTypeFlags |= BATTLE_TYPE_PYRAMID;
     }
-    CreateBattleStartTask(GetWildBattleTransition(), 0);
+    if (!StoryMode_TrySkipWildBattle())
+        CreateBattleStartTask(GetWildBattleTransition(), 0);
     IncrementGameStat(GAME_STAT_TOTAL_BATTLES);
     IncrementGameStat(GAME_STAT_WILD_BATTLES);
     IncrementDailyWildBattles();
@@ -1370,7 +1372,7 @@ void BattleSetup_StartTrainerBattle(void)
 
     if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE || InTrainerHillChallenge())
         DoBattlePyramidTrainerHillBattle();
-    else
+    else if (!StoryMode_TrySkipTrainerBattle())
         DoTrainerBattle();
 
     ScriptContext_Stop();

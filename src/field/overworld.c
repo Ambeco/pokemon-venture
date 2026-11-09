@@ -57,6 +57,7 @@
 #include "save.h"
 #include "save_location.h"
 #include "script.h"
+#include "story_mode.h"
 #include "script_pokemon_util.h"
 #include "secret_base.h"
 #include "sound.h"
@@ -1819,6 +1820,7 @@ u8 UpdateSpritePaletteWithTime(u8 paletteNum)
 
 static void OverworldBasic(void)
 {
+    StoryMode_Tick();
     ScriptContext_RunScript();
     RunTasks();
     AnimateSprites();

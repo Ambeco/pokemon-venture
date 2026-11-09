@@ -925,6 +925,15 @@ The existing tips man at each gym entrance also gives party-specific advice from
 - Which party Pokémon have types weak defensively against the gym type.
 - Species found in the current county, at an equal or lower route-story-index, with a type advantage over the gym type.
 
+## Story mode
+
+A debug-menu toggle (Flags/Vars: "Toggle Story mode", `FLAG_VENTURE_STORY_MODE`; code `src/util/story_mode.c`) for playing through the story quickly and reviewing its subplots. While on, ordinary battles are skipped as wins at the battle-start hook (`DoStandardWildBattle`, `BattleSetup_StartTrainerBattle`), so the real end-of-battle callbacks still run and flag setting, whiteout checks and script continuation are unchanged.
+
+- Skipped: plain single and double wild battles and trainer battles of non-boss classes. Real fights: boss trainer classes (Leader, Elite Four, Champion, Rival, which also covers Brendan, May, Wally and Steven, and the Aqua and Magma leaders and admins), partner and multi battles, Pyramid, Trainer Hill, Pike, Safari, ghost, legendary and roamer battles, tutorials and scripted wild battles, so their scripts still get exercised. A boss class in either slot of a two-opponent battle keeps the whole battle real.
+- Rewards: every healthy party member gets the full experience (yield * level / 5, 1.5x for trainers, through the soft level cap) and EVs, with no sent-in split or level scaling, and levels up through the normal exp table, learns moves (replacing the first move when it already knows four, since there is no prompt) and evolves via the evolution scene. A trainer pays prize money from its data (last party level, no Amulet Coin).
+- Wild catches: every skipped wild Pokémon is marked seen. It is given to the player (party, else PC) unless the party or a box already holds the same species (forms are separate species), shininess and an equal or better IV total; a tie counts as already owned. A corner popup (queued, shown by `StoryMode_Tick` from `OverworldBasic` once the field is visible) reports caught, already-owned and no-room results.
+- Near-invulnerability: in real fights, `Cmd_datahpupdate` clamps damage to a player-side battler so it keeps 1 HP (not in link battles).
+
 ## End-to-end tests
 
 Two tiers. `make check` (the headless `mgba-rom-test` ROM) covers logic and game state, including real maps and NPC scripts through `Test_LoadMap`/`Test_LoadMapAt` (`include/test/map_loaded.h`), with message flows driven by `Test_RunFrames` and `Test_PressKeys` (an NPC script is talked to, its message waits for A, and a long text takes one A per page); it has no VBlank, so nothing reaches VRAM or OAM, and no real key handling. `test/e2e` covers what needs those: UI as drawn, real input and multi-screen flows. Use the e2e tier only when the in-ROM tier cannot cover a scenario.
