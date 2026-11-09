@@ -7,6 +7,18 @@
 
 #include "data/region/emerald_plot_gets.h"
 
+u32 GetBadgeCount(void)
+{
+    u32 i, count = 0;
+
+    for (i = 0; i < NUM_BADGES; i++)
+    {
+        if (FlagGet(FLAG_BADGE01_GET + i))
+            count++;
+    }
+    return count;
+}
+
 bool32 IsStoryPredicateTrue(const struct StoryPredicate *pred)
 {
     switch (pred->op)
@@ -19,6 +31,8 @@ bool32 IsStoryPredicateTrue(const struct StoryPredicate *pred)
         return VarGet(pred->a) >= pred->b;
     case STORY_PRED_ALWAYS:
         return TRUE;
+    case STORY_PRED_BADGES_GE:
+        return GetBadgeCount() >= pred->a;
     }
     AGB_ASSERT(FALSE); // unknown StoryPredicateOp: add a case above
     return FALSE;

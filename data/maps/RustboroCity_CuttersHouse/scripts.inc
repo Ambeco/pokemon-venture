@@ -8,6 +8,9 @@ RustboroCity_CuttersHouse_EventScript_Cutter::
 	msgbox RustboroCity_CuttersHouse_Text_YouCanPutThisHMToGoodUse, MSGBOX_DEFAULT
 	giveitem ITEM_HM_CUT
 	setflag FLAG_RECEIVED_HM_CUT
+	setvar VAR_0x8004, 0
+	setvar VAR_0x8005, 1
+	special SetCurrentSubplotStage
 	msgbox RustboroCity_CuttersHouse_Text_ExplainCut, MSGBOX_DEFAULT
 	release
 	end

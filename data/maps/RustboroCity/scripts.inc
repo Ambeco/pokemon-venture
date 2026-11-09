@@ -148,6 +148,11 @@ RustboroCity_EventScript_DevonEmployee2::
 	end
 
 RustboroCity_EventScript_Woman::
+	subplot_hinter 0, 0, 0
+	goto_if_eq VAR_RESULT, FALSE, RustboroCity_EventScript_WomanGeneric
+	end
+
+RustboroCity_EventScript_WomanGeneric::
 	msgbox RustboroCity_Text_GymLeaderIsntEasyWithFire, MSGBOX_NPC
 	end
 
@@ -178,6 +183,11 @@ RustboroCity_EventScript_Boy2BrineyLeftTunnel::
 	end
 
 RustboroCity_EventScript_Twin::
+	subplot_hinter 0, 1, 1
+	goto_if_eq VAR_RESULT, FALSE, RustboroCity_EventScript_TwinGeneric
+	end
+
+RustboroCity_EventScript_TwinGeneric::
 	msgbox RustboroCity_Text_WowYouHavePokemon, MSGBOX_NPC
 	end
 

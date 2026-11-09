@@ -36,6 +36,7 @@ enum StoryPredicateOp
     STORY_PRED_ANY_FLAG, // flag a or flag b is set
     STORY_PRED_VAR_GE,   // var a >= b
     STORY_PRED_ALWAYS,   // the get leaves no state to read
+    STORY_PRED_BADGES_GE, // at least a badges are held (a derived stage: no counter is stored)
 };
 
 struct StoryPredicate
@@ -67,6 +68,9 @@ struct PlotListStage
 };
 
 #define MAIN_STORY_INDEX_POSTGAME 84 // first reserved county's list: open, nothing left to hold
+
+// Badges held: the popcount of the badge flags, not "gyms 1-4", so any order of gyms counts.
+u32 GetBadgeCount(void);
 
 bool32 IsStoryPredicateTrue(const struct StoryPredicate *pred);
 

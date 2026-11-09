@@ -13,16 +13,21 @@
 #include "string_util.h"
 #include "subplot.h"
 #include "constants/maps.h"
+#include "constants/script_commands.h"
 #include "constants/region_map_sections.h"
 #include "constants/characters.h"
 #include "event_data.h"
 #include "plot_stage.h"
 
 #define LILYCOVE COUNTY_ID(4, 0)
+#define RUSTBORO COUNTY_ID(0, 1)
 
 extern const u8 LilycoveCity_PokemonCenter_1F_EventScript_Boy[];
 extern const u8 LilycoveCity_EventScript_Man3[];
 extern const u8 LilycoveCity_EventScript_RichBoy[];
+extern const u8 RustboroCity_EventScript_Woman[];
+extern const u8 RustboroCity_EventScript_Twin[];
+extern const u8 RustboroCity_CuttersHouse_EventScript_Cutter[];
 
 // Talks to the NPC bound to `script` and runs frames until its message has printed.
 static void TalkTo(const u8 *script)
@@ -87,8 +92,8 @@ TEST("PokemonCenterNews: The special writes the news for the map's county and su
     EXPECT_EQ(StringCompare(gStringVar4, sExpect), 0);
 }
 
-// Lilycove's Man3 and RichBoy are the city's two subplot hinters; each says the planner's hint for its (slot, beat, selector).
-static void ExpectHinterSpeaks(const u8 *script, u32 plannedIndex, u32 x, u32 y)
+// A city NPC bound by hand as a subplot hinter says the planner's hint for its (slot, beat, selector).
+static void ExpectHinterSpeaksIn(u32 county, u32 mapGroup, u32 mapNum, const u8 *script, u32 plannedIndex, u32 x, u32 y)
 {
     static EWRAM_DATA u8 sExpect[200];
     struct HinterPlacement out[MAX_COUNTY_HINTERS];
@@ -96,19 +101,24 @@ static void ExpectHinterSpeaks(const u8 *script, u32 plannedIndex, u32 x, u32 y)
     const u8 *text;
     u32 count;
 
-    Test_LoadMapAt(MAP_GROUP(MAP_LILYCOVE_CITY), MAP_NUM(MAP_LILYCOVE_CITY), x, y);
-    count = PlanCountyHinters(LILYCOVE, out, ARRAY_COUNT(out));
+    Test_LoadMapAt(mapGroup, mapNum, x, y);
+    count = PlanCountyHinters(county, out, ARRAY_COUNT(out));
     ASSUME(count > plannedIndex);
-    desc = GetCountySubplot(LILYCOVE, out[plannedIndex].slot);
+    desc = GetCountySubplot(county, out[plannedIndex].slot);
     ASSUME(desc != NULL);
-    text = GetCountySlotHintAbout(LILYCOVE, out[plannedIndex].slot, out[plannedIndex].beat, SUBPLOT_CLOSE, out[plannedIndex].selector);
+    text = GetCountySlotHintAbout(county, out[plannedIndex].slot, out[plannedIndex].beat, SUBPLOT_CLOSE, out[plannedIndex].selector);
     ASSUME(text != NULL);
-    ExpandHintTemplate(sExpect, text, LILYCOVE, &desc->stages[out[plannedIndex].beat].anchor);
+    ExpandHintTemplate(sExpect, text, county, &desc->stages[out[plannedIndex].beat].anchor);
     BreakStringForFieldMessage(sExpect);
 
     TalkTo(script);
     EXPECT_EQ(StringCompare(gStringVar4, sExpect), 0);
     ExpectDismissedByA();
+}
+
+static void ExpectHinterSpeaks(const u8 *script, u32 plannedIndex, u32 x, u32 y)
+{
+    ExpectHinterSpeaksIn(LILYCOVE, MAP_GROUP(MAP_LILYCOVE_CITY), MAP_NUM(MAP_LILYCOVE_CITY), script, plannedIndex, x, y);
 }
 
 TEST("PokemonCenterNews: Lilycove's first city hinter says the planner's hint for its slot, beat and selector")
@@ -119,4 +129,30 @@ TEST("PokemonCenterNews: Lilycove's first city hinter says the planner's hint fo
 TEST("PokemonCenterNews: Lilycove's second city hinter says the planner's hint for its slot, beat and selector")
 {
     ExpectHinterSpeaks(LilycoveCity_EventScript_RichBoy, 1, 16, 11);
+}
+
+TEST("PokemonCenterNews: Rustboro's first city hinter says the planner's hint for its slot, beat and selector")
+{
+    ExpectHinterSpeaksIn(RUSTBORO, MAP_GROUP(MAP_RUSTBORO_CITY), MAP_NUM(MAP_RUSTBORO_CITY), RustboroCity_EventScript_Woman, 0, 22, 34);
+}
+
+TEST("PokemonCenterNews: Rustboro's second city hinter says the planner's hint for its slot, beat and selector")
+{
+    ExpectHinterSpeaksIn(RUSTBORO, MAP_GROUP(MAP_RUSTBORO_CITY), MAP_NUM(MAP_RUSTBORO_CITY), RustboroCity_EventScript_Twin, 1, 21, 46);
+}
+
+// `setvar VAR_0x8004, 0`, `setvar VAR_0x8005, 1` then `special`, as the Cutter's script does after the HM.
+TEST("PokemonCenterNews: The Cutter's script sets slot 0 to stage 1 when it gives the HM")
+{
+    static const u8 sSetStage[] = {SCR_OP_SETVAR, 0x04, 0x80, 0x00, 0x00, SCR_OP_SETVAR, 0x05, 0x80, 0x01, 0x00, SCR_OP_SPECIAL};
+    const u8 *script = RustboroCity_CuttersHouse_EventScript_Cutter;
+    u32 i, j, found = FALSE;
+
+    for (i = 0; i + sizeof(sSetStage) < 120 && !found; i++)
+    {
+        for (j = 0; j < sizeof(sSetStage) && script[i + j] == sSetStage[j]; j++)
+            ;
+        found = j == sizeof(sSetStage);
+    }
+    EXPECT(found);
 }

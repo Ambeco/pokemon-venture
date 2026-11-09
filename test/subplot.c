@@ -3,12 +3,19 @@
 #include "constants/flags.h"
 #include "constants/region_map_sections.h"
 #include "constants/vars.h"
+#include "constants/characters.h"
 #include "event_data.h"
+#include "plot_stage.h"
+#include "region_county.h"
+#include "region_plot.h"
+#include "region_unlock.h"
 #include "region_city.h"
 #include "subplot.h"
 #include "string_util.h"
 
 #define LILYCOVE COUNTY_ID(4, 0)
+#define RUSTBORO COUNTY_ID(0, 1)
+#define PETALBURG COUNTY_ID(0, 2)
 
 static const u8 sTextA[] = _("a");
 static const u8 sTextB[] = _("b");
@@ -69,7 +76,7 @@ static const struct SubplotDesc sFullDesc =
     .actors = sActors,
 };
 
-TEST("Subplot: Lilycove hosts the museum subplot in slot 0 only")
+TEST("Subplot: Rustboro and Lilycove host one subplot each, in slot 0")
 {
     u32 county, slot;
 
@@ -77,7 +84,7 @@ TEST("Subplot: Lilycove hosts the museum subplot in slot 0 only")
     {
         for (slot = 0; slot < SUBPLOTS_PER_COUNTY; slot++)
         {
-            if (county == LILYCOVE && slot == 0)
+            if ((county == LILYCOVE || county == RUSTBORO) && slot == 0)
                 EXPECT(GetCountySubplot(county, slot) != NULL);
             else
                 EXPECT(GetCountySubplot(county, slot) == NULL);
@@ -339,4 +346,250 @@ TEST("Subplot: The Lilycove close-before hint names the museum through the templ
     ExpandHintTemplate(out, text, LILYCOVE, &desc->stages[1].anchor);
     EXPECT(StringLength(out) > StringLength(text) - 4);
     EXPECT(StringCompareN(out, COMPOUND_STRING("There's talk of a new exhibit hall\nnear the MUSEUM."), 40) == 0);
+}
+
+// A gym-4-gated subplot with a parameterized hint, a produced host-pool key and a two-building cutscene.
+static const struct SubplotStage sGatedStages[] =
+{
+    {.hints = {.farCurrent = sTextA, .closeCurrent = sTextB}, .hintCount = SUBPLOT_COUNT_BADGES_SHORT,
+     .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}, .extraRoles = BUILDING_HOUSE},
+    {.hints = {.farCurrent = sTextC, .closeCurrent = sTextD}, .anchor = {BEAT_ANCHOR_DOOR, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_MART}},
+    {.hints = {.farCurrent = sTextC, .closeCurrent = sTextD}},
+};
+
+static const struct SubplotDesc sGatedDesc =
+{
+    .backend = SUBPLOT_STORED,
+    .numStages = ARRAY_COUNT(sGatedStages),
+    .requiredRoles = BUILDING_POKEMON_CENTER,
+    .minBadges = 4,
+    .producedKeyStage = 2,
+    .producedKey = {SUBPLOT_KEY_HOST_POOL, 1, 0},
+    .stages = sGatedStages,
+};
+
+// Stages with no anchor role, so any city with a Pokémon Center could host them.
+static const struct SubplotStage sPlainStages[] =
+{
+    {.hints = {.farCurrent = sTextA, .closeCurrent = sTextB}},
+    {.hints = {.farCurrent = sTextC, .closeCurrent = sTextD}},
+};
+
+static const struct SubplotDesc sConsumerDesc =
+{
+    .backend = SUBPLOT_STORED,
+    .numStages = ARRAY_COUNT(sPlainStages),
+    .requiredKeys = {{SUBPLOT_KEY_HOST_POOL, 1, 0}},
+    .stages = sPlainStages,
+};
+
+static const struct SubplotDesc sCrossConsumerDesc =
+{
+    .backend = SUBPLOT_STORED,
+    .numStages = ARRAY_COUNT(sPlainStages),
+    .requiredKeys = {{SUBPLOT_KEY_ITEM, PLOT_KIND_GYM, 4}},
+    .stages = sPlainStages,
+};
+
+static const struct SubplotDesc sItemProducerDesc =
+{
+    .backend = SUBPLOT_STORED,
+    .numStages = ARRAY_COUNT(sPlainStages),
+    .producedKeyStage = 1,
+    .producedKey = {SUBPLOT_KEY_ITEM, PLOT_KIND_GYM, 4},
+    .stages = sPlainStages,
+};
+
+static void SetBadges(u32 mask)
+{
+    u32 i;
+
+    for (i = 0; i < NUM_BADGES; i++)
+    {
+        if (mask & (1u << i))
+            FlagSet(FLAG_BADGE01_GET + i);
+        else
+            FlagClear(FLAG_BADGE01_GET + i);
+    }
+}
+
+TEST("Subplot: Rustboro's Cutter subplot is stored, role-anchored and needs only a house")
+{
+    const struct SubplotDesc *desc = GetCountySubplot(RUSTBORO, 0);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, SUBPLOT_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT_EQ(desc->stages[0].anchor.role, BUILDING_HOUSE);
+    EXPECT_EQ(GetSubplotNeededRoles(desc), BUILDING_HOUSE);
+    EXPECT_EQ(desc->producedKey.type, SUBPLOT_KEY_NONE);
+}
+
+TEST("Subplot: The Cutter subplot keeps its stage in Rustboro's slice and not Lilycove's")
+{
+    EXPECT_EQ(GetCountySlotStage(RUSTBORO, 0), 0);
+    SetCountySlotStage(RUSTBORO, 0, 1);
+    EXPECT_EQ(GetCountySlotStage(RUSTBORO, 0), 1);
+    EXPECT_EQ(VarGet(GetCountySlotVar(RUSTBORO, 0)), 1);
+    EXPECT_EQ(GetCountySlotStage(LILYCOVE, 0), 0);
+}
+
+TEST("Subplot: The Cutter hints follow the stage and expand the house reference")
+{
+    u8 out[96];
+    const struct SubplotDesc *desc = GetCountySubplot(RUSTBORO, 0);
+    const u8 *before = GetSubplotHint(desc, 0, 1, SUBPLOT_CLOSE, 0);
+
+    ASSUME(before != NULL);
+    ExpandHintTemplate(out, before, RUSTBORO, &desc->stages[1].anchor);
+    EXPECT_EQ(StringCompareN(out, COMPOUND_STRING("People say the man near the house"), 33), 0);
+    EXPECT(GetCountySlotHint(RUSTBORO, 0, SUBPLOT_FAR, 0) == desc->stages[0].hints.farCurrent);
+    SetCountySlotStage(RUSTBORO, 0, 1);
+    EXPECT(GetCountySlotHint(RUSTBORO, 0, SUBPLOT_FAR, 0) == desc->stages[1].hints.farCurrent);
+}
+
+TEST("Subplot: Every Emerald host passes the placement check")
+{
+    u32 numHosts, i;
+    const struct SubplotHost *hosts = GetSubplotHosts(&numHosts);
+
+    EXPECT_EQ(numHosts, 2);
+    for (i = 0; i < numHosts; i++)
+    {
+        struct SubplotHost others[1] = {hosts[1 - i]};
+
+        EXPECT_EQ(CheckSubplotPlacement(hosts[i].desc, hosts[i].county, hosts[i].slot, others, 1), SUBPLOT_PLACEMENT_OK);
+    }
+}
+
+TEST("Subplot: Placement needs every role of the descriptor, its anchors and its cutscene buildings")
+{
+    struct SubplotStage stages[] = {{.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}, .extraRoles = BUILDING_HOUSE}};
+    struct SubplotDesc desc = {.backend = SUBPLOT_STORED, .numStages = 1, .requiredRoles = BUILDING_POKEMON_CENTER, .stages = stages};
+
+    EXPECT_EQ(GetSubplotNeededRoles(&desc), BUILDING_POKEMON_CENTER | BUILDING_GYM | BUILDING_HOUSE);
+    EXPECT_EQ(CheckSubplotPlacement(&desc, RUSTBORO, 0, NULL, 0), SUBPLOT_PLACEMENT_OK);
+    EXPECT_EQ(CheckSubplotPlacement(&desc, LILYCOVE, 0, NULL, 0), SUBPLOT_PLACEMENT_MISSING_ROLE);
+    EXPECT_EQ(CheckSubplotPlacement(&desc, COUNTY_ID(0, 0), 0, NULL, 0), SUBPLOT_PLACEMENT_NO_CITY);
+}
+
+TEST("Subplot: A subplot giving a main-plot get must come after the gym its badges wait for")
+{
+    struct SubplotDesc desc = {.backend = SUBPLOT_STORED, .numStages = 1, .stages = sGatedStages, .producesMainGet = TRUE,
+                               .mainGet = {PLOT_KIND_GYM, 1}, .minBadges = 4};
+
+    EXPECT_EQ(CheckSubplotPlacement(&desc, RUSTBORO, 0, NULL, 0), SUBPLOT_PLACEMENT_BEFORE_BADGES);
+    desc.mainGet.ordinal = 8;
+    EXPECT_EQ(CheckSubplotPlacement(&desc, RUSTBORO, 0, NULL, 0), SUBPLOT_PLACEMENT_OK);
+    desc.minBadges = 0;
+    desc.mainGet.ordinal = 1;
+    EXPECT_EQ(CheckSubplotPlacement(&desc, RUSTBORO, 0, NULL, 0), SUBPLOT_PLACEMENT_OK);
+}
+
+TEST("Subplot: A host-pool key resolves against the host, so a moved subplot moves its key")
+{
+    u32 inRustboro = ResolveSubplotKey(&sGatedDesc.producedKey, RUSTBORO);
+    u32 inLilycove = ResolveSubplotKey(&sGatedDesc.producedKey, LILYCOVE);
+
+    EXPECT_EQ(inRustboro, GetCountyMcGuffinId(RUSTBORO, 1));
+    EXPECT_EQ(inLilycove, GetCountyMcGuffinId(LILYCOVE, 1));
+    EXPECT(inRustboro != inLilycove);
+    EXPECT_EQ(ResolveSubplotKey(&sCrossConsumerDesc.requiredKeys[0], RUSTBORO), GetPlotItemMcGuffinId(PLOT_KIND_GYM, 4));
+    EXPECT_EQ(ResolveSubplotKey(&sCrossConsumerDesc.requiredKeys[1], RUSTBORO), MCGUFFIN_ID_NONE);
+}
+
+TEST("Subplot: A key is produced once the producer reaches its production stage, not before")
+{
+    struct SubplotHost hosts[] = {{RUSTBORO, 0, &sGatedDesc}};
+    u32 key = GetCountyMcGuffinId(RUSTBORO, 1);
+
+    EXPECT(!IsMcGuffinProducedBy(hosts, 1, key));
+    SetSubplotStage(RUSTBORO, 0, &sGatedDesc, 1);
+    EXPECT(!IsMcGuffinProducedBy(hosts, 1, key));
+    SetSubplotStage(RUSTBORO, 0, &sGatedDesc, 2);
+    EXPECT(IsMcGuffinProducedBy(hosts, 1, key));
+    EXPECT(!IsMcGuffinProducedBy(hosts, 1, GetCountyMcGuffinId(LILYCOVE, 1)));
+}
+
+TEST("Subplot: A consumer waits for a producer in another host")
+{
+    struct SubplotHost hosts[] = {{PETALBURG, 1, &sItemProducerDesc}, {RUSTBORO, 1, &sCrossConsumerDesc}};
+
+    EXPECT(!IsSubplotAvailable(&sCrossConsumerDesc, RUSTBORO, hosts, 2));
+    SetSubplotStage(PETALBURG, 1, &sItemProducerDesc, 1);
+    EXPECT(IsSubplotAvailable(&sCrossConsumerDesc, RUSTBORO, hosts, 2));
+}
+
+TEST("Subplot: A key consumed must have a producer in an earlier county, or an earlier slot")
+{
+    struct SubplotHost producer[] = {{RUSTBORO, 0, &sItemProducerDesc}};
+
+    EXPECT_EQ(CheckSubplotPlacement(&sCrossConsumerDesc, LILYCOVE, 0, producer, 1), SUBPLOT_PLACEMENT_OK);
+    EXPECT_EQ(CheckSubplotPlacement(&sCrossConsumerDesc, RUSTBORO, 1, producer, 1), SUBPLOT_PLACEMENT_OK);
+    EXPECT_EQ(CheckSubplotPlacement(&sCrossConsumerDesc, RUSTBORO, 0, producer, 1), SUBPLOT_PLACEMENT_KEY_NOT_EARLIER);
+    EXPECT_EQ(CheckSubplotPlacement(&sCrossConsumerDesc, PETALBURG, 0, NULL, 0), SUBPLOT_PLACEMENT_KEY_NOT_EARLIER);
+    producer[0].county = LILYCOVE;
+    EXPECT_EQ(CheckSubplotPlacement(&sCrossConsumerDesc, RUSTBORO, 0, producer, 1), SUBPLOT_PLACEMENT_KEY_NOT_EARLIER);
+}
+
+TEST("Subplot: A host-pool key consumed in the same host needs the producer's slot to be earlier")
+{
+    struct SubplotHost producer[] = {{RUSTBORO, 0, &sGatedDesc}};
+
+    EXPECT_EQ(CheckSubplotPlacement(&sConsumerDesc, RUSTBORO, 1, producer, 1), SUBPLOT_PLACEMENT_OK);
+    EXPECT_EQ(CheckSubplotPlacement(&sConsumerDesc, RUSTBORO, 0, producer, 1), SUBPLOT_PLACEMENT_KEY_NOT_EARLIER);
+    EXPECT_EQ(CheckSubplotPlacement(&sConsumerDesc, LILYCOVE, 0, producer, 1), SUBPLOT_PLACEMENT_KEY_NOT_EARLIER);
+}
+
+TEST("Subplot: Availability counts badges held in any order")
+{
+    EXPECT(!IsSubplotAvailable(&sGatedDesc, RUSTBORO, NULL, 0));
+    SetBadges(0x12);
+    EXPECT_EQ(GetBadgeCount(), 2);
+    EXPECT(!IsSubplotAvailable(&sGatedDesc, RUSTBORO, NULL, 0));
+    SetBadges(0x4B);
+    EXPECT_EQ(GetBadgeCount(), 4);
+    EXPECT(IsSubplotAvailable(&sGatedDesc, RUSTBORO, NULL, 0));
+}
+
+TEST("Subplot: A hint's count is the badges still missing")
+{
+    SetBadges(0x12);
+    EXPECT_EQ(GetSubplotHintCount(&sGatedDesc, 0, GetBadgeCount()), 2);
+    EXPECT_EQ(GetSubplotHintCount(&sGatedDesc, 0, 6), 0);
+    EXPECT_EQ(GetSubplotHintCount(&sGatedDesc, 1, 0), 0);
+}
+
+TEST("Subplot: Buffering a hint count puts the number in STR_VAR_1 and leaves it alone for uncounted stages")
+{
+    SetBadges(0x12);
+    gStringVar1[0] = EOS;
+    BufferSubplotHintCount(&sGatedDesc, 1);
+    EXPECT_EQ(gStringVar1[0], EOS);
+    BufferSubplotHintCount(&sGatedDesc, 0);
+    EXPECT_EQ(StringCompare(gStringVar1, COMPOUND_STRING("2")), 0);
+}
+
+TEST("Subplot: Derived stages come from the badge count with no stored counter")
+{
+    static const struct SubplotStage sStages[] =
+    {
+        {.hints = {.farCurrent = sTextA}},
+        {.hints = {.farCurrent = sTextB}, .done = {STORY_PRED_BADGES_GE, 1, 0}},
+        {.hints = {.farCurrent = sTextC}, .done = {STORY_PRED_BADGES_GE, 4, 0}},
+    };
+    static const struct SubplotDesc sDesc = {.backend = SUBPLOT_ADAPTER, .numStages = 3, .stages = sStages};
+
+    EXPECT_EQ(GetSubplotStage(0, 0, &sDesc), 0);
+    SetBadges(0x20);
+    EXPECT_EQ(GetSubplotStage(0, 0, &sDesc), 1);
+    SetBadges(0xF0);
+    EXPECT_EQ(GetSubplotStage(0, 0, &sDesc), 2);
+}
+
+TEST("Subplot: Two stages of one subplot anchor different buildings")
+{
+    EXPECT_EQ(sGatedDesc.stages[0].anchor.role, BUILDING_GYM);
+    EXPECT_EQ(sGatedDesc.stages[1].anchor.role, BUILDING_MART);
+    EXPECT_EQ(sGatedDesc.stages[1].anchor.kind, BEAT_ANCHOR_DOOR);
 }

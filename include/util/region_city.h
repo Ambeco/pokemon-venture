@@ -71,6 +71,8 @@ enum BuildingRole
     BUILDING_HOUSE          = 1 << 14, // generic house
 };
 
+#define NUM_BUILDING_ROLES 15
+
 struct GymSlot
 {
     u8 block; // county-story-index whose time block gives the gym

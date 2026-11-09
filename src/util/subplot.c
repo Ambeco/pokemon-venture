@@ -19,6 +19,21 @@ static const u8 gText_Lilycove_Exhibit1FarCurrent[] = _("The LILYCOVE MUSEUM's e
 static const u8 gText_Lilycove_Exhibit1CloseBefore[] = _("There's talk of a new exhibit hall\n{HINT_ANCHOR}.\pIt's not ready yet, though.");
 static const u8 gText_Lilycove_Exhibit1CloseCurrent[] = _("The curator is asking trainers for\npaintings to hang in the exhibit hall.");
 
+static const u8 gText_Rustboro_Cut0FarCurrent[] = _("I heard a man in RUSTBORO is looking for a skilled TRAINER to give an HM to.");
+static const u8 gText_Rustboro_Cut0FarAfter0[] = _("A man in RUSTBORO finally found a TRAINER worthy of his HIDDEN MACHINE.");
+static const u8 gText_Rustboro_Cut0FarAfter1[] = _("Did you hear? Someone in RUSTBORO got an HM from a man who just stared at them.");
+static const u8 gText_Rustboro_Cut0CloseCurrent[] = _("The man {HINT_ANCHOR} keeps staring at passing TRAINERS. What is he up to?");
+static const u8 gText_Rustboro_Cut0CloseAfter[] = _("The man {HINT_ANCHOR} found his TRAINER. He was so pleased.");
+static const u8 gText_Rustboro_Cut1FarCurrent[] = _("There's a TRAINER in RUSTBORO who was given an HM by a stranger, I heard.");
+static const u8 gText_Rustboro_Cut1CloseBefore[] = _("People say the man {HINT_ANCHOR} has an HM to give away.");
+static const u8 gText_Rustboro_Cut1CloseCurrent[] = _("That man {HINT_ANCHOR} gave away his HM. He says CUT can clear thin trees.");
+
+static const u8 *const sRustboroCut0FarAfter[] =
+{
+    gText_Rustboro_Cut0FarAfter0,
+    gText_Rustboro_Cut0FarAfter1,
+};
+
 static const u8 *const sLilycoveExhibit0FarAfter[] =
 {
     gText_Lilycove_Exhibit0FarAfter0,
@@ -26,6 +41,12 @@ static const u8 *const sLilycoveExhibit0FarAfter[] =
 };
 
 #include "data/region/emerald_subplots.h"
+
+const struct SubplotHost *GetSubplotHosts(u32 *numHosts)
+{
+    *numHosts = ARRAY_COUNT(sEmeraldSubplotHosts);
+    return sEmeraldSubplotHosts;
+}
 
 const struct SubplotDesc *GetCountySubplot(u32 countyId, u32 slot)
 {
@@ -199,6 +220,148 @@ u32 GetCountyFromCityMapSec(u32 mapSec)
     return 0;
 }
 
+u32 ResolveSubplotKey(const struct SubplotKeyRef *ref, u32 hostCounty)
+{
+    switch (ref->type)
+    {
+    case SUBPLOT_KEY_NONE:
+        return MCGUFFIN_ID_NONE;
+    case SUBPLOT_KEY_HOST_POOL:
+        return GetCountyMcGuffinId(hostCounty, ref->a);
+    case SUBPLOT_KEY_ITEM:
+        return GetPlotItemMcGuffinId(ref->a, ref->b);
+    }
+    assertf(FALSE, "unknown SubplotKeyType %d; did you mean to add a case to ResolveSubplotKey?", ref->type)
+    {
+        return MCGUFFIN_ID_NONE;
+    }
+    return MCGUFFIN_ID_NONE;
+}
+
+u32 GetSubplotHintCount(const struct SubplotDesc *desc, u32 beat, u32 badgesHeld)
+{
+    assertf(beat < desc->numStages, "no subplot stage %d", beat)
+    {
+        return 0;
+    }
+    switch (desc->stages[beat].hintCount)
+    {
+    case SUBPLOT_COUNT_NONE:
+        return 0;
+    case SUBPLOT_COUNT_BADGES_SHORT:
+        return desc->minBadges > badgesHeld ? desc->minBadges - badgesHeld : 0;
+    }
+    assertf(FALSE, "unknown SubplotHintCount %d; did you mean to add a case to GetSubplotHintCount?", desc->stages[beat].hintCount)
+    {
+        return 0;
+    }
+    return 0;
+}
+
+void BufferSubplotHintCount(const struct SubplotDesc *desc, u32 beat)
+{
+    if (desc->stages[beat].hintCount != SUBPLOT_COUNT_NONE)
+        ConvertIntToDecimalStringN(gStringVar1, GetSubplotHintCount(desc, beat, GetBadgeCount()), STR_CONV_MODE_LEFT_ALIGN, 3);
+}
+
+u32 GetSubplotNeededRoles(const struct SubplotDesc *desc)
+{
+    u32 stage, roles = desc->requiredRoles;
+
+    for (stage = 0; stage < desc->numStages; stage++)
+        roles |= desc->stages[stage].anchor.role | desc->stages[stage].extraRoles;
+    return roles;
+}
+
+bool32 IsMcGuffinProducedBy(const struct SubplotHost *hosts, u32 numHosts, u32 mcguffinId)
+{
+    u32 i;
+
+    for (i = 0; i < numHosts; i++)
+    {
+        const struct SubplotDesc *desc = hosts[i].desc;
+
+        if (desc->producedKey.type == SUBPLOT_KEY_NONE || ResolveSubplotKey(&desc->producedKey, hosts[i].county) != mcguffinId)
+            continue;
+        if (GetSubplotStage(hosts[i].county, hosts[i].slot, desc) >= desc->producedKeyStage)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+bool32 IsSubplotAvailable(const struct SubplotDesc *desc, u32 hostCounty, const struct SubplotHost *hosts, u32 numHosts)
+{
+    u32 i;
+
+    if (GetBadgeCount() < desc->minBadges)
+        return FALSE;
+    for (i = 0; i < SUBPLOT_MAX_REQUIRED_KEYS; i++)
+    {
+        if (desc->requiredKeys[i].type != SUBPLOT_KEY_NONE
+         && !IsMcGuffinProducedBy(hosts, numHosts, ResolveSubplotKey(&desc->requiredKeys[i], hostCounty)))
+            return FALSE;
+    }
+    return TRUE;
+}
+
+bool32 IsCountySlotAvailable(u32 countyId, u32 slot)
+{
+    u32 numHosts;
+    const struct SubplotHost *hosts = GetSubplotHosts(&numHosts);
+    const struct SubplotDesc *desc = GetCountySubplot(countyId, slot);
+
+    assertf(desc != NULL, "county %d hosts no subplot in slot %d", countyId, slot)
+    {
+        return FALSE;
+    }
+    return IsSubplotAvailable(desc, countyId, hosts, numHosts);
+}
+
+static bool32 HasEarlierProducer(u32 mcguffinId, u32 county, u32 slot, const struct SubplotHost *hosts, u32 numHosts)
+{
+    u32 i, storyIdx = GetCountyHeader(county)->storyIdx;
+
+    for (i = 0; i < numHosts; i++)
+    {
+        const struct SubplotDesc *desc = hosts[i].desc;
+        u32 hostIdx = GetCountyHeader(hosts[i].county)->storyIdx;
+
+        if (desc->producedKey.type == SUBPLOT_KEY_NONE || ResolveSubplotKey(&desc->producedKey, hosts[i].county) != mcguffinId)
+            continue;
+        if (hostIdx < storyIdx || (hosts[i].county == county && hosts[i].slot < slot))
+            return TRUE;
+    }
+    return FALSE;
+}
+
+u32 CheckSubplotPlacement(const struct SubplotDesc *desc, u32 county, u32 slot, const struct SubplotHost *hosts, u32 numHosts)
+{
+    u32 needed = GetSubplotNeededRoles(desc), bit, i;
+
+    if (!DoesCountyHaveCity(county))
+        return SUBPLOT_PLACEMENT_NO_CITY;
+    for (bit = 0; bit < NUM_BUILDING_ROLES; bit++)
+    {
+        if ((needed & (1u << bit)) && !DoesCountyCityHaveBuilding(county, 1u << bit))
+            return SUBPLOT_PLACEMENT_MISSING_ROLE;
+    }
+    if (desc->producesMainGet && desc->minBadges > 0)
+    {
+        struct PlotSlot get = GetVanillaPlotSlot(desc->mainGet.kind, desc->mainGet.ordinal);
+        struct GymSlot gym = GetGymSlot(desc->minBadges);
+
+        if (4 * get.block + get.step <= 4 * gym.block + gym.step)
+            return SUBPLOT_PLACEMENT_BEFORE_BADGES;
+    }
+    for (i = 0; i < SUBPLOT_MAX_REQUIRED_KEYS; i++)
+    {
+        if (desc->requiredKeys[i].type != SUBPLOT_KEY_NONE
+         && !HasEarlierProducer(ResolveSubplotKey(&desc->requiredKeys[i], county), county, slot, hosts, numHosts))
+            return SUBPLOT_PLACEMENT_KEY_NOT_EARLIER;
+    }
+    return SUBPLOT_PLACEMENT_OK;
+}
+
 static const u8 *const sBuildingRoleNames[] =
 {
     COMPOUND_STRING("POKéMON CENTER"), COMPOUND_STRING("MART"), COMPOUND_STRING("GYM"), COMPOUND_STRING("POKéMON LEAGUE"), COMPOUND_STRING("home"), COMPOUND_STRING("bedroom"), COMPOUND_STRING("MARKET"),
@@ -350,9 +513,16 @@ void ShowCurrentSubplotHint(void)
     text = GetCountySlotHintAbout(county, slot, beat, SUBPLOT_CLOSE, gSpecialVar_0x8006);
     if (text == NULL)
         return;
+    BufferSubplotHintCount(desc, beat);
     ExpandHintTemplate(gStringVar4, text, county, &desc->stages[beat].anchor);
     BreakStringForFieldMessage(gStringVar4);
     gSpecialVar_Result = TRUE;
+}
+
+// Script special: VAR_0x8004 = slot; VAR_RESULT = TRUE iff the current map's county subplot has its badges and keys.
+void IsCurrentSubplotAvailable(void)
+{
+    gSpecialVar_Result = IsCountySlotAvailable(GetCurrentMapCounty(), gSpecialVar_0x8004);
 }
 
 // Script special: VAR_0x8004 = main-story-index s; VAR_RESULT = TRUE once the index is past s.

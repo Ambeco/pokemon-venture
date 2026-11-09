@@ -63,8 +63,6 @@ u32 GetHinterRoleCapacity(u32 role)
     return 2;
 }
 
-#define NUM_BUILDING_ROLES 15
-
 // Room left in each building of the city, index 0 = outdoors, index n = role 1 << (n - 1).
 struct HinterRoom
 {
@@ -238,6 +236,7 @@ bool32 WriteSubplotNews(u8 *dst, u32 county, u32 slot)
     text = GetCountySlotHint(county, slot, SUBPLOT_CLOSE, 0);
     if (text == NULL)
         return FALSE;
+    BufferSubplotHintCount(desc, stage);
     ExpandHintTemplate(dst, text, county, &desc->stages[stage].anchor);
     BreakStringForFieldMessage(dst); // a template without manual breaks would overflow the box
     return TRUE;

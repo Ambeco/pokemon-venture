@@ -645,3 +645,4 @@ gSpecials::
 	def_special ShowMainBeatHint
 	def_special IsMainStoryIndexPast
 	def_special ShowPokemonCenterNews
+	def_special IsCurrentSubplotAvailable
