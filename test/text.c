@@ -591,7 +591,7 @@ TEST("Battle strings fit on the battle message window")
     u32 end = STRINGID_COUNT - 1;
     const u32 fontId = FONT_NORMAL;
     enum StringID battleStringId = 0;
-    u8 *battleString = Alloc(BATTLE_STRING_BUFFER_SIZE);
+    u8 *battleString = AllocZeroed(BATTLE_STRING_BUFFER_SIZE); // GetStringLineWidth below reads past the string until it finds a zero
 
     s32 sixDigitNines = 999999;                                 // 36 pixels.
     u8 nickname[POKEMON_NAME_LENGTH + 1] = _("MMMMMMMMMMMM");   // 72 pixels.

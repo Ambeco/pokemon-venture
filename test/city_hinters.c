@@ -8,6 +8,7 @@
 #include "plot_stage.h"
 #include "region_tile.h"
 #include "subplot.h"
+#include "text.h"
 
 #define LILYCOVE COUNTY_ID(4, 0)
 
@@ -181,6 +182,61 @@ TEST("CityHinters: News always has text for every index and county")
             EXPECT(sNews[0] != EOS);
             EXPECT(StringLength(sNews) < ARRAY_COUNT(sNews) - 1);
         }
+    }
+}
+
+// The field message window's text area is 208 px wide (lines end at a newline, scroll or clear control code).
+static s32 GetWidestLineWidth(const u8 *str)
+{
+    static EWRAM_DATA u8 sLine[200];
+    s32 widest = 0;
+    u32 i, n = 0;
+
+    for (i = 0; ; i++)
+    {
+        u8 c = str[i];
+
+        if (c == EOS || c == CHAR_NEWLINE || c == CHAR_PROMPT_SCROLL || c == CHAR_PROMPT_CLEAR)
+        {
+            sLine[n] = EOS;
+            widest = max(widest, GetStringWidth(FONT_NORMAL, sLine, 0));
+            n = 0;
+            if (c == EOS)
+                break;
+        }
+        else
+        {
+            sLine[n++] = c;
+        }
+    }
+    return widest;
+}
+
+TEST("CityHinters: Every line of the news and of the main-beat hints fits the message box")
+{
+    static EWRAM_DATA u8 sText[200];
+    u32 index, county;
+
+    for (index = 0; index <= MAIN_STORY_INDEX_POSTGAME; index++)
+    {
+        for (county = 0; county < NUM_COUNTIES; county++)
+        {
+            if (!DoesCountyHaveCity(county))
+                continue;
+            WritePokemonCenterNews(sText, index, county);
+            EXPECT_LE(GetWidestLineWidth(sText), 208);
+        }
+    }
+    for (index = 0; index < NUM_COUNTIES * 4; index++)
+    {
+        u32 host;
+
+        if (!GetMainBeatHost(index, &host) || !DoesCountyHaveCity(host))
+            continue;
+        WriteMainBeatHint(sText, index, SUBPLOT_FAR);
+        EXPECT_LE(GetWidestLineWidth(sText), 208);
+        WriteMainBeatHint(sText, index, SUBPLOT_CLOSE);
+        EXPECT_LE(GetWidestLineWidth(sText), 208);
     }
 }
 
