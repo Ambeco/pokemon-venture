@@ -72,7 +72,8 @@ struct PersistentTestRunnerState
     u32 address:28;
     u32 state:1;
     u32 expectCrash:1;
-    u32 unused_30:2;
+    u32 restart:1;
+    u32 failed:1;
 };
 
 extern const u8 gTestRunnerN;
@@ -106,6 +107,7 @@ void CB2_TestRunner(void);
 void Test_ExpectedResult(enum TestResult);
 void Test_ExpectLeaks(bool32);
 void Test_ExpectCrash(bool32);
+void Test_RestartAfterTest(void);
 void Test_ExpectFail(u32 failLine);
 u32 SourceLine(u32 sourceLineOffset);
 u32 SourceLineOffset(u32 sourceLine);

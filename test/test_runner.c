@@ -90,6 +90,15 @@ enum
     STATE_EXIT,
 };
 
+static bool32 IsFilteredOut(const struct Test *test)
+{
+    if (test->runner == &gAssumptionsRunner)
+        return FALSE;
+    return (gTestRunnerState.filterMode == TEST_FILTER_MODE_TEST_NAME_PREFIX && !PrefixMatch(gTestRunnerArgv, test->name))
+        || (gTestRunnerState.filterMode == TEST_FILTER_MODE_TEST_NAME_INFIX && !InfixMatch(gTestRunnerArgv, test->name))
+        || (gTestRunnerState.filterMode == TEST_FILTER_MODE_FILENAME_EXACT && !ExactMatch(gTestRunnerArgv, test->filename));
+}
+
 static u32 MinCostProcess(void)
 {
     u32 i;
@@ -221,7 +230,21 @@ top:
         gIntrTable[7] = Intr_Timer2;
 
         // The current test restarted the ROM (e.g. by jumping to NULL).
-        if (gPersistentTestRunnerState.address != 0)
+        if (gPersistentTestRunnerState.address != 0 && gPersistentTestRunnerState.restart)
+        {
+            // Test_RestartAfterTest: replay the cost assignment of the finished tests, then carry on.
+            gPersistentTestRunnerState.restart = FALSE;
+            ClearSaveBlocks();
+            gTestRunnerState.test = __start_tests;
+            while ((uintptr_t)gTestRunnerState.test != gPersistentTestRunnerState.address)
+            {
+                if (!IsFilteredOut(gTestRunnerState.test))
+                    AssignCostToRunner();
+                gTestRunnerState.test++;
+            }
+            gTestRunnerState.state = STATE_ASSIGN_TEST;
+        }
+        else if (gPersistentTestRunnerState.address != 0)
         {
             ClearSaveBlocks();
             gTestRunnerState.test = __start_tests;
@@ -264,7 +287,7 @@ top:
             gTestRunnerState.state = STATE_ASSIGN_TEST;
             gTestRunnerState.test = __start_tests;
         }
-        gTestRunnerState.exitCode = 0;
+        gTestRunnerState.exitCode = gPersistentTestRunnerState.failed;
         gTestRunnerState.skipFilename = NULL;
 
         break;
@@ -504,6 +527,14 @@ top:
     case STATE_NEXT_TEST:
         gTestRunnerState.state = STATE_ASSIGN_TEST;
         gTestRunnerState.test++;
+        if (gPersistentTestRunnerState.restart && gTestRunnerState.test != __stop_tests)
+        {
+            gPersistentTestRunnerState.address = (uintptr_t)gTestRunnerState.test;
+            gPersistentTestRunnerState.failed = gTestRunnerState.exitCode != 0;
+            // Jump to NULL like a crash does; INIT sees `restart` and resumes without reporting a crash.
+            ((void (*)(void))NULL)();
+        }
+        gPersistentTestRunnerState.restart = FALSE;
         break;
 
     case STATE_EXIT:
@@ -528,6 +559,12 @@ void Test_ExpectedResult(enum TestResult result)
 void Test_ExpectLeaks(bool32 expectLeaks)
 {
     gTestRunnerState.expectLeaks = expectLeaks;
+}
+
+// Restarts the ROM before the next test so state this test leaves behind (e.g. a loaded map) cannot leak.
+void Test_RestartAfterTest(void)
+{
+    gPersistentTestRunnerState.restart = TRUE;
 }
 
 void Test_ExpectCrash(bool32 expectCrash)

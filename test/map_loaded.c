@@ -65,6 +65,7 @@ void Test_LoadMap(u32 mapGroup, u32 mapNum)
     *gFunctionTestRunnerState = sSavedRunnerState;
     // The loaded map's allocations are never freed.
     Test_ExpectLeaks(TRUE);
+    Test_RestartAfterTest();
 }
 
 u32 Test_FindObjectByScript(const u8 *script)
