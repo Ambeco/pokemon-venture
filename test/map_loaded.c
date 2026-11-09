@@ -38,17 +38,24 @@ void Test_RunFrames(u32 frames)
         PumpFrame();
 }
 
+void Test_PressKeys(u16 keys)
+{
+    gMain.newKeys = keys;
+    gMain.heldKeys = keys;
+    CB2_Overworld();
+}
+
 // The map load resets the heap (MoveSaveBlocks_ResetHeap), which would invalidate the runner's own
 // heap-allocated state, so it is saved and re-allocated around the load. Anything else the test
 // allocated before calling Test_LoadMap is lost.
-void Test_LoadMap(u32 mapGroup, u32 mapNum)
+static void LoadMapAt(u32 mapGroup, u32 mapNum, s32 x, s32 y)
 {
     static EWRAM_DATA struct FunctionTestRunnerState sSavedRunnerState;
     u32 i;
 
     sSavedRunnerState = *gFunctionTestRunnerState;
 
-    SetWarpDestinationToMapWarp(mapGroup, mapNum, WARP_ID_NONE);
+    SetWarpDestination(mapGroup, mapNum, WARP_ID_NONE, x, y);
     WarpIntoMap();
     SetMainCallback2(CB2_LoadMap);
     for (i = 0; i < TEST_MAP_LOAD_MAX_FRAMES && gMain.callback2 != CB2_Overworld; i++)
@@ -68,6 +75,16 @@ void Test_LoadMap(u32 mapGroup, u32 mapNum)
     Test_RestartAfterTest();
 }
 
+void Test_LoadMap(u32 mapGroup, u32 mapNum)
+{
+    LoadMapAt(mapGroup, mapNum, -1, -1);
+}
+
+void Test_LoadMapAt(u32 mapGroup, u32 mapNum, u32 x, u32 y)
+{
+    LoadMapAt(mapGroup, mapNum, x, y);
+}
+
 u32 Test_FindObjectByScript(const u8 *script)
 {
     u32 t, id;
@@ -80,9 +97,7 @@ u32 Test_FindObjectByScript(const u8 *script)
             continue;
         for (id = 0; id < OBJECT_EVENTS_COUNT; id++)
         {
-            if (gObjectEvents[id].active
-             && gObjectEvents[id].currentCoords.x == template->x + MAP_OFFSET
-             && gObjectEvents[id].currentCoords.y == template->y + MAP_OFFSET)
+            if (gObjectEvents[id].active && gObjectEvents[id].localId == template->localId)
                 return id;
         }
     }

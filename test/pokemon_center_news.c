@@ -1,16 +1,19 @@
 #include "global.h"
 #include "test/test.h"
+#include "test/map_loaded.h"
 #include "test/overworld_script.h"
 #include "city_hinters.h"
 #include "event_object_movement.h"
+#include "field_message_box.h"
+#include "line_break.h"
 #include "overworld.h"
 #include "region_county.h"
 #include "region_city.h"
+#include "script.h"
 #include "string_util.h"
-#include "constants/map_groups.h"
+#include "subplot.h"
 #include "constants/maps.h"
 #include "constants/region_map_sections.h"
-#include "constants/script_commands.h"
 #include "constants/characters.h"
 #include "event_data.h"
 #include "plot_stage.h"
@@ -20,58 +23,52 @@
 extern const u8 LilycoveCity_PokemonCenter_1F_EventScript_Boy[];
 extern const u8 LilycoveCity_EventScript_Man3[];
 extern const u8 LilycoveCity_EventScript_RichBoy[];
-extern const u8 Common_EventScript_PokemonCenterNews[];
-extern const u8 Common_EventScript_TrySubplotHint[];
 
-static const u8 *ReadPointer(const u8 *p)
+// Talks to the NPC bound to `script` and runs frames until its message has printed.
+static void TalkTo(const u8 *script)
 {
-    return (const u8 *)(p[0] | (p[1] << 8) | (p[2] << 16) | ((u32)p[3] << 24));
+    u32 i, id = Test_FindObjectByScript(script);
+
+    ASSUME(id < OBJECT_EVENTS_COUNT);
+    EXPECT(GetObjectEventScriptPointerByObjectEventId(id) == script);
+    gStringVar4[0] = EOS;
+    gSpecialVar_LastTalked = gObjectEvents[id].localId;
+    ScriptContext_SetupScript(script);
+    // The text is in gStringVar4 before `lock` finishes waiting for a walking NPC, so wait for the box itself.
+    for (i = 0; i < 300 && IsFieldMessageBoxHidden(); i++)
+        Test_RunFrames(1);
+    ASSUME(!IsFieldMessageBoxHidden());
+    // Long text is still printing for a while, and A pressed meanwhile only speeds it up.
+    Test_RunFrames(600);
 }
 
-// Script bytes are read as written by the event.inc macros: goto/call are 1 + 4 bytes, setvar is 1 + 2 + 2.
-static const u8 *ReadGotoTarget(const u8 *script)
+// The message stays up until A is pressed (once per page, at most MAX_PAGES), then the script ends.
+#define MAX_PAGES 4
+static void ExpectDismissedByA(void)
 {
-    return script[0] == SCR_OP_GOTO ? ReadPointer(script + 1) : NULL;
-}
+    u32 presses;
 
-static bool32 ReadSetvar(const u8 **script, u32 var, u32 *value)
-{
-    const u8 *s = *script;
-
-    if (s[0] != SCR_OP_SETVAR || (s[1] | (s[2] << 8)) != var)
-        return FALSE;
-    *value = s[3] | (s[4] << 8);
-    *script += 5;
-    return TRUE;
-}
-
-// Reads the subplot_hinter macro's expansion; FALSE if the script differs.
-static bool32 ReadSubplotHinter(const u8 *script, u32 *slot, u32 *beat, u32 *selector)
-{
-    if (!ReadSetvar(&script, 0x8004, slot) || !ReadSetvar(&script, 0x8005, beat) || !ReadSetvar(&script, 0x8006, selector))
-        return FALSE;
-    return script[0] == SCR_OP_CALL && ReadPointer(script + 1) == Common_EventScript_TrySubplotHint;
-}
-
-static const struct ObjectEventTemplate *FindTemplateByScript(u32 map, const u8 *script)
-{
-    const struct MapHeader *header = Overworld_GetMapHeaderByGroupAndId(map >> 8, map & 0xFF);
-    u32 i;
-
-    for (i = 0; i < header->events->objectEventCount; i++)
+    EXPECT(ScriptContext_IsEnabled());
+    Test_RunFrames(30);
+    EXPECT(ScriptContext_IsEnabled());
+    for (presses = 0; presses < MAX_PAGES && ScriptContext_IsEnabled(); presses++)
     {
-        if (header->events->objectEvents[i].script == script)
-            return &header->events->objectEvents[i];
+        Test_PressKeys(A_BUTTON);
+        // Later pages print for a while; closemessage and release can wait on the NPC's walking.
+        Test_RunFrames(600);
     }
-    return NULL;
+    EXPECT(!ScriptContext_IsEnabled());
 }
 
-TEST("PokemonCenterNews: Lilycove's Pokemon Center Boy is an object event that goes to the shared news script")
+TEST("PokemonCenterNews: Talking to Lilycove's Pokemon Center Boy shows the county's news until A is pressed")
 {
-    const struct ObjectEventTemplate *boy = FindTemplateByScript(MAP_LILYCOVE_CITY_POKEMON_CENTER_1F, LilycoveCity_PokemonCenter_1F_EventScript_Boy);
+    static EWRAM_DATA u8 sExpect[200];
 
-    ASSUME(boy != NULL);
-    EXPECT(ReadGotoTarget(boy->script) == Common_EventScript_PokemonCenterNews);
+    Test_LoadMap(MAP_GROUP(MAP_LILYCOVE_CITY_POKEMON_CENTER_1F), MAP_NUM(MAP_LILYCOVE_CITY_POKEMON_CENTER_1F));
+    TalkTo(LilycoveCity_PokemonCenter_1F_EventScript_Boy);
+    WritePokemonCenterNews(sExpect, GetMainStoryIndex(), LILYCOVE);
+    EXPECT_EQ(StringCompare(gStringVar4, sExpect), 0);
+    ExpectDismissedByA();
 }
 
 TEST("PokemonCenterNews: The special writes the news for the map's county and succeeds")
@@ -90,21 +87,36 @@ TEST("PokemonCenterNews: The special writes the news for the map's county and su
     EXPECT_EQ(StringCompare(gStringVar4, sExpect), 0);
 }
 
-TEST("PokemonCenterNews: Lilycove's two city hinters pass the slot, beat and selector the planner gives")
+// Lilycove's Man3 and RichBoy are the city's two subplot hinters; each says the planner's hint for its (slot, beat, selector).
+static void ExpectHinterSpeaks(const u8 *script, u32 plannedIndex, u32 x, u32 y)
 {
+    static EWRAM_DATA u8 sExpect[200];
     struct HinterPlacement out[MAX_COUNTY_HINTERS];
-    const u8 *scripts[] = { LilycoveCity_EventScript_Man3, LilycoveCity_EventScript_RichBoy };
-    u32 i, count = PlanCountyHinters(LILYCOVE, out, ARRAY_COUNT(out));
+    const struct SubplotDesc *desc;
+    const u8 *text;
+    u32 count;
 
-    ASSUME(count >= ARRAY_COUNT(scripts));
-    for (i = 0; i < ARRAY_COUNT(scripts); i++)
-    {
-        u32 slot = 0, beat = 0, selector = 0;
+    Test_LoadMapAt(MAP_GROUP(MAP_LILYCOVE_CITY), MAP_NUM(MAP_LILYCOVE_CITY), x, y);
+    count = PlanCountyHinters(LILYCOVE, out, ARRAY_COUNT(out));
+    ASSUME(count > plannedIndex);
+    desc = GetCountySubplot(LILYCOVE, out[plannedIndex].slot);
+    ASSUME(desc != NULL);
+    text = GetCountySlotHintAbout(LILYCOVE, out[plannedIndex].slot, out[plannedIndex].beat, SUBPLOT_CLOSE, out[plannedIndex].selector);
+    ASSUME(text != NULL);
+    ExpandHintTemplate(sExpect, text, LILYCOVE, &desc->stages[out[plannedIndex].beat].anchor);
+    BreakStringForFieldMessage(sExpect);
 
-        EXPECT(FindTemplateByScript(MAP_LILYCOVE_CITY, scripts[i]) != NULL);
-        EXPECT(ReadSubplotHinter(scripts[i], &slot, &beat, &selector));
-        EXPECT_EQ(slot, out[i].slot);
-        EXPECT_EQ(beat, out[i].beat);
-        EXPECT_EQ(selector, out[i].selector);
-    }
+    TalkTo(script);
+    EXPECT_EQ(StringCompare(gStringVar4, sExpect), 0);
+    ExpectDismissedByA();
+}
+
+TEST("PokemonCenterNews: Lilycove's first city hinter says the planner's hint for its slot, beat and selector")
+{
+    ExpectHinterSpeaks(LilycoveCity_EventScript_Man3, 0, 28, 30);
+}
+
+TEST("PokemonCenterNews: Lilycove's second city hinter says the planner's hint for its slot, beat and selector")
+{
+    ExpectHinterSpeaks(LilycoveCity_EventScript_RichBoy, 1, 16, 11);
 }

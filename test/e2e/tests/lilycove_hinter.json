@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Lilycove City: the hinter Man3 says the museum curator hint, wrapped to fit the box",
+    "snapshot": "lilycove_city_below_man3",
+    "steps": [
+      { "press": "UP" },
+      { "press": "A" }
+    ],
+    "expect": [
+      { "symbol": "gStringVar4", "text": "The curator is still busy preparing the\nexhibit hall." }
+    ],
+    "screenshot": { "region": { "x": 0, "y": 104, "width": 240, "height": 56 }, "golden": "goldens/lilycove_hinter_man3_box.png" }
+  }
+]

@@ -113,8 +113,7 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 - Budget CPU and RAM for regeneration; decide what to cache (the route planner replans a county per lookup, with a one-county cache; a plan costs roughly 100k cycles by a rough estimate, from the test timeouts).
 - Convert the region invariant tests (`test/region_*.c`) to `FOR_EACH_SWEEP_SEED` once the generator reads the seed.
 - Rewrite `README.md` as the fork's own README.
-- End-to-end tests, step 2: rewrite the byte-level checks in `test/pokemon_center_news.c` (and the Lilycove hinter checks) on `Test_LoadMap` + `ScriptContext_SetupScript` (see `include/test/map_loaded.h`); extend to `waitmessage`/button-press flows and `addobject` scripts, and to generated maps.
-- End-to-end tests (`test/e2e/README.md`): add scenarios (the Lilycove city hinters, a generated map, button-press flows) and a make target or CI step; consider a fixed-seed recipe for generated regions.
+- End-to-end tests: once map generation exists, add an in-ROM test (`Test_LoadMap` on a generated map, fixed identity seed, check hinters bound from the plan) and a fixed-seed e2e recipe for a generated region; also cover `addobject` scripts in-ROM.
 
 ## Open design questions and unscheduled work
 

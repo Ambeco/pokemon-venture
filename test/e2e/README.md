@@ -16,7 +16,7 @@ Node is installed on the Windows side only, so run from PowerShell:
     node run.mjs --rebuild-snapshots  # ignore cached snapshots
 
 Build the ROM first (`make -j` in WSL): the runner needs `pokeemerald.gba` and the `pokeemerald.map` from the same link, and fails if they are stale.
-It is not part of `make check`.
+`make e2e` (in WSL) does this, using `powershell.exe` when `node` is not on its PATH. It is not part of `make check` or CI.
 
 ## Layout
 

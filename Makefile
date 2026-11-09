@@ -270,7 +270,7 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-.PHONY: all rom agbcc modern compare check debug release
+.PHONY: all rom agbcc modern compare check e2e debug release
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -366,6 +366,10 @@ check: $(TESTELF)
 	@cp $< $(HEADLESSELF)
 	$(PATCHELF) $(HEADLESSELF) gTestRunnerHeadless '\x01' gTestRunnerSkipIsFail "$(TEST_SKIP_IS_FAIL)"
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)
+
+# End-to-end tests (test/e2e): Node usually exists on the Windows side only, so fall back to powershell.exe.
+e2e: $(ROM)
+	@if command -v node >/dev/null 2>&1; then cd test/e2e && node run.mjs; 	elif command -v powershell.exe >/dev/null 2>&1; then cd test/e2e && powershell.exe -NoProfile -Command "node run.mjs; exit \$$LASTEXITCODE"; 	else echo "make e2e needs Node (test/e2e/README.md): neither 'node' nor 'powershell.exe' is on PATH; did you mean to run 'node run.mjs' from PowerShell in test\e2e?"; exit 1; fi
 
 # Other rules
 rom: $(ROM)

@@ -18,9 +18,15 @@
 #define TEST_MAP_LOAD_MAX_FRAMES 1200
 
 void Test_LoadMap(u32 mapGroup, u32 mapNum);
+
+// As Test_LoadMap, with the player at (x, y). Large maps spawn only the objects near the player, so use this to reach an NPC.
+void Test_LoadMapAt(u32 mapGroup, u32 mapNum, u32 x, u32 y);
 void Test_RunFrames(u32 frames);
 
-// Returns the object event id, or OBJECT_EVENTS_COUNT if no active object stands where the template does.
+// Runs one overworld frame in which `keys` (A_BUTTON, ...) were newly pressed, e.g. to dismiss a waitbuttonpress.
+void Test_PressKeys(u16 keys);
+
+// Returns the object event id of the active object with the template's local id, or OBJECT_EVENTS_COUNT if none (e.g. out of spawn range).
 u32 Test_FindObjectByScript(const u8 *script);
 
 #endif
