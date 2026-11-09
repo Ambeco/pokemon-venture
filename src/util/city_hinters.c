@@ -189,10 +189,6 @@ static const struct MainBeatPhrase sMainBeatPhrases[NUM_PLOT_KINDS] =
 static const struct MainBeatPhrase sMainBeatBlockerPhrase =
     {COMPOUND_STRING("somebody "), COMPOUND_STRING(" is blocking the road onward.")};
 
-// The field message window's text area (27 tiles minus the scroll prompt) and its lines per page.
-#define FIELD_MESSAGE_MAX_WIDTH 208
-#define FIELD_MESSAGE_MAX_LINES 2
-
 static const u8 sFarOpening[] = _("I heard ");
 static const u8 sCloseOpening[] = _("Word around town is ");
 
@@ -226,7 +222,7 @@ u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance)
     dst = WriteBeatAnchorReference(dst, host, &anchor);
     dst = StringCopy(dst, phrase->tail);
     // The phrases have no line breaks of their own, so without this the line overflows the message box.
-    BreakStringAutomatic(start, FIELD_MESSAGE_MAX_WIDTH, FIELD_MESSAGE_MAX_LINES, FONT_NORMAL, SHOW_SCROLL_PROMPT);
+    BreakStringForFieldMessage(start);
     return dst;
 }
 
@@ -243,6 +239,7 @@ bool32 WriteSubplotNews(u8 *dst, u32 county, u32 slot)
     if (text == NULL)
         return FALSE;
     ExpandHintTemplate(dst, text, county, &desc->stages[stage].anchor);
+    BreakStringForFieldMessage(dst); // a template without manual breaks would overflow the box
     return TRUE;
 }
 

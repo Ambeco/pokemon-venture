@@ -47,6 +47,11 @@ void BreakStringAutomatic(u8 *src, u32 maxWidth, u32 screenLines, u8 fontId, enu
     BreakSubStringAutomatic(currSrc, maxWidth, screenLines, fontId, toggleScrollPrompt);
 }
 
+void BreakStringForFieldMessage(u8 *src)
+{
+    BreakStringAutomatic(src, FIELD_MESSAGE_MAX_WIDTH, FIELD_MESSAGE_MAX_LINES, FONT_NORMAL, SHOW_SCROLL_PROMPT);
+}
+
 void BreakStringNaive(u8 *src, u32 maxWidth, u32 screenLines, u8 fontId, enum ToggleScrollPrompt toggleScrollPrompt)
 {
     u32 currIndex = 0;

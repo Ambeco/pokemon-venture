@@ -1,4 +1,5 @@
 #include "global.h"
+#include "line_break.h"
 #include "constants/characters.h"
 #include "constants/vars.h"
 #include "assertf.h"
@@ -350,6 +351,7 @@ void ShowCurrentSubplotHint(void)
     if (text == NULL)
         return;
     ExpandHintTemplate(gStringVar4, text, county, &desc->stages[beat].anchor);
+    BreakStringForFieldMessage(gStringVar4);
     gSpecialVar_Result = TRUE;
 }
 
