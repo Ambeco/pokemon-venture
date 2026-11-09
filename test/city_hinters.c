@@ -8,6 +8,7 @@
 #include "plot_stage.h"
 #include "region_tile.h"
 #include "subplot.h"
+#include "line_break.h"
 #include "text.h"
 
 #define LILYCOVE COUNTY_ID(4, 0)
@@ -237,6 +238,54 @@ TEST("CityHinters: Every line of the news and of the main-beat hints fits the me
         EXPECT_LE(GetWidestLineWidth(sText), 208);
         WriteMainBeatHint(sText, index, SUBPLOT_CLOSE);
         EXPECT_LE(GetWidestLineWidth(sText), 208);
+    }
+}
+
+// Checks the text as the game shows it: anchor expanded, then wrapped (a no-op for hand-broken text).
+static void ExpectHintFits(const u8 *text, u32 county, const struct BeatAnchor *anchor)
+{
+    static EWRAM_DATA u8 sExpanded[300];
+
+    if (text == NULL)
+        return;
+    ExpandHintTemplate(sExpanded, text, county, anchor);
+    BreakStringForFieldMessage(sExpanded);
+    EXPECT_LE(GetWidestLineWidth(sExpanded), 208);
+}
+
+static void ExpectListFits(const struct SubplotTextList *list, u32 county, const struct BeatAnchor *anchor)
+{
+    u32 i;
+
+    for (i = 0; list->texts != NULL && i < list->count; i++)
+        ExpectHintFits(list->texts[i], county, anchor);
+}
+
+TEST("CityHinters: Every line of every subplot hint, with its anchor expanded, fits the message box")
+{
+    u32 county, slot, stage;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        for (slot = 0; slot < SUBPLOTS_PER_COUNTY; slot++)
+        {
+            const struct SubplotDesc *desc = GetCountySubplot(county, slot);
+
+            if (desc == NULL)
+                continue;
+            for (stage = 0; stage < desc->numStages; stage++)
+            {
+                const struct SubplotStageHints *hints = &desc->stages[stage].hints;
+                const struct BeatAnchor *anchor = &desc->stages[stage].anchor;
+
+                ExpectListFits(&hints->farBefore, county, anchor);
+                ExpectHintFits(hints->farCurrent, county, anchor);
+                ExpectListFits(&hints->farAfter, county, anchor);
+                ExpectHintFits(hints->closeBefore, county, anchor);
+                ExpectHintFits(hints->closeCurrent, county, anchor);
+                ExpectHintFits(hints->closeAfter, county, anchor);
+            }
+        }
     }
 }
 

@@ -114,7 +114,6 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 - Convert the region invariant tests (`test/region_*.c`) to `FOR_EACH_SWEEP_SEED` once the generator reads the seed.
 - Rewrite `README.md` as the fork's own README.
 - End-to-end tests, step 2: rewrite the byte-level checks in `test/pokemon_center_news.c` (and the Lilycove hinter checks) on `Test_LoadMap` + `ScriptContext_SetupScript` (see `include/test/map_loaded.h`); extend to `waitmessage`/button-press flows and `addobject` scripts, and to generated maps.
-- Extend the line-width test (`test/city_hinters.c`, covers the main-beat hints) to hand-broken subplot hints and the vague and generic news: every line of the news and hints is at most 208 px wide (`GetStringWidth` per line; it fails without the `WriteMainBeatHint` wrapping). The vague and generic news and hand-broken subplot templates are not auto-wrapped, since `BreakStringAutomatic` skips text with manual breaks, so an anchor or place name could still overflow a hand-broken line; only that test catches it.
 - End-to-end tests (`test/e2e/README.md`): add scenarios (the Lilycove city hinters, a generated map, button-press flows) and a make target or CI step; consider a fixed-seed recipe for generated regions.
 
 ## Open design questions and unscheduled work

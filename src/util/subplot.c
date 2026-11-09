@@ -16,7 +16,7 @@ static const u8 gText_Lilycove_Exhibit0FarAfter1[] = _("Did you hear? The exhibi
 static const u8 gText_Lilycove_Exhibit0CloseCurrent[] = _("The curator is still busy preparing the\nexhibit hall.");
 static const u8 gText_Lilycove_Exhibit0CloseAfter[] = _("The exhibit hall is open at last!\nThe curator must be so relieved.");
 static const u8 gText_Lilycove_Exhibit1FarCurrent[] = _("The LILYCOVE MUSEUM's exhibit hall is\nopen, and they want paintings for it!");
-static const u8 gText_Lilycove_Exhibit1CloseBefore[] = _("There's talk of a new exhibit hall\n{HINT_ANCHOR}. It's not ready yet, though.");
+static const u8 gText_Lilycove_Exhibit1CloseBefore[] = _("There's talk of a new exhibit hall\n{HINT_ANCHOR}.\pIt's not ready yet, though.");
 static const u8 gText_Lilycove_Exhibit1CloseCurrent[] = _("The curator is asking trainers for\npaintings to hang in the exhibit hall.");
 
 static const u8 *const sLilycoveExhibit0FarAfter[] =
