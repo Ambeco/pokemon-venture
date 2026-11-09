@@ -52,6 +52,7 @@ u32 GetHinterRoleCapacity(u32 role);
 
 // Writes the hint about main-story-index `index` (which must have a host) at dst, for a hinter that is far
 // from or close to its host city, and returns the end. The phrase follows the first item of the list.
+// The text is line-broken to fit the field message box, so dst must start a message (not append to one).
 u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance);
 
 // Writes the current close hint of the county's subplot in `slot` (with its anchor expanded) at dst. FALSE

@@ -1,5 +1,7 @@
 #include "global.h"
 #include "assertf.h"
+#include "line_break.h"
+#include "text.h"
 #include "city_hinters.h"
 #include "region_city.h"
 #include "plot_stage.h"
@@ -187,6 +189,10 @@ static const struct MainBeatPhrase sMainBeatPhrases[NUM_PLOT_KINDS] =
 static const struct MainBeatPhrase sMainBeatBlockerPhrase =
     {COMPOUND_STRING("somebody "), COMPOUND_STRING(" is blocking the road onward.")};
 
+// The field message window's text area (27 tiles minus the scroll prompt) and its lines per page.
+#define FIELD_MESSAGE_MAX_WIDTH 208
+#define FIELD_MESSAGE_MAX_LINES 2
+
 static const u8 sFarOpening[] = _("I heard ");
 static const u8 sCloseOpening[] = _("Word around town is ");
 
@@ -195,6 +201,7 @@ u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance)
     struct PlotSlot items[MAX_GETS_PER_LIST];
     const struct MainBeatPhrase *phrase;
     struct BeatAnchor anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0};
+    u8 *start = dst;
     u32 host;
 
     assertf(GetMainBeatHost(index, &host), "main-story-index %d has no host, so nothing to hint at; did you mean GetNextMainBeat()?", index)
@@ -217,7 +224,10 @@ u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance)
     dst = StringCopy(dst, distance == SUBPLOT_CLOSE ? sCloseOpening : sFarOpening);
     dst = StringCopy(dst, phrase->lead);
     dst = WriteBeatAnchorReference(dst, host, &anchor);
-    return StringCopy(dst, phrase->tail);
+    dst = StringCopy(dst, phrase->tail);
+    // The phrases have no line breaks of their own, so without this the line overflows the message box.
+    BreakStringAutomatic(start, FIELD_MESSAGE_MAX_WIDTH, FIELD_MESSAGE_MAX_LINES, FONT_NORMAL, SHOW_SCROLL_PROMPT);
+    return dst;
 }
 
 bool32 WriteSubplotNews(u8 *dst, u32 county, u32 slot)

@@ -1,14 +1,15 @@
 [
   {
-    "name": "Lilycove Pokemon Center: the Boy's news text is the main-beat hint",
+    "name": "Lilycove Pokemon Center: the Boy's news is the main-beat hint, wrapped to fit the box",
     "snapshot": "lilycove_pokecenter_below_boy",
     "steps": [
       { "press": "UP" },
       { "press": "A" }
     ],
     "expect": [
-      { "symbol": "gStringVar4", "text": "I heard big things are happening in LITTLEROOT TOWN." }
-    ]
+      { "symbol": "gStringVar4", "text": "I heard big things are happening\nin LITTLEROOT TOWN." }
+    ],
+    "screenshot": { "region": { "x": 0, "y": 104, "width": 240, "height": 56 }, "golden": "goldens/lilycove_pokecenter_boy_box.png" }
   },
   {
     "name": "Lilycove Pokemon Center: the Maniac's message box",
