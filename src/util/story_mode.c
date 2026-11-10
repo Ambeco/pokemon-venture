@@ -7,6 +7,7 @@
 #include "dexnav.h"
 #include "event_data.h"
 #include "evolution_scene.h"
+#include "field_control_avatar.h"
 #include "follower_npc.h"
 #include "main.h"
 #include "menu.h"
@@ -23,6 +24,7 @@
 #include "text.h"
 #include "text_window.h"
 #include "wild_encounter.h"
+#include "wild_encounter_ow.h"
 #include "window.h"
 
 #define POPUP_QUEUE_SIZE 4
@@ -306,8 +308,13 @@ static void CB2_StoryModeEvolve(void)
     SetMainCallback2(gMain.savedCallback);
 }
 
+// Mirrors what Task_BattleStart does when the transition ends; without it an overworld wild
+// Pokémon would not despawn and could be fought again immediately.
 static void FinishSkippedBattle(void)
 {
+    RestartWildEncounterImmunitySteps();
+    ClearPoisonStepCounter();
+    DespawnOWEOnBattleStart();
     gSpecialVar_Result = gBattleOutcome = B_OUTCOME_WON;
     ZeroEnemyPartyMons();
     sTriedEvolving = 0;

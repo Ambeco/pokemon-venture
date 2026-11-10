@@ -120,7 +120,7 @@ Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when s
 
 ## Open design questions and unscheduled work
 
-- Story mode (design.md, "Story mode"): play it through in the emulator once and check the skip-to-field transition (fade), the corner popup placement against the map-name popup and the evolution scene hand-off; overworld wild encounters (`StartWildBattleWithOWE`) should be checked for the visible mon despawning after a skip; pooled trainer parties pay out from their first `partySize` entries only.
+- Story mode (design.md, "Story mode"): play it through in the emulator once and check the skip-to-field transition (fade), the corner popup placement against the map-name popup and the evolution scene hand-off; pooled trainer parties pay out from their first `partySize` entries only.
 - Collect the overall plan for the mod from the user and record it in `design.md`.
 - Pin down region generation details: terrain/biome/population/special-location types, story-order algorithm, key/lock rules, capital selection, and how generated data maps onto pokeemerald maps, warps, and encounters.
 - Emerald McGuffins (next session): read the user's Emerald walkthrough and list every McGuffin key and lock it shows (location, approximate story index, requirements); then read how a sample is implemented (flags, vars, badges, key items, HMs, subplot state) and use the code to complete the list in `Emerald.md`, so NPC dialogue can be keyed off them.
