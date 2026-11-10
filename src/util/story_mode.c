@@ -13,6 +13,7 @@
 #include "money.h"
 #include "overworld.h"
 #include "palette.h"
+#include "party_menu.h"
 #include "pokemon.h"
 #include "pokemon_storage_system.h"
 #include "script.h"
@@ -48,6 +49,7 @@ static EWRAM_DATA s16 sPopupTimer = 0;
 static EWRAM_DATA s8 sPopupMapGroup = 0;
 static EWRAM_DATA s8 sPopupMapNum = 0;
 static EWRAM_DATA u8 sTriedEvolving = 0;
+static EWRAM_DATA u8 sStartLevel[PARTY_SIZE] = {0};
 
 static const struct WindowTemplate sPopupWindowTemplate = {
     .bg = 0,
@@ -211,13 +213,14 @@ static void GiveWildMon(struct Pokemon *mon)
     QueuePopup(species, POPUP_CAUGHT);
 }
 
-// Levels the mon up through the normal exp table. A mon that already knows four moves loses its
-// first when it learns another, as there is no prompt.
-static void GrantExp(struct Pokemon *mon, u32 gain)
+// Applies the exp and level-up (stats, HP). Moves and evolution are left to the Rare Candy
+// level-up menu, which runs afterwards for each slot recorded in sStartLevel.
+static void GrantExp(u32 slot, u32 gain)
 {
+    struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][slot];
     enum Species species = GetMonData(mon, MON_DATA_SPECIES);
     u32 level = GetMonData(mon, MON_DATA_LEVEL);
-    u32 exp, cap, newLevel, oldMaxHp, hp, l;
+    u32 exp, cap, newLevel, oldMaxHp, hp;
 
     if (level >= MAX_LEVEL || gain == 0)
         return;
@@ -237,19 +240,9 @@ static void GrantExp(struct Pokemon *mon, u32 gain)
     CalculateMonStats(mon);
     hp = GetMonData(mon, MON_DATA_HP) + GetMonData(mon, MON_DATA_MAX_HP) - oldMaxHp;
     SetMonData(mon, MON_DATA_HP, &hp);
-
-    for (l = level + 1; l <= newLevel; l++)
-    {
-        enum Move move = MonTryLearningNewMoveAtLevel(mon, TRUE, l);
-
-        AdjustFriendship(mon, FRIENDSHIP_EVENT_GROW_LEVEL);
-        while (move != MOVE_NONE)
-        {
-            if (move == MON_HAS_MAX_MOVES)
-                DeleteFirstMoveAndGiveMoveToMon(mon, gMoveToLearn);
-            move = MonTryLearningNewMoveAtLevel(mon, FALSE, l);
-        }
-    }
+    AdjustFriendship(mon, FRIENDSHIP_EVENT_GROW_LEVEL);
+    if (sStartLevel[slot] == 0)
+        sStartLevel[slot] = level;
 }
 
 // Gives the whole healthy party the exp and EVs for one defeated Pokémon.
@@ -266,15 +259,27 @@ static void RewardParty(enum Species defeated, u32 level, bool32 isTrainer)
         if (species == SPECIES_NONE || species == SPECIES_EGG || GetMonData(mon, MON_DATA_HP) == 0)
             continue;
         MonGainEVs(mon, defeated);
-        GrantExp(mon, GetSoftLevelCapExpValue(GetMonData(mon, MON_DATA_LEVEL), exp));
+        GrantExp(i, GetSoftLevelCapExpValue(GetMonData(mon, MON_DATA_LEVEL), exp));
     }
 }
 
-// Mirrors TrySpecialOverworldEvo, then hands back to the battle's end callback. The first call
-// comes from the field (BeginEvolutionScene fades out); later calls come from the scene itself.
+// Runs the level-up menu for each slot that gained levels, then any remaining evolutions
+// (mirroring TrySpecialOverworldEvo), then hands back to the battle's end callback. The menu and
+// evolution scenes return here through their exit callbacks.
 static void CB2_StoryModeEvolve(void)
 {
     u32 i;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        u8 start = sStartLevel[i];
+
+        if (start == 0)
+            continue;
+        sStartLevel[i] = 0;
+        StoryMode_ShowLevelUpMenu(i, start, GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_LEVEL), CB2_StoryModeEvolve);
+        return;
+    }
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
@@ -313,6 +318,7 @@ bool32 StoryMode_TrySkipWildBattle(void)
 {
     u32 i;
 
+    memset(sStartLevel, 0, sizeof(sStartLevel));
     if (!IsStoryModeOn() || !StoryMode_CanSkipWildBattleType(gBattleTypeFlags))
         return FALSE;
     if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE || IsNPCFollowerWildBattle())
@@ -377,6 +383,7 @@ bool32 StoryMode_TrySkipTrainerBattle(void)
     bool32 two = (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS) != 0;
     u32 money;
 
+    memset(sStartLevel, 0, sizeof(sStartLevel));
     if (!IsStoryModeOn() || !StoryMode_CanSkipTrainerBattleType(gBattleTypeFlags))
         return FALSE;
     if (opponentA == TRAINER_SECRET_BASE || (two && opponentB == TRAINER_SECRET_BASE))

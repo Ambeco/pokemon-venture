@@ -5,7 +5,7 @@
  * Story mode: a debug toggle for quickly playing through the story.
  *
  * While FLAG_VENTURE_STORY_MODE is set, ordinary wild and trainer battles are skipped as wins:
- * the party gets experience, EVs, level-ups, moves and evolutions, trainers pay prize money, and a
+ * the party gets experience, EVs and level-ups, trainers pay prize money, and a
  * skipped wild mon is given to the player unless storage already holds a copy of the same species
  * (forms are separate species), shininess and an equal or better IV total. A corner popup reports
  * each catch. Scripted fights stay real so their scripts get tested: boss trainer classes, double
@@ -13,8 +13,8 @@
  * The player's side cannot lose its last HP in a real fight (see StoryMode_ClampPlayerDamage).
  *
  * Quirks: every healthy party member gets the full experience (the Gen 6 Exp. Share model with no
- * sent-in split) and no level-difference scaling. A full learnset replaces the first move when four
- * are known, as there is no field prompt. A trainer's prize uses the last party Pokémon's level and
+ * sent-in split) and no level-difference scaling. Level-ups run the Rare Candy party-menu flow afterwards
+ * (stat pages, moves with the forget prompt, evolution). A trainer's prize uses the last party Pokémon's level and
  * never doubles for Amulet Coin or Happy Hour. A trainer's party is read from its data without
  * pools, so a pooled trainer pays out for its first partySize entries. The corner popup waits for
  * the field to be visible.

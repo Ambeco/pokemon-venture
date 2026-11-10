@@ -6014,6 +6014,44 @@ static void Task_TryLearningNextMove(u8 taskId)
     }
 }
 
+static void Task_StoryModeLevelUp(u8 taskId)
+{
+    u8 slot = gPartyMenu.slotId;
+    struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][slot];
+    struct Pokemon oldMon;
+
+    if (gPaletteFade.active)
+        return;
+
+    // The level-up already happened; rebuild the old stats for the Rare Candy stat pages.
+    oldMon = *mon;
+    SetMonData(&oldMon, MON_DATA_LEVEL, &sInitialLevel);
+    CalculateMonStats(&oldMon);
+    BufferMonStatsToTaskData(&oldMon, sPartyMenuInternal->data);
+    BufferMonStatsToTaskData(mon, &sPartyMenuInternal->data[NUM_STATS]);
+
+    gSpecialVar_ItemId = ITEM_NONE;
+    gPartyMenuUseExitCallback = TRUE;
+    UpdateMonDisplayInfoAfterRareCandy(slot, mon);
+    GetMonNickname(mon, gStringVar1);
+    ConvertIntToDecimalStringN(gStringVar2, sFinalLevel, STR_CONV_MODE_LEFT_ALIGN, 3);
+    StringExpandPlaceholders(gStringVar4, gText_PkmnElevatedToLvVar2);
+    PlayFanfareByFanfareNum(FANFARE_LEVEL_UP);
+    DisplayPartyMenuMessage(gStringVar4, TRUE);
+    ScheduleBgCopyTilemapToVram(2);
+    gTasks[taskId].func = Task_DisplayLevelUpStatsPg1;
+}
+
+// Story mode: opens the party menu on a Pokémon that already gained levels and plays the Rare Candy
+// level-up flow (stat pages, move learning with the forget prompt, evolution), then exitCallback.
+void StoryMode_ShowLevelUpMenu(u8 slot, u8 initialLevel, u8 finalLevel, MainCallback exitCallback)
+{
+    sInitialLevel = initialLevel;
+    sFinalLevel = finalLevel;
+    gPartyMenu.slotId = slot;
+    InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_USE_ITEM, TRUE, PARTY_MSG_NONE, Task_StoryModeLevelUp, exitCallback);
+}
+
 static void CB2_ReturnToPartyMenuUsingRareCandy(void)
 {
     gItemUseCB = ItemUseCB_RareCandy;
