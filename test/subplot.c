@@ -336,6 +336,17 @@ TEST("Subplot: A hint template expands {HINT_ANCHOR} to the anchor reference and
     EXPECT_EQ(StringCompare(out, COMPOUND_STRING("Go near the MUSEUM, {PLAYER}!")), 0);
 }
 
+TEST("Subplot: A hint template expands {HINT_CITY} to the host county's city name")
+{
+    u8 out[96];
+    u8 expect[96];
+    static const u8 sTemplate[] = _("A man in {HINT_CITY} waits.");
+
+    ExpandHintTemplate(out, sTemplate, RUSTBORO, &GetCountySubplot(RUSTBORO, 0)->stages[0].anchor);
+    StringCopy(StringCopy(StringCopy(expect, COMPOUND_STRING("A man in ")), GetCountyCityName(RUSTBORO)), COMPOUND_STRING(" waits."));
+    EXPECT_EQ(StringCompare(out, expect), 0);
+}
+
 TEST("Subplot: The Lilycove close-before hint names the museum through the template")
 {
     u8 out[96];

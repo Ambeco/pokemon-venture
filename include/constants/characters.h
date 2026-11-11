@@ -270,6 +270,7 @@
 #define PLACEHOLDER_ID_GROUDON       0xD
 #define PLACEHOLDER_ID_REGION        0xE
 #define PLACEHOLDER_ID_HINT_ANCHOR   0xF // hint templates only: ExpandHintTemplate must have replaced it
+#define PLACEHOLDER_ID_HINT_CITY     0x10 // as above: the host city's name
 
 // battle placeholders are located in battle_message.h
 

@@ -10,21 +10,21 @@
 #include "string_util.h"
 #include "subplot.h"
 
-static const u8 gText_Lilycove_Exhibit0FarCurrent[] = _("I heard the new exhibit hall at the\nLILYCOVE MUSEUM is about to open.");
-static const u8 gText_Lilycove_Exhibit0FarAfter0[] = _("The LILYCOVE MUSEUM finally opened its\nnew exhibit hall, I heard.");
-static const u8 gText_Lilycove_Exhibit0FarAfter1[] = _("Did you hear? The exhibit hall at the\nLILYCOVE MUSEUM is open.");
+static const u8 gText_Lilycove_Exhibit0FarCurrent[] = _("I heard the new exhibit hall at the MUSEUM in {HINT_CITY} is about to open.");
+static const u8 gText_Lilycove_Exhibit0FarAfter0[] = _("The MUSEUM in {HINT_CITY} finally opened its new exhibit hall, I heard.");
+static const u8 gText_Lilycove_Exhibit0FarAfter1[] = _("Did you hear? The exhibit hall at the MUSEUM in {HINT_CITY} is open.");
 static const u8 gText_Lilycove_Exhibit0CloseCurrent[] = _("The curator is still busy preparing the\nexhibit hall.");
 static const u8 gText_Lilycove_Exhibit0CloseAfter[] = _("The exhibit hall is open at last!\nThe curator must be so relieved.");
-static const u8 gText_Lilycove_Exhibit1FarCurrent[] = _("The LILYCOVE MUSEUM's exhibit hall is\nopen, and they want paintings for it!");
+static const u8 gText_Lilycove_Exhibit1FarCurrent[] = _("The exhibit hall at the MUSEUM in {HINT_CITY} is open, and they want paintings for it!");
 static const u8 gText_Lilycove_Exhibit1CloseBefore[] = _("There's talk of a new exhibit hall\n{HINT_ANCHOR}.\pIt's not ready yet, though.");
 static const u8 gText_Lilycove_Exhibit1CloseCurrent[] = _("The curator is asking trainers for\npaintings to hang in the exhibit hall.");
 
-static const u8 gText_Rustboro_Cut0FarCurrent[] = _("I heard a man in RUSTBORO is looking for a skilled TRAINER to give an HM to.");
-static const u8 gText_Rustboro_Cut0FarAfter0[] = _("A man in RUSTBORO finally found a TRAINER worthy of his HIDDEN MACHINE.");
-static const u8 gText_Rustboro_Cut0FarAfter1[] = _("Did you hear? Someone in RUSTBORO got an HM from a man who just stared at them.");
+static const u8 gText_Rustboro_Cut0FarCurrent[] = _("I heard a man in {HINT_CITY} is looking for a skilled TRAINER to give an HM to.");
+static const u8 gText_Rustboro_Cut0FarAfter0[] = _("A man in {HINT_CITY} finally found a TRAINER worthy of his HIDDEN MACHINE.");
+static const u8 gText_Rustboro_Cut0FarAfter1[] = _("Did you hear? Someone in {HINT_CITY} got an HM from a man who just stared at them.");
 static const u8 gText_Rustboro_Cut0CloseCurrent[] = _("The man {HINT_ANCHOR} keeps staring at passing TRAINERS. What is he up to?");
 static const u8 gText_Rustboro_Cut0CloseAfter[] = _("The man {HINT_ANCHOR} found his TRAINER. He was so pleased.");
-static const u8 gText_Rustboro_Cut1FarCurrent[] = _("There's a TRAINER in RUSTBORO who was given an HM by a stranger, I heard.");
+static const u8 gText_Rustboro_Cut1FarCurrent[] = _("There's a TRAINER in {HINT_CITY} who was given an HM by a stranger, I heard.");
 static const u8 gText_Rustboro_Cut1CloseBefore[] = _("People say the man {HINT_ANCHOR} has an HM to give away.");
 static const u8 gText_Rustboro_Cut1CloseCurrent[] = _("That man {HINT_ANCHOR} gave away his HM. He says CUT can clear thin trees.");
 
@@ -461,6 +461,11 @@ u8 *ExpandHintTemplate(u8 *dst, const u8 *src, u32 hostCounty, const struct Beat
         if (src[0] == PLACEHOLDER_BEGIN && src[1] == PLACEHOLDER_ID_HINT_ANCHOR)
         {
             dst = WriteBeatAnchorReference(dst, hostCounty, anchor);
+            src += 2;
+        }
+        else if (src[0] == PLACEHOLDER_BEGIN && src[1] == PLACEHOLDER_ID_HINT_CITY)
+        {
+            dst = StringCopy(dst, GetCountyCityName(hostCounty));
             src += 2;
         }
         else if (src[0] == PLACEHOLDER_BEGIN)

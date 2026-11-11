@@ -353,6 +353,7 @@ GROUDON        = FD 0D
 REGION         = FD 0E
 @ subplot hint templates: replaced by ExpandHintTemplate before StringExpandPlaceholders sees it
 HINT_ANCHOR    = FD 0F
+HINT_CITY      = FD 10
 
 @ battle string placeholders
 
