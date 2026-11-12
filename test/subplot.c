@@ -238,20 +238,15 @@ TEST("Subplot: Each ported subplot's hint ranges cover every stage once and have
     }
 }
 
-TEST("Subplot: Each ported subplot declares its reward")
+TEST("Subplot: A subplot that produces a McGuffin gives a reward")
 {
     u32 numHosts, i;
     const struct SubplotHost *hosts = GetSubplotHosts(&numHosts);
 
     for (i = 0; i < numHosts; i++)
     {
-        const struct SubplotDesc *desc = hosts[i].desc;
-
-        EXPECT(desc->rewardKind != SUBPLOT_REWARD_UNSET);
-        if (desc->rewardKind == SUBPLOT_REWARD_MCGUFFIN)
-            EXPECT(desc->producedKey.type != SUBPLOT_KEY_NONE);
-        if (desc->rewardKind == SUBPLOT_REWARD_RARE_ITEM)
-            EXPECT(desc->rewardItem != ITEM_NONE);
+        if (hosts[i].desc->producedKey.type != SUBPLOT_KEY_NONE)
+            EXPECT(hosts[i].desc->givesReward);
     }
 }
 

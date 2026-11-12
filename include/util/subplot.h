@@ -117,16 +117,6 @@ struct SubplotKeyRef
 
 #define SUBPLOT_MAX_REQUIRED_KEYS 2
 
-// What finishing the subplot gives (design.md, "Plot kinds"). UNSET is the zero value so a descriptor that
-// forgot to choose fails the descriptor test instead of silently rewarding nothing.
-enum SubplotRewardKind
-{
-    SUBPLOT_REWARD_UNSET,
-    SUBPLOT_REWARD_MCGUFFIN,   // producedKey, which must not be SUBPLOT_KEY_NONE
-    SUBPLOT_REWARD_RARE_ITEM,  // rewardItem (rare candy, mushroom)
-    SUBPLOT_REWARD_STORY,      // story advancement only, such as a gate or a main-plot get
-};
-
 struct SubplotStage
 {
     struct BeatAnchor anchor;   // where the stage's beat is triggered
@@ -156,8 +146,7 @@ struct SubplotDesc
     u8 minBadges;      // badges that must be held before the subplot starts
     u8 producedKeyStage; // the key is produced once the subplot has reached this stage
     struct SubplotKeyRef producedKey;
-    u8 rewardKind;     // enum SubplotRewardKind
-    u16 rewardItem;    // SUBPLOT_REWARD_RARE_ITEM only
+    bool8 givesReward; // the end reward is the McGuffin in producedKey, or a rare item when producedKey is none; FALSE = story advancement only
     // Intro McGuffins: every key must be produced before the subplot can start, so a chain entry's
     // predecessor hands it over (design.md, "County chain").
     struct SubplotKeyRef requiredKeys[SUBPLOT_MAX_REQUIRED_KEYS];

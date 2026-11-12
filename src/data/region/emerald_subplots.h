@@ -62,7 +62,6 @@ static const struct SubplotHint sLilycoveMuseumHints[] =
 static const struct SubplotDesc sRustboroCutterSubplot =
 {
     .backend = SUBPLOT_STORED,
-    .rewardKind = SUBPLOT_REWARD_STORY,
     .numStages = ARRAY_COUNT(sRustboroCutterStages),
     .stages = sRustboroCutterStages,
     .numHints = ARRAY_COUNT(sRustboroCutterHints),
@@ -72,7 +71,6 @@ static const struct SubplotDesc sRustboroCutterSubplot =
 static const struct SubplotDesc sLilycoveMuseumSubplot =
 {
     .backend = SUBPLOT_STORED,
-    .rewardKind = SUBPLOT_REWARD_STORY,
     .numStages = ARRAY_COUNT(sLilycoveMuseumStages),
     .stages = sLilycoveMuseumStages,
     .numHints = ARRAY_COUNT(sLilycoveMuseumHints),
