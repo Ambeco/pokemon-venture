@@ -12,24 +12,11 @@ static const struct SubplotStage sLilycoveMuseumStages[] =
 {
     [LILYCOVE_MUSEUM_EXHIBIT_NOT_SHOWN] =
     {
-        .hints =
-        {
-            .farCurrent = gText_Lilycove_Exhibit0FarCurrent,
-            .farAfter = {sLilycoveExhibit0FarAfter, ARRAY_COUNT(sLilycoveExhibit0FarAfter)},
-            .closeCurrent = gText_Lilycove_Exhibit0CloseCurrent,
-            .closeAfter = gText_Lilycove_Exhibit0CloseAfter,
-        },
         .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, TOWN_LOCATION_MUSEUM, 0},
         .numHinters = 1,
     },
     [LILYCOVE_MUSEUM_EXHIBIT_SHOWN] =
     {
-        .hints =
-        {
-            .farCurrent = gText_Lilycove_Exhibit1FarCurrent,
-            .closeBefore = gText_Lilycove_Exhibit1CloseBefore,
-            .closeCurrent = gText_Lilycove_Exhibit1CloseCurrent,
-        },
         .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, TOWN_LOCATION_MUSEUM, 0},
         .numHinters = 1,
     },
@@ -48,41 +35,48 @@ static const struct SubplotStage sRustboroCutterStages[] =
 {
     [RUSTBORO_CUTTER_HM_NOT_GIVEN] =
     {
-        .hints =
-        {
-            .farCurrent = gText_Rustboro_Cut0FarCurrent,
-            .farAfter = {sRustboroCut0FarAfter, ARRAY_COUNT(sRustboroCut0FarAfter)},
-            .closeCurrent = gText_Rustboro_Cut0CloseCurrent,
-            .closeAfter = gText_Rustboro_Cut0CloseAfter,
-        },
         .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE},
         .numHinters = 1,
     },
     [RUSTBORO_CUTTER_HM_GIVEN] =
     {
-        .hints =
-        {
-            .farCurrent = gText_Rustboro_Cut1FarCurrent,
-            .closeBefore = gText_Rustboro_Cut1CloseBefore,
-            .closeCurrent = gText_Rustboro_Cut1CloseCurrent,
-        },
         .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE},
         .numHinters = 1,
     },
 };
 
+// Hint ranges follow the stages; each lists the lines that were once keyed by beat and state, so any NPC
+// of the subplot may say any of them.
+static const struct SubplotHint sRustboroCutterHints[] =
+{
+    {0, 0, TEXT_LIST(sRustboroStage0Far), TEXT_LIST(sRustboroStage0Close)},
+    {1, 1, TEXT_LIST(sRustboroStage1Far), TEXT_LIST(sRustboroStage1Close)},
+};
+
+static const struct SubplotHint sLilycoveMuseumHints[] =
+{
+    {0, 0, TEXT_LIST(sLilycoveStage0Far), TEXT_LIST(sLilycoveStage0Close)},
+    {1, 1, TEXT_LIST(sLilycoveStage1Far), TEXT_LIST(sLilycoveStage1Close)},
+};
+
 static const struct SubplotDesc sRustboroCutterSubplot =
 {
     .backend = SUBPLOT_STORED,
+    .rewardKind = SUBPLOT_REWARD_STORY,
     .numStages = ARRAY_COUNT(sRustboroCutterStages),
     .stages = sRustboroCutterStages,
+    .numHints = ARRAY_COUNT(sRustboroCutterHints),
+    .hints = sRustboroCutterHints,
 };
 
 static const struct SubplotDesc sLilycoveMuseumSubplot =
 {
     .backend = SUBPLOT_STORED,
+    .rewardKind = SUBPLOT_REWARD_STORY,
     .numStages = ARRAY_COUNT(sLilycoveMuseumStages),
     .stages = sLilycoveMuseumStages,
+    .numHints = ARRAY_COUNT(sLilycoveMuseumHints),
+    .hints = sLilycoveMuseumHints,
 };
 
 static const struct SubplotHost sEmeraldSubplotHosts[] =

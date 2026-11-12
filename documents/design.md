@@ -737,14 +737,7 @@ A city is laid out by its county (layer 5/6), in this order. Steps 5-8 are what 
 
 Generic NPCs get context about where they are and say a random matching line ("This is my brother!", "The flowers in this city smell wonderful!").
 
-Hint texts: every main-story slot and subplot has six hint entries, by distance (far: the NPC is in another city or county; close: the NPC is at the place) and by story state (before, current, after):
-
-- Far and before: a list, possibly empty.
-- Far and current: a required string ("I heard Team Rocket took over Celadon...").
-- Far and after: a list, possibly empty ("I heard Team Rocket was kicked out of Celadon!").
-- Close and before: an optional string.
-- Close and current: a required string ("What are those guys doing there?").
-- Close and after: a required string ("You saved us!").
+Hint texts: a subplot lists hint ranges (`struct SubplotHint`), each a first and last stage and two text lists by distance (far: the NPC is in another city or county; close: the NPC is at the place). A range's lists are what NPCs say while the subplot's stage is in the range; ends may be the "before" (not started) and "after" (completed) pseudo-stages. Ranges must not overlap and must cover every real stage, with both lists non-empty there (a test checks the ported subplots). An NPC picks `list[selector % count]`, so it always says the same line while the range holds, and one range holds both the lines about the present ("What are those guys doing there?") and the ones recalling or foreshadowing a neighbouring stage ("You saved us!"). A pseudo-stage with no range, or an empty list, means generic text.
 
 Beat placement: a beat's trigger is almost always an immobile NPC, an immobile item, or a chokepoint (route-to-route transition, route-to-location transition, or a door). The descriptor therefore records a specific anchor per stage (kind plus the route, location or building role involved), not just a role, and hint texts can say where it is: "near route x", "near the <building type>", or the city. Close or far then follows from whether the hinter stands in the anchor's city (`struct BeatAnchor`, `GetBeatDistance` and `WriteBeatAnchorReference` in `subplot.h`; every anchor of a subplot belongs to its host county, so the host county's city is the anchor's city, and a route anchor is "near the road to X").
 
@@ -754,7 +747,9 @@ Main-beat hints are generated, not authored: `WriteMainBeatHint` (`city_hinters.
 
 Route blockers: `data/scripts/route_blocker.inc` holds one generic script per push-back direction; it uses `IsMainStoryIndexPast` (VAR_0x8004 = s) and lets the player through once the main-story-index is past s.
 
-A hinter bound to beat b says the before entry while the subplot's current index is below b, current while equal, and after once above; the query takes the distance from the placement, never from the stage.
+A hinter bound to beat b says a line from the range covering the subplot's current stage; b only picks the stage whose anchor and count the text names. The query takes the distance from the placement, never from the stage.
+
+Reward and keys: a subplot declares its end reward (`rewardKind`: McGuffin through `producedKey`, a rare item through `rewardItem`, or story advancement only; unset fails a test). Its intro McGuffins are its `requiredKeys`: every consumed key must be produced before the subplot can start, which is how a chain entry waits for its predecessor.
 
 News: each Pokémon Center has a newspaper, TV or reading NPC giving "the news" (`WritePokemonCenterNews`, special `ShowPokemonCenterNews`, `city_hinters.h`). It is about the first list at or after the main-story-index that has a host (an empty list is passed at once). If the player is not in the host county, it says that beat's far main-beat hint. In the host county it names the blocking subplot: the first blocking get still undone in the list (`GetFirstUndonePlotSlot`), matched to a host-county subplot that declares it produces that planner item (`SubplotDesc.producesMainGet` and `mainGet`, tested by `DoesSubplotProduce`), and says that subplot's current close hint, so the next step is easy to find without nagging. With no producing subplot (a gym, a rival beat, a blocker: the blocker is a location rather than a subplot) it says the close main-beat hint instead. A step-3 unlock that is no blocker (which `GetMainStoryIndex` can rest on, such as the Letter) has no beat but still has block x's county: away from it the news says "There's a story about something unfolding near <place>", and in it a vague "right here" line until the county is given details to hint at. The place is the county's city, else its first landmark or detour (or Enclave, for an Enclave-only county), and a beat hosted in a cityless county gets the same vague news. In the postgame, or when the county has none of those (only Emerald's empty county), it says one generic line from a small pool of copied Emerald TV lines, picked by county and player seed. Beats get no separate news strings: the far main-beat text is generated, and a subplot's current entries are required by the descriptor, so the news cannot lack one.
 
@@ -1183,7 +1178,7 @@ Pros:
 - The news could be worded as news rather than as an NPC's hearsay.
 
 Cons:
-- Unneeded: the far main-beat text is generated, so it exists for every beat, and a subplot's `farCurrent` and `closeCurrent` are already required by the descriptor.
+- Unneeded: the far main-beat text is generated, so it exists for every beat, and every stage of a subplot already has non-empty hint lists.
 - One more string per beat and per subplot stage, to author and keep consistent with the hints.
 
 ### Driving the Windows mGBA through its GDB server

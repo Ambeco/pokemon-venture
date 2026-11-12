@@ -280,7 +280,7 @@ static void ExpectListFits(const struct SubplotTextList *list, u32 county, const
 
 TEST("CityHinters: Every line of every subplot hint, with its anchor expanded, fits the message box")
 {
-    u32 county, slot, stage;
+    u32 county, slot, stage, hint;
 
     for (county = 0; county < NUM_COUNTIES; county++)
     {
@@ -290,17 +290,14 @@ TEST("CityHinters: Every line of every subplot hint, with its anchor expanded, f
 
             if (desc == NULL)
                 continue;
+            // A line may be said by a hinter of any stage, so it is checked against every stage's anchor.
             for (stage = 0; stage < desc->numStages; stage++)
             {
-                const struct SubplotStageHints *hints = &desc->stages[stage].hints;
-                const struct BeatAnchor *anchor = &desc->stages[stage].anchor;
-
-                ExpectListFits(&hints->farBefore, county, anchor);
-                ExpectHintFits(hints->farCurrent, county, anchor);
-                ExpectListFits(&hints->farAfter, county, anchor);
-                ExpectHintFits(hints->closeBefore, county, anchor);
-                ExpectHintFits(hints->closeCurrent, county, anchor);
-                ExpectHintFits(hints->closeAfter, county, anchor);
+                for (hint = 0; hint < desc->numHints; hint++)
+                {
+                    ExpectListFits(&desc->hints[hint].far, county, &desc->stages[stage].anchor);
+                    ExpectListFits(&desc->hints[hint].close, county, &desc->stages[stage].anchor);
+                }
             }
         }
     }

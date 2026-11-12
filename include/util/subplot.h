@@ -45,13 +45,10 @@ enum SubplotDistance
     SUBPLOT_CLOSE,
 };
 
-// The subplot's progress relative to a stage (its beat): the beat has not happened, is happening, or is over.
-enum SubplotBeatState
-{
-    SUBPLOT_BEFORE,
-    SUBPLOT_CURRENT,
-    SUBPLOT_AFTER,
-};
+// Pseudo-stages around a subplot's real stages 0..numStages-1: BEFORE is "not started" (a chain entry the
+// chain has not reached), AFTER is "completed". Hint ranges may use them as ends; the stored stage never is one.
+#define SUBPLOT_STAGE_BEFORE 0xFE
+#define SUBPLOT_STAGE_AFTER  0xFF
 
 // What triggers a beat (design.md, "City planning", beat placement).
 enum BeatAnchorKind
@@ -83,16 +80,18 @@ struct SubplotTextList
     u8 count;
 };
 
-// The six hint entries of a stage (design.md, "City planning"). NULL or an empty list means "say generic text".
-// The required entries are farCurrent and closeCurrent, plus closeAfter unless the stage is the last.
-struct SubplotStageHints
+#define TEXT_LIST(array) {array, ARRAY_COUNT(array)}
+
+// What NPCs say while the subplot's stage is in [firstStage, lastStage] (design.md, "City planning"); the
+// ends are real stages or pseudo-stages. Ranges of one subplot must not overlap, and together they must
+// cover every real stage. Far = another city, close = the host city. An NPC picks by its selector, so one
+// NPC always says the same line while the range holds. An empty list means "say generic text".
+struct SubplotHint
 {
-    struct SubplotTextList farBefore;
-    const u8 *farCurrent;
-    struct SubplotTextList farAfter;
-    const u8 *closeBefore;
-    const u8 *closeCurrent;
-    const u8 *closeAfter;
+    u8 firstStage;
+    u8 lastStage;
+    struct SubplotTextList far;
+    struct SubplotTextList close;
 };
 
 // What a stage's hint template counts in {STR_VAR_1}.
@@ -118,9 +117,18 @@ struct SubplotKeyRef
 
 #define SUBPLOT_MAX_REQUIRED_KEYS 2
 
+// What finishing the subplot gives (design.md, "Plot kinds"). UNSET is the zero value so a descriptor that
+// forgot to choose fails the descriptor test instead of silently rewarding nothing.
+enum SubplotRewardKind
+{
+    SUBPLOT_REWARD_UNSET,
+    SUBPLOT_REWARD_MCGUFFIN,   // producedKey, which must not be SUBPLOT_KEY_NONE
+    SUBPLOT_REWARD_RARE_ITEM,  // rewardItem (rare candy, mushroom)
+    SUBPLOT_REWARD_STORY,      // story advancement only, such as a gate or a main-plot get
+};
+
 struct SubplotStage
 {
-    struct SubplotStageHints hints;
     struct BeatAnchor anchor;   // where the stage's beat is triggered
     u16 hinterRoles;            // BuildingRole bits of the buildings where this stage's hinters may stand; 0 = anywhere in the county
     u8 numHinters;              // hinter NPCs the county must place for this stage, 0 = none
@@ -143,14 +151,20 @@ struct SubplotDesc
     u8 backend;
     u8 numStages;
     u8 numActors;
+    u8 numHints;
     u16 requiredRoles; // BuildingRole bits the host city must have
     u8 minBadges;      // badges that must be held before the subplot starts
     u8 producedKeyStage; // the key is produced once the subplot has reached this stage
     struct SubplotKeyRef producedKey;
+    u8 rewardKind;     // enum SubplotRewardKind
+    u16 rewardItem;    // SUBPLOT_REWARD_RARE_ITEM only
+    // Intro McGuffins: every key must be produced before the subplot can start, so a chain entry's
+    // predecessor hands it over (design.md, "County chain").
     struct SubplotKeyRef requiredKeys[SUBPLOT_MAX_REQUIRED_KEYS];
     bool8 producesMainGet; // completion is a get of a main-plot list: mainGet names it, and the news points at this subplot
     struct PlotKeyRef mainGet;
     const struct SubplotStage *stages;
+    const struct SubplotHint *hints;
     const struct SubplotActor *actors;
 };
 
@@ -176,18 +190,19 @@ void SetSubplotStage(u32 countyId, u32 slot, const struct SubplotDesc *desc, u32
 u32 GetCountySlotStage(u32 countyId, u32 slot);
 void SetCountySlotStage(u32 countyId, u32 slot, u32 stage);
 
-u32 GetSubplotBeatState(u32 subplotStage, u32 beat);
+// The hint for a subplot at `subplotStage` (a real stage or a pseudo-stage), from the range covering it and
+// the distance. The text is list[selector % count], so one NPC (selector = its identity) always says the
+// same thing while the range holds and different NPCs differ. NULL means the NPC says generic text.
+const u8 *GetSubplotHint(const struct SubplotDesc *desc, u32 subplotStage, u32 distance, u32 selector);
 
-// The hint about stage `beat` for a subplot at `subplotStage`, from the entry for the distance and the beat
-// state. A list entry yields texts[selector % count], so one NPC (selector = its identity) always says the
-// same thing while the state holds and different NPCs differ. NULL means the NPC says generic text.
-const u8 *GetSubplotHint(const struct SubplotDesc *desc, u32 subplotStage, u32 beat, u32 distance, u32 selector);
+// TRUE iff `subplotStage` (a real stage or a pseudo-stage) lies in the hint's range.
+bool32 DoesSubplotHintCover(const struct SubplotHint *hint, u32 subplotStage);
 
-// The NPC-talk query: the hint about the beat the (county, slot) subplot is currently in. NULL = generic text.
+// The range covering `subplotStage`; NULL if none (the descriptor test requires every real stage covered).
+const struct SubplotHint *FindSubplotHint(const struct SubplotDesc *desc, u32 subplotStage);
+
+// The NPC-talk query: the hint for the (county, slot) subplot's current stage. NULL = generic text.
 const u8 *GetCountySlotHint(u32 countyId, u32 slot, u32 distance, u32 selector);
-
-// As above for any beat, e.g. an NPC recalling a stage the subplot has passed.
-const u8 *GetCountySlotHintAbout(u32 countyId, u32 slot, u32 beat, u32 distance, u32 selector);
 
 // TRUE iff completing the subplot is the planner item (kind, ordinal); a gym item names its HM too.
 bool32 DoesSubplotProduce(const struct SubplotDesc *desc, u32 kind, u32 ordinal);

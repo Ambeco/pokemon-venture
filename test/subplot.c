@@ -1,6 +1,7 @@
 #include "global.h"
 #include "test/test.h"
 #include "constants/flags.h"
+#include "constants/items.h"
 #include "constants/region_map_sections.h"
 #include "constants/vars.h"
 #include "constants/characters.h"
@@ -22,38 +23,50 @@ static const u8 sTextB[] = _("b");
 static const u8 sTextC[] = _("c");
 static const u8 sTextD[] = _("d");
 
+static const u8 *const sListA[] = {sTextA};
 static const u8 *const sListB[] = {sTextB, sTextC};
+static const u8 *const sListC[] = {sTextC};
+static const u8 *const sListD[] = {sTextD};
+static const u8 *const sListCD[] = {sTextC, sTextD};
 
 // Devon Goods shaped: the order of the predicates, not set-ness, defines the stage.
 static const struct SubplotStage sDevonStages[] =
 {
-    {.hints = {.farCurrent = sTextA}},
-    {.hints = {.farCurrent = sTextB}, .done = {STORY_PRED_FLAG, FLAG_DEVON_GOODS_STOLEN, 0}},
-    {.hints = {.farCurrent = sTextC}, .done = {STORY_PRED_FLAG, FLAG_RECOVERED_DEVON_GOODS, 0}},
-    {.hints = {.farCurrent = sTextD}, .done = {STORY_PRED_FLAG, FLAG_RETURNED_DEVON_GOODS, 0}},
+    {},
+    {.done = {STORY_PRED_FLAG, FLAG_DEVON_GOODS_STOLEN, 0}},
+    {.done = {STORY_PRED_FLAG, FLAG_RECOVERED_DEVON_GOODS, 0}},
+    {.done = {STORY_PRED_FLAG, FLAG_RETURNED_DEVON_GOODS, 0}},
+};
+
+static const struct SubplotHint sDevonHints[] =
+{
+    {0, 0, TEXT_LIST(sListA)},
+    {1, 1, TEXT_LIST(sListB)},
+    {2, 2, TEXT_LIST(sListC)},
+    {3, 3, TEXT_LIST(sListD)},
 };
 
 static const struct SubplotDesc sDevonAdapter =
 {
     .backend = SUBPLOT_ADAPTER,
     .numStages = ARRAY_COUNT(sDevonStages),
+    .numHints = ARRAY_COUNT(sDevonHints),
     .stages = sDevonStages,
+    .hints = sDevonHints,
 };
 
-// Every entry filled, with distinct texts, in the middle stage.
+// Ranges that end at the pseudo-stages; stage 2 and AFTER have empty lists, so they say generic text.
+static const struct SubplotHint sFullHints[] =
+{
+    {SUBPLOT_STAGE_BEFORE, 0, TEXT_LIST(sListB)},
+    {1, 1, TEXT_LIST(sListA), TEXT_LIST(sListCD)},
+    {2, SUBPLOT_STAGE_AFTER},
+};
+
 static const struct SubplotStage sFullStages[] =
 {
     {},
     {
-        .hints =
-        {
-            .farBefore = {sListB, ARRAY_COUNT(sListB)},
-            .farCurrent = sTextA,
-            .farAfter = {sListB, ARRAY_COUNT(sListB)},
-            .closeBefore = sTextB,
-            .closeCurrent = sTextC,
-            .closeAfter = sTextD,
-        },
         .numHinters = 2,
         .hinterRoles = 0x4,
     },
@@ -72,7 +85,9 @@ static const struct SubplotDesc sFullDesc =
     .backend = SUBPLOT_ADAPTER,
     .numStages = ARRAY_COUNT(sFullStages),
     .numActors = ARRAY_COUNT(sActors),
+    .numHints = ARRAY_COUNT(sFullHints),
     .stages = sFullStages,
+    .hints = sFullHints,
     .actors = sActors,
 };
 
@@ -140,53 +155,64 @@ TEST("Subplot: The talk query follows the stage and the stage texts differ")
     EXPECT(GetCountySlotHint(LILYCOVE, 0, SUBPLOT_CLOSE, 0) != close0);
 }
 
-TEST("Subplot: The query returns the entry for each distance and beat state")
+TEST("Subplot: The query returns the range's list for each distance and stage")
 {
-    // Stage 1 of sFullDesc: before = subplot at stage 0, current = 1, after = 2.
-    EXPECT(GetSubplotHint(&sFullDesc, 0, 1, SUBPLOT_FAR, 0) == sTextB);
-    EXPECT(GetSubplotHint(&sFullDesc, 1, 1, SUBPLOT_FAR, 0) == sTextA);
-    EXPECT(GetSubplotHint(&sFullDesc, 2, 1, SUBPLOT_FAR, 0) == sTextB);
-    EXPECT(GetSubplotHint(&sFullDesc, 0, 1, SUBPLOT_CLOSE, 0) == sTextB);
-    EXPECT(GetSubplotHint(&sFullDesc, 1, 1, SUBPLOT_CLOSE, 0) == sTextC);
-    EXPECT(GetSubplotHint(&sFullDesc, 2, 1, SUBPLOT_CLOSE, 0) == sTextD);
+    EXPECT(GetSubplotHint(&sFullDesc, 0, SUBPLOT_FAR, 0) == sTextB);
+    EXPECT(GetSubplotHint(&sFullDesc, 1, SUBPLOT_FAR, 0) == sTextA);
+    EXPECT(GetSubplotHint(&sFullDesc, 0, SUBPLOT_CLOSE, 0) == NULL);
+    EXPECT(GetSubplotHint(&sFullDesc, 1, SUBPLOT_CLOSE, 0) == sTextC);
+    EXPECT(GetSubplotHint(&sFullDesc, 1, SUBPLOT_CLOSE, 1) == sTextD);
 }
 
-TEST("Subplot: Beat state compares the subplot stage with the beat")
+TEST("Subplot: A range may end at a pseudo-stage, which the query accepts")
 {
-    EXPECT_EQ(GetSubplotBeatState(0, 2), SUBPLOT_BEFORE);
-    EXPECT_EQ(GetSubplotBeatState(2, 2), SUBPLOT_CURRENT);
-    EXPECT_EQ(GetSubplotBeatState(3, 2), SUBPLOT_AFTER);
+    EXPECT(FindSubplotHint(&sFullDesc, SUBPLOT_STAGE_BEFORE) == &sFullHints[0]);
+    EXPECT(FindSubplotHint(&sFullDesc, 0) == &sFullHints[0]);
+    EXPECT(FindSubplotHint(&sFullDesc, 1) == &sFullHints[1]);
+    EXPECT(FindSubplotHint(&sFullDesc, 2) == &sFullHints[2]);
+    EXPECT(FindSubplotHint(&sFullDesc, SUBPLOT_STAGE_AFTER) == &sFullHints[2]);
+    EXPECT(GetSubplotHint(&sFullDesc, SUBPLOT_STAGE_BEFORE, SUBPLOT_FAR, 0) == sTextB);
+    EXPECT(GetSubplotHint(&sFullDesc, SUBPLOT_STAGE_AFTER, SUBPLOT_FAR, 0) == NULL);
+}
+
+TEST("Subplot: A stage no range covers has no hint")
+{
+    static const struct SubplotHint sGap[] = {{1, 1, TEXT_LIST(sListA)}};
+    static const struct SubplotDesc sGapDesc = {.backend = SUBPLOT_ADAPTER, .numStages = 3, .numHints = 1, .hints = sGap};
+
+    EXPECT(FindSubplotHint(&sGapDesc, 0) == NULL);
+    EXPECT(FindSubplotHint(&sGapDesc, SUBPLOT_STAGE_BEFORE) == NULL);
+    EXPECT(GetSubplotHint(&sGapDesc, 2, SUBPLOT_FAR, 0) == NULL);
+    EXPECT(GetSubplotHint(&sGapDesc, 1, SUBPLOT_FAR, 0) == sTextA);
 }
 
 TEST("Subplot: A list entry is picked by selector, stably")
 {
-    EXPECT(GetSubplotHint(&sFullDesc, 0, 1, SUBPLOT_FAR, 0) == sTextB);
-    EXPECT(GetSubplotHint(&sFullDesc, 0, 1, SUBPLOT_FAR, 1) == sTextC);
-    EXPECT(GetSubplotHint(&sFullDesc, 0, 1, SUBPLOT_FAR, 2) == sTextB);
-    EXPECT(GetSubplotHint(&sFullDesc, 0, 1, SUBPLOT_FAR, 1) == GetSubplotHint(&sFullDesc, 0, 1, SUBPLOT_FAR, 1));
+    EXPECT(GetSubplotHint(&sFullDesc, 0, SUBPLOT_FAR, 0) == sTextB);
+    EXPECT(GetSubplotHint(&sFullDesc, 0, SUBPLOT_FAR, 1) == sTextC);
+    EXPECT(GetSubplotHint(&sFullDesc, 0, SUBPLOT_FAR, 2) == sTextB);
+    EXPECT(GetSubplotHint(&sFullDesc, 0, SUBPLOT_FAR, 1) == GetSubplotHint(&sFullDesc, 0, SUBPLOT_FAR, 1));
 }
 
-TEST("Subplot: Missing entries and empty lists give NULL so the NPC says generic text")
+TEST("Subplot: Empty lists give NULL so the NPC says generic text")
 {
-    // Stage 0 and 2 of sFullDesc have no hints at all.
-    EXPECT(GetSubplotHint(&sFullDesc, 0, 0, SUBPLOT_FAR, 0) == NULL);
-    EXPECT(GetSubplotHint(&sFullDesc, 2, 0, SUBPLOT_FAR, 5) == NULL); // empty far-after list
-    EXPECT(GetSubplotHint(&sFullDesc, 0, 2, SUBPLOT_FAR, 5) == NULL); // empty far-before list
-    EXPECT(GetSubplotHint(&sFullDesc, 0, 2, SUBPLOT_CLOSE, 0) == NULL); // optional close-before
-    EXPECT(GetSubplotHint(&sFullDesc, 1, 1, SUBPLOT_CLOSE, 0) != NULL);
+    EXPECT(GetSubplotHint(&sFullDesc, 2, SUBPLOT_FAR, 5) == NULL);
+    EXPECT(GetSubplotHint(&sFullDesc, 2, SUBPLOT_CLOSE, 5) == NULL);
 }
 
-TEST("Subplot: The county query uses the current beat, or any beat on request")
+TEST("Subplot: The county query uses the current stage")
 {
+    const struct SubplotDesc *desc = GetCountySubplot(LILYCOVE, 0);
+
+    EXPECT(GetCountySlotHint(LILYCOVE, 0, SUBPLOT_CLOSE, 0) == GetSubplotHint(desc, 0, SUBPLOT_CLOSE, 0));
     SetCountySlotStage(LILYCOVE, 0, 1);
-    EXPECT(GetCountySlotHint(LILYCOVE, 0, SUBPLOT_CLOSE, 0) == GetCountySlotHintAbout(LILYCOVE, 0, 1, SUBPLOT_CLOSE, 0));
-    EXPECT(GetCountySlotHintAbout(LILYCOVE, 0, 0, SUBPLOT_CLOSE, 0) != NULL); // "the exhibit hall is open at last"
-    EXPECT(GetCountySlotHintAbout(LILYCOVE, 0, 0, SUBPLOT_CLOSE, 0) != GetCountySlotHint(LILYCOVE, 0, SUBPLOT_CLOSE, 0));
+    EXPECT(GetCountySlotHint(LILYCOVE, 0, SUBPLOT_CLOSE, 0) == GetSubplotHint(desc, 1, SUBPLOT_CLOSE, 0));
+    EXPECT(GetSubplotHint(desc, 0, SUBPLOT_CLOSE, 0) != GetSubplotHint(desc, 1, SUBPLOT_CLOSE, 0));
 }
 
-TEST("Subplot: Each ported subplot fills its required hint entries")
+TEST("Subplot: Each ported subplot's hint ranges cover every stage once and have both lists")
 {
-    u32 county, slot, stage;
+    u32 county, slot, stage, i;
 
     for (county = 0; county < NUM_COUNTIES; county++)
     {
@@ -198,12 +224,34 @@ TEST("Subplot: Each ported subplot fills its required hint entries")
                 continue;
             for (stage = 0; stage < desc->numStages; stage++)
             {
-                EXPECT(desc->stages[stage].hints.farCurrent != NULL);
-                EXPECT(desc->stages[stage].hints.closeCurrent != NULL);
-                if (stage + 1 < desc->numStages)
-                    EXPECT(desc->stages[stage].hints.closeAfter != NULL);
+                const struct SubplotHint *hint = FindSubplotHint(desc, stage);
+                u32 covering = 0;
+
+                for (i = 0; i < desc->numHints; i++)
+                    covering += DoesSubplotHintCover(&desc->hints[i], stage);
+                EXPECT_EQ(covering, 1);
+                ASSUME(hint != NULL);
+                EXPECT(hint->far.count > 0);
+                EXPECT(hint->close.count > 0);
             }
         }
+    }
+}
+
+TEST("Subplot: Each ported subplot declares its reward")
+{
+    u32 numHosts, i;
+    const struct SubplotHost *hosts = GetSubplotHosts(&numHosts);
+
+    for (i = 0; i < numHosts; i++)
+    {
+        const struct SubplotDesc *desc = hosts[i].desc;
+
+        EXPECT(desc->rewardKind != SUBPLOT_REWARD_UNSET);
+        if (desc->rewardKind == SUBPLOT_REWARD_MCGUFFIN)
+            EXPECT(desc->producedKey.type != SUBPLOT_KEY_NONE);
+        if (desc->rewardKind == SUBPLOT_REWARD_RARE_ITEM)
+            EXPECT(desc->rewardItem != ITEM_NONE);
     }
 }
 
@@ -248,8 +296,8 @@ TEST("Subplot: An adapter subplot skipped ahead reports the later stage")
 TEST("Subplot: The hint query treats adapter and stored subplots alike")
 {
     FlagSet(FLAG_RECOVERED_DEVON_GOODS);
-    EXPECT(GetSubplotHint(&sDevonAdapter, GetSubplotStage(0, 0, &sDevonAdapter), 2, SUBPLOT_FAR, 0) == sTextC);
-    EXPECT(GetSubplotHint(&sDevonAdapter, 3, 3, SUBPLOT_FAR, 0) == sTextD);
+    EXPECT(GetSubplotHint(&sDevonAdapter, GetSubplotStage(0, 0, &sDevonAdapter), SUBPLOT_FAR, 0) == sTextC);
+    EXPECT(GetSubplotHint(&sDevonAdapter, 3, SUBPLOT_FAR, 0) == sTextD);
 }
 
 TEST("Subplot: A county is found from its city's MAPSEC")
@@ -347,11 +395,11 @@ TEST("Subplot: A hint template expands {HINT_CITY} to the host county's city nam
     EXPECT_EQ(StringCompare(out, expect), 0);
 }
 
-TEST("Subplot: The Lilycove close-before hint names the museum through the template")
+TEST("Subplot: The Lilycove stage-0 close hint about the unopened hall names the museum through the template")
 {
     u8 out[96];
     const struct SubplotDesc *desc = GetCountySubplot(LILYCOVE, 0);
-    const u8 *text = GetSubplotHint(desc, 0, 1, SUBPLOT_CLOSE, 0);
+    const u8 *text = GetSubplotHint(desc, 0, SUBPLOT_CLOSE, 1);
 
     ASSUME(text != NULL);
     ExpandHintTemplate(out, text, LILYCOVE, &desc->stages[1].anchor);
@@ -362,10 +410,10 @@ TEST("Subplot: The Lilycove close-before hint names the museum through the templ
 // A gym-4-gated subplot with a parameterized hint, a produced host-pool key and a two-building cutscene.
 static const struct SubplotStage sGatedStages[] =
 {
-    {.hints = {.farCurrent = sTextA, .closeCurrent = sTextB}, .hintCount = SUBPLOT_COUNT_BADGES_SHORT,
+    {.hintCount = SUBPLOT_COUNT_BADGES_SHORT,
      .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}, .extraRoles = BUILDING_HOUSE},
-    {.hints = {.farCurrent = sTextC, .closeCurrent = sTextD}, .anchor = {BEAT_ANCHOR_DOOR, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_MART}},
-    {.hints = {.farCurrent = sTextC, .closeCurrent = sTextD}},
+    {.anchor = {BEAT_ANCHOR_DOOR, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_MART}},
+    {},
 };
 
 static const struct SubplotDesc sGatedDesc =
@@ -382,8 +430,8 @@ static const struct SubplotDesc sGatedDesc =
 // Stages with no anchor role, so any city with a Pokémon Center could host them.
 static const struct SubplotStage sPlainStages[] =
 {
-    {.hints = {.farCurrent = sTextA, .closeCurrent = sTextB}},
-    {.hints = {.farCurrent = sTextC, .closeCurrent = sTextD}},
+    {},
+    {},
 };
 
 static const struct SubplotDesc sConsumerDesc =
@@ -449,14 +497,14 @@ TEST("Subplot: The Cutter hints follow the stage and expand the house reference"
 {
     u8 out[96];
     const struct SubplotDesc *desc = GetCountySubplot(RUSTBORO, 0);
-    const u8 *before = GetSubplotHint(desc, 0, 1, SUBPLOT_CLOSE, 0);
+    const u8 *before = GetSubplotHint(desc, 0, SUBPLOT_CLOSE, 1);
 
     ASSUME(before != NULL);
     ExpandHintTemplate(out, before, RUSTBORO, &desc->stages[1].anchor);
     EXPECT_EQ(StringCompareN(out, COMPOUND_STRING("People say the man near the house"), 33), 0);
-    EXPECT(GetCountySlotHint(RUSTBORO, 0, SUBPLOT_FAR, 0) == desc->stages[0].hints.farCurrent);
+    EXPECT(GetCountySlotHint(RUSTBORO, 0, SUBPLOT_FAR, 0) == desc->hints[0].far.texts[0]);
     SetCountySlotStage(RUSTBORO, 0, 1);
-    EXPECT(GetCountySlotHint(RUSTBORO, 0, SUBPLOT_FAR, 0) == desc->stages[1].hints.farCurrent);
+    EXPECT(GetCountySlotHint(RUSTBORO, 0, SUBPLOT_FAR, 0) == desc->hints[1].far.texts[0]);
 }
 
 TEST("Subplot: Every Emerald host passes the placement check")
@@ -585,9 +633,9 @@ TEST("Subplot: Derived stages come from the badge count with no stored counter")
 {
     static const struct SubplotStage sStages[] =
     {
-        {.hints = {.farCurrent = sTextA}},
-        {.hints = {.farCurrent = sTextB}, .done = {STORY_PRED_BADGES_GE, 1, 0}},
-        {.hints = {.farCurrent = sTextC}, .done = {STORY_PRED_BADGES_GE, 4, 0}},
+        {},
+        {.done = {STORY_PRED_BADGES_GE, 1, 0}},
+        {.done = {STORY_PRED_BADGES_GE, 4, 0}},
     };
     static const struct SubplotDesc sDesc = {.backend = SUBPLOT_ADAPTER, .numStages = 3, .stages = sStages};
 

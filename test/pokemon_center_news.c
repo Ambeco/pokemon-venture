@@ -106,7 +106,7 @@ static void ExpectHinterSpeaksIn(u32 county, u32 mapGroup, u32 mapNum, const u8 
     ASSUME(count > plannedIndex);
     desc = GetCountySubplot(county, out[plannedIndex].slot);
     ASSUME(desc != NULL);
-    text = GetCountySlotHintAbout(county, out[plannedIndex].slot, out[plannedIndex].beat, SUBPLOT_CLOSE, out[plannedIndex].selector);
+    text = GetCountySlotHint(county, out[plannedIndex].slot, SUBPLOT_CLOSE, out[plannedIndex].selector);
     ASSUME(text != NULL);
     ExpandHintTemplate(sExpect, text, county, &desc->stages[out[plannedIndex].beat].anchor);
     BreakStringForFieldMessage(sExpect);

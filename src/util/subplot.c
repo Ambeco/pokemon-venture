@@ -28,17 +28,15 @@ static const u8 gText_Rustboro_Cut1FarCurrent[] = _("There's a TRAINER in {HINT_
 static const u8 gText_Rustboro_Cut1CloseBefore[] = _("People say the man {HINT_ANCHOR} has an HM to give away.");
 static const u8 gText_Rustboro_Cut1CloseCurrent[] = _("That man {HINT_ANCHOR} gave away his HM. He says CUT can clear thin trees.");
 
-static const u8 *const sRustboroCut0FarAfter[] =
-{
-    gText_Rustboro_Cut0FarAfter0,
-    gText_Rustboro_Cut0FarAfter1,
-};
+static const u8 *const sLilycoveStage0Far[] = {gText_Lilycove_Exhibit0FarCurrent};
+static const u8 *const sLilycoveStage0Close[] = {gText_Lilycove_Exhibit0CloseCurrent, gText_Lilycove_Exhibit1CloseBefore};
+static const u8 *const sLilycoveStage1Far[] = {gText_Lilycove_Exhibit1FarCurrent, gText_Lilycove_Exhibit0FarAfter0, gText_Lilycove_Exhibit0FarAfter1};
+static const u8 *const sLilycoveStage1Close[] = {gText_Lilycove_Exhibit1CloseCurrent, gText_Lilycove_Exhibit0CloseAfter};
 
-static const u8 *const sLilycoveExhibit0FarAfter[] =
-{
-    gText_Lilycove_Exhibit0FarAfter0,
-    gText_Lilycove_Exhibit0FarAfter1,
-};
+static const u8 *const sRustboroStage0Far[] = {gText_Rustboro_Cut0FarCurrent};
+static const u8 *const sRustboroStage0Close[] = {gText_Rustboro_Cut0CloseCurrent, gText_Rustboro_Cut1CloseBefore};
+static const u8 *const sRustboroStage1Far[] = {gText_Rustboro_Cut1FarCurrent, gText_Rustboro_Cut0FarAfter0, gText_Rustboro_Cut0FarAfter1};
+static const u8 *const sRustboroStage1Close[] = {gText_Rustboro_Cut1CloseCurrent, gText_Rustboro_Cut0CloseAfter};
 
 #include "data/region/emerald_subplots.h"
 
@@ -129,55 +127,56 @@ void SetCountySlotStage(u32 countyId, u32 slot, u32 stage)
     SetSubplotStage(countyId, slot, GetCountySubplot(countyId, slot), stage);
 }
 
-u32 GetSubplotBeatState(u32 subplotStage, u32 beat)
+// Position on the line BEFORE, 0, 1, ..., AFTER, so ranges can end at a pseudo-stage.
+static u32 StageRank(u32 stage)
 {
-    if (subplotStage < beat)
-        return SUBPLOT_BEFORE;
-    return subplotStage == beat ? SUBPLOT_CURRENT : SUBPLOT_AFTER;
+    if (stage == SUBPLOT_STAGE_BEFORE)
+        return 0;
+    return stage == SUBPLOT_STAGE_AFTER ? 0x200 : stage + 1;
 }
 
-static const u8 *PickFromList(const struct SubplotTextList *list, u32 selector)
+bool32 DoesSubplotHintCover(const struct SubplotHint *hint, u32 subplotStage)
 {
+    u32 rank = StageRank(subplotStage);
+
+    return StageRank(hint->firstStage) <= rank && rank <= StageRank(hint->lastStage);
+}
+
+const struct SubplotHint *FindSubplotHint(const struct SubplotDesc *desc, u32 subplotStage)
+{
+    u32 i;
+
+    for (i = 0; i < desc->numHints; i++)
+    {
+        if (DoesSubplotHintCover(&desc->hints[i], subplotStage))
+            return &desc->hints[i];
+    }
+    return NULL;
+}
+
+const u8 *GetSubplotHint(const struct SubplotDesc *desc, u32 subplotStage, u32 distance, u32 selector)
+{
+    const struct SubplotHint *hint;
+    const struct SubplotTextList *list;
+
+    assertf(desc != NULL, "no subplot to hint about")
+    {
+        return NULL;
+    }
+    hint = FindSubplotHint(desc, subplotStage);
+    if (hint == NULL)
+        return NULL;
+    list = distance == SUBPLOT_FAR ? &hint->far : &hint->close;
     if (list->count == 0)
         return NULL;
     return list->texts[selector % list->count];
 }
 
-const u8 *GetSubplotHint(const struct SubplotDesc *desc, u32 subplotStage, u32 beat, u32 distance, u32 selector)
-{
-    const struct SubplotStageHints *hints;
-    u32 state;
-
-    assertf(desc != NULL && beat < desc->numStages, "no subplot stage %d", beat)
-    {
-        return NULL;
-    }
-    hints = &desc->stages[beat].hints;
-    state = GetSubplotBeatState(subplotStage, beat);
-    if (distance == SUBPLOT_FAR)
-    {
-        if (state == SUBPLOT_BEFORE)
-            return PickFromList(&hints->farBefore, selector);
-        return state == SUBPLOT_CURRENT ? hints->farCurrent : PickFromList(&hints->farAfter, selector);
-    }
-    if (state == SUBPLOT_BEFORE)
-        return hints->closeBefore;
-    return state == SUBPLOT_CURRENT ? hints->closeCurrent : hints->closeAfter;
-}
-
-const u8 *GetCountySlotHintAbout(u32 countyId, u32 slot, u32 beat, u32 distance, u32 selector)
-{
-    const struct SubplotDesc *desc = GetCountySubplot(countyId, slot);
-
-    return GetSubplotHint(desc, GetSubplotStage(countyId, slot, desc), beat, distance, selector);
-}
-
 const u8 *GetCountySlotHint(u32 countyId, u32 slot, u32 distance, u32 selector)
 {
     const struct SubplotDesc *desc = GetCountySubplot(countyId, slot);
-    u32 stage = GetSubplotStage(countyId, slot, desc);
 
-    return GetSubplotHint(desc, stage, stage, distance, selector);
+    return GetSubplotHint(desc, GetSubplotStage(countyId, slot, desc), distance, selector);
 }
 
 bool32 DoesSubplotProduce(const struct SubplotDesc *desc, u32 kind, u32 ordinal)
@@ -260,6 +259,10 @@ u32 GetSubplotHintCount(const struct SubplotDesc *desc, u32 beat, u32 badgesHeld
 
 void BufferSubplotHintCount(const struct SubplotDesc *desc, u32 beat)
 {
+    assertf(beat < desc->numStages, "no subplot stage %d; a pseudo-stage has no hint count", beat)
+    {
+        return;
+    }
     if (desc->stages[beat].hintCount != SUBPLOT_COUNT_NONE)
         ConvertIntToDecimalStringN(gStringVar1, GetSubplotHintCount(desc, beat, GetBadgeCount()), STR_CONV_MODE_LEFT_ALIGN, 3);
 }
@@ -499,9 +502,10 @@ void SetCurrentSubplotStage(void)
     SetCountySlotStage(GetCurrentMapCounty(), gSpecialVar_0x8004, gSpecialVar_0x8005);
 }
 
-// Script special: VAR_0x8004 = slot, VAR_0x8005 = beat, VAR_0x8006 = the NPC's selector. Puts the hinter's
-// text in gStringVar4 and sets VAR_RESULT = TRUE; FALSE (buffer untouched) means "say generic text". The
-// hinter stands in the host city, so it is always close.
+// Script special: VAR_0x8004 = slot, VAR_0x8005 = beat (the stage whose anchor and count the text names),
+// VAR_0x8006 = the NPC's selector. Puts the hinter's text for the subplot's current stage in gStringVar4 and
+// sets VAR_RESULT = TRUE; FALSE (buffer untouched) means "say generic text". The hinter stands in the host
+// city, so it is always close.
 void ShowCurrentSubplotHint(void)
 {
     u32 county = GetCurrentMapCounty();
@@ -515,7 +519,7 @@ void ShowCurrentSubplotHint(void)
     {
         return;
     }
-    text = GetCountySlotHintAbout(county, slot, beat, SUBPLOT_CLOSE, gSpecialVar_0x8006);
+    text = GetCountySlotHint(county, slot, SUBPLOT_CLOSE, gSpecialVar_0x8006);
     if (text == NULL)
         return;
     BufferSubplotHintCount(desc, beat);
