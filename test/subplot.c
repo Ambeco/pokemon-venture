@@ -92,7 +92,7 @@ TEST("Subplot: Rustboro and Lilycove host one subplot each, in slot 0")
     }
 }
 
-TEST("Subplot: Slot vars lie in the county's own slice after its mask var")
+TEST("Subplot: Slot vars lie in the county's own slice after its chain var")
 {
     u32 county, slot;
 

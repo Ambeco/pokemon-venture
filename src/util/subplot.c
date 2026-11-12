@@ -52,7 +52,7 @@ const struct SubplotDesc *GetCountySubplot(u32 countyId, u32 slot)
 {
     u32 i;
 
-    assertf(slot < SUBPLOTS_PER_COUNTY, "subplot slot %d >= %d; slot 0 of a county slice is its completion mask", slot, SUBPLOTS_PER_COUNTY)
+    assertf(slot < SUBPLOTS_PER_COUNTY, "subplot slot %d >= %d; var 0 of a county slice is its chain position", slot, SUBPLOTS_PER_COUNTY)
     {
         return NULL;
     }

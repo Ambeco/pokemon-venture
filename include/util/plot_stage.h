@@ -9,7 +9,7 @@
  * done-predicate over Emerald's flags and vars, and a class. The stage accessor reports, for a
  * main-story-index list, which of its gets are done and which of them gate the list; callers cannot
  * tell where the answer comes from. Today only the adapter answers it, from Emerald's old flags and
- * vars; the stored backend (the host county's completion mask, Milestone 3) is not written yet.
+ * vars; the stored backend (the host county's chain, Milestone 3) is not written yet.
  *
  * A gym with an HM is two gets (badge, HM receipt), and an HM displaced from its gym's slot is one
  * (HM receipt only). A step-3 unlock is a list with no gets, except an unlock whose key is not a get

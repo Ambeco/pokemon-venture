@@ -7,7 +7,7 @@
  * A subplot is a linear list of stages. A county hosts up to SUBPLOTS_PER_COUNTY subplots, each in a
  * numbered slot; callers address a subplot by (county, slot) and never by identity, so moving a subplot to
  * another host moves no state. A stored subplot keeps its stage in the host county's slice var for that
- * slot (a county's var 0 is reserved for the completion mask). An adapter subplot has no state of its own:
+ * slot (a county's var 0 is its chain position, see county_chain.h). An adapter subplot has no state of its own:
  * its stage is the highest stage whose done-predicate is true, over Emerald's old flags and vars, and it
  * cannot be set. The query functions cannot tell the two apart.
  *
