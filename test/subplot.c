@@ -647,3 +647,61 @@ TEST("Subplot: Two stages of one subplot anchor different buildings")
     EXPECT_EQ(sGatedDesc.stages[1].anchor.role, BUILDING_MART);
     EXPECT_EQ(sGatedDesc.stages[1].anchor.kind, BEAT_ANCHOR_DOOR);
 }
+
+TEST("Subplot: A hint template expands {HINT_PLACE} to the anchor's building or location name")
+{
+    u8 out[96];
+    static const u8 sTemplate[] = _("the {HINT_PLACE} in {HINT_CITY}");
+    static const struct BeatAnchor mart = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_MART};
+    static const struct BeatAnchor cave = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, ROUTE_LOCATION_CAVE, 0};
+    static const struct BeatAnchor outdoors = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0};
+    u8 expect[96];
+
+    ExpandHintTemplate(out, sTemplate, RUSTBORO, &mart);
+    StringCopy(StringCopy(expect, COMPOUND_STRING("the MART in ")), GetCountyCityName(RUSTBORO));
+    EXPECT_EQ(StringCompare(out, expect), 0);
+    ExpandHintTemplate(out, sTemplate, RUSTBORO, &cave);
+    EXPECT_EQ(StringCompareN(out, COMPOUND_STRING("the cave in "), 12), 0);
+    ExpandHintTemplate(out, sTemplate, RUSTBORO, &outdoors);
+    EXPECT_EQ(StringCompareN(out, COMPOUND_STRING("the spot in "), 12), 0);
+}
+
+TEST("Subplot: A pseudo-stage hint reads its anchor and count from the nearest real stage")
+{
+    EXPECT_EQ(ResolveHintStage(&sGatedDesc, SUBPLOT_STAGE_BEFORE), 0);
+    EXPECT_EQ(ResolveHintStage(&sGatedDesc, SUBPLOT_STAGE_AFTER), ARRAY_COUNT(sGatedStages) - 1);
+    EXPECT_EQ(ResolveHintStage(&sGatedDesc, 1), 1);
+    EXPECT_EQ(GetSubplotHintCount(&sGatedDesc, SUBPLOT_STAGE_BEFORE, 0), 4);
+    EXPECT_EQ(GetSubplotHintCount(&sGatedDesc, SUBPLOT_STAGE_AFTER, 0), 0);
+    SetBadges(0x12);
+    BufferSubplotHintCount(&sGatedDesc, SUBPLOT_STAGE_BEFORE);
+    EXPECT_EQ(StringCompare(gStringVar1, COMPOUND_STRING("2")), 0);
+}
+
+static const struct SubplotActor sPseudoActors[] =
+{
+    {SUBPLOT_STAGE_BEFORE, 0, 0x1, 1},
+    {1, SUBPLOT_STAGE_AFTER, 0x2, 2},
+    {SUBPLOT_STAGE_BEFORE, SUBPLOT_STAGE_AFTER, 0, 3},
+};
+
+static const struct SubplotDesc sPseudoActorDesc =
+{
+    .backend = SUBPLOT_ADAPTER,
+    .numStages = 3,
+    .numActors = ARRAY_COUNT(sPseudoActors),
+    .actors = sPseudoActors,
+};
+
+TEST("Subplot: Actors with ranges ending at a pseudo-stage are listed for it")
+{
+    const struct SubplotActor *out[3];
+
+    EXPECT_EQ(GetSubplotActors(&sPseudoActorDesc, SUBPLOT_STAGE_BEFORE, out, 3), 2);
+    EXPECT_EQ(out[0]->gfxId, 1);
+    EXPECT_EQ(out[1]->gfxId, 3);
+    EXPECT_EQ(GetSubplotActors(&sPseudoActorDesc, SUBPLOT_STAGE_AFTER, out, 3), 2);
+    EXPECT_EQ(out[0]->gfxId, 2);
+    EXPECT_EQ(GetSubplotActors(&sPseudoActorDesc, 0, out, 3), 2);
+    EXPECT_EQ(GetSubplotActors(&sPseudoActorDesc, 1, out, 3), 2);
+}

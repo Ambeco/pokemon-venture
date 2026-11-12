@@ -271,6 +271,7 @@
 #define PLACEHOLDER_ID_REGION        0xE
 #define PLACEHOLDER_ID_HINT_ANCHOR   0xF // hint templates only: ExpandHintTemplate must have replaced it
 #define PLACEHOLDER_ID_HINT_CITY     0x10 // as above: the host city's name
+#define PLACEHOLDER_ID_HINT_PLACE    0x11 // as above: the anchor's building or location kind name ("MART", "cave")
 
 // battle placeholders are located in battle_message.h
 

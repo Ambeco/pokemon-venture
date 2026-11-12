@@ -194,7 +194,7 @@ u32 GetSubplotActors(const struct SubplotDesc *desc, u32 stage, const struct Sub
     }
     for (i = 0; i < desc->numActors; i++)
     {
-        if (stage < desc->actors[i].firstStage || stage > desc->actors[i].lastStage)
+        if (StageRank(stage) < StageRank(desc->actors[i].firstStage) || StageRank(stage) > StageRank(desc->actors[i].lastStage))
             continue;
         if (total < maxOut)
             out[total] = &desc->actors[i];
@@ -237,8 +237,18 @@ u32 ResolveSubplotKey(const struct SubplotKeyRef *ref, u32 hostCounty)
     return MCGUFFIN_ID_NONE;
 }
 
+u32 ResolveHintStage(const struct SubplotDesc *desc, u32 stage)
+{
+    if (stage == SUBPLOT_STAGE_BEFORE)
+        return 0;
+    if (stage == SUBPLOT_STAGE_AFTER)
+        return desc->numStages - 1;
+    return stage;
+}
+
 u32 GetSubplotHintCount(const struct SubplotDesc *desc, u32 beat, u32 badgesHeld)
 {
+    beat = ResolveHintStage(desc, beat);
     assertf(beat < desc->numStages, "no subplot stage %d", beat)
     {
         return 0;
@@ -259,7 +269,8 @@ u32 GetSubplotHintCount(const struct SubplotDesc *desc, u32 beat, u32 badgesHeld
 
 void BufferSubplotHintCount(const struct SubplotDesc *desc, u32 beat)
 {
-    assertf(beat < desc->numStages, "no subplot stage %d; a pseudo-stage has no hint count", beat)
+    beat = ResolveHintStage(desc, beat);
+    assertf(beat < desc->numStages, "no subplot stage %d", beat)
     {
         return;
     }
@@ -412,7 +423,10 @@ u32 GetBeatDistance(u32 hostCounty, const struct BeatAnchor *anchor, u32 hinterC
     return hinterCounty == GetBeatAnchorCounty(hostCounty, anchor) ? SUBPLOT_CLOSE : SUBPLOT_FAR;
 }
 
-u8 *WriteBeatAnchorReference(u8 *dst, u32 hostCounty, const struct BeatAnchor *anchor)
+static const u8 sFallbackPlace[] = _("spot");
+
+// The anchor's building role name, else its location kind name, else NULL (a route or outdoors anchor).
+static const u8 *GetAnchorPlaceName(const struct BeatAnchor *anchor)
 {
     u32 bit;
 
@@ -420,27 +434,43 @@ u8 *WriteBeatAnchorReference(u8 *dst, u32 hostCounty, const struct BeatAnchor *a
     {
         assertf((anchor->role & (anchor->role - 1)) == 0, "anchor role 0x%x has several bits; did you mean one BuildingRole?", anchor->role)
         {
-            return dst;
+            return NULL;
         }
         for (bit = 0; bit < ARRAY_COUNT(sBuildingRoleNames); bit++)
         {
             if (anchor->role == 1u << bit)
-                break;
+                return sBuildingRoleNames[bit];
         }
-        assertf(bit < ARRAY_COUNT(sBuildingRoleNames), "anchor role 0x%x has no name; did you mean to add it to sBuildingRoleNames?", anchor->role)
+        assertf(FALSE, "anchor role 0x%x has no name; did you mean to add it to sBuildingRoleNames?", anchor->role)
         {
-            return dst;
+            return NULL;
         }
-        StringAppend(StringCopy(dst, sNearThe), sBuildingRoleNames[bit]);
-        return dst + StringLength(dst);
     }
     if (anchor->locationKind != BEAT_LOCATION_NONE)
     {
         assertf(anchor->locationKind < ARRAY_COUNT(sLocationKindNames), "anchor location kind %d >= %d", anchor->locationKind, ARRAY_COUNT(sLocationKindNames))
         {
-            return dst;
+            return NULL;
         }
-        StringAppend(StringCopy(dst, sNearThe), sLocationKindNames[anchor->locationKind]);
+        return sLocationKindNames[anchor->locationKind];
+    }
+    return NULL;
+}
+
+u8 *WriteBeatAnchorPlace(u8 *dst, const struct BeatAnchor *anchor)
+{
+    const u8 *name = GetAnchorPlaceName(anchor);
+
+    return StringCopy(dst, name != NULL ? name : sFallbackPlace);
+}
+
+u8 *WriteBeatAnchorReference(u8 *dst, u32 hostCounty, const struct BeatAnchor *anchor)
+{
+    const u8 *name = GetAnchorPlaceName(anchor);
+
+    if (name != NULL)
+    {
+        StringAppend(StringCopy(dst, sNearThe), name);
         return dst + StringLength(dst);
     }
     if (anchor->routeId < NUM_COUNTIES && DoesCountyHaveCity(anchor->routeId))
@@ -469,6 +499,11 @@ u8 *ExpandHintTemplate(u8 *dst, const u8 *src, u32 hostCounty, const struct Beat
         else if (src[0] == PLACEHOLDER_BEGIN && src[1] == PLACEHOLDER_ID_HINT_CITY)
         {
             dst = StringCopy(dst, GetCountyCityName(hostCounty));
+            src += 2;
+        }
+        else if (src[0] == PLACEHOLDER_BEGIN && src[1] == PLACEHOLDER_ID_HINT_PLACE)
+        {
+            dst = WriteBeatAnchorPlace(dst, anchor);
             src += 2;
         }
         else if (src[0] == PLACEHOLDER_BEGIN)
@@ -515,7 +550,7 @@ void ShowCurrentSubplotHint(void)
     const u8 *text;
 
     gSpecialVar_Result = FALSE;
-    assertf(desc != NULL && beat < desc->numStages, "county %d slot %d has no stage %d to hint about; did the script set VAR_0x8004 (slot) and VAR_0x8005 (beat)?", county, slot, beat)
+    assertf(desc != NULL && ResolveHintStage(desc, beat) < desc->numStages, "county %d slot %d has no stage %d to hint about; did the script set VAR_0x8004 (slot) and VAR_0x8005 (beat)?", county, slot, beat)
     {
         return;
     }
@@ -523,7 +558,7 @@ void ShowCurrentSubplotHint(void)
     if (text == NULL)
         return;
     BufferSubplotHintCount(desc, beat);
-    ExpandHintTemplate(gStringVar4, text, county, &desc->stages[beat].anchor);
+    ExpandHintTemplate(gStringVar4, text, county, &desc->stages[ResolveHintStage(desc, beat)].anchor);
     BreakStringForFieldMessage(gStringVar4);
     gSpecialVar_Result = TRUE;
 }

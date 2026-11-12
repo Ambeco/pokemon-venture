@@ -67,7 +67,7 @@ static void ExpectDismissedByA(void)
 
 TEST("PokemonCenterNews: Talking to Lilycove's Pokemon Center Boy shows the county's news until A is pressed")
 {
-    static EWRAM_DATA u8 sExpect[200];
+    static EWRAM_DATA u8 sExpect[300];
 
     Test_LoadMap(MAP_GROUP(MAP_LILYCOVE_CITY_POKEMON_CENTER_1F), MAP_NUM(MAP_LILYCOVE_CITY_POKEMON_CENTER_1F));
     TalkTo(LilycoveCity_PokemonCenter_1F_EventScript_Boy);
@@ -78,7 +78,7 @@ TEST("PokemonCenterNews: Talking to Lilycove's Pokemon Center Boy shows the coun
 
 TEST("PokemonCenterNews: The special writes the news for the map's county and succeeds")
 {
-    static EWRAM_DATA u8 sExpect[200];
+    static EWRAM_DATA u8 sExpect[300];
     struct MapHeader saved = gMapHeader;
 
     gMapHeader.regionMapSectionId = MAPSEC_LILYCOVE_CITY;
@@ -95,7 +95,7 @@ TEST("PokemonCenterNews: The special writes the news for the map's county and su
 // A city NPC bound by hand as a subplot hinter says the planner's hint for its (slot, beat, selector).
 static void ExpectHinterSpeaksIn(u32 county, u32 mapGroup, u32 mapNum, const u8 *script, u32 plannedIndex, u32 x, u32 y)
 {
-    static EWRAM_DATA u8 sExpect[200];
+    static EWRAM_DATA u8 sExpect[300];
     struct HinterPlacement out[MAX_COUNTY_HINTERS];
     const struct SubplotDesc *desc;
     const u8 *text;

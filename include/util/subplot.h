@@ -196,7 +196,12 @@ const u8 *GetCountySlotHint(u32 countyId, u32 slot, u32 distance, u32 selector);
 // TRUE iff completing the subplot is the planner item (kind, ordinal); a gym item names its HM too.
 bool32 DoesSubplotProduce(const struct SubplotDesc *desc, u32 kind, u32 ordinal);
 
-// Actors this subplot wants present at `stage`: fills `out` (up to maxOut) and returns the total count.
+// The real stage whose anchor and hint count a hint at `stage` uses: BEFORE names stage 0, AFTER the last
+// stage, a real stage itself. A hint in a pseudo-stage range thus reads like a hint about the neighbouring
+// real stage; a hinter bound to a real beat still passes that beat instead.
+u32 ResolveHintStage(const struct SubplotDesc *desc, u32 stage);
+
+// Actors this subplot wants present at `stage` (a real stage or a pseudo-stage; ranges may end at one): fills `out` (up to maxOut) and returns the total count.
 u32 GetSubplotActors(const struct SubplotDesc *desc, u32 stage, const struct SubplotActor **out, u32 maxOut);
 
 // City whose people are "close" to the anchor: the host county's, since subplots are single-county.
@@ -209,8 +214,12 @@ u32 GetBeatDistance(u32 hostCounty, const struct BeatAnchor *anchor, u32 hinterC
 // "in LILYCOVE CITY" when the anchor names no place) at dst and returns the end of the string.
 u8 *WriteBeatAnchorReference(u8 *dst, u32 hostCounty, const struct BeatAnchor *anchor);
 
+// Writes the anchor's building or location kind name ("MART", "cave"), or "spot" for a route or city anchor.
+u8 *WriteBeatAnchorPlace(u8 *dst, const struct BeatAnchor *anchor);
+
 // Copies the hint template src to dst, replacing each {HINT_ANCHOR} with WriteBeatAnchorReference's phrase
-// and each {HINT_CITY} with the host county's city name, so a moved subplot names its new city.
+// each {HINT_PLACE} with WriteBeatAnchorPlace's name and each {HINT_CITY} with the host county's city name,
+// so a moved subplot names its new city ("the {HINT_PLACE} in {HINT_CITY}").
 // Other placeholders pass through for StringExpandPlaceholders. Returns the end (the EOS).
 u8 *ExpandHintTemplate(u8 *dst, const u8 *src, u32 hostCounty, const struct BeatAnchor *anchor);
 

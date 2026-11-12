@@ -354,6 +354,7 @@ REGION         = FD 0E
 @ subplot hint templates: replaced by ExpandHintTemplate before StringExpandPlaceholders sees it
 HINT_ANCHOR    = FD 0F
 HINT_CITY      = FD 10
+HINT_PLACE     = FD 11
 
 @ battle string placeholders
 

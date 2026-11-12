@@ -8,6 +8,9 @@
 #include "plot_stage.h"
 #include "region_tile.h"
 #include "subplot.h"
+#include "data.h"
+#include "battle_main.h"
+#include "region_plot.h"
 #include "line_break.h"
 #include "text.h"
 
@@ -165,7 +168,7 @@ TEST("CityHinters: The next beat skips empty lists and has no successor after th
 
 TEST("CityHinters: News away from the host is the far main-beat hint; in the host county the close one")
 {
-    static EWRAM_DATA u8 sNews[200], sExpect[200];
+    static EWRAM_DATA u8 sNews[300], sExpect[300];
     u32 index, host, other;
 
     for (index = 0; index < MAIN_STORY_INDEX_POSTGAME; index++)
@@ -186,7 +189,7 @@ TEST("CityHinters: News away from the host is the far main-beat hint; in the hos
 
 TEST("CityHinters: News always has text for every index and county")
 {
-    static EWRAM_DATA u8 sNews[200];
+    static EWRAM_DATA u8 sNews[300];
     u32 index, county;
 
     for (index = 0; index <= MAIN_STORY_INDEX_POSTGAME; index++)
@@ -206,7 +209,7 @@ TEST("CityHinters: News always has text for every index and county")
 // The field message window's text area is 208 px wide (lines end at a newline, scroll or clear control code).
 static s32 GetWidestLineWidth(const u8 *str)
 {
-    static EWRAM_DATA u8 sLine[200];
+    static EWRAM_DATA u8 sLine[300];
     s32 widest = 0;
     u32 i, n = 0;
 
@@ -232,7 +235,7 @@ static s32 GetWidestLineWidth(const u8 *str)
 
 TEST("CityHinters: Every line of the news and of the main-beat hints fits the message box")
 {
-    static EWRAM_DATA u8 sText[200];
+    static EWRAM_DATA u8 sText[300];
     u32 index, county;
 
     for (index = 0; index <= MAIN_STORY_INDEX_POSTGAME; index++)
@@ -305,7 +308,7 @@ TEST("CityHinters: Every line of every subplot hint, with its anchor expanded, f
 
 TEST("CityHinters: A step-3 list with no host still points at its block's county, vaguely")
 {
-    static EWRAM_DATA u8 sFar[200], sClose[200], sCity[200];
+    static EWRAM_DATA u8 sFar[300], sClose[300], sCity[300];
     u32 index, host, county, found = 0;
 
     for (index = 3; index < MAIN_STORY_INDEX_POSTGAME; index += 4)
@@ -327,7 +330,7 @@ TEST("CityHinters: A step-3 list with no host still points at its block's county
 
 TEST("CityHinters: A beat hosted in a county without a city is vague news naming its landmark or detour")
 {
-    static EWRAM_DATA u8 sNews[200], sGeneric[200];
+    static EWRAM_DATA u8 sNews[300], sGeneric[300];
     u32 index, host;
 
     WritePokemonCenterNews(sGeneric, MAIN_STORY_INDEX_POSTGAME, 0);
@@ -343,7 +346,7 @@ TEST("CityHinters: A beat hosted in a county without a city is vague news naming
 
 TEST("CityHinters: Postgame and host-less news is generic, fixed per county")
 {
-    static EWRAM_DATA u8 sA[200], sB[200];
+    static EWRAM_DATA u8 sA[300], sB[300];
     u32 county;
 
     for (county = 0; county < NUM_COUNTIES; county++)
@@ -369,7 +372,7 @@ TEST("CityHinters: A subplot counts as producing only the planner item it names"
 
 TEST("CityHinters: Subplot news is the current close hint of the stage, and a missing subplot has none")
 {
-    static EWRAM_DATA u8 sNews[200];
+    static EWRAM_DATA u8 sNews[300];
 
     EXPECT(WriteSubplotNews(sNews, LILYCOVE, 0));
     EXPECT(sNews[0] != EOS);
@@ -412,7 +415,7 @@ TEST("CityHinters: Role capacities follow the placeholder budget")
 
 TEST("CityHinters: Every main beat has a hint with its host city, far and close")
 {
-    static EWRAM_DATA u8 sBuf[200];
+    static EWRAM_DATA u8 sBuf[300];
     u32 index, host, checked = 0;
 
     for (index = 0; index < NUM_COUNTIES * 4; index++)
@@ -422,7 +425,7 @@ TEST("CityHinters: Every main beat has a hint with its host city, far and close"
         if (!GetMainBeatHost(index, &host) || !DoesCountyHaveCity(host))
             continue;
         end = WriteMainBeatHint(sBuf, index, SUBPLOT_FAR);
-        EXPECT(end > sBuf && end - sBuf < 120);
+        EXPECT(end > sBuf && end - sBuf < 240);
         EXPECT(sBuf[0] != EOS);
         end = WriteMainBeatHint(sBuf, index, SUBPLOT_CLOSE);
         EXPECT(end > sBuf);
@@ -433,7 +436,7 @@ TEST("CityHinters: Every main beat has a hint with its host city, far and close"
 
 TEST("CityHinters: Far and close main-beat hints open differently and name the city")
 {
-    static EWRAM_DATA u8 sFar[200], sClose[200];
+    static EWRAM_DATA u8 sFar[300], sClose[300];
     u32 index, host;
 
     for (index = 0; index < NUM_COUNTIES * 4; index++)
@@ -446,4 +449,70 @@ TEST("CityHinters: Far and close main-beat hints open differently and name the c
     WriteMainBeatHint(sClose, index, SUBPLOT_CLOSE);
     EXPECT(StringCompare(sFar, sClose) != 0);
     EXPECT(StringLength(sFar) > StringLength(GetCountyCityName(host)));
+}
+
+static bool32 ContainsString(const u8 *haystack, const u8 *needle)
+{
+    u32 len = StringLength(needle), i, hay = StringLength(haystack);
+
+    for (i = 0; i + len <= hay; i++)
+    {
+        if (StringCompareN(haystack + i, needle, len) == 0)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+// The leader's own name is not checked: the test build's gTrainers is a stand-in without the real ids.
+TEST("CityHinters: A gym main-beat hint names the leader, the type and the HM it gives")
+{
+    static EWRAM_DATA u8 sText[300];
+    struct PlotSlot items[MAX_GETS_PER_LIST];
+    u32 index, host, checked = 0;
+
+    for (index = 0; index < NUM_COUNTIES * 4; index++)
+    {
+        u32 county;
+
+        if (!GetMainBeatHost(index, &host) || !DoesCountyHaveCity(host) || (index & 3) == 3)
+            continue;
+        ResolveVanillaPlotList(index, items, ARRAY_COUNT(items));
+        if (items[0].kind != PLOT_KIND_GYM || items[0].hmOnly)
+            continue;
+        county = GetGymCounty(items[0].ordinal);
+        WriteMainBeatHint(sText, index, SUBPLOT_FAR);
+        // Single words only: the line breaker may turn any space into a newline.
+        if (GetCountyGymType(county) != TYPE_NONE)
+        {
+            EXPECT(ContainsString(sText, COMPOUND_STRING("leader,")));
+            EXPECT(ContainsString(sText, gTypesInfo[GetCountyGymType(county)].name));
+        }
+        else
+        {
+            EXPECT(ContainsString(sText, COMPOUND_STRING("CHAMPION,")));
+        }
+        if (items[0].hm == PLOT_HM_SURF)
+            EXPECT(ContainsString(sText, COMPOUND_STRING("SURF")));
+        checked++;
+    }
+    EXPECT(checked > 0);
+}
+
+TEST("CityHinters: A non-gym main-beat hint carries no gym detail")
+{
+    static EWRAM_DATA u8 sText[300];
+    struct PlotSlot items[MAX_GETS_PER_LIST];
+    u32 index, host;
+
+    for (index = 0; index < NUM_COUNTIES * 4; index++)
+    {
+        if (!GetMainBeatHost(index, &host) || !DoesCountyHaveCity(host) || (index & 3) == 3)
+            continue;
+        ResolveVanillaPlotList(index, items, ARRAY_COUNT(items));
+        if (items[0].kind == PLOT_KIND_GYM)
+            continue;
+        WriteMainBeatHint(sText, index, SUBPLOT_FAR);
+        EXPECT(!ContainsString(sText, COMPOUND_STRING("leader,")));
+        EXPECT(!ContainsString(sText, COMPOUND_STRING("earns")));
+    }
 }

@@ -2,6 +2,9 @@
 #include "assertf.h"
 #include "line_break.h"
 #include "text.h"
+#include "data.h"
+#include "battle_main.h"
+#include "constants/pokemon.h"
 #include "city_hinters.h"
 #include "region_city.h"
 #include "plot_stage.h"
@@ -190,6 +193,71 @@ static const struct MainBeatPhrase sMainBeatBlockerPhrase =
 static const u8 sFarOpening[] = _("I heard ");
 static const u8 sCloseOpening[] = _("Word around town is ");
 
+static const u8 *const sHmNames[NUM_PLOT_HM_IDS] =
+{
+    [PLOT_HM_CUT] = COMPOUND_STRING("CUT"),
+    [PLOT_HM_FLASH] = COMPOUND_STRING("FLASH"),
+    [PLOT_HM_ROCK_SMASH] = COMPOUND_STRING("ROCK SMASH"),
+    [PLOT_HM_STRENGTH] = COMPOUND_STRING("STRENGTH"),
+    [PLOT_HM_SURF] = COMPOUND_STRING("SURF"),
+    [PLOT_HM_FLY] = COMPOUND_STRING("FLY"),
+    [PLOT_HM_DIVE] = COMPOUND_STRING("DIVE"),
+    [PLOT_HM_WATERFALL] = COMPOUND_STRING("WATERFALL"),
+};
+
+static const u8 sGymLeaderIs[] = _(" The leader, ");
+static const u8 sChampionIs[] = _(" The CHAMPION, ");
+static const u8 sUsesType[] = _(", uses ");
+static const u8 sTypeSuffix[] = _("-type POKéMON.");
+static const u8 sAwaits[] = _(", awaits.");
+static const u8 sHmEarned[] = _(" Winning there earns HM ");
+static const u8 sHmOnly[] = _(" The HM ");
+static const u8 sHmOnlyTail[] = _(" is up for grabs.");
+static const u8 sEnd[] = _(".");
+
+// Reads the normal-difficulty table (a hint has no business depending on the difficulty var). The copy is
+// bounded to the name field because the test build's gTrainers is a tiny stand-in, so real ids read junk.
+static u8 *WriteGymLeaderName(u8 *dst, u32 county)
+{
+    StringCopyN(dst, gTrainers[DIFFICULTY_NORMAL][GetCountyGymLeader(county)].trainerName, TRAINER_NAME_LENGTH + 1);
+    dst[TRAINER_NAME_LENGTH] = EOS;
+    return dst + StringLength(dst);
+}
+
+// A gym item adds its leader, type and HM; an HM displaced from its gym's slot names just the HM.
+static u8 *WriteGymDetail(u8 *dst, const struct PlotSlot *gym)
+{
+    if (gym->hmOnly)
+    {
+        dst = StringCopy(dst, sHmOnly);
+        dst = StringCopy(dst, sHmNames[gym->hm]);
+        return StringCopy(dst, sHmOnlyTail);
+    }
+    {
+        u32 county = GetGymCounty(gym->ordinal);
+        enum Type type = GetCountyGymType(county);
+
+        if (type == TYPE_NONE)
+        {
+            dst = StringCopy(dst, sChampionIs);
+            dst = WriteGymLeaderName(dst, county);
+            return StringCopy(dst, sAwaits);
+        }
+        dst = StringCopy(dst, sGymLeaderIs);
+        dst = WriteGymLeaderName(dst, county);
+        dst = StringCopy(dst, sUsesType);
+        dst = StringCopy(dst, gTypesInfo[type].name);
+        dst = StringCopy(dst, sTypeSuffix);
+    }
+    if (gym->hm != PLOT_HM_NONE)
+    {
+        dst = StringCopy(dst, sHmEarned);
+        dst = StringCopy(dst, sHmNames[gym->hm]);
+        dst = StringCopy(dst, sEnd);
+    }
+    return dst;
+}
+
 u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance)
 {
     struct PlotSlot items[MAX_GETS_PER_LIST];
@@ -219,6 +287,8 @@ u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance)
     dst = StringCopy(dst, phrase->lead);
     dst = WriteBeatAnchorReference(dst, host, &anchor);
     dst = StringCopy(dst, phrase->tail);
+    if ((index & 3) != 3 && items[0].kind == PLOT_KIND_GYM)
+        dst = WriteGymDetail(dst, &items[0]);
     // The phrases have no line breaks of their own, so without this the line overflows the message box.
     BreakStringForFieldMessage(start);
     return dst;
