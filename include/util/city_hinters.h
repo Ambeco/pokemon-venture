@@ -50,6 +50,9 @@ u32 GetNextMainBeat(u32 index);
 // Placeholder NPC capacity of a building role, or of outdoors for role 0.
 u32 GetHinterRoleCapacity(u32 role);
 
+// Writes the name of the county's gym leader (the Champion for the Elite Four) at dst and returns the end.
+u8 *WriteGymLeaderName(u8 *dst, u32 county);
+
 // Writes the hint about main-story-index `index` (which must have a host) at dst, for a hinter that is far
 // from or close to its host city, and returns the end. The phrase follows the first item of the list.
 // The text is line-broken to fit the field message box, so dst must start a message (not append to one).

@@ -54,8 +54,7 @@ LilycoveCity_EventScript_Man3::
 	end
 
 LilycoveCity_EventScript_Man3Generic::
-	msgbox LilycoveCity_Text_ContestHallInTown, MSGBOX_NPC
-	end
+	generic_npc_talk 0
 
 LilycoveCity_EventScript_Girl::
 	lock
@@ -76,8 +75,7 @@ LilycoveCity_EventScript_RichBoy::
 	end
 
 LilycoveCity_EventScript_RichBoyGeneric::
-	msgbox LilycoveCity_Text_ImFromKanto, MSGBOX_NPC
-	end
+	generic_npc_talk 0
 
 LilycoveCity_EventScript_Sailor2::
 	lock

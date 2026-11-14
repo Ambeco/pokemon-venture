@@ -2956,3 +2956,9 @@
 	setvar VAR_0x8006, \selector
 	call Common_EventScript_TrySubplotHint
 	.endm
+
+	@ role: the BuildingRole bit (region_city.h) of the NPC's building, 0 outdoors.
+	.macro generic_npc_talk role:req
+	setvar VAR_0x8004, \role
+	goto Common_EventScript_GenericNpcTalk
+	.endm

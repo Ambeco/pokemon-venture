@@ -59,11 +59,11 @@
 ### Milestone 1: NPC texts shuffled, still hinting the current arcs and subplot
 
 - Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when subplots are ported.
-- Text pools: per-theme, per-building-type, per-gym-type, "near"/"far" arc hints, arc-state thank-yous; parameterized with city and leader names.
+- Grow the text pools in `src/util/npc_talk.c` (two lines per theme and role, one thank-you pool, three gym shapes): more lines per pool, theme-specific lines per building role, thank-yous that depend on the arc state, and far references (see Milestone 1a). Check the pool lines in-game once.
 - Kanto text extraction (`Kanto.md`, "What the ROM can carry"): a build tool copies Kanto's generic texts out of `data/maps/*_Frlg/scripts.inc` into their own data file, which the pools above draw from alongside Hoenn's. City and island sign slogans (17) go into the city table as themes; building-role talk (fan club, name rater, school, bike shop, museum, ...) and generic NPC and sign texts need classifying by role and theme, which is this milestone's pool design. Only the Emerald-reusable roles are extracted; skip story texts and the deferred roles.
-- A generic NPC talk special that picks a text from (county, city, NPC local id, arc states); replace fixed `msgbox` scripts in `data/maps/*/scripts.inc` with it, via a conversion tool rather than by hand.
-- At map load, guarantee at least one hint NPC per arc in each city/route.
-- Done when: every arc state is hinted from every city, and a seed sweep finds no city without a hint.
+- Replace fixed `msgbox` scripts in `data/maps/*/scripts.inc` with `generic_npc_talk role` (design_city_npcs.md, "NPC dialogue"), via a conversion tool rather than by hand; only the fallbacks of Lilycove's and Rustboro's four hinters are converted. The tool must work out each NPC's building role, and keep NPCs that carry story state (flags, items, battles) as they are.
+- Routes: hint NPCs there (cities already have an arc hinter in every four local ids); at map load for generated maps, bind hinters and make sure a map has at least four NPCs using the generic talk.
+- Done when: every arc state is hinted from every city (true for the planner's data once the msgbox conversion covers every city's NPCs), and a seed sweep finds no city without a hint.
 
 ### Milestone 2: Subplots shuffled randomly
 

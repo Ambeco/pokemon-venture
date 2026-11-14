@@ -37,8 +37,15 @@ Where an entry is missing or an empty list, the NPC falls back to generic NPC te
 
 ## NPC dialogue
 
-- Each named building has a short list of NPC talking points.
-- Each gym type has a short list of NPC talking points, parameterized by city name and gym leader name.
+An NPC with no story text of its own calls `generic_npc_talk role` (`data/scripts/subplot_hinter.inc`; `role` is the `BuildingRole` bit of its building, 0 outdoors, written by hand until a conversion tool exists), which runs the `ShowGenericNpcTalk` special (`npc_talk.h`). The special stores nothing: it picks a line by `IdentityHash(seed, NPC_SALT_TALK, county | localId << 8 | mainIndex << 16)`, with the local id from `gSpecialVar_LastTalked`, so an NPC says the same thing while the main-story-index holds and a different NPC, or a new story state, may say something else. A hinter's generic fallback is this script. In order:
+
+1. Arc hint: one NPC in every `NPC_TALK_PERIOD` (4) consecutive local ids (offset by a hash of the county) says the Pokémon Center news for the first main beat at or after the main-story-index, so a city that hosts no beat still hints at every arc state, and the guarantee holds by construction for any map with four NPCs using the special. It stays silent once the main-story-index has no beat ahead.
+2. Thank-you: once the main-story-index is past every beat the county hosts, one NPC in three says a thank-you.
+3. Gym talk: an NPC in a GYM (with a type) names the leader and type in one of three sentence shapes, then a tip for the type (`sGymTypeTips`: which types are strong against it).
+4. Building talk: an NPC in a building says a line from the pool of its role, except one in four, who uses the theme pool.
+5. Theme talk: an NPC outdoors says a line from the pool of the city's theme.
+
+Pools are C strings (the test build cannot link script text), expanded through `ExpandHintTemplate` so lines may use `{HINT_CITY}`. They carry no manual line breaks, because the line breaker leaves hand-broken text alone and a hand-broken line overflows once the city name expands. A role or theme without lines asserts, rather than falling back to silence. Far hints naming a direction, far references to other counties and the per-state thank-you variants are not written yet.
 
 ## Alternatives considered
 

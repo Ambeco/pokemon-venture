@@ -153,8 +153,7 @@ RustboroCity_EventScript_Woman::
 	end
 
 RustboroCity_EventScript_WomanGeneric::
-	msgbox RustboroCity_Text_GymLeaderIsntEasyWithFire, MSGBOX_NPC
-	end
+	generic_npc_talk 0
 
 RustboroCity_EventScript_Man1::
 	lock
@@ -188,8 +187,7 @@ RustboroCity_EventScript_Twin::
 	end
 
 RustboroCity_EventScript_TwinGeneric::
-	msgbox RustboroCity_Text_WowYouHavePokemon, MSGBOX_NPC
-	end
+	generic_npc_talk 0
 
 RustboroCity_EventScript_NinjaBoy::
 	msgbox RustboroCity_Text_CatchRarePokemonIfIGoToSchool, MSGBOX_SIGN

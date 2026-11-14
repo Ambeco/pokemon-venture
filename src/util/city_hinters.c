@@ -217,7 +217,7 @@ static const u8 sEnd[] = _(".");
 
 // Reads the normal-difficulty table (a hint has no business depending on the difficulty var). The copy is
 // bounded to the name field because the test build's gTrainers is a tiny stand-in, so real ids read junk.
-static u8 *WriteGymLeaderName(u8 *dst, u32 county)
+u8 *WriteGymLeaderName(u8 *dst, u32 county)
 {
     StringCopyN(dst, gTrainers[DIFFICULTY_NORMAL][GetCountyGymLeader(county)].trainerName, TRAINER_NAME_LENGTH + 1);
     dst[TRAINER_NAME_LENGTH] = EOS;

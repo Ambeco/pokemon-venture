@@ -12,5 +12,6 @@
 #define REGION_SALT_MCGUFFIN_STRIDE  11
 #define REGION_SALT_MCGUFFIN_CROSS   13
 #define NPC_SALT_NEWS_GENERIC        15
+#define NPC_SALT_TALK                16 // generic NPC talk: which line, and which NPCs hint at the arc
 
 #endif // GUARD_CONSTANTS_IDENTITY_SALTS_H

@@ -646,3 +646,4 @@ gSpecials::
 	def_special IsMainStoryIndexPast
 	def_special ShowPokemonCenterNews
 	def_special IsCurrentSubplotAvailable
+	def_special ShowGenericNpcTalk

@@ -15,6 +15,20 @@ Common_EventScript_TrySubplotHint::
 	release
 	return
 
+@ Generic NPC talk (design_city_npcs.md, "NPC dialogue"): the NPC's own script, or the fallback of a hinter, is
+@     generic_npc_talk role
+@ and always has a text from the pools.
+Common_EventScript_GenericNpcTalk::
+	lock
+	faceplayer
+	special ShowGenericNpcTalk
+	special ShowFieldMessageStringVar4
+	waitmessage
+	waitbuttonpress
+	closemessage
+	release
+	end
+
 @ Pokémon Center news NPC (design_city_npcs.md, "City planning"): the NPC's own script is
 @     goto Common_EventScript_PokemonCenterNews
 @ ShowPokemonCenterNews always has a text (generic lines are its fallback), so the NPC needs no text of its own.
