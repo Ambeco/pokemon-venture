@@ -39,7 +39,7 @@ Detail lives in topic files; this file keeps the principles, the development ord
 | `design_city_npcs.md` | City planning steps, hinter NPCs, hint texts and beat anchors, main-beat hints, route blockers, Pokémon Center news, generic NPC dialogue. |
 | `design_dev.md` | The base codebase, config choices that shape the design, story mode, and the end-to-end test tier. |
 
-Other files: `Emerald.md` (the hardcoded Emerald stage's data and walkthrough analysis), `Kanto.md`, `vars.md` (var inventory), `remaining_work.md` (open items), `notes.md` (history and gotchas).
+Other files: `Emerald.md` (the hardcoded Emerald stage: one entry per county, planner inputs, exceptions), `Emerald_walkthrough.md` (the walkthrough's McGuffin chain with buckets, and levels per Part), `Kanto.md`, `vars.md` (var inventory), `remaining_work.md` (open items), `notes.md` (history and gotchas).
 
 ## Resource budget
 

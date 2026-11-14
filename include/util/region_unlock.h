@@ -3,8 +3,7 @@
 
 /**
  * Binds the main plot planner's step-3 unlock keys to route lock tiles, and gives each county (and
- * so each Enclave) its unlock point (design_story.md, "Main plot planner"; Emerald.md, "Main-story-index
- * table").
+ * so each Enclave) its unlock point (design_story.md, "Main plot planner"; Emerald.md, "Counties").
  *
  * Block x's step 3 (main-story-index 4x + 3) unlocks county x + 1 by a key: the items of block x's
  * lists that the player must hold. Every route into a county opens at once, so the key of a lock

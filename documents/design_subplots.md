@@ -17,7 +17,7 @@ Goal: city and special-location subplots become data that can be assigned to any
 
 ### Scope
 
-Only subplot beats need converting; trainer text, item pickups, trainer-defeated flags and NPC-hide flags stay as they are. The lock/key entries in `Emerald.md` fall into buckets:
+Only subplot beats need converting; trainer text, item pickups, trainer-defeated flags and NPC-hide flags stay as they are. The lock/key entries in `Emerald_walkthrough.md` fall into buckets:
 
 - Main arc (rival, Aqua/Magma, Wally, and any storyline spanning several counties, such as Devon Goods): stays on Emerald's vars behind the adapter until the arc cutscenes are generalized (Milestone 3). A subplot takes place entirely within a city and the starts of its adjacent routes, so a cross-county storyline is main arc (owned by its first county) or is split into per-city subplots.
 - City subplot and special-location subplot: converted, and the only buckets needed to unblock subplot shuffling.

@@ -9,6 +9,11 @@
 - `test/e2e` gotchas (design in `design_dev.md`): savestates embed ROM addresses (cache keyed by ROM hash); stored function pointers need the Thumb bit (`| 1`); node-mgba has `write8` only; static symbols are absent from the `.map`; the message prompt blinks (masked); `import()` of a UNC path needs `pathToFileURL`; Node exists on Windows only (use PowerShell); Windows mGBA 0.10.5 has no `--script` flag and `-s` is frameskip.
 - Map-loaded tests (`include/test/map_loaded.h`): the map load calls `MoveSaveBlocks_ResetHeap`, wiping the runner's heap state (the harness saves and re-allocates it), and leaves `gMain.callback2` at `CB2_Overworld` (the runner hangs until TIMEOUT unless `ReinitCallbacks()` runs). Large maps spawn only NPCs near the player (`Test_LoadMapAt`); `Test_FindObjectByScript` matches by local id because wandering NPCs move; a hinter's text reaches `gStringVar4` before `lock` finishes, so wait for the message box. `Test_MgbaPrintf` has no `%x`, which also shifts later args. Debug a silent hang by running `tools/mgba/mgba-rom-test` on a patched copy of the ELF (`patchelf gTestRunnerArgv`/`gTestRunnerHeadless`) and grepping the log for `Debug:`.
 
+## Documentation layout
+
+- `design.md` is an index plus principles; detail is in `design_*.md`, each with its own "Alternatives considered". Cite sections as file plus heading (`design_story.md, "Main plot planner"`); a quoted heading that lives in another file carries the file name.
+- `Emerald.md` is one entry per county (city, gym, theme, places, planner steps with done-when predicates, storage); the old separate county, theme, gym, city-data, kinds, step-table and predicate tables were merged into it. The McGuffin chain, buckets and levels live in `Emerald_walkthrough.md`.
+
 ## Codebase layout
 
 - `src/` ~387 C files (flat), `include/` headers, `include/config/` feature toggles, `data/maps/` ~944 maps, `test/` test suite, `tools/` build tools (mapjson, trainerproc, wild_encounters, etc.).

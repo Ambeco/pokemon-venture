@@ -253,7 +253,7 @@ TEST("RegionPlot: Item quotas match Emerald.md")
     EXPECT_EQ(NUM_PLOT_HM_IDS - 1, 8);
 }
 
-// Transcribed from the Emerald.md main-story-index table, not from the slot table.
+// Transcribed from the Emerald.md county Steps lines, not from the slot table.
 struct Expected
 {
     u8 index;

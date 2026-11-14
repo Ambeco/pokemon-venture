@@ -1,4 +1,4 @@
-// Step-3 unlock key of each block (Emerald.md, "Main-story-index table"): block x unlocks county x + 1.
+// Step-3 unlock key of each block (Emerald.md, "Counties"): block x unlocks county x + 1.
 // A gym key means its badge and HM. The Letter is not an item of its own; its get is Devon Goods recovered.
 
 #define OPEN_UNLOCK                 {PLOT_UNLOCK_OPEN, 0, 0, MCGUFFIN_ID_NONE}
