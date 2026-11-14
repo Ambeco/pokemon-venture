@@ -97,7 +97,7 @@ struct CountyHeader
     u32 population:2;       // 0 = no settlement, 1 village, 2 town, 3 city
     u32 keyId:3;            // jump ordinal 1-7 whose key this county holds, 0 = none; its lock is at storyIdx + 1
     u32 port:1;
-    u32 enclaveOnly:1;      // reserved end-game county holding only Enclaves: no city, no routes (design.md, "Enclaves")
+    u32 enclaveOnly:1;      // reserved end-game county holding only Enclaves: no city, no routes (design_region.md, "Enclaves")
     u32 reserved:6;
 } __attribute__((packed));
 
@@ -138,7 +138,7 @@ bool32 IsCountyEliteFour(u32 countyId);
 bool32 AreCountiesAdjacent(u32 a, u32 b);
 
 // Region-map cell bounds (inclusive) of a county's tiles. Edge counties are one tile smaller
-// because the outer 30x16 tile ring is off limits (design.md, "County layout").
+// because the outer 30x16 tile ring is off limits (design_region.md, "County layout").
 void GetCountyRegionBounds(u32 countyId, u32 *left, u32 *top, u32 *right, u32 *bottom);
 
 // County containing a cell of the 28x15 region map.

@@ -2,7 +2,7 @@
 #define GUARD_REGION_PLOT_H
 
 /**
- * Main plot planner inputs (design.md, "Main plot planner"; Emerald.md, "Planner inputs").
+ * Main plot planner inputs (design_story.md, "Main plot planner"; Emerald.md, "Planner inputs").
  *
  * Every item the planner places is a (kind, ordinal) pair. Two layers describe where it goes:
  * the vanilla slot table (a ROM table of {block, step, host} read while the planner's

@@ -2,7 +2,7 @@
 #define GUARD_PLOT_STAGE_H
 
 /**
- * Main-plot stage descriptor, accessor and read-only adapter (design.md, "Subplot abstraction";
+ * Main-plot stage descriptor, accessor and read-only adapter (design_subplots.md, "Subplot abstraction";
  * Emerald.md, "Step predicates for the read-only adapter").
  *
  * A get (one item the planner places, from ResolveVanillaPlotList) is described by a PlotGetDesc: a

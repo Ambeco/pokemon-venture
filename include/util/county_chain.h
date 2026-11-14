@@ -2,7 +2,7 @@
 #define GUARD_COUNTY_CHAIN_H
 
 /**
- * The county chain (design.md, "County chain"): a county's progress through the subplots that fulfil its
+ * The county chain (design_subplots.md, "County chain"): a county's progress through the subplots that fulfil its
  * main-story slots, stored as one position in var 0 of its slice.
  *
  * A chain is an ordered list of entries, each a subplot (by its subplot slot, vars 1-3 of the slice) that

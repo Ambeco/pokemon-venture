@@ -1,6 +1,6 @@
 # Var inventory
 
-Inventory of Emerald's saved vars (`include/constants/vars.h`, `0x4000`-`0x40FF`), for allocating story-state regions (design.md, "Story state storage"). Counts are word-matches of `VAR_*` in `data/`, `src/`, `test/` and `include/` (excluding `vars.h`). Usage descriptions come from names, comments and reference counts; verify the code before merging or repurposing any var. `vars_frlg.h` defines a second, overlapping FRLG var set (same addresses, `_FRLG` names) that no Emerald-build code references; ignore it.
+Inventory of Emerald's saved vars (`include/constants/vars.h`, `0x4000`-`0x40FF`), for allocating story-state regions (design_story.md, "Story state storage"). Counts are word-matches of `VAR_*` in `data/`, `src/`, `test/` and `include/` (excluding `vars.h`). Usage descriptions come from names, comments and reference counts; verify the code before merging or repurposing any var. `vars_frlg.h` defines a second, overlapping FRLG var set (same addresses, `_FRLG` names) that no Emerald-build code references; ignore it.
 
 Totals: 16 temp + 16 object-GFX vars (not persistent), 224 persistent vars `0x4020`-`0x40FF`, each in exactly one bucket: 56 free now, 10 freeable with a trivial edit, 106 keep (65 minigame/facility + 41 engine), 52 retire (39 main arc + 13 subplot; 1 already retired). The 106 keep vars are the size of the minigame and engine blocks; `test/vars.c` lists every persistent var with its block.
 
@@ -12,7 +12,7 @@ Freeable with a trivial edit (+10): `GIFT_UNUSED_1-7` `40DE-40E4` (only cleared 
 
 ## Keep: minigame and facility (65, own content; each gets a hardcoded range)
 
-Rule (design.md, "Story state storage"): content with a lot of non-script code (wanted in nearly every run, hard to fork), or many steps doable out of order. Location-bound content that Emerald.md counts as a county chain var (fan clubs, Glass Workshop, fossils, Mirage Tower, the weekly TM) is classed here instead, because each appears at most once per run and keeps its own code; this only lowers the per-county need. Block order follows the groups below, so a group can be packed or removed as a unit.
+Rule (design_story.md, "Story state storage"): content with a lot of non-script code (wanted in nearly every run, hard to fork), or many steps doable out of order. Location-bound content that Emerald.md counts as a county chain var (fan clubs, Glass Workshop, fossils, Mirage Tower, the weekly TM) is classed here instead, because each appears at most once per run and keeps its own code; this only lowers the per-county need. Block order follows the groups below, so a group can be packed or removed as a unit.
 
 | Group | Vars | Merge/reuse idea |
 | --- | --- | --- |

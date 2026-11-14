@@ -2,7 +2,7 @@
 #define GUARD_SUBPLOT_H
 
 /**
- * Subplot descriptor, stage accessor and NPC-talk query (design.md, "Subplot abstraction").
+ * Subplot descriptor, stage accessor and NPC-talk query (design_subplots.md, "Subplot abstraction").
  *
  * A subplot is a linear list of stages. A county hosts up to SUBPLOTS_PER_COUNTY subplots, each in a
  * numbered slot; callers address a subplot by (county, slot) and never by identity, so moving a subplot to
@@ -11,7 +11,7 @@
  * its stage is the highest stage whose done-predicate is true, over Emerald's old flags and vars, and it
  * cannot be set. The query functions cannot tell the two apart.
  *
- * Requirements and produced keys (design.md, "Placement and requirements"): a subplot lists the building
+ * Requirements and produced keys (design_subplots.md, "Placement and requirements"): a subplot lists the building
  * roles its host city needs (those it names itself, the roles of every stage anchor and extraRoles, so a
  * cutscene across several buildings needs them all), the badges it needs and the keys it consumes. A key is
  * named relative to the host (an index into the host county's McGuffin pool) or as a planner item, so it
@@ -50,7 +50,7 @@ enum SubplotDistance
 #define SUBPLOT_STAGE_BEFORE 0xFE
 #define SUBPLOT_STAGE_AFTER  0xFF
 
-// What triggers a beat (design.md, "City planning", beat placement).
+// What triggers a beat (design_city_npcs.md, "City planning", beat placement).
 enum BeatAnchorKind
 {
     BEAT_ANCHOR_NPC,            // immobile NPC
@@ -82,7 +82,7 @@ struct SubplotTextList
 
 #define TEXT_LIST(array) {array, ARRAY_COUNT(array)}
 
-// What NPCs say while the subplot's stage is in [firstStage, lastStage] (design.md, "City planning"); the
+// What NPCs say while the subplot's stage is in [firstStage, lastStage] (design_city_npcs.md, "City planning"); the
 // ends are real stages or pseudo-stages. Ranges of one subplot must not overlap, and together they must
 // cover every real stage. Far = another city, close = the host city. An NPC picks by its selector, so one
 // NPC always says the same line while the range holds. An empty list means "say generic text".
@@ -148,7 +148,7 @@ struct SubplotDesc
     struct SubplotKeyRef producedKey;
     bool8 givesReward; // the end reward is the McGuffin in producedKey, or a rare item when producedKey is none; FALSE = story advancement only
     // Intro McGuffins: every key must be produced before the subplot can start, so a chain entry's
-    // predecessor hands it over (design.md, "County chain").
+    // predecessor hands it over (design_subplots.md, "County chain").
     struct SubplotKeyRef requiredKeys[SUBPLOT_MAX_REQUIRED_KEYS];
     bool8 producesMainGet; // completion is a get of a main-plot list: mainGet names it, and the news points at this subplot
     struct PlotKeyRef mainGet;

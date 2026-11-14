@@ -39,7 +39,7 @@ struct RegionTilePos
     u8 y;
 };
 
-// Two enums in one value space, so a kind says whether the location is inside a city (design.md,
+// Two enums in one value space, so a kind says whether the location is inside a city (design_region.md,
 // "Special locations"; the Emerald assignment is in Emerald.md).
 enum RouteLocationKind
 {
@@ -72,7 +72,7 @@ enum TownLocationKind
     NUM_LOCATION_KINDS,
 };
 
-// A property of the place, not of its kind (design.md, "Special locations"). Landmarks and detours are
+// A property of the place, not of its kind (design_region.md, "Special locations"). Landmarks and detours are
 // routed; only landmarks appear on the region-map screen. A pitstop is placed on a free route tile
 // after routes are final, so routes never see it. An enclave has a tile but is neither routed nor a
 // route tile, and is on the map only if its enclaveOnMap flag is set.
@@ -82,7 +82,7 @@ enum LocationClass
     LOCATION_CLASS_LANDMARK,
     LOCATION_CLASS_DETOUR,
     LOCATION_CLASS_PITSTOP,
-    LOCATION_CLASS_ENCLAVE, // no routes; reached by script (design.md, "Enclaves")
+    LOCATION_CLASS_ENCLAVE, // no routes; reached by script (design_region.md, "Enclaves")
 };
 
 struct SpecialLocation

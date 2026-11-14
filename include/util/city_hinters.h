@@ -2,7 +2,7 @@
 #define GUARD_CITY_HINTERS_H
 
 /**
- * City planner hinter steps (design.md, "City planning", steps 5 and 6).
+ * City planner hinter steps (design_city_npcs.md, "City planning", steps 5 and 6).
  *
  * PlanCountyHinters() lists the hinter NPCs a county's city must hold. It is derived on demand from the
  * subplot descriptors and the main plot, and stores nothing. A record binds one NPC to one beat: the NPC

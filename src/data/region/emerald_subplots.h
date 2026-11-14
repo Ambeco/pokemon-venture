@@ -1,4 +1,4 @@
-// Subplots ported to the descriptor and where Emerald hosts them (design.md, "Subplot abstraction").
+// Subplots ported to the descriptor and where Emerald hosts them (design_subplots.md, "Subplot abstraction").
 
 enum LilycoveMuseumStage
 {

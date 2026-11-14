@@ -2,7 +2,7 @@
 #define GUARD_REGION_PITSTOP_H
 
 /**
- * Deals the pool of pitstops out to counties (design.md, "Special locations").
+ * Deals the pool of pitstops out to counties (design_region.md, "Special locations").
  *
  * The pool is a fixed list of L pitstop places (GetPitstopPoolCount). Slot j of the deal is pool
  * entry (j * stride + offset) mod L, with the stride coprime to L, so no entry repeats. Counties

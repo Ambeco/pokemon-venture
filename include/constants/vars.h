@@ -48,7 +48,7 @@
 #define VAR_OBJ_GFX_ID_E           0x401E
 #define VAR_OBJ_GFX_ID_F           0x401F
 
-// Persistent vars are split into four blocks (see documents/vars.md and design.md, "Story state storage"):
+// Persistent vars are split into four blocks (see documents/vars.md and design_story.md, "Story state storage"):
 // county slices, a reserve, minigame/facility vars and engine vars. test/vars.c checks that they do not overlap.
 // Pairs read as one 32-bit value or one struct (FANCLUB_*, MIRAGE_RND_*, CYCLING_ROAD_RECORD_TIME_*,
 // POKELOT_RND*, SECRET_BASE_*_TV_FLAGS) must stay adjacent and in order.

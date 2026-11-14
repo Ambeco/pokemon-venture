@@ -3,7 +3,7 @@
 
 /**
  * Binds the main plot planner's step-3 unlock keys to route lock tiles, and gives each county (and
- * so each Enclave) its unlock point (design.md, "Main plot planner"; Emerald.md, "Main-story-index
+ * so each Enclave) its unlock point (design_story.md, "Main plot planner"; Emerald.md, "Main-story-index
  * table").
  *
  * Block x's step 3 (main-story-index 4x + 3) unlocks county x + 1 by a key: the items of block x's
@@ -21,7 +21,7 @@
  * for the key. An implicit key is not a planner item, so it is exempt from "a key is an item of its
  * own block".
  *
- * Intra-county locks are the county's private choice (design.md, "Main plot planner", rules) and
+ * Intra-county locks are the county's private choice (design_story.md, "Main plot planner", rules) and
  * come back as PLOT_UNLOCK_COUNTY_PRIVATE with the id of a McGuffin from the county's reserved pool.
  *
  * McGuffin ids are one u8 space: [0, NUM_COUNTY_MCGUFFIN_IDS) is split into NUM_COUNTIES pools of

@@ -38,7 +38,7 @@
 #define ROUTE_ID_TO_SPECIAL(index) (NUM_COUNTIES + (index))
 #define ROUTE_ID_NONE              0xFF
 
-// TRUE iff the route rules (design.md, "Route generation") join two adjacent counties: either one
+// TRUE iff the route rules (design_region.md, "Route generation") join two adjacent counties: either one
 // routes to the other because it is the capital or has an adjacent story index, or because it is
 // the other's highest-indexed neighbor when nothing else qualifies. Symmetric. This says nothing
 // about locations; a county without any yields empty halves.

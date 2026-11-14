@@ -1,4 +1,4 @@
-@ Generic route blocker (design.md, "Blocker McGuffins"). The caller sets VAR_0x8004 to the main-story-index s the
+@ Generic route blocker (design_story.md, "Blocker McGuffins"). The caller sets VAR_0x8004 to the main-story-index s the
 @ blocker holds until, then gotos the entry for the direction the player should be pushed (the way they came from).
 @ Once the index is past s the NPC says nothing and the player walks on. Texts come from the pool in
 @ gRouteBlockerTexts later; for now one generic line.

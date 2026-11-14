@@ -16,7 +16,7 @@
  * county. The starting town (county-story-index 0) has no Pokémon Center;
  * its mother heals the party and its bedroom holds the PC.
  *
- * GetGymSlot() is a main plot planner input (design.md, "Main plot planner"): the time block and
+ * GetGymSlot() is a main plot planner input (design_story.md, "Main plot planner"): the time block and
  * step in which gym k is given, and the planner replaces it later. A step-1 slot is a callback, so
  * the gym's county lies in an earlier block. Emerald's Surf exception lives here: gyms 5 and 6
  * share block 12 (Fortree), Petalburg's gym as the step-1 callback and Fortree's own as step 2.

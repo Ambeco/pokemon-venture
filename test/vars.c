@@ -4,7 +4,7 @@
 
 // Every persistent var in the minigame, engine and legacy blocks must be listed here with its block.
 // A var added to vars.h and missing from this list is not checked, so keep the two in sync.
-// See documents/vars.md and design.md ("Story state storage") for what the blocks hold.
+// See documents/vars.md and design_story.md ("Story state storage") for what the blocks hold.
 
 #define PERSISTENT_VARS_COUNT (VARS_END - PERSISTENT_VARS_START + 1)
 
