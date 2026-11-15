@@ -51,7 +51,8 @@
   - Advance the global main-story-index when `DidChainJustFinishMainSlot` fires (no stored index exists until Milestone 3; `GetMainStoryIndex` is computed by the adapter).
 - Scene runner (design_scenes.md, "Scene runner"; `src/field/scene.c`, first conversion is Littleroot's "need a Pokémon" girl):
   - Implement the vocabulary steps that still assert: `ask_yes_no`, `ask_choice`, `give`, `battle`, `music`, `custom`; add a `chase_loop` step (design_scenes.md, "Scene runner"; the Route 101 rescue needs it) and a pause step (the arrival has none).
-  - Route generation must guarantee the rescue's grass in view of the route entrance and an open 8-10 tile ring near it (design_scenes.md, "Scene runner").
+  - Route generation must guarantee the rescue's grass in view of the route entrance and an open 8-10 tile ring near it (design_scenes.md, "Scene runner") and keep the ring off the entrance-to-bag path.
+  - Check that `DisableWildEncounters` also stops overworld wild spawns; if not, extend it, then use it for the whole rescue stage.
   - Add the remaining triggers: cross an exit, talk, enter a door, interact with an item (the proximity and door-tile triggers exist, but a map-edge door has no "on door", so scenes needing it must be refused at placement: design_scenes.md, "Door and off-screen approach rules"); the entrance/exit border classification; per-map actor binding instead of local ids in each `struct Scene`; a stage-to-scenes field beside `actors` on `SubplotDesc` (triggers are still a hand-written table); the door's facing from the map instead of "south".
   - Convert Littleroot's twin coord events (`NeedPokemonTrigger*`) to a trigger once "cross an exit" exists.
   - Add the off-screen approach (search from the end tile for an off-screen tile on the right edge, over about 10 steps, then through objects, then a teleport animation).
