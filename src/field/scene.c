@@ -173,7 +173,7 @@ u32 SceneFindPath(s16 startX, s16 startY, s16 goalX, s16 goalY, SceneStepCheck c
     return length;
 }
 
-u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length, bool32 keepFacing)
+u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length, bool32 slide)
 {
     u32 i;
 
@@ -181,11 +181,11 @@ u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length, bool32 keepFacing)
     {
         length = SCENE_MAX_PATH;
     }
-    if (keepFacing)
+    if (slide)
         *out++ = MOVEMENT_ACTION_LOCK_FACING_DIRECTION;
     for (i = 0; i < length; i++)
         *out++ = GetWalkNormalMovementAction(dirs[i]);
-    if (keepFacing)
+    if (slide)
         *out++ = MOVEMENT_ACTION_UNLOCK_FACING_DIRECTION;
     *out = MOVEMENT_ACTION_STEP_END;
     return out;
@@ -263,7 +263,7 @@ static bool32 StartWalks(const struct Scene *scene, const struct SceneStep *step
     {
         single.actor = step->actor;
         single.goal = step->target;
-        single.backward = step->backward;
+        single.slide = step->slide;
         walks = &single;
         numWalks = 1;
     }
@@ -300,7 +300,7 @@ static bool32 StartWalks(const struct Scene *scene, const struct SceneStep *step
     {
         if (lengths[i] == 0)
             continue;
-        SceneBuildWalkScript(sWalkScript[i], sWalkDirs[i], lengths[i], walks[i].backward);
+        SceneBuildWalkScript(sWalkScript[i], sWalkDirs[i], lengths[i], walks[i].slide);
         ScriptMovement_StartObjectMovementScript(GetActorLocalId(scene, walks[i].actor), gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, sWalkScript[i]);
         started = TRUE;
     }

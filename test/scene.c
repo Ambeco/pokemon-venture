@@ -160,7 +160,7 @@ TEST("Scene: SceneBuildWalkScript writes one walk action per step and ends with 
     EXPECT_EQ(sOut[4], MOVEMENT_ACTION_STEP_END);
 }
 
-TEST("Scene: SceneBuildWalkScript brackets a backward walk with lock and unlock facing")
+TEST("Scene: SceneBuildWalkScript brackets a slide with lock and unlock facing")
 {
     static EWRAM_DATA u8 sOut[SCENE_MAX_PATH + 3];
     const u8 dirs[] = {DIR_SOUTH};
@@ -238,5 +238,5 @@ TEST("Scene: Littleroot's little girl walks up to the player, warns them, pushes
     EXPECT_EQ(player->currentCoords.y, 2 + MAP_OFFSET);
     EXPECT_EQ(twin->currentCoords.x, 7 + MAP_OFFSET);
     EXPECT_EQ(twin->currentCoords.y, 2 + MAP_OFFSET);
-    EXPECT_EQ((u32)player->facingDirection, DIR_NORTH); // walked backward
+    EXPECT_EQ((u32)player->facingDirection, DIR_NORTH); // slid, so still facing north
 }

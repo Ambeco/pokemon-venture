@@ -77,7 +77,7 @@ struct SceneWalk
 {
     u8 actor;
     struct SceneTarget goal;
-    bool8 backward; // keep facing the way it faces while walking
+    bool8 slide; // walk without changing facing
 };
 
 struct SceneStep
@@ -89,7 +89,7 @@ struct SceneStep
     const struct SceneWalk *walks;
     const u8 *text;                   // say
     u8 stage;                         // advance: the value written to the scene's stage var
-    bool8 backward;                   // walk: as SceneWalk.backward
+    bool8 slide;                      // walk: as SceneWalk.slide
 };
 
 struct Scene
@@ -107,7 +107,7 @@ struct Scene
 #define SCENE_UNLOCK_PLAYER()               {.kind = SCENE_STEP_UNLOCK_PLAYER}
 #define SCENE_FACE(who, toward, side)       {.kind = SCENE_STEP_FACE, .actor = who, .target = {toward, side}}
 #define SCENE_WALK(who, toward, side)       {.kind = SCENE_STEP_WALK, .actor = who, .target = {toward, side}}
-#define SCENE_WALK_BACKWARD(who, toward, side) {.kind = SCENE_STEP_WALK, .actor = who, .target = {toward, side}, .backward = TRUE}
+#define SCENE_SLIDE(who, toward, side) {.kind = SCENE_STEP_WALK, .actor = who, .target = {toward, side}, .slide = TRUE}
 #define SCENE_JUMP(who)                     {.kind = SCENE_STEP_JUMP, .actor = who}
 #define SCENE_PARALLEL_WALK(array)          {.kind = SCENE_STEP_PARALLEL_WALK, .numWalks = ARRAY_COUNT(array), .walks = array}
 #define SCENE_SAY(string)                   {.kind = SCENE_STEP_SAY, .text = string}
@@ -130,8 +130,8 @@ typedef bool32 (*SceneStepCheck)(void *context, s16 x, s16 y, enum Direction dir
 u32 SceneFindPath(s16 startX, s16 startY, s16 goalX, s16 goalY, SceneStepCheck canStep, void *context, u8 *dirs);
 
 // Writes the walk-and-end movement script for `dirs` at `out` (SCENE_MAX_PATH + 3 bytes); returns the end.
-// keepFacing brackets the walk with lock/unlock facing direction, so the actor walks backward.
-u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length, bool32 keepFacing);
+// slide brackets the walk with lock/unlock facing direction, so the actor keeps its facing.
+u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length, bool32 slide);
 
 const struct Scene *GetScene(u32 sceneId);
 
