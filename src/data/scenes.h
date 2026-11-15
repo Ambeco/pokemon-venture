@@ -37,10 +37,17 @@ static const struct Scene sLittlerootNeedPokemon =
 
 extern const u8 LittlerootTown_Text_OurNewHomeLetsGoInside[];
 
+// The mom heads for the tile in front of the door while the player takes the tile she leaves: she is one step ahead.
+static const struct SceneWalk sLittlerootApproachDoor[] =
+{
+    {SCENE_ACTOR_1, SCENE_ACTOR_TARGET(SCENE_ACTOR_ANCHOR, SCENE_SIDE_FRONT)},
+    {SCENE_ACTOR_PLAYER, SCENE_ACTOR_TARGET(SCENE_ACTOR_PLAYER, SCENE_SIDE_FRONT)},
+};
+
 // Stage 0: the player steps off the moving truck, the mom comes out of the house door (the anchor), says her line,
 // and they go in together. Male and female differ only in the truck's hide flag; the door comes from the trigger.
-// Unlike the original script the mom and player take turns walking instead of walking at once, and there are
-// no fixed delays between the steps.
+// Unlike the original script the mom and player take turns walking into the door (she is only one step ahead
+// there), and there are no fixed delays between the steps.
 #define LITTLEROOT_ARRIVAL_STEPS(truckHideFlag) \
 { \
     SCENE_LOCK_PLAYER(), \
@@ -52,8 +59,7 @@ extern const u8 LittlerootTown_Text_OurNewHomeLetsGoInside[];
     SCENE_WALK(SCENE_ACTOR_1, SCENE_ACTOR_PLAYER, SCENE_SIDE_FRONT), \
     SCENE_FACE(SCENE_ACTOR_1, SCENE_ACTOR_PLAYER, SCENE_SIDE_SELF), \
     SCENE_SAY(LittlerootTown_Text_OurNewHomeLetsGoInside), \
-    SCENE_WALK(SCENE_ACTOR_1, SCENE_ACTOR_ANCHOR, SCENE_SIDE_FRONT), \
-    SCENE_WALK(SCENE_ACTOR_PLAYER, SCENE_ACTOR_PLAYER, SCENE_SIDE_FRONT), \
+    SCENE_PARALLEL_WALK(sLittlerootApproachDoor), \
     SCENE_FACE(SCENE_ACTOR_PLAYER, SCENE_ACTOR_ANCHOR, SCENE_SIDE_SELF), \
     SCENE_DOOR_OPEN(), \
     SCENE_WALK(SCENE_ACTOR_1, SCENE_ACTOR_ANCHOR, SCENE_SIDE_SELF), \
