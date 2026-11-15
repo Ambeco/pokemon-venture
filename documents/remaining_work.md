@@ -51,7 +51,8 @@
   - Advance the global main-story-index when `DidChainJustFinishMainSlot` fires (no stored index exists until Milestone 3; `GetMainStoryIndex` is computed by the adapter).
 - Scene runner (design_scenes.md, "Scene runner"; `src/field/scene.c`, first conversion is Littleroot's "need a Pokémon" girl):
   - Implement the vocabulary steps that still assert: `door_open`/`door_close`, `warp`, `ask_yes_no`, `ask_choice`, `give`, `battle`, `music`, `custom`; add `place` and a literal `path` step (the Route 101 rescue needs both).
-  - Add the per-step trigger check (proximity, enter door, cross an exit), the entrance/exit border classification, per-map actor binding instead of local ids in each `struct Scene`, and a stage-to-scenes field beside `actors` on `SubplotDesc`.
+  - Add the per-step trigger check (proximity, "on door" and "in front of door" as separate door triggers, cross an exit; a map-edge door has no "on door", so scenes needing it are refused: design_scenes.md, "Door and off-screen approach rules"), the entrance/exit border classification, per-map actor binding instead of local ids in each `struct Scene`, and a stage-to-scenes field beside `actors` on `SubplotDesc`.
+  - Add the off-screen approach (search from the end tile for an off-screen tile on the right edge, over about 10 steps, then through objects, then a teleport animation).
   - Add building features (chair, TV, center-stage) and transient-actor placement with its test.
   - Convert the rest of the Route 101 tutorial (stages 0 and 5) and the two ported subplots' scripts.
 - Actor placement: enforce the per-screen and per-map object budgets in the layout step (check the engine's spawn margin and the player and follower overhead first).

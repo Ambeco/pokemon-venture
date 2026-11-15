@@ -52,6 +52,11 @@ A scene is a `struct Scene` (`include/field/scene.h`): a list of actor local ids
 - Two things the Route 101 rescue does are not in the vocabulary: placing an actor at a tile (`setobjectxy`) and a fixed choreography (the Zigzagoon circling). Both go through `custom` until a `place` step and a literal `path` step are needed by a second scene.
 - Actors on Emerald's hand-made maps are bound by local id in the scene's actor list, as hinters are bound by hand; spawning transient actors is a later change.
 
+### Door and off-screen approach rules
+
+- A door has two trigger positions, "on the door" and "in front of the door", so a scene can let the player follow an NPC through: the NPC leaves from the door tile while the player waits in front. A door on the top or a side edge of a map has no "on door" tile, so a scene that needs one may not use such a door (checked when the scene is placed, since mapgen knows each door's position).
+- An actor that approaches from off-screen, from behind or in front of the player, is placed by a search outward from its end tile: a breadth-first search over walkable tiles finds the nearest tile beyond the screen edge on the required side, and the actor is placed there and walks in. If the search needs more than about 10 steps, it restarts and lets the path cross other NPCs and objects (HM locks, other NPCs). If that also fails, the actor teleports next to the player with a teleport animation.
+
 ## Alternatives considered
 
 ### Compile a whole scene to one movement/script bytecode buffer
