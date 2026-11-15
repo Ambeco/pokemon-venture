@@ -27,6 +27,7 @@ void ReinitCallbacks(void);
 static void PumpFrame(void)
 {
     gMain.newKeys = 0;
+    gMain.newAndRepeatedKeys = 0;
     gMain.heldKeys = 0;
     CB2_Overworld();
 }
@@ -42,6 +43,7 @@ void Test_RunFrames(u32 frames)
 void Test_PressKeys(u16 keys)
 {
     gMain.newKeys = keys;
+    gMain.newAndRepeatedKeys = keys; // list menus read this one
     gMain.heldKeys = keys;
     CB2_Overworld();
 }

@@ -14,12 +14,51 @@ Scene_EventScript_NextStep:
 	case SCENE_RESULT_WAIT_DOOR, Scene_EventScript_WaitDoor
 	case SCENE_RESULT_WARP, Scene_EventScript_Warp
 	case SCENE_RESULT_DELAY, Scene_EventScript_Delay
+	case SCENE_RESULT_ASK_YES_NO, Scene_EventScript_AskYesNo
+	case SCENE_RESULT_ASK_CHOICE, Scene_EventScript_AskChoice
+	case SCENE_RESULT_GIVE, Scene_EventScript_Give
+	case SCENE_RESULT_BATTLE, Scene_EventScript_Battle
+	case SCENE_RESULT_CUSTOM, Scene_EventScript_Custom
 	end
 
 @ Entry for SceneTryStartTrigger, which sets VAR_0x8004 and starts this as a top-level script.
 Scene_EventScript_RunTriggered::
 	call Scene_EventScript_Run
 	end
+
+@ Entry for a scene set up with SceneBeginScene (tests).
+Scene_EventScript_RunPrepared::
+	call Scene_EventScript_NextStep
+	end
+
+@ The answer lands in VAR_RESULT, which the next SceneNextStep would overwrite: SceneTakeAnswer reads it first.
+Scene_EventScript_AskYesNo:
+	msgbox gStringVar4, MSGBOX_YESNO
+	special SceneTakeAnswer
+	goto Scene_EventScript_NextStep
+
+Scene_EventScript_AskChoice:
+	message gStringVar4
+	waitmessage
+	dynmultichoice 1, 1, TRUE, 0xFF, 0, DYN_MULTICHOICE_CB_NONE, NULL
+	special SceneTakeAnswer
+	closemessage
+	goto Scene_EventScript_NextStep
+
+@ Std_ObtainItem leaves its success in VAR_0x8007, which SceneTakeAnswer reads.
+Scene_EventScript_Give:
+	callstd STD_OBTAIN_ITEM
+	special SceneTakeAnswer
+	goto Scene_EventScript_NextStep
+
+Scene_EventScript_Battle:
+	special SceneStartBattle
+	waitstate
+	goto Scene_EventScript_NextStep
+
+Scene_EventScript_Custom:
+	callnative SceneCallCustom
+	goto Scene_EventScript_NextStep
 
 Scene_EventScript_WaitDoor:
 	waitdooranim

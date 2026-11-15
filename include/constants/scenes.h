@@ -18,5 +18,10 @@
 #define SCENE_RESULT_WAIT_DOOR     6
 #define SCENE_RESULT_WARP          7 // the map is changing: wait for it
 #define SCENE_RESULT_DELAY         8 // wait 8 frames, then ask for the next step
+#define SCENE_RESULT_ASK_YES_NO    9 // the question is in gStringVar4; the answer goes to SceneTakeAnswer
+#define SCENE_RESULT_ASK_CHOICE    10 // the prompt is in gStringVar4 and the labels are on the dynamic multichoice stack
+#define SCENE_RESULT_GIVE          11 // VAR_0x8000 item, VAR_0x8001 quantity
+#define SCENE_RESULT_BATTLE        12
+#define SCENE_RESULT_CUSTOM        13
 
 #endif // GUARD_CONSTANTS_SCENES_H

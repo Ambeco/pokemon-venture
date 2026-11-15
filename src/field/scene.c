@@ -1,5 +1,8 @@
 #include "global.h"
 #include "assertf.h"
+#include "battle_setup.h"
+#include "list_menu.h"
+#include "malloc.h"
 #include "scene.h"
 #include "event_data.h"
 #include "event_object_movement.h"
@@ -10,10 +13,13 @@
 #include "metatile_behavior.h"
 #include "overworld.h"
 #include "script.h"
+#include "script_menu.h"
 #include "script_movement.h"
+#include "script_pokemon_util.h"
 #include "sound.h"
 #include "string_util.h"
 #include "text.h"
+#include "constants/battle_setup.h"
 #include "constants/event_objects.h"
 #include "constants/event_object_movement.h"
 #include "constants/flags.h"
@@ -21,6 +27,7 @@
 #include "constants/songs.h"
 #include "constants/map_event_ids.h"
 #include "constants/scenes.h"
+#include "constants/script_menu.h"
 #include "constants/vars.h"
 
 #define WINDOW_WIDTH (2 * SCENE_WINDOW_HALF_WIDTH + 1)
@@ -36,12 +43,21 @@ extern const u8 Scene_EventScript_RunTriggered[];
 
 static EWRAM_DATA u8 sSearchCameFrom[WINDOW_CELLS] = {0}; // the direction taken into each cell, CELL_UNSEEN if not reached
 static EWRAM_DATA u8 sSearchQueue[WINDOW_CELLS] = {0};
-static EWRAM_DATA u8 sWalkDirs[SCENE_MAX_ACTORS][SCENE_MAX_PATH] = {0};
+static EWRAM_DATA u8 sWalkDirs[SCENE_MAX_PATH] = {0}; // one walker's path at a time
 static EWRAM_DATA u8 sWalkScript[SCENE_MAX_ACTORS][SCENE_MAX_PATH + 3] = {0};
 static EWRAM_DATA u8 sFaceScript[SCENE_MAX_ACTORS][2] = {0};
 static EWRAM_DATA u8 sJumpScript[SCENE_MAX_ACTORS][5] = {0};
-static EWRAM_DATA u8 sSceneId = 0;
-static EWRAM_DATA u8 sStepIndex = 0;
+struct SceneFrame
+{
+    const struct SceneStep *steps;
+    u8 numSteps;
+    u8 index; // the next step to run
+};
+
+static EWRAM_DATA const struct Scene *sScene = NULL;
+static EWRAM_DATA struct SceneFrame sFrames[SCENE_MAX_DEPTH] = {0}; // [0] is the scene's list; a branch pushes one
+static EWRAM_DATA u8 sDepth = 0;
+static EWRAM_DATA const struct SceneStep *sPendingStep = NULL; // the ask, give, battle or custom step the driver is running
 static EWRAM_DATA bool8 sPauseActive = FALSE;
 static EWRAM_DATA u8 sPauseLeft = 0;
 static EWRAM_DATA bool8 sPlayerLocked = FALSE;
@@ -539,19 +555,21 @@ static bool32 StartWalks(const struct Scene *scene, const struct SceneStep *step
         GetTargetTile(scene, &walks[i].goal, &goalX, &goalY);
         // Scripted walks ignore an NPC's wander range (applymovement does), but the collision check does not.
         mover->range.rangeX = mover->range.rangeY = 0;
-        lengths[i] = SceneFindPath(mover->currentCoords.x, mover->currentCoords.y, goalX, goalY, CanWalkerStep, &search, sWalkDirs[i]);
+        lengths[i] = SceneFindPath(mover->currentCoords.x, mover->currentCoords.y, goalX, goalY, CanWalkerStep, &search, sWalkDirs);
         mover->range.rangeX = rangeX;
         mover->range.rangeY = rangeY;
         assertf(lengths[i] != SCENE_PATH_NONE, "scene %s step %d (%s): actor slot %d at (%d, %d) cannot reach (%d, %d) (goal collision %d) within %d steps and the on-screen window; did you mean a goal side that is open, or a closer actor?", scene->name, stepIndex, sStepKindNames[step->kind], walks[i].actor, mover->currentCoords.x, mover->currentCoords.y, goalX, goalY, GetCollisionAtCoords(mover, goalX, goalY, SceneDirectionToward(mover->currentCoords.x, mover->currentCoords.y, goalX, goalY)), SCENE_MAX_PATH)
         {
             return FALSE;
         }
+        // Built now, while the path is in the shared buffer; nothing starts until every walker has a path.
+        if (lengths[i] != 0)
+            SceneBuildWalkScript(sWalkScript[i], sWalkDirs, lengths[i], walks[i].slide);
     }
     for (i = 0; i < numWalks; i++)
     {
         if (lengths[i] == 0)
             continue;
-        SceneBuildWalkScript(sWalkScript[i], sWalkDirs[i], lengths[i], walks[i].slide);
         ScriptMovement_StartObjectMovementScript(GetActorLocalId(scene, walks[i].actor), gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, sWalkScript[i]);
         started = TRUE;
     }
@@ -619,15 +637,15 @@ static bool32 StartChaseLoop(const struct Scene *scene, const struct SceneStep *
         u32 approach, total;
 
         SceneRingTile(&ring, startIndex[i], &goalX, &goalY);
-        approach = SceneFindPath(objects[i]->currentCoords.x, objects[i]->currentCoords.y, goalX, goalY, CanWalkerStep, &search, sWalkDirs[i]);
+        approach = SceneFindPath(objects[i]->currentCoords.x, objects[i]->currentCoords.y, goalX, goalY, CanWalkerStep, &search, sWalkDirs);
         total = approach == SCENE_PATH_NONE ? 0 : approach + step->laps * length;
         assertf(approach != SCENE_PATH_NONE && total <= SCENE_MAX_PATH, "scene %s step %d (chase_loop): actor at (%d, %d) cannot reach its ring tile (%d, %d), or needs more than %d steps with %d laps of %d; did you mean fewer laps or a closer ring?", scene->name, stepIndex, objects[i]->currentCoords.x, objects[i]->currentCoords.y, goalX, goalY, SCENE_MAX_PATH, step->laps, length)
         {
             ok = FALSE;
             break;
         }
-        SceneRingDirs(&ring, startIndex[i], step->laps * length, sWalkDirs[i] + approach);
-        SceneBuildWalkScript(sWalkScript[i], sWalkDirs[i], total, FALSE);
+        SceneRingDirs(&ring, startIndex[i], step->laps * length, sWalkDirs + approach);
+        SceneBuildWalkScript(sWalkScript[i], sWalkDirs, total, FALSE);
     }
     if (ok)
     {
@@ -719,13 +737,17 @@ static void WarpThroughAnchor(const struct Scene *scene, bool32 silent)
     ResetInitialPlayerAvatarState();
 }
 
-void SceneBegin(void)
+static void BeginScene(const struct Scene *scene)
 {
-    u32 id = gSpecialVar_0x8004;
-
-    GetScene(id);
-    sSceneId = id;
-    sStepIndex = 0;
+    sScene = scene;
+    sDepth = 0;
+    if (scene != NULL)
+    {
+        sFrames[0].steps = scene->steps;
+        sFrames[0].numSteps = scene->numSteps;
+        sFrames[0].index = 0;
+    }
+    sPendingStep = NULL;
     sPlayerLocked = FALSE;
     sPauseActive = FALSE;
     sAnchorSet = sNextAnchorSet;
@@ -733,6 +755,173 @@ void SceneBegin(void)
     sAnchorY = sNextAnchorY;
     sAnchorWarp = sNextAnchorWarp;
     sNextAnchorSet = FALSE;
+}
+
+void SceneBegin(void)
+{
+    BeginScene(GetScene(gSpecialVar_0x8004));
+}
+
+void SceneBeginScene(const struct Scene *scene)
+{
+    BeginScene(scene);
+}
+
+// The number of the step being run in the current frame, for failure messages.
+#define STEP_NUMBER() (sFrames[sDepth].index - 1)
+
+static void PushBranch(const struct SceneBranch *branch)
+{
+    if (branch->numSteps == 0)
+        return;
+    assertf(sDepth + 1 < SCENE_MAX_DEPTH, "scene %s nests branches deeper than SCENE_MAX_DEPTH (%d); did you mean to flatten a branch or raise the limit?", sScene->name, SCENE_MAX_DEPTH)
+    {
+        return;
+    }
+    sDepth++;
+    sFrames[sDepth].steps = branch->steps;
+    sFrames[sDepth].numSteps = branch->numSteps;
+    sFrames[sDepth].index = 0;
+}
+
+// Ends the scene where it stands, without advancing it (a branch pushed afterwards still runs).
+static void AbortScene(void)
+{
+    sDepth = 0;
+    sFrames[0].index = sFrames[0].numSteps;
+}
+
+static u32 StartAsk(const struct Scene *scene, const struct SceneStep *step)
+{
+    u32 i;
+
+    if (step->kind == SCENE_STEP_ASK_YES_NO)
+    {
+        assertf(step->numBranches == 2 && step->branches != NULL, "scene %s step %d (ask_yes_no) has %d branches; it needs exactly 2, yes then no (use SCENE_EMPTY_BRANCH for one that does nothing)", scene->name, STEP_NUMBER(), step->numBranches)
+        {
+            return SCENE_RESULT_NEXT;
+        }
+        StringExpandPlaceholders(gStringVar4, step->text);
+        sPendingStep = step;
+        return SCENE_RESULT_ASK_YES_NO;
+    }
+    assertf(step->numBranches >= 2 && step->numBranches <= SCENE_MAX_CHOICES && step->branches != NULL, "scene %s step %d (ask_choice) has %d choices; it needs 2 to %d (for one, use `say`)", scene->name, STEP_NUMBER(), step->numBranches, SCENE_MAX_CHOICES)
+    {
+        return SCENE_RESULT_NEXT;
+    }
+    StringExpandPlaceholders(gStringVar4, step->text);
+    for (i = 0; i < step->numBranches; i++)
+    {
+        struct ListMenuItem item;
+        u8 *name = Alloc(100); // like dynmultipush's copy, the menu owns it
+
+        StringExpandPlaceholders(name, step->branches[i].label);
+        item.name = name;
+        item.id = i;
+        MultichoiceDynamic_PushElement(item);
+    }
+    sPendingStep = step;
+    return SCENE_RESULT_ASK_CHOICE;
+}
+
+void SceneTakeAnswer(void)
+{
+    const struct SceneStep *step = sPendingStep;
+    u32 answer = gSpecialVar_Result;
+
+    sPendingStep = NULL;
+    assertf(step != NULL, "SceneTakeAnswer ran with no ask or give pending; did you call it outside Scene_EventScript_Run?")
+    {
+        return;
+    }
+    switch (step->kind)
+    {
+    case SCENE_STEP_ASK_YES_NO:
+        PushBranch(&step->branches[answer ? 0 : 1]);
+        break;
+    case SCENE_STEP_ASK_CHOICE:
+        assertf(answer < step->numBranches, "scene %s ask_choice answered %d but has %d choices; did the menu allow B (answer %d)?", sScene->name, answer, step->numBranches, MULTI_B_PRESSED)
+        {
+            AbortScene();
+            break;
+        }
+        PushBranch(&step->branches[answer]);
+        break;
+    case SCENE_STEP_GIVE:
+        if (gSpecialVar_0x8007 == TRUE)
+            break;
+        // The item was not received, so nothing after this may advance the stage, or the item would be lost for good:
+        // the bag-full branch (if any) is the last thing the scene runs.
+        AbortScene();
+        if (step->numBranches > 0 && step->branches != NULL)
+            PushBranch(&step->branches[0]);
+        break;
+    default:
+        assertf(FALSE, "SceneTakeAnswer ran for step kind %d, which asks nothing", step->kind)
+        {
+            break;
+        }
+    }
+}
+
+static u32 StartGive(const struct SceneStep *step)
+{
+    gSpecialVar_0x8000 = step->item;
+    gSpecialVar_0x8001 = step->quantity;
+    sPendingStep = step;
+    return SCENE_RESULT_GIVE;
+}
+
+static u32 PrepareBattle(const struct Scene *scene, const struct SceneStep *step)
+{
+    if (step->species != 0)
+    {
+        CreateScriptedWildMon(step->species, step->level, ITEM_NONE);
+    }
+    else
+    {
+        assertf(step->text != NULL, "scene %s step %d (battle) has trainer %d but no defeat text; did you mean SCENE_BATTLE_TRAINER(trainer, text)?", scene->name, STEP_NUMBER(), step->trainer)
+        {
+            return SCENE_RESULT_NEXT;
+        }
+    }
+    sPendingStep = step;
+    return SCENE_RESULT_BATTLE;
+}
+
+void SceneStartBattle(void)
+{
+    const struct SceneStep *step = sPendingStep;
+
+    sPendingStep = NULL;
+    assertf(step != NULL && step->kind == SCENE_STEP_BATTLE, "SceneStartBattle ran with no battle step pending; did you call it outside Scene_EventScript_Run?")
+    {
+        return;
+    }
+    if (step->species != 0)
+    {
+        BattleSetup_StartScriptedWildBattle();
+        return;
+    }
+    InitTrainerBattleParameter();
+    TRAINER_BATTLE_PARAM.mode = TRAINER_BATTLE_SINGLE_NO_INTRO_TEXT;
+    TRAINER_BATTLE_PARAM.playMusicA = TRUE;
+    TRAINER_BATTLE_PARAM.opponentA = step->trainer;
+    TRAINER_BATTLE_PARAM.defeatTextA = (u8 *)step->text;
+    PlayTrainerEncounterMusic();
+    BattleSetup_StartTrainerBattle();
+}
+
+void SceneCallCustom(struct ScriptContext *ctx)
+{
+    const struct SceneStep *step = sPendingStep;
+
+    sPendingStep = NULL;
+    assertf(step != NULL && step->script != NULL, "scene custom step has no script; did you mean SCENE_CUSTOM(EventScript_Name)?")
+    {
+        return;
+    }
+    ScriptCall(ctx, step->script);
 }
 
 static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
@@ -749,7 +938,7 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
         return StartFace(scene, step) ? SCENE_RESULT_WAIT_MOVEMENT : SCENE_RESULT_NEXT;
     case SCENE_STEP_WALK:
     case SCENE_STEP_PARALLEL_WALK:
-        return StartWalks(scene, step, sStepIndex - 1) ? SCENE_RESULT_WAIT_MOVEMENT : SCENE_RESULT_NEXT;
+        return StartWalks(scene, step, STEP_NUMBER()) ? SCENE_RESULT_WAIT_MOVEMENT : SCENE_RESULT_NEXT;
     case SCENE_STEP_JUMP:
         StartJump(scene, step);
         return SCENE_RESULT_WAIT_MOVEMENT;
@@ -784,7 +973,7 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
             return SCENE_RESULT_NEXT;
         }
         sPauseLeft--;
-        sStepIndex--; // stay on this step until the wait is over
+        sFrames[sDepth].index--; // stay on this step until the wait is over
         return SCENE_RESULT_DELAY;
     case SCENE_STEP_MUSIC:
         if (step->song != 0)
@@ -798,7 +987,7 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
         }
         return SCENE_RESULT_NEXT;
     case SCENE_STEP_CHASE_LOOP:
-        return StartChaseLoop(scene, step, sStepIndex - 1) ? SCENE_RESULT_WAIT_MOVEMENT : SCENE_RESULT_NEXT;
+        return StartChaseLoop(scene, step, STEP_NUMBER()) ? SCENE_RESULT_WAIT_MOVEMENT : SCENE_RESULT_NEXT;
     case SCENE_STEP_HOP:
         StartHop(scene, step);
         return SCENE_RESULT_WAIT_MOVEMENT;
@@ -823,8 +1012,18 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
     case SCENE_STEP_WARP:
         WarpThroughAnchor(scene, step->silent);
         return SCENE_RESULT_WARP;
+    case SCENE_STEP_ASK_YES_NO:
+    case SCENE_STEP_ASK_CHOICE:
+        return StartAsk(scene, step);
+    case SCENE_STEP_GIVE:
+        return StartGive(step);
+    case SCENE_STEP_BATTLE:
+        return PrepareBattle(scene, step);
+    case SCENE_STEP_CUSTOM:
+        sPendingStep = step;
+        return SCENE_RESULT_CUSTOM;
     default:
-        assertf(FALSE, "scene %s step %d: step kind %s is in the vocabulary but not implemented yet; did you mean to use `custom` or add its implementation to scene.c?", scene->name, sStepIndex - 1, step->kind < SCENE_STEP_KIND_COUNT ? sStepKindNames[step->kind] : "(unknown)")
+        assertf(FALSE, "scene %s step %d: step kind %s is in the vocabulary but not implemented yet; did you mean to use `custom` or add its implementation to scene.c?", scene->name, STEP_NUMBER(), step->kind < SCENE_STEP_KIND_COUNT ? sStepKindNames[step->kind] : "(unknown)")
         {
             return SCENE_RESULT_NEXT;
         }
@@ -834,19 +1033,22 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
 
 void SceneNextStep(void)
 {
-    const struct Scene *scene = GetScene(sSceneId);
+    struct SceneFrame *frame;
 
-    if (scene == NULL)
+    if (sScene == NULL)
     {
         gSpecialVar_Result = SCENE_RESULT_END;
         return;
     }
-    if (sStepIndex >= scene->numSteps)
+    while (sDepth > 0 && sFrames[sDepth].index >= sFrames[sDepth].numSteps)
+        sDepth--;
+    frame = &sFrames[sDepth];
+    if (frame->index >= frame->numSteps)
     {
         // A scene that locks the player must unlock before it ends; do it here rather than leave them stuck.
         gSpecialVar_Result = sPlayerLocked ? SCENE_RESULT_UNLOCK : SCENE_RESULT_END;
         sPlayerLocked = FALSE;
         return;
     }
-    gSpecialVar_Result = RunStep(scene, &scene->steps[sStepIndex++]);
+    gSpecialVar_Result = RunStep(sScene, &frame->steps[frame->index++]);
 }

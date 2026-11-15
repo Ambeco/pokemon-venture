@@ -1,6 +1,12 @@
 #include "global.h"
 #include "test/test.h"
 #include "test/map_loaded.h"
+#include "test/overworld_script.h"
+#include "battle.h"
+#include "battle_setup.h"
+#include "item.h"
+#include "pokemon.h"
+#include "script_menu.h"
 #include "event_data.h"
 #include "event_object_movement.h"
 #include "field_message_box.h"
@@ -12,7 +18,12 @@
 #include "main.h"
 #include "overworld.h"
 #include "constants/flags.h"
+#include "constants/battle_setup.h"
 #include "constants/characters.h"
+#include "constants/event_objects.h"
+#include "constants/items.h"
+#include "constants/opponents.h"
+#include "constants/species.h"
 #include "constants/event_object_movement.h"
 #include "constants/map_event_ids.h"
 #include "constants/maps.h"
@@ -519,4 +530,338 @@ TEST("Scene: Birch's rescue on Route 101 places Birch and the Zigzagoon, circles
     // They finished the laps on the ring, a few tiles apart, and not on top of the player.
     EXPECT(TileDistance(birch, zigzagoon) <= 4);
     EXPECT(TileDistance(birch, &gObjectEvents[gPlayerAvatar.objectEventId]) > 2);
+}
+
+// Scenes that are not in the scene table: const data here, run with SceneBeginScene.
+extern const u8 Scene_EventScript_RunPrepared[];
+
+// Runs a prepared scene for a fixed number of frames, pressing the keys of `cycle` in turn, one every 20 frames
+// and repeating the cycle. Keys pressed while no menu is up only advance messages or do nothing. Not until the
+// script ends: ScriptContext_IsEnabled is false while the script waits on a menu.
+static void RunSceneWithKeys(const struct Scene *scene, const u16 *cycle, u32 cycleLength)
+{
+    u32 frame;
+
+    gSpecialVar_Result = 0xFFFF;
+    SceneBeginScene(scene);
+    ScriptContext_SetupScript(Scene_EventScript_RunPrepared);
+    for (frame = 0; frame < 900 && !(gSpecialVar_Result == SCENE_RESULT_END && !ScriptContext_IsEnabled()); frame++)
+    {
+        if (frame % 20 == 19)
+            Test_PressKeys(cycle[(frame / 20) % cycleLength]);
+        else
+            Test_RunFrames(1);
+    }
+    EXPECT_EQ(gSpecialVar_Result, SCENE_RESULT_END); // the driver's last step result: the scene finished
+}
+
+// For an ask_choice scene: waits until the menu is up (its labels have left the dynamic multichoice stack), moves
+// the cursor down `downs` entries, confirms, and runs on to the end of the scene.
+static void RunSceneChoosing(const struct Scene *scene, u32 downs)
+{
+    u32 frame;
+    bool32 sawLabels = FALSE, menuUp = FALSE;
+
+    gSpecialVar_Result = 0xFFFF;
+    SceneBeginScene(scene);
+    ScriptContext_SetupScript(Scene_EventScript_RunPrepared);
+    for (frame = 0; frame < 600 && !menuUp; frame++)
+    {
+        Test_RunFrames(1);
+        if (MultichoiceDynamic_PeekElement() != NULL)
+            sawLabels = TRUE;
+        else if (sawLabels)
+            menuUp = TRUE;
+    }
+    ASSUME(menuUp);
+    Test_RunFrames(10);
+    for (frame = 0; frame < downs; frame++)
+    {
+        Test_PressKeys(DPAD_DOWN);
+        Test_RunFrames(3);
+    }
+    Test_PressKeys(A_BUTTON);
+    for (frame = 0; frame < 300 && !(gSpecialVar_Result == SCENE_RESULT_END && !ScriptContext_IsEnabled()); frame++)
+        Test_RunFrames(1);
+    EXPECT_EQ(gSpecialVar_Result, SCENE_RESULT_END);
+}
+
+// Runs the prepared scene's script command by command, not frame by frame, until it waits (as it does for a battle).
+static void RunSceneUntilWait(const struct Scene *scene)
+{
+    u32 i;
+
+    SceneBeginScene(scene);
+    ScriptContext_SetupScript(Scene_EventScript_RunPrepared);
+    for (i = 0; i < 500 && ScriptContext_RunScript(); i++)
+        ;
+}
+
+static void LoadTestMap(void)
+{
+    u32 flag;
+
+    Test_LoadMapAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 10, 1);
+    for (flag = FLAG_TEMP_1; flag <= FLAG_TEMP_5; flag++)
+        FlagClear(flag);
+    VarSet(VAR_TEMP_1, 0);
+}
+
+#define TEST_SCENE(sceneName, stepsArray) \
+    static const struct Scene sceneName = \
+    { \
+        .name = #sceneName, \
+        .actors = {LOCALID_PLAYER}, \
+        .numActors = 1, \
+        .stageVar = VAR_TEMP_1, \
+        .numSteps = ARRAY_COUNT(stepsArray), \
+        .steps = stepsArray, \
+    }
+
+static const u16 sKeysA[] = {A_BUTTON};
+static const u16 sKeysB[] = {B_BUTTON};
+
+static const u8 sTestQuestion[] = _("Question?");
+static const u8 sTestInnerQuestion[] = _("Inner question?");
+static const u8 sTestPrompt[] = _("Which one?");
+static const u8 sTestLabelOne[] = _("One");
+static const u8 sTestLabelTwo[] = _("Two");
+static const u8 sTestLabelThree[] = _("Three");
+static const u8 sTestDefeatText[] = _("Beaten.");
+
+static const struct SceneStep sSetFlag1[] = {SCENE_SET_FLAG(FLAG_TEMP_1)};
+static const struct SceneStep sSetFlag2[] = {SCENE_SET_FLAG(FLAG_TEMP_2)};
+static const struct SceneStep sSetFlag3[] = {SCENE_SET_FLAG(FLAG_TEMP_3)};
+static const struct SceneStep sSetFlag4[] = {SCENE_SET_FLAG(FLAG_TEMP_4)};
+
+static const struct SceneBranch sYesNoBranches[] = {SCENE_BRANCH(NULL, sSetFlag1), SCENE_BRANCH(NULL, sSetFlag2)};
+static const struct SceneStep sYesNoSteps[] =
+{
+    SCENE_ASK_YES_NO(sTestQuestion, sYesNoBranches),
+    SCENE_SET_FLAG(FLAG_TEMP_5),
+    SCENE_ADVANCE(1),
+};
+TEST_SCENE(sYesNoScene, sYesNoSteps);
+
+TEST("Scene: ask_yes_no runs the yes branch on A, then carries on with the steps after it")
+{
+    LoadTestMap();
+    RunSceneWithKeys(&sYesNoScene, sKeysA, ARRAY_COUNT(sKeysA));
+    EXPECT(FlagGet(FLAG_TEMP_1));
+    EXPECT(!FlagGet(FLAG_TEMP_2));
+    EXPECT(FlagGet(FLAG_TEMP_5));
+    EXPECT_EQ(VarGet(VAR_TEMP_1), 1);
+}
+
+TEST("Scene: ask_yes_no runs the no branch on B, then carries on with the steps after it")
+{
+    LoadTestMap();
+    RunSceneWithKeys(&sYesNoScene, sKeysB, ARRAY_COUNT(sKeysB));
+    EXPECT(!FlagGet(FLAG_TEMP_1));
+    EXPECT(FlagGet(FLAG_TEMP_2));
+    EXPECT(FlagGet(FLAG_TEMP_5));
+    EXPECT_EQ(VarGet(VAR_TEMP_1), 1);
+}
+
+static const struct SceneBranch sInnerBranches[] = {SCENE_BRANCH(NULL, sSetFlag3), SCENE_BRANCH(NULL, sSetFlag4)};
+static const struct SceneStep sInnerSteps[] =
+{
+    SCENE_ASK_YES_NO(sTestInnerQuestion, sInnerBranches),
+    SCENE_SET_FLAG(FLAG_TEMP_1),
+};
+static const struct SceneBranch sOuterBranches[] = {SCENE_BRANCH(NULL, sInnerSteps), SCENE_EMPTY_BRANCH(NULL)};
+static const struct SceneStep sNestedSteps[] =
+{
+    SCENE_ASK_YES_NO(sTestQuestion, sOuterBranches),
+    SCENE_SET_FLAG(FLAG_TEMP_5),
+};
+TEST_SCENE(sNestedScene, sNestedSteps);
+
+TEST("Scene: a branch can ask again, and the steps after each question still run")
+{
+    LoadTestMap();
+    RunSceneWithKeys(&sNestedScene, sKeysA, ARRAY_COUNT(sKeysA));
+    EXPECT(FlagGet(FLAG_TEMP_3));
+    EXPECT(!FlagGet(FLAG_TEMP_4));
+    EXPECT(FlagGet(FLAG_TEMP_1)); // the rest of the outer branch
+    EXPECT(FlagGet(FLAG_TEMP_5)); // the rest of the scene
+}
+
+TEST("Scene: a no answer to the outer question skips the inner question and its branch")
+{
+    LoadTestMap();
+    RunSceneWithKeys(&sNestedScene, sKeysB, ARRAY_COUNT(sKeysB));
+    EXPECT(!FlagGet(FLAG_TEMP_3));
+    EXPECT(!FlagGet(FLAG_TEMP_4));
+    EXPECT(!FlagGet(FLAG_TEMP_1));
+    EXPECT(FlagGet(FLAG_TEMP_5));
+}
+
+static const struct SceneBranch sChoiceBranches[] =
+{
+    SCENE_BRANCH(sTestLabelOne, sSetFlag1),
+    SCENE_BRANCH(sTestLabelTwo, sSetFlag2),
+    SCENE_BRANCH(sTestLabelThree, sSetFlag3),
+};
+static const struct SceneStep sChoiceSteps[] =
+{
+    SCENE_ASK_CHOICE(sTestPrompt, sChoiceBranches),
+    SCENE_SET_FLAG(FLAG_TEMP_5),
+};
+TEST_SCENE(sChoiceScene, sChoiceSteps);
+
+TEST("Scene: ask_choice runs the first branch when A confirms the first entry")
+{
+    LoadTestMap();
+    RunSceneChoosing(&sChoiceScene, 0);
+    EXPECT(FlagGet(FLAG_TEMP_1));
+    EXPECT(!FlagGet(FLAG_TEMP_2));
+    EXPECT(!FlagGet(FLAG_TEMP_3));
+    EXPECT(FlagGet(FLAG_TEMP_5));
+}
+
+TEST("Scene: ask_choice runs only the middle branch when the cursor is moved down once")
+{
+    LoadTestMap();
+    RunSceneChoosing(&sChoiceScene, 1);
+    EXPECT(!FlagGet(FLAG_TEMP_1));
+    EXPECT(FlagGet(FLAG_TEMP_2));
+    EXPECT(!FlagGet(FLAG_TEMP_3));
+    EXPECT(FlagGet(FLAG_TEMP_5));
+}
+
+TEST("Scene: ask_choice runs only the last branch when the cursor is moved down to it")
+{
+    LoadTestMap();
+    RunSceneChoosing(&sChoiceScene, 2);
+    EXPECT(!FlagGet(FLAG_TEMP_1));
+    EXPECT(!FlagGet(FLAG_TEMP_2));
+    EXPECT(FlagGet(FLAG_TEMP_3));
+    EXPECT(FlagGet(FLAG_TEMP_5));
+}
+
+// Std_ObtainItem never returns under the headless overworld tests (probably showitemdescription or the fanfare wait
+// without a VBlank), so a give scene is stepped from C, standing in for the driver: the item is not really added
+// (a script does that); `received` is what the std script leaves in VAR_0x8007.
+static void StepGiveSceneByHand(const struct Scene *scene, bool32 received, u32 *givenItem, u32 *givenQuantity)
+{
+    u32 i;
+
+    SceneBeginScene(scene);
+    for (i = 0; i < 50; i++)
+    {
+        SceneNextStep();
+        if (gSpecialVar_Result == SCENE_RESULT_GIVE)
+        {
+            *givenItem = gSpecialVar_0x8000;
+            *givenQuantity = gSpecialVar_0x8001;
+            gSpecialVar_0x8007 = received;
+            SceneTakeAnswer();
+        }
+        else if (gSpecialVar_Result == SCENE_RESULT_END)
+        {
+            return;
+        }
+    }
+    EXPECT(FALSE); // the scene never ended
+}
+
+static const struct SceneStep sGiveSteps[] =
+{
+    SCENE_GIVE(ITEM_POTION, 2),
+    SCENE_SET_FLAG(FLAG_TEMP_5),
+    SCENE_ADVANCE(1),
+};
+TEST_SCENE(sGiveScene, sGiveSteps);
+
+TEST("Scene: give hands the item and quantity to the std script, and carries on and advances once it was received")
+{
+    u32 item = 0, quantity = 0;
+
+    LoadTestMap();
+    StepGiveSceneByHand(&sGiveScene, TRUE, &item, &quantity);
+    EXPECT_EQ(item, ITEM_POTION);
+    EXPECT_EQ(quantity, 2);
+    EXPECT(FlagGet(FLAG_TEMP_5));
+    EXPECT_EQ(VarGet(VAR_TEMP_1), 1);
+}
+
+TEST("Scene: give with a full bag ends the scene without running later steps or advancing")
+{
+    u32 item = 0, quantity = 0;
+
+    LoadTestMap();
+    StepGiveSceneByHand(&sGiveScene, FALSE, &item, &quantity);
+    EXPECT_EQ(item, ITEM_POTION);
+    EXPECT(!FlagGet(FLAG_TEMP_5));
+    EXPECT_EQ(VarGet(VAR_TEMP_1), 0);
+}
+
+TEST("Scene: give with a full bag runs its bag-full branch and then ends the scene")
+{
+    u32 item = 0, quantity = 0;
+    struct SceneBranch full[] = {SCENE_BRANCH(NULL, sSetFlag1)};
+    struct SceneStep steps[] = {SCENE_GIVE_OR_ELSE(ITEM_POTION, 1, full), SCENE_SET_FLAG(FLAG_TEMP_5), SCENE_ADVANCE(1)};
+    struct Scene scene = {.name = "GiveFullBranch", .actors = {LOCALID_PLAYER}, .numActors = 1, .stageVar = VAR_TEMP_1, .numSteps = ARRAY_COUNT(steps), .steps = steps};
+
+    LoadTestMap();
+    StepGiveSceneByHand(&scene, FALSE, &item, &quantity);
+    EXPECT(FlagGet(FLAG_TEMP_1));
+    EXPECT(!FlagGet(FLAG_TEMP_5));
+    EXPECT_EQ(VarGet(VAR_TEMP_1), 0);
+}
+
+TEST("Scene: give with a received item and a bag-full branch skips the branch")
+{
+    u32 item = 0, quantity = 0;
+    struct SceneBranch full[] = {SCENE_BRANCH(NULL, sSetFlag1)};
+    struct SceneStep steps[] = {SCENE_GIVE_OR_ELSE(ITEM_POTION, 1, full), SCENE_SET_FLAG(FLAG_TEMP_5), SCENE_ADVANCE(1)};
+    struct Scene scene = {.name = "GiveFullBranchReceived", .actors = {LOCALID_PLAYER}, .numActors = 1, .stageVar = VAR_TEMP_1, .numSteps = ARRAY_COUNT(steps), .steps = steps};
+
+    LoadTestMap();
+    StepGiveSceneByHand(&scene, TRUE, &item, &quantity);
+    EXPECT(!FlagGet(FLAG_TEMP_1));
+    EXPECT(FlagGet(FLAG_TEMP_5));
+    EXPECT_EQ(VarGet(VAR_TEMP_1), 1);
+}
+
+TEST("Scene: custom runs its script as a subroutine and the scene carries on afterwards")
+{
+    const u8 *script = OVERWORLD_SCRIPT(setvar VAR_TEMP_2, 7; return);
+    struct SceneStep steps[] = {SCENE_CUSTOM(script), SCENE_SET_FLAG(FLAG_TEMP_5)};
+    struct Scene scene = {.name = "Custom", .actors = {LOCALID_PLAYER}, .numActors = 1, .stageVar = VAR_TEMP_1, .numSteps = ARRAY_COUNT(steps), .steps = steps};
+
+    LoadTestMap();
+    VarSet(VAR_TEMP_2, 0);
+    RunSceneWithKeys(&scene, sKeysA, ARRAY_COUNT(sKeysA));
+    EXPECT_EQ(VarGet(VAR_TEMP_2), 7);
+    EXPECT(FlagGet(FLAG_TEMP_5));
+}
+
+// The battle itself needs the battle engine and transitions, which the overworld tests do not run: these check
+// what the step sets up and that the scene waits for the battle.
+TEST("Scene: a trainer battle step configures a single no-intro battle against its trainer and waits")
+{
+    struct SceneStep steps[] = {SCENE_BATTLE_TRAINER(TRAINER_ROXANNE_1, sTestDefeatText), SCENE_SET_FLAG(FLAG_TEMP_5)};
+    struct Scene scene = {.name = "TrainerBattle", .actors = {LOCALID_PLAYER}, .numActors = 1, .stageVar = VAR_TEMP_1, .numSteps = ARRAY_COUNT(steps), .steps = steps};
+
+    LoadTestMap();
+    RunSceneUntilWait(&scene);
+    EXPECT_EQ((u32)TRAINER_BATTLE_PARAM.opponentA, TRAINER_ROXANNE_1);
+    EXPECT_EQ((u32)TRAINER_BATTLE_PARAM.mode, TRAINER_BATTLE_SINGLE_NO_INTRO_TEXT);
+    EXPECT(TRAINER_BATTLE_PARAM.defeatTextA == sTestDefeatText);
+    EXPECT(gBattleTypeFlags & BATTLE_TYPE_TRAINER);
+    EXPECT(!FlagGet(FLAG_TEMP_5)); // not before the battle has been fought
+}
+
+TEST("Scene: a wild battle step creates the wild Pokémon and waits")
+{
+    struct SceneStep steps[] = {SCENE_BATTLE_WILD(SPECIES_RALTS, 7), SCENE_SET_FLAG(FLAG_TEMP_5)};
+    struct Scene scene = {.name = "WildBattle", .actors = {LOCALID_PLAYER}, .numActors = 1, .stageVar = VAR_TEMP_1, .numSteps = ARRAY_COUNT(steps), .steps = steps};
+
+    LoadTestMap();
+    RunSceneUntilWait(&scene);
+    EXPECT_EQ(GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES), SPECIES_RALTS);
+    EXPECT_EQ(GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL), 7);
+    EXPECT(!FlagGet(FLAG_TEMP_5));
 }

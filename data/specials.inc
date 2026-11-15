@@ -649,3 +649,5 @@ gSpecials::
 	def_special ShowGenericNpcTalk
 	def_special SceneBegin
 	def_special SceneNextStep
+	def_special SceneTakeAnswer
+	def_special SceneStartBattle

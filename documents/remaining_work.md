@@ -50,7 +50,8 @@
   - Build real chains (County planning), and read the stored position for Emerald counties once their legacy vars are retired.
   - Advance the global main-story-index when `DidChainJustFinishMainSlot` fires (no stored index exists until Milestone 3; `GetMainStoryIndex` is computed by the adapter).
 - Scene runner (design_scenes.md, "Scene runner"; `src/field/scene.c`, first conversion is Littleroot's "need a Pokémon" girl):
-  - Implement the vocabulary steps that still assert: `ask_yes_no`, `ask_choice`, `give`, `battle`, `custom`.
+  - Check `give` (item message and fanfare), `battle` (a real trainer and a wild fight, returning into the scene) and `ask_choice` in a real game or `make e2e`: the headless overworld tests cannot run them (notes.md, "Scene runner"). A `battle` in a scene that does not `advance` and starts on `ENTER_MAP` fires again once after the battle's map reload.
+  - Give `give` a stage reward (a descriptor field) and `battle` a wild double or two-trainer form when a subplot needs them.
   - Route generation must guarantee the rescue's grass in view of the route entrance and an open 8-10 tile ring near it (design_scenes.md, "Scene runner") and keep the ring off the entrance-to-bag path.
   - Add the remaining triggers: cross an exit, talk, enter a door, interact with an item (the proximity and door-tile triggers exist, but a map-edge door has no "on door", so scenes needing it must be refused at placement: design_scenes.md, "Door and off-screen approach rules"); the entrance/exit border classification; per-map actor binding instead of local ids in each `struct Scene`; a stage-to-scenes field beside `actors` on `SubplotDesc` (triggers are still a hand-written table); the door's facing from the map instead of "south".
   - Convert Littleroot's twin coord events (`NeedPokemonTrigger*`) to a trigger once "cross an exit" exists.

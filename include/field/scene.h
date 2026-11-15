@@ -21,6 +21,15 @@
  * tile and SIDE_FRONT the tile below it (a door faces south; generated maps will supply the facing). A scene that
  * does not `advance` its stage fires again on the next check while the trigger still holds. SCENE_TRIGGER_ENTER_MAP
  * names no door: it fires on the check after a map load only, and its scene has no anchor.
+ *
+ * Branching: ask_yes_no (branches[0] is yes, [1] no) and ask_choice (one branch per menu entry; B cannot cancel) push the
+ * chosen branch's step list, run it, then carry on after the question; a branch may ask again, up to SCENE_MAX_DEPTH
+ * lists deep. The driver reads the answer with SceneTakeAnswer before the next step overwrites VAR_RESULT. A `give`
+ * hands the item to Std_ObtainItem; if it was not received (bag full) the scene ends there, after branches[0] if given,
+ * so a later `advance` can never lose the item. `battle` starts a no-intro trainer battle (defeat text in `text`) or a
+ * wild one and waits; the scene continues after a win (a loss whites out). `custom` calls an event script as a
+ * subroutine (it must end with `return`), for anything the vocabulary lacks. A scene that is not in the scene table
+ * (tests) runs through SceneBeginScene and Scene_EventScript_RunPrepared.
  */
 
 #include "global.h"
@@ -72,14 +81,26 @@ enum SceneStepKind
     SCENE_STEP_HOP,         // a one-tile jump in a direction with the ledge sound, then a short pause
     SCENE_STEP_PAUSE,       // wait `pause` x 8 frames
     SCENE_STEP_CHASE_LOOP,  // `actor` runs laps of a ring found near the midpoint to `target`, `chaser` lag tiles behind
-    // In the vocabulary, not implemented: running one asserts.
-    SCENE_STEP_ASK_YES_NO,
-    SCENE_STEP_ASK_CHOICE,
-    SCENE_STEP_GIVE,
-    SCENE_STEP_BATTLE,
     SCENE_STEP_MUSIC,
-    SCENE_STEP_CUSTOM,
+    SCENE_STEP_ASK_YES_NO,  // `text` is the question; branches[0] runs on yes, branches[1] on no
+    SCENE_STEP_ASK_CHOICE,  // `text` is the prompt; one branch per menu entry, shown by its label; B cannot cancel
+    SCENE_STEP_GIVE,        // `item` x `quantity`; if the bag is full the scene ends there (after branches[0], if any), never advancing
+    SCENE_STEP_BATTLE,      // a trainer battle (`trainer`, defeat text in `text`), or a wild one if `species` is set
+    SCENE_STEP_CUSTOM,      // `script` runs as a subroutine and must end with `return`
     SCENE_STEP_KIND_COUNT,
+};
+
+#define SCENE_MAX_DEPTH 4   // nested branches: the scene's own list plus three levels of ask/give branches
+#define SCENE_MAX_CHOICES 8
+
+struct SceneStep;
+struct ScriptContext;
+
+struct SceneBranch
+{
+    const u8 *label;    // ask_choice: the menu entry
+    u8 numSteps;
+    const struct SceneStep *steps;
 };
 
 struct SceneTarget
@@ -114,6 +135,14 @@ struct SceneStep
     u8 lag;                           // chase_loop: tiles the chaser starts behind
     u8 avoidRadius;                   // chase_loop: the ring stays more than this many tiles (Chebyshev) from target
     u16 song;                         // music: the song to play, or 0 to restore the map's own music
+    const struct SceneBranch *branches; // ask_yes_no, ask_choice, give
+    u8 numBranches;
+    u16 item;                         // give
+    u16 quantity;
+    u16 trainer;                      // battle: trainer id (used when species is 0)
+    u16 species;                      // battle: a wild Pokémon of this species at `level`
+    u8 level;
+    const u8 *script;                 // custom
 };
 
 enum SceneTriggerKind
@@ -169,6 +198,16 @@ struct Scene
 #define SCENE_MUSIC(songId)                 {.kind = SCENE_STEP_MUSIC, .song = songId}
 #define SCENE_MUSIC_RESTORE()               {.kind = SCENE_STEP_MUSIC}
 #define SCENE_HOP(who, dir)                 {.kind = SCENE_STEP_HOP, .actor = who, .direction = dir}
+// Branches are arrays of SceneBranch built with SCENE_BRANCH (labels matter only for ask_choice; yes is [0], no [1]).
+#define SCENE_BRANCH(menuLabel, array)      {.label = menuLabel, .numSteps = ARRAY_COUNT(array), .steps = array}
+#define SCENE_EMPTY_BRANCH(menuLabel)       {.label = menuLabel}
+#define SCENE_ASK_YES_NO(question, array)   {.kind = SCENE_STEP_ASK_YES_NO, .text = question, .branches = array, .numBranches = ARRAY_COUNT(array)}
+#define SCENE_ASK_CHOICE(prompt, array)     {.kind = SCENE_STEP_ASK_CHOICE, .text = prompt, .branches = array, .numBranches = ARRAY_COUNT(array)}
+#define SCENE_GIVE(itemId, amount)          {.kind = SCENE_STEP_GIVE, .item = itemId, .quantity = amount}
+#define SCENE_GIVE_OR_ELSE(itemId, amount, bagFullBranch) {.kind = SCENE_STEP_GIVE, .item = itemId, .quantity = amount, .branches = bagFullBranch, .numBranches = 1}
+#define SCENE_BATTLE_TRAINER(opponent, defeatText) {.kind = SCENE_STEP_BATTLE, .trainer = opponent, .text = defeatText}
+#define SCENE_BATTLE_WILD(speciesId, levelValue)   {.kind = SCENE_STEP_BATTLE, .species = speciesId, .level = levelValue}
+#define SCENE_CUSTOM(eventScript)           {.kind = SCENE_STEP_CUSTOM, .script = eventScript}
 
 // The tile `side` of an actor standing at (x, y) facing `facing`; DIR_NONE counts as DIR_SOUTH.
 void SceneResolveSide(s16 x, s16 y, enum Direction facing, u32 side, s16 *outX, s16 *outY);
@@ -236,7 +275,16 @@ bool8 SceneTryStartTrigger(bool32 tookStep);
 
 // Scripts: VAR_0x8004 = scene id.
 void SceneBegin(void);
+// Like SceneBegin for a scene that is not in the table (tests); run it from Scene_EventScript_RunPrepared.
+void SceneBeginScene(const struct Scene *scene);
 // VAR_RESULT = a SCENE_RESULT_* value (constants/scenes.h).
 void SceneNextStep(void);
+// Run by the driver after an ask_yes_no, ask_choice or give has its answer (VAR_RESULT, or VAR_0x8007 for give):
+// pushes the chosen branch so the next SceneNextStep runs it.
+void SceneTakeAnswer(void);
+// Starts the battle of the current battle step; the driver waits for it with waitstate.
+void SceneStartBattle(void);
+// callnative: calls the current custom step's script as a subroutine.
+void SceneCallCustom(struct ScriptContext *ctx);
 
 #endif // GUARD_SCENE_H
