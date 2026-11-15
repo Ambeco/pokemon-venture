@@ -41,7 +41,29 @@ Triggers belong to the anchor, so a stage cannot ask for a trigger at a place it
 - Enter a map or route at this stage; stand in front of a building door; leave a building; reach a route end or finish a route; come within N tiles of an anchor; talk to an anchor NPC; defeat an immobile story actor; interact with an anchor item; cross a chokepoint (route to location, blocker); chain from the previous scene's end; use a field move or key item at an anchor (Silph Scope, Cut); a battle outcome (win, catch a given Pokémon, flee); the main-story-index crossing a value, seen at the next map load (level-triggered); time of day or weather (not needed yet).
 - An actor enters by approaching from behind, emerging from a door or approaching from the anchor; it leaves by running back or forward, walking to the anchor and vanishing, going through a door, or teleporting.
 
+### Scene runner
+
+A scene is a `struct Scene` (`include/field/scene.h`): a list of actor local ids (slot 0 is always the player) and a step list. A fixed driver script (`data/scripts/scene.inc`) loops on `special SceneNextStep`; the special decodes one step, acts on the live objects and returns what the driver must do next: nothing, wait for movement, or show the text in `gStringVar4`. Running one step at a time matters because a `walk` target is relative to where the previous step left everyone, so paths are computed when the step runs, never ahead of time. Messages, locking and waiting reuse the script commands (`msgbox`, `lockall`, `waitmovementall`).
+
+- A `walk` finds a path with a breadth-first search over a window of tiles around the actor (the screen plus a margin), asking `GetCollisionAtCoords` whether each step is open (so other objects, elevation and impassable metatiles all count), and queues the steps as a movement script in an EWRAM buffer, one per actor slot, which `ScriptMovement` reads until the walk ends. A `parallel_walk` fills every actor's buffer and then waits for all. A walk's goal tile is fixed when its step starts; a goal that is blocked or unreachable fails loudly (naming the scene, step and actor) rather than skipping the step.
+- A target is an actor slot plus a side: the actor's own tile, or the tile in front of, behind, left or right of it (relative to its facing). The resolver is a pure function of positions and facing, so it is tested without a map.
+- Steps implemented: `lock_player`, `unlock_player`, `face`, `walk`, `parallel_walk`, `say`, `hide`, `show`, `advance`. Every other step kind in the vocabulary fails loudly on use, naming the kind.
+- A scene is started by a script (`setvar VAR_0x8004, SCENE_ID` and `call Scene_EventScript_Run`) for now; the per-step trigger check and the entrance/exit classification come later. `advance` sets the scene's stage var.
+- Two things the Route 101 rescue does are not in the vocabulary: placing an actor at a tile (`setobjectxy`) and a fixed choreography (the Zigzagoon circling). Both go through `custom` until a `place` step and a literal `path` step are needed by a second scene.
+- Actors on Emerald's hand-made maps are bound by local id in the scene's actor list, as hinters are bound by hand; spawning transient actors is a later change.
+
 ## Alternatives considered
+
+### Compile a whole scene to one movement/script bytecode buffer
+
+The runner turns the step list into script bytecode up front and runs it once.
+
+Pros:
+- No per-step driver loop; the script engine does all waiting.
+
+Cons:
+- Relative targets depend on where earlier steps leave the actors, so compiling needs a full simulation of every object's position.
+- Every step then needs a bytecode form, including paths found around objects that have moved by the time they run.
 
 ### Hand-written bytecode script per stage
 

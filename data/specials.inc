@@ -647,3 +647,5 @@ gSpecials::
 	def_special ShowPokemonCenterNews
 	def_special IsCurrentSubplotAvailable
 	def_special ShowGenericNpcTalk
+	def_special SceneBegin
+	def_special SceneNextStep

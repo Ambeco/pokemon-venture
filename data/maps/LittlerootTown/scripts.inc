@@ -280,97 +280,12 @@ LittlerootTown_EventScript_GoodLuck::
 	release
 	end
 
+@ Both coord events run the same scene: the twin finds her own way to the player (data/scenes.h).
 LittlerootTown_EventScript_NeedPokemonTriggerLeft::
-	lockall
-	applymovement LOCALID_LITTLEROOT_TWIN, LittlerootTown_Movement_TwinApproachPlayerLeft
-	waitmovement 0
-	call LittlerootTown_EventScript_DangerousWithoutPokemon
-	applymovement LOCALID_LITTLEROOT_TWIN, LittlerootTown_Movement_TwinReturnLeft
-	waitmovement 0
-	releaseall
-	end
-
-LittlerootTown_EventScript_DangerousWithoutPokemon::
-	msgbox LittlerootTown_Text_IfYouGoInGrassPokemonWillJumpOut, MSGBOX_DEFAULT
-	closemessage
-	applymovement LOCALID_LITTLEROOT_TWIN, LittlerootTown_Movement_TwinPushPlayerFromRoute
-	applymovement LOCALID_PLAYER, LittlerootTown_Movement_PushPlayerBackFromRoute
-	waitmovement 0
-	msgbox LittlerootTown_Text_DangerousIfYouDontHavePokemon, MSGBOX_DEFAULT
-	closemessage
-	return
-
-LittlerootTown_Movement_TwinApproachPlayerLeft:
-	face_right
-	delay_8
-	disable_jump_landing_ground_effect
-	jump_in_place_right
-	delay_8
-	walk_fast_right
-	walk_fast_right
-	walk_fast_right
-	walk_fast_right
-	walk_fast_up
-	walk_fast_up
-	walk_fast_left
-	face_down
-	step_end
-
-LittlerootTown_Movement_TwinPushPlayerFromRoute:
-	walk_down
-	step_end
-
-LittlerootTown_Movement_TwinReturnLeft:
-	walk_right
-	walk_down
-	walk_down
-	walk_left
-	walk_left
-	walk_left
-	walk_left
-	walk_up
-	walk_in_place_faster_down
-	step_end
-
-LittlerootTown_Movement_PushPlayerBackFromRoute:
-	lock_facing_direction
-	walk_down
-	unlock_facing_direction
-	step_end
-
 LittlerootTown_EventScript_NeedPokemonTriggerRight::
-	lockall
-	applymovement LOCALID_LITTLEROOT_TWIN, LittlerootTown_Movement_TwinApproachPlayerRight
-	waitmovement 0
-	call LittlerootTown_EventScript_DangerousWithoutPokemon
-	applymovement LOCALID_LITTLEROOT_TWIN, LittlerootTown_Movement_TwinReturnRight
-	waitmovement 0
-	releaseall
+	setvar VAR_0x8004, SCENE_LITTLEROOT_NEED_POKEMON
+	call Scene_EventScript_Run
 	end
-
-LittlerootTown_Movement_TwinApproachPlayerRight:
-	face_right
-	delay_8
-	disable_jump_landing_ground_effect
-	jump_in_place_right
-	delay_8
-	walk_fast_right
-	walk_fast_right
-	walk_fast_right
-	walk_fast_up
-	walk_fast_up
-	walk_fast_right
-	face_down
-	step_end
-
-LittlerootTown_Movement_TwinReturnRight:
-	walk_left
-	walk_down
-	walk_left
-	walk_left
-	walk_left
-	walk_in_place_faster_down
-	step_end
 
 LittlerootTown_EventScript_GoSaveBirchTrigger::
 	lockall
@@ -964,12 +879,12 @@ LittlerootTown_Text_BirchSpendsDaysInLab:
 	.string "When does PROF. BIRCH spend time\n"
 	.string "at home?$"
 
-LittlerootTown_Text_IfYouGoInGrassPokemonWillJumpOut:
+LittlerootTown_Text_IfYouGoInGrassPokemonWillJumpOut::
 	.string "Um, um, um!\p"
 	.string "If you go outside and go in the grass,\n"
 	.string "wild POKéMON will jump out!$"
 
-LittlerootTown_Text_DangerousIfYouDontHavePokemon:
+LittlerootTown_Text_DangerousIfYouDontHavePokemon::
 	.string "It's dangerous if you don't have\n"
 	.string "your own POKéMON.$"
 

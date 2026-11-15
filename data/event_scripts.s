@@ -51,6 +51,7 @@
 #include "constants/mystery_gift.h"
 #include "constants/party_menu.h"
 #include "constants/pokeball.h"
+#include "constants/scenes.h"
 #include "constants/pokedex.h"
 #include "constants/pokemon.h"
 #include "constants/pokemon_size_record.h"
@@ -1053,6 +1054,7 @@ gStdScripts_End::
 	.include "data/scripts/new_game.inc"
 	.include "data/scripts/route_blocker.inc"
 	.include "data/scripts/subplot_hinter.inc"
+	.include "data/scripts/scene.inc"
 	.include "data/scripts/hall_of_fame.inc"
 	.include "data/scripts/hall_of_fame_frlg.inc"
 
