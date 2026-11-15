@@ -35,7 +35,73 @@ static const struct Scene sLittlerootNeedPokemon =
     .steps = sLittlerootNeedPokemonSteps,
 };
 
+extern const u8 LittlerootTown_Text_OurNewHomeLetsGoInside[];
+
+// Stage 0: the player steps off the moving truck, the mom comes out of the house door (the anchor), says her line,
+// and they go in together. Male and female differ only in the truck's hide flag; the door comes from the trigger.
+// Unlike the original script the mom and player take turns walking instead of walking at once, and there are
+// no fixed delays between the steps.
+#define LITTLEROOT_ARRIVAL_STEPS(truckHideFlag) \
+{ \
+    SCENE_LOCK_PLAYER(), \
+    SCENE_HOP(SCENE_ACTOR_PLAYER, DIR_EAST), \
+    SCENE_DOOR_OPEN(), \
+    SCENE_PLACE(SCENE_ACTOR_1, SCENE_ACTOR_ANCHOR, SCENE_SIDE_SELF), \
+    SCENE_WALK(SCENE_ACTOR_1, SCENE_ACTOR_ANCHOR, SCENE_SIDE_FRONT), \
+    SCENE_DOOR_CLOSE(), \
+    SCENE_WALK(SCENE_ACTOR_1, SCENE_ACTOR_PLAYER, SCENE_SIDE_FRONT), \
+    SCENE_FACE(SCENE_ACTOR_1, SCENE_ACTOR_PLAYER, SCENE_SIDE_SELF), \
+    SCENE_SAY(LittlerootTown_Text_OurNewHomeLetsGoInside), \
+    SCENE_WALK(SCENE_ACTOR_1, SCENE_ACTOR_ANCHOR, SCENE_SIDE_FRONT), \
+    SCENE_WALK(SCENE_ACTOR_PLAYER, SCENE_ACTOR_PLAYER, SCENE_SIDE_FRONT), \
+    SCENE_FACE(SCENE_ACTOR_PLAYER, SCENE_ACTOR_ANCHOR, SCENE_SIDE_SELF), \
+    SCENE_DOOR_OPEN(), \
+    SCENE_WALK(SCENE_ACTOR_1, SCENE_ACTOR_ANCHOR, SCENE_SIDE_SELF), \
+    SCENE_HIDE(SCENE_ACTOR_1), \
+    SCENE_WALK(SCENE_ACTOR_PLAYER, SCENE_ACTOR_ANCHOR, SCENE_SIDE_SELF), \
+    SCENE_SET_FLAG(FLAG_HIDE_LITTLEROOT_TOWN_MOM_OUTSIDE), \
+    SCENE_ADVANCE(3), \
+    SCENE_HIDE(SCENE_ACTOR_PLAYER), \
+    SCENE_DOOR_CLOSE(), \
+    SCENE_CLEAR_FLAG(FLAG_HIDE_LITTLEROOT_TOWN_FAT_MAN), \
+    SCENE_CLEAR_FLAG(FLAG_HIDE_MAP_NAME_POPUP), \
+    SCENE_SET_FLAG(truckHideFlag), \
+    SCENE_WARP(TRUE), \
+}
+
+static const struct SceneStep sLittlerootArriveMaleSteps[] = LITTLEROOT_ARRIVAL_STEPS(FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_TRUCK);
+static const struct SceneStep sLittlerootArriveFemaleSteps[] = LITTLEROOT_ARRIVAL_STEPS(FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_TRUCK);
+
+static const struct Scene sLittlerootArriveMale =
+{
+    .name = "LittlerootArriveMale",
+    .actors = {LOCALID_PLAYER, LOCALID_LITTLEROOT_MOM},
+    .numActors = 2,
+    .stageVar = VAR_LITTLEROOT_INTRO_STATE,
+    .numSteps = ARRAY_COUNT(sLittlerootArriveMaleSteps),
+    .steps = sLittlerootArriveMaleSteps,
+};
+
+static const struct Scene sLittlerootArriveFemale =
+{
+    .name = "LittlerootArriveFemale",
+    .actors = {LOCALID_PLAYER, LOCALID_LITTLEROOT_MOM},
+    .numActors = 2,
+    .stageVar = VAR_LITTLEROOT_INTRO_STATE,
+    .numSteps = ARRAY_COUNT(sLittlerootArriveFemaleSteps),
+    .steps = sLittlerootArriveFemaleSteps,
+};
+
 static const struct Scene *const sScenes[SCENE_COUNT] =
 {
     [SCENE_LITTLEROOT_NEED_POKEMON] = &sLittlerootNeedPokemon,
+    [SCENE_LITTLEROOT_ARRIVE_MALE] = &sLittlerootArriveMale,
+    [SCENE_LITTLEROOT_ARRIVE_FEMALE] = &sLittlerootArriveFemale,
+};
+
+// The truck drops the player within 4 tiles of the door in both houses. Door warp 1 is Brendan's house, 0 is May's.
+static const struct SceneTrigger sSceneTriggers[] =
+{
+    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 1, SCENE_LITTLEROOT_ARRIVE_MALE, VAR_LITTLEROOT_INTRO_STATE, 1},
+    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 0, SCENE_LITTLEROOT_ARRIVE_FEMALE, VAR_LITTLEROOT_INTRO_STATE, 2},
 };

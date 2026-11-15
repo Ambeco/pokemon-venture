@@ -3,12 +3,21 @@
 #include "scene.h"
 #include "event_data.h"
 #include "event_object_movement.h"
+#include "field_door.h"
 #include "field_player_avatar.h"
+#include "field_screen_effect.h"
+#include "fieldmap.h"
+#include "overworld.h"
+#include "script.h"
 #include "script_movement.h"
+#include "sound.h"
 #include "string_util.h"
 #include "text.h"
 #include "constants/event_objects.h"
 #include "constants/event_object_movement.h"
+#include "constants/flags.h"
+#include "constants/maps.h"
+#include "constants/songs.h"
 #include "constants/map_event_ids.h"
 #include "constants/scenes.h"
 #include "constants/vars.h"
@@ -19,6 +28,8 @@
 #define CELL_UNSEEN 0
 
 STATIC_ASSERT(WINDOW_CELLS < 256, SceneQueueIndexFitsU8);
+
+extern const u8 Scene_EventScript_RunTriggered[];
 
 #include "data/scenes.h"
 
@@ -31,6 +42,13 @@ static EWRAM_DATA u8 sJumpScript[SCENE_MAX_ACTORS][5] = {0};
 static EWRAM_DATA u8 sSceneId = 0;
 static EWRAM_DATA u8 sStepIndex = 0;
 static EWRAM_DATA bool8 sPlayerLocked = FALSE;
+static EWRAM_DATA bool8 sArrivalPending = FALSE;
+static EWRAM_DATA bool8 sNextAnchorSet = FALSE; // a trigger chose the anchor for the scene it is about to start
+static EWRAM_DATA s16 sNextAnchorX = 0, sNextAnchorY = 0;
+static EWRAM_DATA u8 sNextAnchorWarp = 0;
+static EWRAM_DATA bool8 sAnchorSet = FALSE;
+static EWRAM_DATA s16 sAnchorX = 0, sAnchorY = 0; // the running scene's anchor door, in object (MAP_OFFSET) coordinates
+static EWRAM_DATA u8 sAnchorWarp = 0;
 
 static const char *const sStepKindNames[SCENE_STEP_KIND_COUNT] =
 {
@@ -47,6 +65,10 @@ static const char *const sStepKindNames[SCENE_STEP_KIND_COUNT] =
     [SCENE_STEP_DOOR_OPEN] = "door_open",
     [SCENE_STEP_DOOR_CLOSE] = "door_close",
     [SCENE_STEP_WARP] = "warp",
+    [SCENE_STEP_PLACE] = "place",
+    [SCENE_STEP_SET_FLAG] = "set_flag",
+    [SCENE_STEP_CLEAR_FLAG] = "clear_flag",
+    [SCENE_STEP_HOP] = "hop",
     [SCENE_STEP_ASK_YES_NO] = "ask_yes_no",
     [SCENE_STEP_ASK_CHOICE] = "ask_choice",
     [SCENE_STEP_GIVE] = "give",
@@ -62,6 +84,84 @@ const struct Scene *GetScene(u32 sceneId)
         return NULL;
     }
     return sScenes[sceneId];
+}
+
+bool32 SceneTriggerFires(u32 kind, u32 radius, s16 playerX, s16 playerY, s16 doorX, s16 doorY)
+{
+    s16 frontX, frontY;
+    s32 dx = playerX - doorX, dy = playerY - doorY;
+
+    switch (kind)
+    {
+    case SCENE_TRIGGER_PROXIMITY:
+        return (dx < 0 ? -dx : dx) + (dy < 0 ? -dy : dy) <= (s32)radius;
+    case SCENE_TRIGGER_ON_DOOR:
+        return dx == 0 && dy == 0;
+    case SCENE_TRIGGER_IN_FRONT_OF_DOOR:
+        SceneResolveSide(doorX, doorY, DIR_SOUTH, SCENE_SIDE_FRONT, &frontX, &frontY);
+        return playerX == frontX && playerY == frontY;
+    default:
+        assertf(FALSE, "scene trigger kind %d does not exist; did you mean one of enum SceneTriggerKind?", kind)
+        {
+            return FALSE;
+        }
+    }
+    return FALSE;
+}
+
+const struct SceneTrigger *SceneFindTrigger(const struct SceneTrigger *table, u32 count, u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY)
+{
+    u32 i;
+
+    for (i = 0; i < count; i++)
+    {
+        const struct SceneTrigger *trigger = &table[i];
+        const struct MapEvents *events = gMapHeader.events;
+        const struct WarpEvent *door;
+
+        if (trigger->mapGroup != mapGroup || trigger->mapNum != mapNum || VarGet(trigger->stageVar) != trigger->stageValue)
+            continue;
+        assertf(events != NULL && trigger->doorWarp < events->warpCount, "scene trigger for scene %d names door warp %d, but map %d.%d has %d warps; did you mean another warp index?", trigger->sceneId, trigger->doorWarp, mapGroup, mapNum, events == NULL ? 0 : events->warpCount)
+        {
+            continue;
+        }
+        door = &events->warps[trigger->doorWarp];
+        if (SceneTriggerFires(trigger->kind, trigger->radius, playerX, playerY, door->x + MAP_OFFSET, door->y + MAP_OFFSET))
+            return trigger;
+    }
+    return NULL;
+}
+
+const struct SceneTrigger *SceneFindTriggerAt(u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY)
+{
+    return SceneFindTrigger(sSceneTriggers, ARRAY_COUNT(sSceneTriggers), mapGroup, mapNum, playerX, playerY);
+}
+
+void SceneNotifyMapLoaded(void)
+{
+    sArrivalPending = TRUE;
+}
+
+bool8 SceneTryStartTrigger(bool32 tookStep)
+{
+    struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
+    const struct SceneTrigger *trigger;
+    const struct WarpEvent *door;
+
+    if (!tookStep && !sArrivalPending)
+        return FALSE;
+    sArrivalPending = FALSE;
+    trigger = SceneFindTriggerAt(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, player->currentCoords.x, player->currentCoords.y);
+    if (trigger == NULL)
+        return FALSE;
+    door = &gMapHeader.events->warps[trigger->doorWarp];
+    sNextAnchorSet = TRUE;
+    sNextAnchorX = door->x + MAP_OFFSET;
+    sNextAnchorY = door->y + MAP_OFFSET;
+    sNextAnchorWarp = trigger->doorWarp;
+    gSpecialVar_0x8004 = trigger->sceneId;
+    ScriptContext_SetupScript(Scene_EventScript_RunTriggered);
+    return TRUE;
 }
 
 void SceneResolveSide(s16 x, s16 y, enum Direction facing, u32 side, s16 *outX, s16 *outY)
@@ -206,6 +306,10 @@ static bool32 CanWalkerStep(void *context, s16 x, s16 y, enum Direction dir)
     u32 other;
 
     MoveCoords(dir, &nx, &ny);
+    // A door's own tile is blocked by the map grid (the player enters it through its warp), but a scene's walkers
+    // may step onto its anchor door.
+    if (sAnchorSet && nx == sAnchorX && ny == sAnchorY)
+        return TRUE;
     collision = GetCollisionAtCoords(mover, nx, ny, dir);
     if (collision == COLLISION_NONE)
         return TRUE;
@@ -238,8 +342,20 @@ static struct ObjectEvent *GetActorObject(const struct Scene *scene, u32 slot)
 
 static void GetTargetTile(const struct Scene *scene, const struct SceneTarget *target, s16 *x, s16 *y)
 {
-    struct ObjectEvent *object = GetActorObject(scene, target->actor);
+    struct ObjectEvent *object;
 
+    if (target->actor == SCENE_ACTOR_ANCHOR)
+    {
+        assertf(sAnchorSet && target->side != SCENE_SIDE_HOME, "scene %s targets its anchor door%s; did you mean to start it from a trigger in sSceneTriggers, and a side other than HOME?", scene->name, sAnchorSet ? " by HOME" : ", but a script started it, so it has none")
+        {
+            *x = sAnchorX;
+            *y = sAnchorY;
+            return;
+        }
+        SceneResolveSide(sAnchorX, sAnchorY, DIR_SOUTH, target->side, x, y);
+        return;
+    }
+    object = GetActorObject(scene, target->actor);
     if (target->side == SCENE_SIDE_HOME)
     {
         *x = object->initialCoords.x;
@@ -291,7 +407,7 @@ static bool32 StartWalks(const struct Scene *scene, const struct SceneStep *step
         lengths[i] = SceneFindPath(mover->currentCoords.x, mover->currentCoords.y, goalX, goalY, CanWalkerStep, &search, sWalkDirs[i]);
         mover->range.rangeX = rangeX;
         mover->range.rangeY = rangeY;
-        assertf(lengths[i] != SCENE_PATH_NONE, "scene %s step %d (%s): actor slot %d at (%d, %d) cannot reach (%d, %d) within %d steps and the on-screen window; did you mean a goal side that is open, or a closer actor?", scene->name, stepIndex, sStepKindNames[step->kind], walks[i].actor, mover->currentCoords.x, mover->currentCoords.y, goalX, goalY, SCENE_MAX_PATH)
+        assertf(lengths[i] != SCENE_PATH_NONE, "scene %s step %d (%s): actor slot %d at (%d, %d) cannot reach (%d, %d) (goal collision %d) within %d steps and the on-screen window; did you mean a goal side that is open, or a closer actor?", scene->name, stepIndex, sStepKindNames[step->kind], walks[i].actor, mover->currentCoords.x, mover->currentCoords.y, goalX, goalY, GetCollisionAtCoords(mover, goalX, goalY, SceneDirectionToward(mover->currentCoords.x, mover->currentCoords.y, goalX, goalY)), SCENE_MAX_PATH)
         {
             return FALSE;
         }
@@ -335,6 +451,55 @@ static void StartJump(const struct Scene *scene, const struct SceneStep *step)
     ScriptMovement_StartObjectMovementScript(GetActorLocalId(scene, step->actor), gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, sJumpScript[step->actor]);
 }
 
+static void StartHop(const struct Scene *scene, const struct SceneStep *step)
+{
+    u8 *script = sJumpScript[step->actor]; // a hop and a jump are never in flight for one actor together
+
+    PlaySE(SE_LEDGE);
+    *script++ = GetJumpMovementAction(step->direction);
+    *script++ = MOVEMENT_ACTION_DELAY_16;
+    *script++ = MOVEMENT_ACTION_DELAY_16;
+    *script++ = MOVEMENT_ACTION_DELAY_16;
+    *script = MOVEMENT_ACTION_STEP_END;
+    ScriptMovement_StartObjectMovementScript(GetActorLocalId(scene, step->actor), gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, sJumpScript[step->actor]);
+}
+
+static void PlaceActor(const struct Scene *scene, const struct SceneStep *step)
+{
+    u8 localId = GetActorLocalId(scene, step->actor);
+    u8 mapNum = gSaveBlock1Ptr->location.mapNum, mapGroup = gSaveBlock1Ptr->location.mapGroup;
+    s16 x, y;
+
+    if (GetObjectEventIdByLocalId(localId) >= OBJECT_EVENTS_COUNT)
+    {
+        // The spawn ignores the object's hide flag, like the addobject command.
+        TrySpawnObjectEvent(localId, mapNum, mapGroup);
+        assertf(GetObjectEventIdByLocalId(localId) < OBJECT_EVENTS_COUNT, "scene %s: place could not spawn local id %d; did you mean an object that this map's template list has?", scene->name, localId)
+        {
+            return;
+        }
+    }
+    GetTargetTile(scene, &step->target, &x, &y);
+    TryMoveObjectEventToMapCoords(localId, mapNum, mapGroup, x - MAP_OFFSET, y - MAP_OFFSET);
+}
+
+static void WarpThroughAnchor(const struct Scene *scene, bool32 silent)
+{
+    const struct WarpEvent *door;
+
+    assertf(sAnchorSet && sAnchorWarp < gMapHeader.events->warpCount, "scene %s: warp needs an anchor door; did you mean to start it from a trigger in sSceneTriggers?", scene->name)
+    {
+        return;
+    }
+    door = &gMapHeader.events->warps[sAnchorWarp];
+    SetWarpDestination(door->mapGroup, door->mapNum, door->warpId, -1, -1);
+    if (silent)
+        DoDiveWarp();
+    else
+        DoWarp();
+    ResetInitialPlayerAvatarState();
+}
+
 void SceneBegin(void)
 {
     u32 id = gSpecialVar_0x8004;
@@ -343,6 +508,11 @@ void SceneBegin(void)
     sSceneId = id;
     sStepIndex = 0;
     sPlayerLocked = FALSE;
+    sAnchorSet = sNextAnchorSet;
+    sAnchorX = sNextAnchorX;
+    sAnchorY = sNextAnchorY;
+    sAnchorWarp = sNextAnchorWarp;
+    sNextAnchorSet = FALSE;
 }
 
 static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
@@ -373,6 +543,39 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
     case SCENE_STEP_ADVANCE:
         VarSet(scene->stageVar, step->stage);
         return SCENE_RESULT_NEXT;
+    case SCENE_STEP_SET_FLAG:
+        FlagSet(step->flag);
+        return SCENE_RESULT_NEXT;
+    case SCENE_STEP_CLEAR_FLAG:
+        FlagClear(step->flag);
+        return SCENE_RESULT_NEXT;
+    case SCENE_STEP_PLACE:
+        PlaceActor(scene, step);
+        return SCENE_RESULT_NEXT;
+    case SCENE_STEP_HOP:
+        StartHop(scene, step);
+        return SCENE_RESULT_WAIT_MOVEMENT;
+    case SCENE_STEP_DOOR_OPEN:
+    case SCENE_STEP_DOOR_CLOSE:
+    {
+        s16 x, y;
+        struct SceneTarget door = {SCENE_ACTOR_ANCHOR, SCENE_SIDE_SELF};
+
+        GetTargetTile(scene, &door, &x, &y);
+        if (step->kind == SCENE_STEP_DOOR_OPEN)
+        {
+            PlaySE(GetDoorSoundEffect(x, y));
+            FieldAnimateDoorOpen(x, y);
+        }
+        else
+        {
+            FieldAnimateDoorClose(x, y);
+        }
+        return SCENE_RESULT_WAIT_DOOR;
+    }
+    case SCENE_STEP_WARP:
+        WarpThroughAnchor(scene, step->silent);
+        return SCENE_RESULT_WARP;
     default:
         assertf(FALSE, "scene %s step %d: step kind %s is in the vocabulary but not implemented yet; did you mean to use `custom` or add its implementation to scene.c?", scene->name, sStepIndex - 1, step->kind < SCENE_STEP_KIND_COUNT ? sStepKindNames[step->kind] : "(unknown)")
         {

@@ -9,6 +9,8 @@
 #include "scene.h"
 #include "script.h"
 #include "string_util.h"
+#include "main.h"
+#include "overworld.h"
 #include "constants/characters.h"
 #include "constants/event_object_movement.h"
 #include "constants/map_event_ids.h"
@@ -16,6 +18,7 @@
 #include "constants/scenes.h"
 
 extern const u8 LittlerootTown_EventScript_NeedPokemonTriggerLeft[];
+extern const u8 LittlerootTown_Text_OurNewHomeLetsGoInside[];
 extern const u8 LittlerootTown_Text_IfYouGoInGrassPokemonWillJumpOut[];
 extern const u8 LittlerootTown_Text_DangerousIfYouDontHavePokemon[];
 
@@ -239,4 +242,122 @@ TEST("Scene: Littleroot's little girl walks up to the player, warns them, pushes
     EXPECT_EQ(twin->currentCoords.x, 7 + MAP_OFFSET);
     EXPECT_EQ(twin->currentCoords.y, 2 + MAP_OFFSET);
     EXPECT_EQ((u32)player->facingDirection, DIR_NORTH); // slid, so still facing north
+}
+
+TEST("Scene: SceneTriggerFires proximity is Manhattan distance and includes the door tile and the radius edge")
+{
+    EXPECT(SceneTriggerFires(SCENE_TRIGGER_PROXIMITY, 5, 10, 10, 10, 10));
+    EXPECT(SceneTriggerFires(SCENE_TRIGGER_PROXIMITY, 5, 13, 12, 10, 10));  // 3 + 2 = 5: on the edge
+    EXPECT(SceneTriggerFires(SCENE_TRIGGER_PROXIMITY, 5, 5, 10, 10, 10));   // 5 + 0
+    EXPECT(!SceneTriggerFires(SCENE_TRIGGER_PROXIMITY, 5, 13, 13, 10, 10)); // 6: outside
+    EXPECT(!SceneTriggerFires(SCENE_TRIGGER_PROXIMITY, 5, 10, 4, 10, 10));
+    EXPECT(SceneTriggerFires(SCENE_TRIGGER_PROXIMITY, 0, 10, 10, 10, 10));
+    EXPECT(!SceneTriggerFires(SCENE_TRIGGER_PROXIMITY, 0, 10, 11, 10, 10));
+}
+
+TEST("Scene: SceneTriggerFires distinguishes standing on the door from standing in front of it")
+{
+    EXPECT(SceneTriggerFires(SCENE_TRIGGER_ON_DOOR, 0, 7, 8, 7, 8));
+    EXPECT(!SceneTriggerFires(SCENE_TRIGGER_ON_DOOR, 0, 7, 9, 7, 8));
+    EXPECT(SceneTriggerFires(SCENE_TRIGGER_IN_FRONT_OF_DOOR, 0, 7, 9, 7, 8));
+    EXPECT(!SceneTriggerFires(SCENE_TRIGGER_IN_FRONT_OF_DOOR, 0, 7, 8, 7, 8));
+    EXPECT(!SceneTriggerFires(SCENE_TRIGGER_IN_FRONT_OF_DOOR, 0, 7, 7, 7, 8)); // above the door is not in front
+}
+
+TEST("Scene: Littleroot's arrival triggers cover the truck drop-off tiles and nothing far away")
+{
+    const struct MapEvents *events;
+
+    Test_LoadMapAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 10, 12);
+    events = gMapHeader.events;
+    // Brendan's door is warp 1 at (5, 8) and the truck drops him at (3, 10); May's is warp 0 at (14, 8), dropped at (12, 10).
+    ASSUME(events->warps[1].x == 5 && events->warps[1].y == 8 && events->warps[0].x == 14 && events->warps[0].y == 8);
+    VarSet(VAR_LITTLEROOT_INTRO_STATE, 1);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET) != NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET) == NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN) + 1, MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET) == NULL);
+    VarSet(VAR_LITTLEROOT_INTRO_STATE, 2);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET) != NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET) == NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 14 + MAP_OFFSET, 20 + MAP_OFFSET) == NULL);
+    VarSet(VAR_LITTLEROOT_INTRO_STATE, 3); // past stage 0: no trigger
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET) == NULL);
+}
+
+// Drops the player where the truck does, with the intro flags InsideOfTruck sets, and lets the arrival trigger start
+// the scene by itself. Returns whether the first message was the mom's line; ends with the destination map loaded.
+// (Compares against gStringVar2 on the spot: the test build has no EWRAM to spare for buffers.)
+static bool32 RunArrival(u32 introState, u32 dropX, u32 hideFlagToSet, u32 hideFlagToClear)
+{
+    u32 frame;
+    bool32 wasShowing = FALSE, gotText = FALSE, textMatched = FALSE;
+
+    VarSet(VAR_LITTLEROOT_INTRO_STATE, introState);
+    FlagSet(hideFlagToSet);
+    FlagClear(hideFlagToClear);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_MOM_OUTSIDE);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_FAT_MAN);
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_BIRCH); // new-game flags: Birch and the rival stand on the truck row otherwise
+    FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_RIVAL);
+    Test_LoadMapAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), dropX, 10);
+    // The warp-in fade never finishes without VBlank, so the field controls stay locked: unlock them.
+    UnlockPlayerFieldControls();
+    for (frame = 0; frame < 60 && !ScriptContext_IsEnabled(); frame++)
+        Test_RunFieldFrames(1);
+    ASSUME(ScriptContext_IsEnabled()); // the trigger started the scene
+    for (frame = 0; frame < 3000 && ScriptContext_IsEnabled(); frame++)
+    {
+        bool32 showing = !IsFieldMessageBoxHidden();
+
+        if (showing && !wasShowing && !gotText)
+        {
+            StringExpandPlaceholders(gStringVar2, LittlerootTown_Text_OurNewHomeLetsGoInside);
+            textMatched = StringCompareN(gStringVar4, gStringVar2, 60) == 0; // StringCompare compared far past the text here; 60 characters is enough to tell the lines apart
+            gotText = TRUE;
+        }
+        wasShowing = showing;
+        if (frame % 90 == 89)
+            Test_PressKeys(A_BUTTON);
+        else
+            Test_RunFrames(1);
+        if (gMain.callback2 == CB2_LoadMap)
+            break;
+    }
+    ASSUME(gotText);
+    Test_FinishWarp();
+    return textMatched;
+}
+
+TEST("Scene: Littleroot's arrival starts by itself for the boy, walks his mom in and warps into Brendan's house")
+{
+    EXPECT(RunArrival(1, 3, FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_TRUCK, FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_TRUCK));
+    EXPECT_EQ((u32)gSaveBlock1Ptr->location.mapGroup, MAP_GROUP(MAP_LITTLEROOT_TOWN_BRENDANS_HOUSE_1F));
+    EXPECT_EQ((u32)gSaveBlock1Ptr->location.mapNum, MAP_NUM(MAP_LITTLEROOT_TOWN_BRENDANS_HOUSE_1F));
+    EXPECT_GE(VarGet(VAR_LITTLEROOT_INTRO_STATE), 3);
+    EXPECT(FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_MOM_OUTSIDE));
+    EXPECT(!FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_FAT_MAN));
+    EXPECT(!FlagGet(FLAG_HIDE_MAP_NAME_POPUP));
+    EXPECT(FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_TRUCK));
+}
+
+TEST("Scene: Littleroot's arrival starts by itself for the girl, walks her mom in and warps into May's house")
+{
+    EXPECT(RunArrival(2, 12, FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_TRUCK, FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_TRUCK));
+    EXPECT_EQ((u32)gSaveBlock1Ptr->location.mapGroup, MAP_GROUP(MAP_LITTLEROOT_TOWN_MAYS_HOUSE_1F));
+    EXPECT_EQ((u32)gSaveBlock1Ptr->location.mapNum, MAP_NUM(MAP_LITTLEROOT_TOWN_MAYS_HOUSE_1F));
+    EXPECT_GE(VarGet(VAR_LITTLEROOT_INTRO_STATE), 3);
+    EXPECT(FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_MOM_OUTSIDE));
+    EXPECT(!FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_FAT_MAN));
+    EXPECT(FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_TRUCK));
+}
+
+TEST("Scene: a trigger does not fire after stage 0 or without a step or map load")
+{
+    Test_LoadMapAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 3, 10);
+    VarSet(VAR_LITTLEROOT_INTRO_STATE, 6);
+    Test_RunFieldFrames(30);
+    EXPECT(!ScriptContext_IsEnabled());
+    VarSet(VAR_LITTLEROOT_INTRO_STATE, 1);
+    Test_RunFieldFrames(30); // the arrival check was consumed by the first frame; standing still does not recheck
+    EXPECT(!ScriptContext_IsEnabled());
 }

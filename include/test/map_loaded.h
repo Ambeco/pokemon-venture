@@ -23,6 +23,13 @@ void Test_LoadMap(u32 mapGroup, u32 mapNum);
 void Test_LoadMapAt(u32 mapGroup, u32 mapNum, u32 x, u32 y);
 void Test_RunFrames(u32 frames);
 
+// As Test_RunFrames, but also runs the field input handler (CB1_Overworld), so step and map-arrival triggers fire.
+void Test_RunFieldFrames(u32 frames);
+
+// Runs frames until a started warp reaches the map load, then loads the destination map as Test_LoadMap does
+// (so the heap is reset: nothing the test allocated survives).
+void Test_FinishWarp(void);
+
 // Runs one overworld frame in which `keys` (A_BUTTON, ...) were newly pressed, e.g. to dismiss a waitbuttonpress.
 void Test_PressKeys(u16 keys);
 

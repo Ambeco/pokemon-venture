@@ -28,6 +28,7 @@
 #include "overworld.h"
 #include "pokemon.h"
 #include "safari_zone.h"
+#include "scene.h"
 #include "script.h"
 #include "secret_base.h"
 #include "sound.h"
@@ -176,6 +177,9 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
         return TRUE;
 
     if (TryRunOnFrameMapScript() == TRUE)
+        return TRUE;
+
+    if (SceneTryStartTrigger(input->tookStep) == TRUE)
         return TRUE;
 
     if (input->pressedBButton && TrySetupDiveEmergeScript() == TRUE)

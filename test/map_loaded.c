@@ -5,6 +5,7 @@
 #include "main.h"
 #include "malloc.h"
 #include "overworld.h"
+#include "palette.h"
 #include "event_data.h"
 #include "fieldmap.h"
 #include "constants/characters.h"
@@ -48,16 +49,13 @@ void Test_PressKeys(u16 keys)
 // The map load resets the heap (MoveSaveBlocks_ResetHeap), which would invalidate the runner's own
 // heap-allocated state, so it is saved and re-allocated around the load. Anything else the test
 // allocated before calling Test_LoadMap is lost.
-static void LoadMapAt(u32 mapGroup, u32 mapNum, s32 x, s32 y)
+static void RunMapLoad(u32 mapGroup, u32 mapNum)
 {
     static EWRAM_DATA struct FunctionTestRunnerState sSavedRunnerState;
     u32 i;
 
     sSavedRunnerState = *gFunctionTestRunnerState;
 
-    SetWarpDestination(mapGroup, mapNum, WARP_ID_NONE, x, y);
-    WarpIntoMap();
-    SetMainCallback2(CB2_LoadMap);
     for (i = 0; i < TEST_MAP_LOAD_MAX_FRAMES && gMain.callback2 != CB2_Overworld; i++)
     {
         if (gMain.callback1)
@@ -73,6 +71,46 @@ static void LoadMapAt(u32 mapGroup, u32 mapNum, s32 x, s32 y)
     // The loaded map's allocations are never freed.
     Test_ExpectLeaks(TRUE);
     Test_RestartAfterTest();
+}
+
+static void LoadMapAt(u32 mapGroup, u32 mapNum, s32 x, s32 y)
+{
+    SetWarpDestination(mapGroup, mapNum, WARP_ID_NONE, x, y);
+    WarpIntoMap();
+    SetMainCallback2(CB2_LoadMap);
+    RunMapLoad(mapGroup, mapNum);
+}
+
+void Test_RunFieldFrames(u32 frames)
+{
+    u32 i;
+
+    for (i = 0; i < frames; i++)
+    {
+        gMain.newKeys = 0;
+        gMain.heldKeys = 0;
+        // CB1_Overworld (field input) only runs while callback2 is CB2_Overworld.
+        gMain.callback2 = CB2_Overworld;
+        CB1_Overworld();
+        CB2_Overworld();
+        if (gMain.callback2 == CB2_Overworld)
+            gMain.callback2 = CB2_TestRunner;
+    }
+}
+
+void Test_FinishWarp(void)
+{
+    u32 i;
+
+    // A palette fade only advances after VBlank's transfer, which the test build never runs.
+    for (i = 0; i < TEST_MAP_LOAD_MAX_FRAMES && gMain.callback2 != CB2_LoadMap; i++)
+    {
+        PumpFrame();
+        TransferPlttBuffer();
+    }
+    if (gMain.callback2 != CB2_LoadMap)
+        Test_ExitWithResult(TEST_RESULT_INVALID, __LINE__, ":L%s:%d: no warp started within %d frames", gTestRunnerState.test->filename, __LINE__, TEST_MAP_LOAD_MAX_FRAMES);
+    RunMapLoad(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum);
 }
 
 void Test_LoadMap(u32 mapGroup, u32 mapNum)
