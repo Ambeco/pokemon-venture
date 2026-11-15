@@ -148,9 +148,9 @@ TEST("Scene: SceneFindPath fails for a path longer than SCENE_MAX_PATH")
 
 TEST("Scene: SceneBuildWalkScript writes one walk action per step and ends with step_end")
 {
-    static EWRAM_DATA u8 sOut[SCENE_MAX_PATH + 1];
+    static EWRAM_DATA u8 sOut[SCENE_MAX_PATH + 3];
     const u8 dirs[] = {DIR_NORTH, DIR_EAST, DIR_SOUTH, DIR_WEST};
-    u8 *end = SceneBuildWalkScript(sOut, dirs, ARRAY_COUNT(dirs));
+    u8 *end = SceneBuildWalkScript(sOut, dirs, ARRAY_COUNT(dirs), FALSE);
 
     EXPECT(end == sOut + ARRAY_COUNT(dirs));
     EXPECT_EQ(sOut[0], GetWalkNormalMovementAction(DIR_NORTH));
@@ -158,6 +158,19 @@ TEST("Scene: SceneBuildWalkScript writes one walk action per step and ends with 
     EXPECT_EQ(sOut[2], GetWalkNormalMovementAction(DIR_SOUTH));
     EXPECT_EQ(sOut[3], GetWalkNormalMovementAction(DIR_WEST));
     EXPECT_EQ(sOut[4], MOVEMENT_ACTION_STEP_END);
+}
+
+TEST("Scene: SceneBuildWalkScript brackets a backward walk with lock and unlock facing")
+{
+    static EWRAM_DATA u8 sOut[SCENE_MAX_PATH + 3];
+    const u8 dirs[] = {DIR_SOUTH};
+    u8 *end = SceneBuildWalkScript(sOut, dirs, ARRAY_COUNT(dirs), TRUE);
+
+    EXPECT(end == sOut + 3);
+    EXPECT_EQ(sOut[0], MOVEMENT_ACTION_LOCK_FACING_DIRECTION);
+    EXPECT_EQ(sOut[1], GetWalkNormalMovementAction(DIR_SOUTH));
+    EXPECT_EQ(sOut[2], MOVEMENT_ACTION_UNLOCK_FACING_DIRECTION);
+    EXPECT_EQ(sOut[3], MOVEMENT_ACTION_STEP_END);
 }
 
 TEST("Scene: Every scene id has a scene with steps and a name")
@@ -225,4 +238,5 @@ TEST("Scene: Littleroot's little girl walks up to the player, warns them, pushes
     EXPECT_EQ(player->currentCoords.y, 2 + MAP_OFFSET);
     EXPECT_EQ(twin->currentCoords.x, 7 + MAP_OFFSET);
     EXPECT_EQ(twin->currentCoords.y, 2 + MAP_OFFSET);
+    EXPECT_EQ((u32)player->facingDirection, DIR_NORTH); // walked backward
 }

@@ -50,7 +50,7 @@
   - Build real chains (County planning), and read the stored position for Emerald counties once their legacy vars are retired.
   - Advance the global main-story-index when `DidChainJustFinishMainSlot` fires (no stored index exists until Milestone 3; `GetMainStoryIndex` is computed by the adapter).
 - Scene runner (design_scenes.md, "Scene runner"; `src/field/scene.c`, first conversion is Littleroot's "need a Pokémon" girl):
-  - Implement the vocabulary steps that still assert: `door_open`/`door_close`, `warp`, `ask_yes_no`, `ask_choice`, `give`, `battle`, `music`, `custom`; add `place` and a literal `path` step (the Route 101 rescue needs both) and a walk-backward option (the pushed-back player now faces south, not north as in vanilla).
+  - Implement the vocabulary steps that still assert: `door_open`/`door_close`, `warp`, `ask_yes_no`, `ask_choice`, `give`, `battle`, `music`, `custom`; add `place` and a literal `path` step (the Route 101 rescue needs both).
   - Add the per-step trigger check (proximity, enter door, cross an exit), the entrance/exit border classification, per-map actor binding instead of local ids in each `struct Scene`, and a stage-to-scenes field beside `actors` on `SubplotDesc`.
   - Add building features (chair, TV, center-stage) and transient-actor placement with its test.
   - Convert the rest of the Route 101 tutorial (stages 0 and 5) and the two ported subplots' scripts.

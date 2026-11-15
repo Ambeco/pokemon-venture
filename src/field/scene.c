@@ -25,8 +25,9 @@ STATIC_ASSERT(WINDOW_CELLS < 256, SceneQueueIndexFitsU8);
 static EWRAM_DATA u8 sSearchCameFrom[WINDOW_CELLS] = {0}; // the direction taken into each cell, CELL_UNSEEN if not reached
 static EWRAM_DATA u8 sSearchQueue[WINDOW_CELLS] = {0};
 static EWRAM_DATA u8 sWalkDirs[SCENE_MAX_ACTORS][SCENE_MAX_PATH] = {0};
-static EWRAM_DATA u8 sWalkScript[SCENE_MAX_ACTORS][SCENE_MAX_PATH + 1] = {0};
+static EWRAM_DATA u8 sWalkScript[SCENE_MAX_ACTORS][SCENE_MAX_PATH + 3] = {0};
 static EWRAM_DATA u8 sFaceScript[SCENE_MAX_ACTORS][2] = {0};
+static EWRAM_DATA u8 sJumpScript[SCENE_MAX_ACTORS][5] = {0};
 static EWRAM_DATA u8 sSceneId = 0;
 static EWRAM_DATA u8 sStepIndex = 0;
 static EWRAM_DATA bool8 sPlayerLocked = FALSE;
@@ -41,6 +42,7 @@ static const char *const sStepKindNames[SCENE_STEP_KIND_COUNT] =
     [SCENE_STEP_SAY] = "say",
     [SCENE_STEP_HIDE] = "hide",
     [SCENE_STEP_SHOW] = "show",
+    [SCENE_STEP_JUMP] = "jump",
     [SCENE_STEP_ADVANCE] = "advance",
     [SCENE_STEP_DOOR_OPEN] = "door_open",
     [SCENE_STEP_DOOR_CLOSE] = "door_close",
@@ -171,7 +173,7 @@ u32 SceneFindPath(s16 startX, s16 startY, s16 goalX, s16 goalY, SceneStepCheck c
     return length;
 }
 
-u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length)
+u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length, bool32 keepFacing)
 {
     u32 i;
 
@@ -179,8 +181,12 @@ u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length)
     {
         length = SCENE_MAX_PATH;
     }
+    if (keepFacing)
+        *out++ = MOVEMENT_ACTION_LOCK_FACING_DIRECTION;
     for (i = 0; i < length; i++)
         *out++ = GetWalkNormalMovementAction(dirs[i]);
+    if (keepFacing)
+        *out++ = MOVEMENT_ACTION_UNLOCK_FACING_DIRECTION;
     *out = MOVEMENT_ACTION_STEP_END;
     return out;
 }
@@ -257,6 +263,7 @@ static bool32 StartWalks(const struct Scene *scene, const struct SceneStep *step
     {
         single.actor = step->actor;
         single.goal = step->target;
+        single.backward = step->backward;
         walks = &single;
         numWalks = 1;
     }
@@ -293,7 +300,7 @@ static bool32 StartWalks(const struct Scene *scene, const struct SceneStep *step
     {
         if (lengths[i] == 0)
             continue;
-        SceneBuildWalkScript(sWalkScript[i], sWalkDirs[i], lengths[i]);
+        SceneBuildWalkScript(sWalkScript[i], sWalkDirs[i], lengths[i], walks[i].backward);
         ScriptMovement_StartObjectMovementScript(GetActorLocalId(scene, walks[i].actor), gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, sWalkScript[i]);
         started = TRUE;
     }
@@ -314,6 +321,18 @@ static bool32 StartFace(const struct Scene *scene, const struct SceneStep *step)
     sFaceScript[step->actor][1] = MOVEMENT_ACTION_STEP_END;
     ScriptMovement_StartObjectMovementScript(GetActorLocalId(scene, step->actor), gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, sFaceScript[step->actor]);
     return TRUE;
+}
+
+static void StartJump(const struct Scene *scene, const struct SceneStep *step)
+{
+    u8 *script = sJumpScript[step->actor];
+
+    *script++ = MOVEMENT_ACTION_DELAY_8;
+    *script++ = MOVEMENT_ACTION_DISABLE_JUMP_LANDING_GROUND_EFFECT;
+    *script++ = GetJumpInPlaceMovementAction(GetActorObject(scene, step->actor)->facingDirection);
+    *script++ = MOVEMENT_ACTION_DELAY_8;
+    *script = MOVEMENT_ACTION_STEP_END;
+    ScriptMovement_StartObjectMovementScript(GetActorLocalId(scene, step->actor), gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, sJumpScript[step->actor]);
 }
 
 void SceneBegin(void)
@@ -341,6 +360,9 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
     case SCENE_STEP_WALK:
     case SCENE_STEP_PARALLEL_WALK:
         return StartWalks(scene, step, sStepIndex - 1) ? SCENE_RESULT_WAIT_MOVEMENT : SCENE_RESULT_NEXT;
+    case SCENE_STEP_JUMP:
+        StartJump(scene, step);
+        return SCENE_RESULT_WAIT_MOVEMENT;
     case SCENE_STEP_SAY:
         StringExpandPlaceholders(gStringVar4, step->text);
         return SCENE_RESULT_SAY;

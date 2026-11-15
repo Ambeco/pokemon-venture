@@ -52,6 +52,7 @@ enum SceneStepKind
     SCENE_STEP_SAY,
     SCENE_STEP_HIDE,
     SCENE_STEP_SHOW,
+    SCENE_STEP_JUMP,    // jump in place in the direction the actor faces
     SCENE_STEP_ADVANCE,
     // In the vocabulary, not implemented: running one asserts.
     SCENE_STEP_DOOR_OPEN,
@@ -76,6 +77,7 @@ struct SceneWalk
 {
     u8 actor;
     struct SceneTarget goal;
+    bool8 backward; // keep facing the way it faces while walking
 };
 
 struct SceneStep
@@ -87,6 +89,7 @@ struct SceneStep
     const struct SceneWalk *walks;
     const u8 *text;                   // say
     u8 stage;                         // advance: the value written to the scene's stage var
+    bool8 backward;                   // walk: as SceneWalk.backward
 };
 
 struct Scene
@@ -104,6 +107,8 @@ struct Scene
 #define SCENE_UNLOCK_PLAYER()               {.kind = SCENE_STEP_UNLOCK_PLAYER}
 #define SCENE_FACE(who, toward, side)       {.kind = SCENE_STEP_FACE, .actor = who, .target = {toward, side}}
 #define SCENE_WALK(who, toward, side)       {.kind = SCENE_STEP_WALK, .actor = who, .target = {toward, side}}
+#define SCENE_WALK_BACKWARD(who, toward, side) {.kind = SCENE_STEP_WALK, .actor = who, .target = {toward, side}, .backward = TRUE}
+#define SCENE_JUMP(who)                     {.kind = SCENE_STEP_JUMP, .actor = who}
 #define SCENE_PARALLEL_WALK(array)          {.kind = SCENE_STEP_PARALLEL_WALK, .numWalks = ARRAY_COUNT(array), .walks = array}
 #define SCENE_SAY(string)                   {.kind = SCENE_STEP_SAY, .text = string}
 #define SCENE_HIDE(who)                     {.kind = SCENE_STEP_HIDE, .actor = who}
@@ -124,8 +129,9 @@ typedef bool32 (*SceneStepCheck)(void *context, s16 x, s16 y, enum Direction dir
 // SCENE_MAX_PATH steps. A goal equal to the start gives length 0.
 u32 SceneFindPath(s16 startX, s16 startY, s16 goalX, s16 goalY, SceneStepCheck canStep, void *context, u8 *dirs);
 
-// Writes the walk-and-end movement script for `dirs` at `out` (SCENE_MAX_PATH + 1 bytes); returns the end.
-u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length);
+// Writes the walk-and-end movement script for `dirs` at `out` (SCENE_MAX_PATH + 3 bytes); returns the end.
+// keepFacing brackets the walk with lock/unlock facing direction, so the actor walks backward.
+u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length, bool32 keepFacing);
 
 const struct Scene *GetScene(u32 sceneId);
 
