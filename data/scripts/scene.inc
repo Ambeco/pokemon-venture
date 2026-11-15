@@ -35,6 +35,7 @@ Scene_EventScript_RunPrepared::
 Scene_EventScript_AskYesNo:
 	msgbox gStringVar4, MSGBOX_YESNO
 	special SceneTakeAnswer
+	closemessage
 	goto Scene_EventScript_NextStep
 
 Scene_EventScript_AskChoice:
@@ -45,10 +46,18 @@ Scene_EventScript_AskChoice:
 	closemessage
 	goto Scene_EventScript_NextStep
 
-@ Std_ObtainItem leaves its success in VAR_0x8007, which SceneTakeAnswer reads.
+@ Std_ObtainItem leaves its success in VAR_0x8007, which SceneTakeAnswer reads. It says nothing when the bag is full.
 Scene_EventScript_Give:
 	callstd STD_OBTAIN_ITEM
+	goto_if_eq VAR_0x8007, FALSE, Scene_EventScript_GiveBagFull
 	special SceneTakeAnswer
+	closemessage
+	goto Scene_EventScript_NextStep
+
+Scene_EventScript_GiveBagFull:
+	msgbox gText_TooBadBagIsFull, MSGBOX_DEFAULT
+	special SceneTakeAnswer
+	closemessage
 	goto Scene_EventScript_NextStep
 
 Scene_EventScript_Battle:

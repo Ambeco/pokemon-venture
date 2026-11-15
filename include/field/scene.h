@@ -11,7 +11,7 @@
  *     call Scene_EventScript_Run
  *
  * Actors are named by slot: slot 0 is always the player, the others are the local ids in Scene.actors. A step
- * kind that is in the vocabulary but not implemented yet fails loudly, naming the kind, instead of doing nothing.
+ * of an unknown kind fails loudly, naming the kind, instead of doing nothing.
  * A walk or parallel_walk fails loudly when its goal is blocked or not reachable within the search window.
  *
  * A scene can also start itself: sSceneTriggers (data/scenes.h) lists, per map, a stage var value and an anchor (a

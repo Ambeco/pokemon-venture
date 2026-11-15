@@ -813,7 +813,15 @@ static u32 StartAsk(const struct Scene *scene, const struct SceneStep *step)
     for (i = 0; i < step->numBranches; i++)
     {
         struct ListMenuItem item;
-        u8 *name = Alloc(100); // like dynmultipush's copy, the menu owns it
+        u8 *name;
+
+        assertf(step->branches[i].label != NULL, "scene %s step %d (ask_choice): choice %d has no label; did you mean SCENE_BRANCH(label, steps) or SCENE_EMPTY_BRANCH(label)?", scene->name, STEP_NUMBER(), i)
+        {
+            if (i > 0)
+                MultichoiceDynamic_DestroyStack(); // the labels pushed so far
+            return SCENE_RESULT_NEXT;
+        }
+        name = Alloc(100); // like dynmultipush's copy, the menu owns it
 
         StringExpandPlaceholders(name, step->branches[i].label);
         item.name = name;
@@ -1023,7 +1031,7 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
         sPendingStep = step;
         return SCENE_RESULT_CUSTOM;
     default:
-        assertf(FALSE, "scene %s step %d: step kind %s is in the vocabulary but not implemented yet; did you mean to use `custom` or add its implementation to scene.c?", scene->name, STEP_NUMBER(), step->kind < SCENE_STEP_KIND_COUNT ? sStepKindNames[step->kind] : "(unknown)")
+        assertf(FALSE, "scene %s step %d: step kind %s is unknown; did you mean one of enum SceneStepKind, or `custom` for a one-off?", scene->name, STEP_NUMBER(), step->kind < SCENE_STEP_KIND_COUNT ? sStepKindNames[step->kind] : "(unknown)")
         {
             return SCENE_RESULT_NEXT;
         }

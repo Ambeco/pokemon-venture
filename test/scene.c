@@ -758,6 +758,11 @@ static void StepGiveSceneByHand(const struct Scene *scene, bool32 received, u32 
             gSpecialVar_0x8007 = received;
             SceneTakeAnswer();
         }
+        else if (gSpecialVar_Result == SCENE_RESULT_ASK_YES_NO)
+        {
+            gSpecialVar_Result = TRUE; // yes
+            SceneTakeAnswer();
+        }
         else if (gSpecialVar_Result == SCENE_RESULT_END)
         {
             return;
@@ -807,6 +812,22 @@ TEST("Scene: give with a full bag runs its bag-full branch and then ends the sce
     LoadTestMap();
     StepGiveSceneByHand(&scene, FALSE, &item, &quantity);
     EXPECT(FlagGet(FLAG_TEMP_1));
+    EXPECT(!FlagGet(FLAG_TEMP_5));
+    EXPECT_EQ(VarGet(VAR_TEMP_1), 0);
+}
+
+TEST("Scene: a full-bag give inside a yes branch ends the whole scene: nothing after the branch or the question runs")
+{
+    u32 item = 0, quantity = 0;
+    struct SceneStep inner[] = {SCENE_GIVE(ITEM_POTION, 1), SCENE_SET_FLAG(FLAG_TEMP_4)};
+    struct SceneBranch branches[] = {SCENE_BRANCH(NULL, inner), SCENE_EMPTY_BRANCH(NULL)};
+    struct SceneStep steps[] = {SCENE_ASK_YES_NO(sTestQuestion, branches), SCENE_SET_FLAG(FLAG_TEMP_5), SCENE_ADVANCE(1)};
+    struct Scene scene = {.name = "GiveFullNested", .actors = {LOCALID_PLAYER}, .numActors = 1, .stageVar = VAR_TEMP_1, .numSteps = ARRAY_COUNT(steps), .steps = steps};
+
+    LoadTestMap();
+    StepGiveSceneByHand(&scene, FALSE, &item, &quantity);
+    EXPECT_EQ(item, ITEM_POTION);
+    EXPECT(!FlagGet(FLAG_TEMP_4));
     EXPECT(!FlagGet(FLAG_TEMP_5));
     EXPECT_EQ(VarGet(VAR_TEMP_1), 0);
 }
