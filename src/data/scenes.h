@@ -98,11 +98,46 @@ static const struct Scene sLittlerootArriveFemale =
     .steps = sLittlerootArriveFemaleSteps,
 };
 
+extern const u8 Route101_Text_HelpMe[];
+extern const u8 Route101_Text_PleaseHelp[];
+
+// Stage 0 of Route 101 (VAR_ROUTE101_STATE), fired when the route loads: Birch and the Zigzagoon appear at their
+// template tiles in the grass and circle there while the player watches, then face off and Birch asks for help.
+// The no-wild flag keeps spawns and encounters off until Birch's bag script clears it.
+static const struct SceneStep sRoute101RescueSteps[] =
+{
+    SCENE_LOCK_PLAYER(),
+    SCENE_SET_FLAG(FLAG_HIDE_MAP_NAME_POPUP),
+    SCENE_SET_FLAG(FLAG_SCENE_NO_WILD),
+    SCENE_MUSIC(MUS_HELP),
+    SCENE_PLACE(SCENE_ACTOR_1, SCENE_ACTOR_1, SCENE_SIDE_HOME),
+    SCENE_PLACE(SCENE_ACTOR_2, SCENE_ACTOR_2, SCENE_SIDE_HOME),
+    SCENE_SAY(Route101_Text_HelpMe),
+    SCENE_CHASE_LOOP(SCENE_ACTOR_1, SCENE_ACTOR_2, SCENE_ACTOR_PLAYER, SCENE_SIDE_SELF, 2, 3, 2),
+    SCENE_PAUSE(16),
+    SCENE_FACE(SCENE_ACTOR_2, SCENE_ACTOR_1, SCENE_SIDE_SELF),
+    SCENE_FACE(SCENE_ACTOR_1, SCENE_ACTOR_2, SCENE_SIDE_SELF),
+    SCENE_SAY(Route101_Text_PleaseHelp),
+    SCENE_ADVANCE(2),
+    SCENE_UNLOCK_PLAYER(),
+};
+
+static const struct Scene sRoute101Rescue =
+{
+    .name = "Route101Rescue",
+    .actors = {LOCALID_PLAYER, LOCALID_ROUTE101_BIRCH, LOCALID_ROUTE101_ZIGZAGOON},
+    .numActors = 3,
+    .stageVar = VAR_ROUTE101_STATE,
+    .numSteps = ARRAY_COUNT(sRoute101RescueSteps),
+    .steps = sRoute101RescueSteps,
+};
+
 static const struct Scene *const sScenes[SCENE_COUNT] =
 {
     [SCENE_LITTLEROOT_NEED_POKEMON] = &sLittlerootNeedPokemon,
     [SCENE_LITTLEROOT_ARRIVE_MALE] = &sLittlerootArriveMale,
     [SCENE_LITTLEROOT_ARRIVE_FEMALE] = &sLittlerootArriveFemale,
+    [SCENE_ROUTE101_RESCUE] = &sRoute101Rescue,
 };
 
 // The truck drops the player within 4 tiles of the door in both houses. Door warp 1 is Brendan's house, 0 is May's.
@@ -110,4 +145,5 @@ static const struct SceneTrigger sSceneTriggers[] =
 {
     {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 1, SCENE_LITTLEROOT_ARRIVE_MALE, VAR_LITTLEROOT_INTRO_STATE, 1},
     {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 0, SCENE_LITTLEROOT_ARRIVE_FEMALE, VAR_LITTLEROOT_INTRO_STATE, 2},
+    {MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), SCENE_TRIGGER_ENTER_MAP, 0, 0, SCENE_ROUTE101_RESCUE, VAR_ROUTE101_STATE, 0},
 };

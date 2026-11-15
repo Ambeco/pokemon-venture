@@ -114,7 +114,7 @@ bool32 SceneTriggerFires(u32 kind, u32 radius, s16 playerX, s16 playerY, s16 doo
     return FALSE;
 }
 
-const struct SceneTrigger *SceneFindTrigger(const struct SceneTrigger *table, u32 count, u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY)
+const struct SceneTrigger *SceneFindTrigger(const struct SceneTrigger *table, u32 count, u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY, bool32 mapJustLoaded)
 {
     u32 i;
 
@@ -126,6 +126,12 @@ const struct SceneTrigger *SceneFindTrigger(const struct SceneTrigger *table, u3
 
         if (trigger->mapGroup != mapGroup || trigger->mapNum != mapNum || VarGet(trigger->stageVar) != trigger->stageValue)
             continue;
+        if (trigger->kind == SCENE_TRIGGER_ENTER_MAP)
+        {
+            if (mapJustLoaded)
+                return trigger;
+            continue;
+        }
         assertf(events != NULL && trigger->doorWarp < events->warpCount, "scene trigger for scene %d names door warp %d, but map %d.%d has %d warps; did you mean another warp index?", trigger->sceneId, trigger->doorWarp, mapGroup, mapNum, events == NULL ? 0 : events->warpCount)
         {
             continue;
@@ -137,9 +143,9 @@ const struct SceneTrigger *SceneFindTrigger(const struct SceneTrigger *table, u3
     return NULL;
 }
 
-const struct SceneTrigger *SceneFindTriggerAt(u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY)
+const struct SceneTrigger *SceneFindTriggerAt(u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY, bool32 mapJustLoaded)
 {
-    return SceneFindTrigger(sSceneTriggers, ARRAY_COUNT(sSceneTriggers), mapGroup, mapNum, playerX, playerY);
+    return SceneFindTrigger(sSceneTriggers, ARRAY_COUNT(sSceneTriggers), mapGroup, mapNum, playerX, playerY, mapJustLoaded);
 }
 
 void SceneNotifyMapLoaded(void)
@@ -153,17 +159,26 @@ bool8 SceneTryStartTrigger(bool32 tookStep)
     const struct SceneTrigger *trigger;
     const struct WarpEvent *door;
 
+    bool32 mapJustLoaded = sArrivalPending;
+
     if (!tookStep && !sArrivalPending)
         return FALSE;
     sArrivalPending = FALSE;
-    trigger = SceneFindTriggerAt(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, player->currentCoords.x, player->currentCoords.y);
+    trigger = SceneFindTriggerAt(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, player->currentCoords.x, player->currentCoords.y, mapJustLoaded);
     if (trigger == NULL)
         return FALSE;
-    door = &gMapHeader.events->warps[trigger->doorWarp];
-    sNextAnchorSet = TRUE;
-    sNextAnchorX = door->x + MAP_OFFSET;
-    sNextAnchorY = door->y + MAP_OFFSET;
-    sNextAnchorWarp = trigger->doorWarp;
+    if (trigger->kind == SCENE_TRIGGER_ENTER_MAP)
+    {
+        sNextAnchorSet = FALSE;
+    }
+    else
+    {
+        door = &gMapHeader.events->warps[trigger->doorWarp];
+        sNextAnchorSet = TRUE;
+        sNextAnchorX = door->x + MAP_OFFSET;
+        sNextAnchorY = door->y + MAP_OFFSET;
+        sNextAnchorWarp = trigger->doorWarp;
+    }
     gSpecialVar_0x8004 = trigger->sceneId;
     ScriptContext_SetupScript(Scene_EventScript_RunTriggered);
     return TRUE;
@@ -771,6 +786,17 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
         sPauseLeft--;
         sStepIndex--; // stay on this step until the wait is over
         return SCENE_RESULT_DELAY;
+    case SCENE_STEP_MUSIC:
+        if (step->song != 0)
+        {
+            Overworld_SetSavedMusic(step->song);
+            PlayNewMapMusic(step->song);
+        }
+        else
+        {
+            Overworld_ChangeMusicToDefault();
+        }
+        return SCENE_RESULT_NEXT;
     case SCENE_STEP_CHASE_LOOP:
         return StartChaseLoop(scene, step, sStepIndex - 1) ? SCENE_RESULT_WAIT_MOVEMENT : SCENE_RESULT_NEXT;
     case SCENE_STEP_HOP:

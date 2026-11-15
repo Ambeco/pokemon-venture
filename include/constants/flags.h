@@ -51,7 +51,7 @@
 
 #else
 
-#define FLAG_UNUSED_0x020    0x20 // Unused Flag
+#define FLAG_SCENE_NO_WILD           0x20 // Set while a scene stage needs no wild encounters or overworld spawns (the Route 101 rescue); WE_FLAG_NO_ENCOUNTER and WE_OWE_FLAG_DISABLED
 #define FLAG_UNUSED_0x021    0x21 // Unused Flag
 #define FLAG_UNUSED_0x022    0x22 // Unused Flag
 #define FLAG_UNUSED_0x023    0x23 // Unused Flag

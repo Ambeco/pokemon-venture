@@ -19,7 +19,8 @@
  * once after each map load (so teleporting counts), never on a ROM coord_event, so generated maps need none. Distance
  * is Manhattan, in tiles. A triggered scene's anchor is the pseudo-actor SCENE_ACTOR_ANCHOR: SIDE_SELF is the door
  * tile and SIDE_FRONT the tile below it (a door faces south; generated maps will supply the facing). A scene that
- * does not `advance` its stage fires again on the next check while the trigger still holds.
+ * does not `advance` its stage fires again on the next check while the trigger still holds. SCENE_TRIGGER_ENTER_MAP
+ * names no door: it fires on the check after a map load only, and its scene has no anchor.
  */
 
 #include "global.h"
@@ -112,6 +113,7 @@ struct SceneStep
     u8 laps;
     u8 lag;                           // chase_loop: tiles the chaser starts behind
     u8 avoidRadius;                   // chase_loop: the ring stays more than this many tiles (Chebyshev) from target
+    u16 song;                         // music: the song to play, or 0 to restore the map's own music
 };
 
 enum SceneTriggerKind
@@ -119,6 +121,7 @@ enum SceneTriggerKind
     SCENE_TRIGGER_PROXIMITY,        // within radius tiles of the door (Manhattan), the door tile included
     SCENE_TRIGGER_ON_DOOR,          // standing on the door tile
     SCENE_TRIGGER_IN_FRONT_OF_DOOR, // standing on the tile in front of the door
+    SCENE_TRIGGER_ENTER_MAP,        // right after the map loads; no door, so the scene has no anchor (doorWarp is ignored)
 };
 
 struct SceneTrigger
@@ -163,6 +166,8 @@ struct Scene
 #define SCENE_CLEAR_FLAG(flagId)            {.kind = SCENE_STEP_CLEAR_FLAG, .flag = flagId}
 #define SCENE_PAUSE(frames)                 {.kind = SCENE_STEP_PAUSE, .pause = (frames) / 8}
 #define SCENE_CHASE_LOOP(leader, follower, awayFrom, side, lapCount, lagTiles, radius)     {.kind = SCENE_STEP_CHASE_LOOP, .actor = leader, .chaser = follower, .target = {awayFrom, side}, .laps = lapCount, .lag = lagTiles, .avoidRadius = radius}
+#define SCENE_MUSIC(songId)                 {.kind = SCENE_STEP_MUSIC, .song = songId}
+#define SCENE_MUSIC_RESTORE()               {.kind = SCENE_STEP_MUSIC}
 #define SCENE_HOP(who, dir)                 {.kind = SCENE_STEP_HOP, .actor = who, .direction = dir}
 
 // The tile `side` of an actor standing at (x, y) facing `facing`; DIR_NONE counts as DIR_SOUTH.
@@ -215,11 +220,12 @@ const struct Scene *GetScene(u32 sceneId);
 // tiles and only used by SCENE_TRIGGER_PROXIMITY.
 bool32 SceneTriggerFires(u32 kind, u32 radius, s16 playerX, s16 playerY, s16 doorX, s16 doorY);
 
-// The first trigger of `table` that holds on the map for the player at (playerX, playerY), or NULL.
-const struct SceneTrigger *SceneFindTrigger(const struct SceneTrigger *table, u32 count, u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY);
+// The first trigger of `table` that holds on the map for the player at (playerX, playerY), or NULL. A
+// SCENE_TRIGGER_ENTER_MAP trigger holds only when mapJustLoaded.
+const struct SceneTrigger *SceneFindTrigger(const struct SceneTrigger *table, u32 count, u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY, bool32 mapJustLoaded);
 
 // SceneFindTrigger over the real trigger table (sSceneTriggers in data/scenes.h).
-const struct SceneTrigger *SceneFindTriggerAt(u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY);
+const struct SceneTrigger *SceneFindTriggerAt(u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY, bool32 mapJustLoaded);
 
 // Called after each map load; the next SceneTryStartTrigger then checks even without a step.
 void SceneNotifyMapLoaded(void);

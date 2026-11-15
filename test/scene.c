@@ -11,12 +11,14 @@
 #include "string_util.h"
 #include "main.h"
 #include "overworld.h"
+#include "constants/flags.h"
 #include "constants/characters.h"
 #include "constants/event_object_movement.h"
 #include "constants/map_event_ids.h"
 #include "constants/maps.h"
 #include "constants/scenes.h"
 
+extern const u8 Scene_EventScript_RunTriggered[];
 extern const u8 LittlerootTown_EventScript_NeedPokemonTriggerLeft[];
 extern const u8 LittlerootTown_Text_OurNewHomeLetsGoInside[];
 extern const u8 LittlerootTown_Text_IfYouGoInGrassPokemonWillJumpOut[];
@@ -273,15 +275,15 @@ TEST("Scene: Littleroot's arrival triggers cover the truck drop-off tiles and no
     // Brendan's door is warp 1 at (5, 8) and the truck drops him at (3, 10); May's is warp 0 at (14, 8), dropped at (12, 10).
     ASSUME(events->warps[1].x == 5 && events->warps[1].y == 8 && events->warps[0].x == 14 && events->warps[0].y == 8);
     VarSet(VAR_LITTLEROOT_INTRO_STATE, 1);
-    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET) != NULL);
-    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET) == NULL);
-    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN) + 1, MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET) == NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) != NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) == NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN) + 1, MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) == NULL);
     VarSet(VAR_LITTLEROOT_INTRO_STATE, 2);
-    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET) != NULL);
-    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET) == NULL);
-    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 14 + MAP_OFFSET, 20 + MAP_OFFSET) == NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) != NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) == NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 14 + MAP_OFFSET, 20 + MAP_OFFSET, FALSE) == NULL);
     VarSet(VAR_LITTLEROOT_INTRO_STATE, 3); // past stage 0: no trigger
-    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET) == NULL);
+    EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) == NULL);
 }
 
 // Drops the player where the truck does, with the intro flags InsideOfTruck sets, and lets the arrival trigger start
@@ -469,4 +471,52 @@ TEST("Scene: SceneFindRing fails when every tile is blocked or the avoid radius 
 
     EXPECT(!SceneFindRing(30, 30, 3, 0, 0, 0, BlockedScore, NULL, &ring));
     EXPECT(!SceneFindRing(30, 30, 3, 30, 30, 20, OpenGroundScore, NULL, &ring));
+}
+
+TEST("Scene: the Route 101 rescue trigger fires only on a map load at stage 0")
+{
+    u32 group = MAP_GROUP(MAP_ROUTE101), num = MAP_NUM(MAP_ROUTE101);
+
+    Test_LoadMapAt(group, num, 10, 19);
+    VarSet(VAR_ROUTE101_STATE, 0);
+    EXPECT(SceneFindTriggerAt(group, num, 10 + MAP_OFFSET, 19 + MAP_OFFSET, TRUE) != NULL);
+    EXPECT(SceneFindTriggerAt(group, num, 10 + MAP_OFFSET, 19 + MAP_OFFSET, FALSE) == NULL);
+    EXPECT(SceneFindTriggerAt(group + 1, num, 10 + MAP_OFFSET, 19 + MAP_OFFSET, TRUE) == NULL);
+    VarSet(VAR_ROUTE101_STATE, 2);
+    EXPECT(SceneFindTriggerAt(group, num, 10 + MAP_OFFSET, 19 + MAP_OFFSET, TRUE) == NULL);
+}
+
+// In-ROM run of the rescue: place, music, chase_loop, pause and face all run on the real Route 101.
+static u32 TileDistance(struct ObjectEvent *a, struct ObjectEvent *b)
+{
+    return (a->currentCoords.x > b->currentCoords.x ? a->currentCoords.x - b->currentCoords.x : b->currentCoords.x - a->currentCoords.x)
+         + (a->currentCoords.y > b->currentCoords.y ? a->currentCoords.y - b->currentCoords.y : b->currentCoords.y - a->currentCoords.y);
+}
+
+TEST("Scene: Birch's rescue on Route 101 places Birch and the Zigzagoon, circles, asks for help and advances")
+{
+    u8 sSeen[2][100]; // on the stack: the test build has no EWRAM to spare
+    struct ObjectEvent *birch, *zigzagoon;
+    u32 shown;
+
+    Test_LoadMapAt(MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), 10, 19);
+    VarSet(VAR_ROUTE101_STATE, 0);
+    FlagClear(FLAG_SCENE_NO_WILD);
+    gSpecialVar_0x8004 = SCENE_ROUTE101_RESCUE;
+    ScriptContext_SetupScript(Scene_EventScript_RunTriggered);
+    shown = RunScriptDismissingMessages(sSeen, 2);
+
+    EXPECT(!ScriptContext_IsEnabled());
+    EXPECT_EQ(shown, 2);
+    EXPECT_EQ(VarGet(VAR_ROUTE101_STATE), 2);
+    EXPECT(FlagGet(FLAG_SCENE_NO_WILD));
+    EXPECT(FlagGet(FLAG_HIDE_MAP_NAME_POPUP));
+    ASSUME(GetObjectEventIdByLocalId(LOCALID_ROUTE101_BIRCH) < OBJECT_EVENTS_COUNT);
+    ASSUME(GetObjectEventIdByLocalId(LOCALID_ROUTE101_ZIGZAGOON) < OBJECT_EVENTS_COUNT);
+    birch = &gObjectEvents[GetObjectEventIdByLocalId(LOCALID_ROUTE101_BIRCH)];
+    zigzagoon = &gObjectEvents[GetObjectEventIdByLocalId(LOCALID_ROUTE101_ZIGZAGOON)];
+    EXPECT(!birch->invisible);
+    // They finished the laps on the ring, a few tiles apart, and not on top of the player.
+    EXPECT(TileDistance(birch, zigzagoon) <= 4);
+    EXPECT(TileDistance(birch, &gObjectEvents[gPlayerAvatar.objectEventId]) > 2);
 }

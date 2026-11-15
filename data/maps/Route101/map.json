@@ -112,24 +112,6 @@
     {
       "type": "trigger",
       "x": 10,
-      "y": 19,
-      "elevation": 3,
-      "var": "VAR_ROUTE101_STATE",
-      "var_value": "1",
-      "script": "Route101_EventScript_StartBirchRescue"
-    },
-    {
-      "type": "trigger",
-      "x": 11,
-      "y": 19,
-      "elevation": 3,
-      "var": "VAR_ROUTE101_STATE",
-      "var_value": "1",
-      "script": "Route101_EventScript_StartBirchRescue"
-    },
-    {
-      "type": "trigger",
-      "x": 10,
       "y": 18,
       "elevation": 3,
       "var": "VAR_ROUTE101_STATE",

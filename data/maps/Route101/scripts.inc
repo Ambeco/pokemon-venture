@@ -1,44 +1,9 @@
 Route101_MapScripts::
 	map_script MAP_SCRIPT_ON_TRANSITION, Route101_OnTransition
-	map_script MAP_SCRIPT_ON_FRAME_TABLE, Route101_OnFrame
 	.byte 0
 
 Route101_OnTransition:
 	call ProfBirch_EventScript_UpdateLocation
-	end
-
-Route101_OnFrame:
-	map_script_2 VAR_ROUTE101_STATE, 0, Route101_EventScript_HideMapNamePopup
-	.2byte 0
-
-Route101_EventScript_HideMapNamePopup::
-	setflag FLAG_HIDE_MAP_NAME_POPUP
-	setvar VAR_ROUTE101_STATE, 1
-	end
-
-Route101_EventScript_StartBirchRescue::
-	lockall
-	playbgm MUS_HELP, TRUE
-	msgbox Route101_Text_HelpMe, MSGBOX_DEFAULT
-	closemessage
-	setobjectxy LOCALID_ROUTE101_BIRCH, 0, 15
-	setobjectxy LOCALID_ROUTE101_ZIGZAGOON, 0, 16
-	applymovement LOCALID_PLAYER, Route101_Movement_EnterScene
-	applymovement LOCALID_ROUTE101_BIRCH, Route101_Movement_BirchRunAway1
-	applymovement LOCALID_ROUTE101_ZIGZAGOON, Route101_Movement_ZigzagoonChase1
-	waitmovement 0
-	applymovement LOCALID_ROUTE101_ZIGZAGOON, Route101_Movement_ZigzagoonChaseInCircles
-	applymovement LOCALID_ROUTE101_BIRCH, Route101_Movement_BirchRunInCircles
-	waitmovement 0
-	applymovement LOCALID_ROUTE101_BIRCH, Common_Movement_WalkInPlaceFasterRight
-	waitmovement 0
-	applymovement LOCALID_ROUTE101_ZIGZAGOON, Route101_Movement_ZigzagoonFaceBirch
-	applymovement LOCALID_ROUTE101_BIRCH, Route101_Movement_BirchFaceZigzagoon
-	waitmovement 0
-	msgbox Route101_Text_PleaseHelp, MSGBOX_DEFAULT
-	closemessage
-	setvar VAR_ROUTE101_STATE, 2
-	releaseall
 	end
 
 Route101_EventScript_PreventExitSouth::
@@ -235,6 +200,7 @@ Route101_EventScript_BirchsBag::
 	setflag FLAG_HIDE_ROUTE_101_BIRCH_STARTERS_BAG
 	setvar VAR_BIRCH_LAB_STATE, 2
 	setvar VAR_ROUTE101_STATE, 3
+	clearflag FLAG_SCENE_NO_WILD
 	clearflag FLAG_HIDE_MAP_NAME_POPUP
 	checkplayergender
 	call_if_eq VAR_RESULT, MALE, Route101_EventScript_HideMayInBedroom
@@ -256,10 +222,10 @@ Route101_Movement_BirchApproachPlayer:
 	walk_right
 	step_end
 
-Route101_Text_HelpMe:
+Route101_Text_HelpMe::
 	.string "H-help me!$"
 
-Route101_Text_PleaseHelp:
+Route101_Text_PleaseHelp::
 	.string "Hello! You over there!\n"
 	.string "Please! Help!\p"
 	.string "In my BAG!\n"
