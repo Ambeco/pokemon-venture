@@ -69,6 +69,8 @@ enum SceneStepKind
     SCENE_STEP_SET_FLAG,
     SCENE_STEP_CLEAR_FLAG,
     SCENE_STEP_HOP,         // a one-tile jump in a direction with the ledge sound, then a short pause
+    SCENE_STEP_PAUSE,       // wait `pause` x 8 frames
+    SCENE_STEP_CHASE_LOOP,  // `actor` runs laps of a ring found near the midpoint to `target`, `chaser` lag tiles behind
     // In the vocabulary, not implemented: running one asserts.
     SCENE_STEP_ASK_YES_NO,
     SCENE_STEP_ASK_CHOICE,
@@ -105,6 +107,11 @@ struct SceneStep
     bool8 silent;                     // warp: no door sound or fade-in flourish (warpsilent)
     u16 flag;                         // set_flag, clear_flag
     u8 direction;                     // hop: enum Direction
+    u8 pause;                         // pause: frames / 8
+    u8 chaser;                        // chase_loop: the actor slot that follows
+    u8 laps;
+    u8 lag;                           // chase_loop: tiles the chaser starts behind
+    u8 avoidRadius;                   // chase_loop: the ring stays more than this many tiles (Chebyshev) from target
 };
 
 enum SceneTriggerKind
@@ -154,6 +161,8 @@ struct Scene
 #define SCENE_PLACE(who, toward, side)      {.kind = SCENE_STEP_PLACE, .actor = who, .target = {toward, side}}
 #define SCENE_SET_FLAG(flagId)              {.kind = SCENE_STEP_SET_FLAG, .flag = flagId}
 #define SCENE_CLEAR_FLAG(flagId)            {.kind = SCENE_STEP_CLEAR_FLAG, .flag = flagId}
+#define SCENE_PAUSE(frames)                 {.kind = SCENE_STEP_PAUSE, .pause = (frames) / 8}
+#define SCENE_CHASE_LOOP(leader, follower, awayFrom, side, lapCount, lagTiles, radius)     {.kind = SCENE_STEP_CHASE_LOOP, .actor = leader, .chaser = follower, .target = {awayFrom, side}, .laps = lapCount, .lag = lagTiles, .avoidRadius = radius}
 #define SCENE_HOP(who, dir)                 {.kind = SCENE_STEP_HOP, .actor = who, .direction = dir}
 
 // The tile `side` of an actor standing at (x, y) facing `facing`; DIR_NONE counts as DIR_SOUTH.
@@ -173,6 +182,32 @@ u32 SceneFindPath(s16 startX, s16 startY, s16 goalX, s16 goalY, SceneStepCheck c
 // Writes the walk-and-end movement script for `dirs` at `out` (SCENE_MAX_PATH + 3 bytes); returns the end.
 // slide brackets the walk with lock/unlock facing direction, so the actor keeps its facing.
 u8 *SceneBuildWalkScript(u8 *out, const u8 *dirs, u32 length, bool32 slide);
+
+// A closed ring of tiles: the perimeter of a width x height rectangle with its top-left tile at (x, y).
+struct SceneRing
+{
+    s16 x, y;
+    u8 width, height;
+};
+
+#define SCENE_RING_MAX_SIZE 4 // the ring's longer side; the shorter is 3, so a ring has 8 or 10 tiles
+#define SCENE_RING_NONE 0xFFFF
+
+// Score of a tile for a ring: negative if a ring may not use it, else higher is better (grass, say).
+typedef s32 (*SceneTileScore)(void *context, s16 x, s16 y);
+
+// Finds the best 3x3, 4x3 or 3x4 ring whose top-left corner is within searchRadius of (centerX, centerY), whose
+// tiles all score 0 or more and lie more than avoidRadius (Chebyshev) from (avoidX, avoidY). Best is the highest
+// total score, then the nearest to the center. Returns FALSE if there is none.
+bool32 SceneFindRing(s16 centerX, s16 centerY, u32 searchRadius, s16 avoidX, s16 avoidY, u32 avoidRadius, SceneTileScore score, void *context, struct SceneRing *out);
+
+// Tiles are numbered clockwise from the top-left corner; there are SceneRingLength of them.
+u32 SceneRingLength(const struct SceneRing *ring);
+void SceneRingTile(const struct SceneRing *ring, u32 index, s16 *outX, s16 *outY);
+// The index of the ring tile at (x, y), or SCENE_RING_NONE.
+u32 SceneRingIndexOf(const struct SceneRing *ring, s16 x, s16 y);
+// Writes `count` clockwise step directions starting from the ring tile `startIndex`.
+void SceneRingDirs(const struct SceneRing *ring, u32 startIndex, u32 count, u8 *dirs);
 
 const struct Scene *GetScene(u32 sceneId);
 

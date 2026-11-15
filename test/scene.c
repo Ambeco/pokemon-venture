@@ -361,3 +361,112 @@ TEST("Scene: a trigger does not fire after stage 0 or without a step or map load
     Test_RunFieldFrames(30); // the arrival check was consumed by the first frame; standing still does not recheck
     EXPECT(!ScriptContext_IsEnabled());
 }
+
+TEST("Scene: a ring has 8 or 10 tiles numbered clockwise from its top-left corner, and its step directions close the loop")
+{
+    static EWRAM_DATA u8 sDirs[10];
+    struct SceneRing ring = {10, 20, 4, 3};
+    s16 x, y;
+    u32 i;
+
+    EXPECT_EQ(SceneRingLength(&ring), 10);
+    SceneRingTile(&ring, 0, &x, &y);
+    EXPECT_EQ(x, 10); EXPECT_EQ(y, 20);
+    SceneRingTile(&ring, 3, &x, &y);
+    EXPECT_EQ(x, 13); EXPECT_EQ(y, 20);
+    SceneRingTile(&ring, 5, &x, &y);
+    EXPECT_EQ(x, 13); EXPECT_EQ(y, 22);
+    SceneRingTile(&ring, 8, &x, &y);
+    EXPECT_EQ(x, 10); EXPECT_EQ(y, 22);
+    SceneRingTile(&ring, 10, &x, &y); // wraps
+    EXPECT_EQ(x, 10); EXPECT_EQ(y, 20);
+    EXPECT_EQ(SceneRingIndexOf(&ring, 12, 22), 6);
+    EXPECT_EQ(SceneRingIndexOf(&ring, 11, 21), SCENE_RING_NONE); // the inside is not on the ring
+    EXPECT_EQ(SceneRingIndexOf(&ring, 9, 20), SCENE_RING_NONE);
+
+    SceneRingDirs(&ring, 0, 10, sDirs);
+    EXPECT_EQ(sDirs[0], DIR_EAST); EXPECT_EQ(sDirs[2], DIR_EAST);
+    EXPECT_EQ(sDirs[3], DIR_SOUTH); EXPECT_EQ(sDirs[4], DIR_SOUTH);
+    EXPECT_EQ(sDirs[5], DIR_WEST); EXPECT_EQ(sDirs[7], DIR_WEST);
+    EXPECT_EQ(sDirs[8], DIR_NORTH); EXPECT_EQ(sDirs[9], DIR_NORTH);
+    x = 10; y = 20;
+    for (i = 0; i < 10; i++)
+        MoveCoords(sDirs[i], &x, &y);
+    EXPECT_EQ(x, 10); EXPECT_EQ(y, 20);
+
+    ring.width = 3;
+    EXPECT_EQ(SceneRingLength(&ring), 8);
+    SceneRingDirs(&ring, 6, 4, sDirs); // starts mid-ring and runs past the wrap
+    SceneRingTile(&ring, 6, &x, &y);
+    for (i = 0; i < 4; i++)
+        MoveCoords(sDirs[i], &x, &y);
+    EXPECT_EQ(SceneRingIndexOf(&ring, x, y), 2); // 6 + 4 = 10, which wraps to 2
+}
+
+static s32 OpenGroundScore(void *context, s16 x, s16 y)
+{
+    return 0;
+}
+
+// Higher the farther east, blocked on the one tile `context` points to.
+static s32 EastwardScore(void *context, s16 x, s16 y)
+{
+    s16 *blocked = context;
+
+    if (blocked != NULL && x == blocked[0] && y == blocked[1])
+        return -1;
+    return x;
+}
+
+static s32 BlockedScore(void *context, s16 x, s16 y)
+{
+    return -1;
+}
+
+TEST("Scene: SceneFindRing on open ground picks the 3x3 ring centered on the search center")
+{
+    struct SceneRing ring;
+
+    ASSUME(SceneFindRing(30, 30, 3, 0, 0, 0, OpenGroundScore, NULL, &ring));
+    EXPECT_EQ(ring.x, 29); EXPECT_EQ(ring.y, 29);
+    EXPECT_EQ(ring.width, 3); EXPECT_EQ(ring.height, 3);
+}
+
+TEST("Scene: SceneFindRing keeps every ring tile more than the avoid radius from the avoid point")
+{
+    struct SceneRing ring;
+    u32 i;
+
+    ASSUME(SceneFindRing(30, 30, 3, 31, 30, 1, OpenGroundScore, NULL, &ring)); // the avoid point is next to the center
+    for (i = 0; i < SceneRingLength(&ring); i++)
+    {
+        s16 x, y;
+        s32 dx, dy;
+
+        SceneRingTile(&ring, i, &x, &y);
+        dx = x > 31 ? x - 31 : 31 - x;
+        dy = y > 30 ? y - 30 : 30 - y;
+        EXPECT((dx > dy ? dx : dy) > 1);
+    }
+}
+
+TEST("Scene: SceneFindRing prefers the highest scoring ring, and skips rings that use a blocked tile")
+{
+    struct SceneRing ring;
+    s16 blocked[2] = {33, 30};
+
+    ASSUME(SceneFindRing(30, 30, 3, 0, 0, 0, EastwardScore, NULL, &ring));
+    EXPECT_EQ(ring.x, 33); // as far east as the search allows
+    EXPECT_EQ(SceneRingLength(&ring), 10); // and a longer ring has more tiles to score
+    ASSUME(SceneFindRing(30, 30, 3, 0, 0, 0, EastwardScore, blocked, &ring));
+    EXPECT(SceneRingIndexOf(&ring, 33, 30) == SCENE_RING_NONE);
+    EXPECT(ring.x + ring.width > 33); // still the eastern edge: blocking one tile only rules out rings through it
+}
+
+TEST("Scene: SceneFindRing fails when every tile is blocked or the avoid radius covers the whole search area")
+{
+    struct SceneRing ring;
+
+    EXPECT(!SceneFindRing(30, 30, 3, 0, 0, 0, BlockedScore, NULL, &ring));
+    EXPECT(!SceneFindRing(30, 30, 3, 30, 30, 20, OpenGroundScore, NULL, &ring));
+}

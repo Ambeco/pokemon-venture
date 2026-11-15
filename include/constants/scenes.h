@@ -16,5 +16,6 @@
 #define SCENE_RESULT_END           5
 #define SCENE_RESULT_WAIT_DOOR     6
 #define SCENE_RESULT_WARP          7 // the map is changing: wait for it
+#define SCENE_RESULT_DELAY         8 // wait 8 frames, then ask for the next step
 
 #endif // GUARD_CONSTANTS_SCENES_H

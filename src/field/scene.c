@@ -7,6 +7,7 @@
 #include "field_player_avatar.h"
 #include "field_screen_effect.h"
 #include "fieldmap.h"
+#include "metatile_behavior.h"
 #include "overworld.h"
 #include "script.h"
 #include "script_movement.h"
@@ -41,6 +42,8 @@ static EWRAM_DATA u8 sFaceScript[SCENE_MAX_ACTORS][2] = {0};
 static EWRAM_DATA u8 sJumpScript[SCENE_MAX_ACTORS][5] = {0};
 static EWRAM_DATA u8 sSceneId = 0;
 static EWRAM_DATA u8 sStepIndex = 0;
+static EWRAM_DATA bool8 sPauseActive = FALSE;
+static EWRAM_DATA u8 sPauseLeft = 0;
 static EWRAM_DATA bool8 sPlayerLocked = FALSE;
 static EWRAM_DATA bool8 sArrivalPending = FALSE;
 static EWRAM_DATA bool8 sNextAnchorSet = FALSE; // a trigger chose the anchor for the scene it is about to start
@@ -69,6 +72,8 @@ static const char *const sStepKindNames[SCENE_STEP_KIND_COUNT] =
     [SCENE_STEP_SET_FLAG] = "set_flag",
     [SCENE_STEP_CLEAR_FLAG] = "clear_flag",
     [SCENE_STEP_HOP] = "hop",
+    [SCENE_STEP_PAUSE] = "pause",
+    [SCENE_STEP_CHASE_LOOP] = "chase_loop",
     [SCENE_STEP_ASK_YES_NO] = "ask_yes_no",
     [SCENE_STEP_ASK_CHOICE] = "ask_choice",
     [SCENE_STEP_GIVE] = "give",
@@ -204,6 +209,121 @@ enum Direction SceneDirectionToward(s16 fromX, s16 fromY, s16 toX, s16 toY)
     if (ay >= ax)
         return dy > 0 ? DIR_SOUTH : DIR_NORTH;
     return dx > 0 ? DIR_EAST : DIR_WEST;
+}
+
+u32 SceneRingLength(const struct SceneRing *ring)
+{
+    return 2 * (ring->width + ring->height) - 4;
+}
+
+void SceneRingTile(const struct SceneRing *ring, u32 index, s16 *outX, s16 *outY)
+{
+    u32 w = ring->width, h = ring->height;
+
+    index %= SceneRingLength(ring);
+    if (index < w - 1)
+    {
+        *outX = ring->x + index;
+        *outY = ring->y;
+    }
+    else if (index < w + h - 2)
+    {
+        *outX = ring->x + w - 1;
+        *outY = ring->y + (index - (w - 1));
+    }
+    else if (index < 2 * w + h - 3)
+    {
+        *outX = ring->x + w - 1 - (index - (w + h - 2));
+        *outY = ring->y + h - 1;
+    }
+    else
+    {
+        *outX = ring->x;
+        *outY = ring->y + h - 1 - (index - (2 * w + h - 3));
+    }
+}
+
+u32 SceneRingIndexOf(const struct SceneRing *ring, s16 x, s16 y)
+{
+    u32 i, length = SceneRingLength(ring);
+
+    for (i = 0; i < length; i++)
+    {
+        s16 tileX, tileY;
+
+        SceneRingTile(ring, i, &tileX, &tileY);
+        if (tileX == x && tileY == y)
+            return i;
+    }
+    return SCENE_RING_NONE;
+}
+
+void SceneRingDirs(const struct SceneRing *ring, u32 startIndex, u32 count, u8 *dirs)
+{
+    u32 i;
+
+    for (i = 0; i < count; i++)
+    {
+        s16 fromX, fromY, toX, toY;
+
+        SceneRingTile(ring, startIndex + i, &fromX, &fromY);
+        SceneRingTile(ring, startIndex + i + 1, &toX, &toY);
+        dirs[i] = SceneDirectionToward(fromX, fromY, toX, toY);
+    }
+}
+
+static s32 AbsDiff(s32 a, s32 b)
+{
+    return a > b ? a - b : b - a;
+}
+
+bool32 SceneFindRing(s16 centerX, s16 centerY, u32 searchRadius, s16 avoidX, s16 avoidY, u32 avoidRadius, SceneTileScore score, void *context, struct SceneRing *out)
+{
+    static const u8 sizes[][2] = {{3, 3}, {4, 3}, {3, 4}};
+    bool32 found = FALSE;
+    s32 bestScore = 0, bestDistance = 0;
+    s32 ox, oy;
+    u32 sizeIndex;
+
+    for (oy = centerY - (s32)searchRadius; oy <= centerY + (s32)searchRadius; oy++)
+    {
+        for (ox = centerX - (s32)searchRadius; ox <= centerX + (s32)searchRadius; ox++)
+        {
+            for (sizeIndex = 0; sizeIndex < ARRAY_COUNT(sizes); sizeIndex++)
+            {
+                struct SceneRing candidate = {ox, oy, sizes[sizeIndex][0], sizes[sizeIndex][1]};
+                u32 i, length = SceneRingLength(&candidate);
+                s32 total = 0, distance;
+                bool32 usable = TRUE;
+
+                for (i = 0; i < length && usable; i++)
+                {
+                    s16 x, y;
+                    s32 tileScore, dx, dy;
+
+                    SceneRingTile(&candidate, i, &x, &y);
+                    dx = AbsDiff(x, avoidX);
+                    dy = AbsDiff(y, avoidY);
+                    tileScore = score(context, x, y);
+                    if (tileScore < 0 || (dx > dy ? dx : dy) <= (s32)avoidRadius)
+                        usable = FALSE;
+                    total += tileScore;
+                }
+                if (!usable)
+                    continue;
+                // Twice the distance from the center to the ring's center, in tiles.
+                distance = AbsDiff(2 * ox + candidate.width - 1, 2 * centerX) + AbsDiff(2 * oy + candidate.height - 1, 2 * centerY);
+                if (!found || total > bestScore || (total == bestScore && distance < bestDistance))
+                {
+                    found = TRUE;
+                    bestScore = total;
+                    bestDistance = distance;
+                    *out = candidate;
+                }
+            }
+        }
+    }
+    return found;
 }
 
 u32 SceneFindPath(s16 startX, s16 startY, s16 goalX, s16 goalY, SceneStepCheck canStep, void *context, u8 *dirs)
@@ -423,6 +543,90 @@ static bool32 StartWalks(const struct Scene *scene, const struct SceneStep *step
     return started;
 }
 
+static s32 RingTileScore(void *context, s16 x, s16 y)
+{
+    struct ObjectEvent *mover = context;
+    u32 behavior;
+
+    if (GetCollisionAtCoords(mover, x, y, DIR_NORTH) != COLLISION_NONE)
+        return -1;
+    behavior = MapGridGetMetatileBehaviorAt(x, y);
+    return MetatileBehavior_IsTallGrass(behavior) || MetatileBehavior_IsLongGrass(behavior) ? 1 : 0;
+}
+
+// The leader and chaser each walk to a tile of a ring found about halfway between the leader and the target, the
+// chaser `lag` tiles behind, then run laps of it. Starts nothing and returns FALSE on failure.
+static bool32 StartChaseLoop(const struct Scene *scene, const struct SceneStep *step, u32 stepIndex)
+{
+    struct ObjectEvent *objects[2] = {GetActorObject(scene, step->actor), GetActorObject(scene, step->chaser)};
+    struct SceneRing ring;
+    u32 startIndex[2], length, i, nearest = 0, nearestDistance = 0xFFFF;
+    s16 avoidX, avoidY;
+    bool32 ok;
+    u8 rangeX[2], rangeY[2];
+
+    GetTargetTile(scene, &step->target, &avoidX, &avoidY);
+    for (i = 0; i < 2; i++)
+    {
+        rangeX[i] = objects[i]->range.rangeX;
+        rangeY[i] = objects[i]->range.rangeY;
+        // Scripted walks ignore the wander range, but the collision check does not.
+        objects[i]->range.rangeX = objects[i]->range.rangeY = 0;
+    }
+    ok = SceneFindRing((objects[0]->currentCoords.x + avoidX) / 2, (objects[0]->currentCoords.y + avoidY) / 2, 3, avoidX, avoidY, step->avoidRadius, RingTileScore, objects[0], &ring);
+    assertf(ok, "scene %s step %d (chase_loop): no free ring of 3x3 to 4x3 tiles within 3 tiles of the midpoint between actor slot %d and (%d, %d), more than %d tiles from it; did you mean an open area there? (route generation must guarantee one)", scene->name, stepIndex, step->actor, avoidX, avoidY, step->avoidRadius)
+    {
+        ok = FALSE;
+    }
+    if (ok)
+    {
+        length = SceneRingLength(&ring);
+        for (i = 0; i < length; i++)
+        {
+            s16 x, y;
+            u32 distance;
+
+            SceneRingTile(&ring, i, &x, &y);
+            distance = AbsDiff(x, objects[0]->currentCoords.x) + AbsDiff(y, objects[0]->currentCoords.y);
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearest = i;
+            }
+        }
+        startIndex[0] = nearest;
+        startIndex[1] = (nearest + length - step->lag % length) % length;
+    }
+    for (i = 0; ok && i < 2; i++)
+    {
+        struct WalkSearch search = {objects[i], 1u << (objects[1 - i] - gObjectEvents)};
+        s16 goalX, goalY;
+        u32 approach, total;
+
+        SceneRingTile(&ring, startIndex[i], &goalX, &goalY);
+        approach = SceneFindPath(objects[i]->currentCoords.x, objects[i]->currentCoords.y, goalX, goalY, CanWalkerStep, &search, sWalkDirs[i]);
+        total = approach == SCENE_PATH_NONE ? 0 : approach + step->laps * length;
+        assertf(approach != SCENE_PATH_NONE && total <= SCENE_MAX_PATH, "scene %s step %d (chase_loop): actor at (%d, %d) cannot reach its ring tile (%d, %d), or needs more than %d steps with %d laps of %d; did you mean fewer laps or a closer ring?", scene->name, stepIndex, objects[i]->currentCoords.x, objects[i]->currentCoords.y, goalX, goalY, SCENE_MAX_PATH, step->laps, length)
+        {
+            ok = FALSE;
+            break;
+        }
+        SceneRingDirs(&ring, startIndex[i], step->laps * length, sWalkDirs[i] + approach);
+        SceneBuildWalkScript(sWalkScript[i], sWalkDirs[i], total, FALSE);
+    }
+    if (ok)
+    {
+        ScriptMovement_StartObjectMovementScript(GetActorLocalId(scene, step->actor), gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, sWalkScript[0]);
+        ScriptMovement_StartObjectMovementScript(GetActorLocalId(scene, step->chaser), gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, sWalkScript[1]);
+    }
+    for (i = 0; i < 2; i++)
+    {
+        objects[i]->range.rangeX = rangeX[i];
+        objects[i]->range.rangeY = rangeY[i];
+    }
+    return ok;
+}
+
 static bool32 StartFace(const struct Scene *scene, const struct SceneStep *step)
 {
     struct ObjectEvent *object = GetActorObject(scene, step->actor);
@@ -508,6 +712,7 @@ void SceneBegin(void)
     sSceneId = id;
     sStepIndex = 0;
     sPlayerLocked = FALSE;
+    sPauseActive = FALSE;
     sAnchorSet = sNextAnchorSet;
     sAnchorX = sNextAnchorX;
     sAnchorY = sNextAnchorY;
@@ -552,6 +757,22 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
     case SCENE_STEP_PLACE:
         PlaceActor(scene, step);
         return SCENE_RESULT_NEXT;
+    case SCENE_STEP_PAUSE:
+        if (!sPauseActive)
+        {
+            sPauseActive = TRUE;
+            sPauseLeft = step->pause;
+        }
+        if (sPauseLeft == 0)
+        {
+            sPauseActive = FALSE;
+            return SCENE_RESULT_NEXT;
+        }
+        sPauseLeft--;
+        sStepIndex--; // stay on this step until the wait is over
+        return SCENE_RESULT_DELAY;
+    case SCENE_STEP_CHASE_LOOP:
+        return StartChaseLoop(scene, step, sStepIndex - 1) ? SCENE_RESULT_WAIT_MOVEMENT : SCENE_RESULT_NEXT;
     case SCENE_STEP_HOP:
         StartHop(scene, step);
         return SCENE_RESULT_WAIT_MOVEMENT;

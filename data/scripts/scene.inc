@@ -13,6 +13,7 @@ Scene_EventScript_NextStep:
 	case SCENE_RESULT_END, Scene_EventScript_End
 	case SCENE_RESULT_WAIT_DOOR, Scene_EventScript_WaitDoor
 	case SCENE_RESULT_WARP, Scene_EventScript_Warp
+	case SCENE_RESULT_DELAY, Scene_EventScript_Delay
 	end
 
 @ Entry for SceneTryStartTrigger, which sets VAR_0x8004 and starts this as a top-level script.
@@ -22,6 +23,10 @@ Scene_EventScript_RunTriggered::
 
 Scene_EventScript_WaitDoor:
 	waitdooranim
+	goto Scene_EventScript_NextStep
+
+Scene_EventScript_Delay:
+	delay 8
 	goto Scene_EventScript_NextStep
 
 Scene_EventScript_Warp:
