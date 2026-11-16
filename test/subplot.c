@@ -18,6 +18,8 @@
 #define LILYCOVE COUNTY_ID(4, 0)
 #define RUSTBORO COUNTY_ID(0, 1)
 #define MOSSDEEP COUNTY_ID(5, 1)
+#define LITTLEROOT COUNTY_ID(1, 3)
+#define OLDALE COUNTY_ID(1, 2)
 #define PETALBURG COUNTY_ID(0, 2)
 
 static const u8 sTextA[] = _("a");
@@ -93,7 +95,7 @@ static const struct SubplotDesc sFullDesc =
     .actors = sActors,
 };
 
-TEST("Subplot: Rustboro, Lilycove and Mossdeep host one subplot each, in slot 0")
+TEST("Subplot: Rustboro, Lilycove and Mossdeep host one subplot each in slot 0, Littleroot one in slot 1")
 {
     u32 county, slot;
 
@@ -101,7 +103,8 @@ TEST("Subplot: Rustboro, Lilycove and Mossdeep host one subplot each, in slot 0"
     {
         for (slot = 0; slot < SUBPLOTS_PER_COUNTY; slot++)
         {
-            if ((county == LILYCOVE || county == RUSTBORO || county == MOSSDEEP) && slot == 0)
+            if (((county == LILYCOVE || county == RUSTBORO || county == MOSSDEEP) && slot == 0)
+             || (county == LITTLEROOT && slot == 1))
                 EXPECT(GetCountySubplot(county, slot) != NULL);
             else
                 EXPECT(GetCountySubplot(county, slot) == NULL);
@@ -113,17 +116,37 @@ TEST("Subplot: Slot vars lie in the county's own slice after its chain var")
 {
     u32 county, slot;
 
-    for (county = 0; county < COUNTY_VAR_SLICES_FREE; county++)
+    for (county = 0; county < NUM_COUNTIES; county++)
     {
-        u32 start = COUNTY_VARS_START + county * VARS_PER_COUNTY;
+        u32 start = COUNTY_VARS_START + GetCountyVarSlice(county) * VARS_PER_COUNTY;
 
+        if (GetCountyVarSlice(county) >= COUNTY_VAR_SLICES_FREE)
+            continue;
         for (slot = 0; slot < SUBPLOTS_PER_COUNTY; slot++)
         {
             EXPECT_EQ(GetCountySlotVar(county, slot), start + 1 + slot);
             EXPECT(GetCountySlotVar(county, slot) < start + VARS_PER_COUNTY);
         }
     }
-    EXPECT(COUNTY_VAR_SLICES_FREE > LILYCOVE);
+    EXPECT(GetCountyVarSlice(LILYCOVE) < COUNTY_VAR_SLICES_FREE);
+}
+
+TEST("Subplot: County var slices are a permutation, and the tutorial counties' slices are free")
+{
+    bool8 used[NUM_COUNTIES] = {FALSE};
+    u32 county;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        ASSUME(GetCountyVarSlice(county) < NUM_COUNTIES);
+        EXPECT(!used[GetCountyVarSlice(county)]);
+        used[GetCountyVarSlice(county)] = TRUE;
+    }
+    EXPECT_EQ(GetCountyVarSlice(LITTLEROOT), COUNTY_VAR_SLICE_LITTLEROOT);
+    EXPECT_EQ(GetCountyVarSlice(OLDALE), COUNTY_VAR_SLICE_OLDALE);
+    EXPECT(COUNTY_VAR_SLICE_LITTLEROOT < COUNTY_VAR_SLICES_FREE);
+    EXPECT(COUNTY_VAR_SLICE_OLDALE < COUNTY_VAR_SLICES_FREE);
+    EXPECT_EQ(GetCountySlotVar(LITTLEROOT, 1), VAR_SAVE_BIRCH_STAGE);
 }
 
 TEST("Subplot: A stored subplot starts at stage 0 and keeps the stage set through its slot")
@@ -510,7 +533,7 @@ TEST("Subplot: Every Emerald host passes the placement check")
     const struct SubplotHost *hosts = GetSubplotHosts(&numHosts);
     struct SubplotHost others[4];
 
-    EXPECT_EQ(numHosts, 3);
+    EXPECT_EQ(numHosts, 4);
     for (i = 0; i < numHosts; i++)
     {
         for (j = 0, numOthers = 0; j < numHosts; j++)
@@ -533,6 +556,27 @@ TEST("Subplot: Mossdeep's Super Rod subplot is stored, role-anchored, and its sc
     EXPECT_EQ(GetSubplotNeededRoles(desc), BUILDING_HOUSE);
     EXPECT_EQ(desc->producedKey.type, SUBPLOT_KEY_NONE);
     EXPECT_EQ(scene->stageVar, GetCountySlotVar(MOSSDEEP, 0));
+}
+
+// The stage constants scripts use are the descriptor's stage indices.
+static bool32 SaveBirchStageNamesMatch(void)
+{
+    return SAVE_BIRCH_TWIN_GUARDS == 0 && SAVE_BIRCH_SEE_RIVAL == SAVE_BIRCH_NUM_STAGES - 1
+        && SAVE_BIRCH_BIRCH_IN_GRASS == SAVE_BIRCH_TWIN_ASKS + 1 && SAVE_BIRCH_AWAIT_BAG == SAVE_BIRCH_BIRCH_IN_GRASS + 1
+        && SAVE_BIRCH_STARTER_TAKEN == SAVE_BIRCH_AWAIT_BAG + 1 && SAVE_BIRCH_SEE_RIVAL == SAVE_BIRCH_STARTER_TAKEN + 1;
+}
+
+TEST("Subplot: Save Birch is stored in Littleroot's slot 1 and its scenes run on the slot var")
+{
+    const struct SubplotDesc *desc = GetCountySubplot(LITTLEROOT, 1);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, SUBPLOT_STORED);
+    EXPECT_EQ(desc->numStages, SAVE_BIRCH_NUM_STAGES);
+    EXPECT_EQ(desc->producedKey.type, SUBPLOT_KEY_NONE);
+    EXPECT_EQ(GetScene(SCENE_ROUTE101_RESCUE)->stageVar, GetCountySlotVar(LITTLEROOT, 1));
+    EXPECT_EQ(GetScene(SCENE_LITTLEROOT_NEED_POKEMON)->stageVar, GetCountySlotVar(LITTLEROOT, 1));
+    EXPECT(SaveBirchStageNamesMatch());
 }
 
 TEST("Subplot: Placement needs every role of the descriptor, its anchors and its cutscene buildings")

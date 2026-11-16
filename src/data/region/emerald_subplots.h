@@ -110,8 +110,39 @@ static const struct SubplotDesc sMossdeepSuperRodSubplot =
     .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_SUPER_ROD},
 };
 
+// The tutorial's first arc (design_story.md, "Opening"): the twin sends the player to Route 101, where Birch is
+// cornered, and his lab hands over the starter. Stages are SAVE_BIRCH_* (constants/vars.h) in VAR_SAVE_BIRCH_STAGE; its
+// scenes and scripts advance them. It produces no key (the plot adapter reads the Starter from FLAG_SYS_POKEMON_GET).
+// Birch's Lab is not a special location of Littleroot's tile entry yet, so every stage is anchored to the Oldale road.
+static const struct SubplotStage sSaveBirchStages[SAVE_BIRCH_NUM_STAGES] =
+{
+    [SAVE_BIRCH_TWIN_GUARDS] = {.anchor = {BEAT_ANCHOR_ROUTE_ROUTE, COUNTY_ID(1, 3), COUNTY_ID(1, 2), BEAT_LOCATION_NONE, 0}},
+    [SAVE_BIRCH_TWIN_ASKS] = {.anchor = {BEAT_ANCHOR_ROUTE_ROUTE, COUNTY_ID(1, 3), COUNTY_ID(1, 2), BEAT_LOCATION_NONE, 0}},
+    [SAVE_BIRCH_BIRCH_IN_GRASS] = {.anchor = {BEAT_ANCHOR_ROUTE_ROUTE, COUNTY_ID(1, 3), COUNTY_ID(1, 2), BEAT_LOCATION_NONE, 0}},
+    [SAVE_BIRCH_AWAIT_BAG] = {.anchor = {BEAT_ANCHOR_ROUTE_ROUTE, COUNTY_ID(1, 3), COUNTY_ID(1, 2), BEAT_LOCATION_NONE, 0}},
+    [SAVE_BIRCH_STARTER_TAKEN] = {.anchor = {BEAT_ANCHOR_ROUTE_ROUTE, COUNTY_ID(1, 3), COUNTY_ID(1, 2), BEAT_LOCATION_NONE, 0}},
+    [SAVE_BIRCH_SEE_RIVAL] = {.anchor = {BEAT_ANCHOR_ROUTE_ROUTE, COUNTY_ID(1, 3), COUNTY_ID(1, 2), BEAT_LOCATION_NONE, 0}},
+};
+
+static const struct SubplotHint sSaveBirchHints[] =
+{
+    {SUBPLOT_STAGE_BEFORE, SAVE_BIRCH_TWIN_ASKS, TEXT_LIST(sLittlerootStage01Far), TEXT_LIST(sLittlerootStage01Close)},
+    {SAVE_BIRCH_BIRCH_IN_GRASS, SAVE_BIRCH_AWAIT_BAG, TEXT_LIST(sLittlerootStage23Far), TEXT_LIST(sLittlerootStage23Close)},
+    {SAVE_BIRCH_STARTER_TAKEN, SUBPLOT_STAGE_AFTER, TEXT_LIST(sLittlerootStage45Far), TEXT_LIST(sLittlerootStage45Close)},
+};
+
+static const struct SubplotDesc sSaveBirchSubplot =
+{
+    .backend = SUBPLOT_STORED,
+    .numStages = ARRAY_COUNT(sSaveBirchStages),
+    .stages = sSaveBirchStages,
+    .numHints = ARRAY_COUNT(sSaveBirchHints),
+    .hints = sSaveBirchHints,
+};
+
 static const struct SubplotHost sEmeraldSubplotHosts[] =
 {
+    {COUNTY_ID(1, 3), 1, &sSaveBirchSubplot}, // Littleroot, county-story-index 0
     {COUNTY_ID(0, 1), 0, &sRustboroCutterSubplot}, // Rustboro, county-story-index 3
     {COUNTY_ID(4, 0), 0, &sLilycoveMuseumSubplot}, // Lilycove, county-story-index 15
     {COUNTY_ID(5, 1), 0, &sMossdeepSuperRodSubplot}, // Mossdeep

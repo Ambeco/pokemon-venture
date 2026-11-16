@@ -2,6 +2,7 @@
 #include "constants/vars.h"
 #include "assertf.h"
 #include "county_chain.h"
+#include "region_county.h"
 #include "event_data.h"
 #include "subplot.h"
 
@@ -112,11 +113,13 @@ bool32 DidChainJustFinishMainSlot(const struct CountyChainEntry *chain, u32 numE
 
 static u16 GetChainVar(u32 countyId)
 {
-    assertf(countyId < COUNTY_VAR_SLICES_FREE, "county %d slice overlaps legacy vars (only counties 0-%d are free); retire legacy vars first", countyId, COUNTY_VAR_SLICES_FREE - 1)
+    u32 slice = GetCountyVarSlice(countyId);
+
+    assertf(slice < COUNTY_VAR_SLICES_FREE, "county %d uses var slice %d, which overlaps legacy vars (only slices 0-%d are free); retire legacy vars first", countyId, slice, COUNTY_VAR_SLICES_FREE - 1)
     {
         return COUNTY_VARS_START;
     }
-    return COUNTY_VARS_START + countyId * VARS_PER_COUNTY;
+    return COUNTY_VARS_START + slice * VARS_PER_COUNTY;
 }
 
 u32 GetCountyChainPosition(u32 countyId)

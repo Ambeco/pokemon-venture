@@ -13,7 +13,7 @@ LittlerootTown_BrendansHouse_2F_OnTransition:
 
 LittlerootTown_BrendansHouse_2F_EventScript_CheckShouldUpdateBrendanPos::
 	goto_if_set FLAG_MET_RIVAL_LILYCOVE, LittlerootTown_BrendansHouse_2F_EventScript_TryUpdateBrendanPos
-	goto_if_ge VAR_BIRCH_LAB_STATE, 2, LittlerootTown_BrendansHouse_2F_EventScript_Ret
+	goto_if_ge VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_STARTER_TAKEN, LittlerootTown_BrendansHouse_2F_EventScript_Ret
 	goto LittlerootTown_BrendansHouse_2F_EventScript_TryUpdateBrendanPos
 
 LittlerootTown_BrendansHouse_2F_EventScript_TryUpdateBrendanPos::
@@ -72,7 +72,7 @@ LittlerootTown_BrendansHouse_2F_EventScript_MeetBrendan::
 	setvar VAR_LITTLEROOT_RIVAL_STATE, 3
 	setflag FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F_POKE_BALL
 	clearflag FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_RIVAL_BEDROOM
-	setvar VAR_LITTLEROOT_TOWN_STATE, 1
+	setvar VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_TWIN_ASKS
 	savebgm MUS_DUMMY
 	fadedefaultbgm
 	releaseall

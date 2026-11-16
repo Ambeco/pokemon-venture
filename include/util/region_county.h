@@ -117,6 +117,9 @@ const struct RegionHeader *GetRegionHeader(void);
 
 const struct CountyHeader *GetCountyHeader(u32 countyId);
 
+// The index of the county's var slice (constants/vars.h, COUNTY_VAR_SLICE_*): a permutation of the county ids.
+u32 GetCountyVarSlice(u32 countyId);
+
 // Jump ordinal whose lock opens this county (the key of the county at storyIdx - 1), 0 = none.
 u32 GetCountyLockId(u32 countyId);
 

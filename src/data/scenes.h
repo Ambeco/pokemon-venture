@@ -30,7 +30,7 @@ static const struct Scene sLittlerootNeedPokemon =
     .name = "LittlerootNeedPokemon",
     .actors = {LOCALID_PLAYER, LOCALID_LITTLEROOT_TWIN},
     .numActors = 2,
-    .stageVar = VAR_LITTLEROOT_TOWN_STATE,
+    .stageVar = VAR_SAVE_BIRCH_STAGE,
     .numSteps = ARRAY_COUNT(sLittlerootNeedPokemonSteps),
     .steps = sLittlerootNeedPokemonSteps,
 };
@@ -101,7 +101,7 @@ static const struct Scene sLittlerootArriveFemale =
 extern const u8 Route101_Text_HelpMe[];
 extern const u8 Route101_Text_PleaseHelp[];
 
-// Stage 0 of Route 101 (VAR_ROUTE101_STATE), fired when the route loads: Birch and the Zigzagoon appear at their
+// Stage SAVE_BIRCH_BIRCH_IN_GRASS of Save Birch, fired when the route loads: Birch and the Zigzagoon appear at their
 // template tiles in the grass and circle there while the player watches, then face off and Birch asks for help.
 // The no-wild flag keeps spawns and encounters off until Birch's bag script clears it.
 static const struct SceneStep sRoute101RescueSteps[] =
@@ -118,7 +118,7 @@ static const struct SceneStep sRoute101RescueSteps[] =
     SCENE_FACE(SCENE_ACTOR_2, SCENE_ACTOR_1, SCENE_SIDE_SELF),
     SCENE_FACE(SCENE_ACTOR_1, SCENE_ACTOR_2, SCENE_SIDE_SELF),
     SCENE_SAY(Route101_Text_PleaseHelp),
-    SCENE_ADVANCE(2),
+    SCENE_ADVANCE(SAVE_BIRCH_AWAIT_BAG),
     SCENE_UNLOCK_PLAYER(),
 };
 
@@ -127,7 +127,7 @@ static const struct Scene sRoute101Rescue =
     .name = "Route101Rescue",
     .actors = {LOCALID_PLAYER, LOCALID_ROUTE101_BIRCH, LOCALID_ROUTE101_ZIGZAGOON},
     .numActors = 3,
-    .stageVar = VAR_ROUTE101_STATE,
+    .stageVar = VAR_SAVE_BIRCH_STAGE,
     .numSteps = ARRAY_COUNT(sRoute101RescueSteps),
     .steps = sRoute101RescueSteps,
 };
@@ -189,5 +189,5 @@ static const struct SceneTrigger sSceneTriggers[] =
 {
     {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 1, SCENE_LITTLEROOT_ARRIVE_MALE, VAR_LITTLEROOT_INTRO_STATE, 1},
     {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 0, SCENE_LITTLEROOT_ARRIVE_FEMALE, VAR_LITTLEROOT_INTRO_STATE, 2},
-    {MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), SCENE_TRIGGER_ENTER_MAP, 0, 0, SCENE_ROUTE101_RESCUE, VAR_ROUTE101_STATE, 0},
+    {MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), SCENE_TRIGGER_ENTER_MAP, 0, 0, SCENE_ROUTE101_RESCUE, VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_BIRCH_IN_GRASS},
 };

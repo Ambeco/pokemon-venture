@@ -61,6 +61,24 @@
 #define COUNTY_VARS_COUNT          (NUM_COUNTY_VAR_SLICES * VARS_PER_COUNTY)
 #define COUNTY_VARS_END            (COUNTY_VARS_START + COUNTY_VARS_COUNT - 1)
 
+// A county's slice is GetCountyVarSlice(county), which is the county id except for Littleroot (county 19) and Oldale
+// (county 14): the legacy block overlays slices 14 and up, and the tutorial subplots must be stored before enough legacy
+// vars are retired to free those slices, so they take slices 0 and 1 (counties 0 and 1 host nothing) and the two
+// counties swap. Scripts and map.json name a stored stage by these slice numbers; test/subplot.c checks they agree.
+#define COUNTY_VAR_SLICE_LITTLEROOT 0
+#define COUNTY_VAR_SLICE_OLDALE     1
+#define VAR_SAVE_BIRCH_STAGE        (COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + 2) // Littleroot, slot 1
+
+// Stages of the Save Birch subplot (Littleroot, slot 1), which replaced VAR_ROUTE101_STATE and the first values of
+// VAR_LITTLEROOT_TOWN_STATE (0-2) and VAR_BIRCH_LAB_STATE (2-3). Later values of those two vars belong to the Pokédex subplot.
+#define SAVE_BIRCH_TWIN_GUARDS    0 // the twin blocks the way north until the player has met the rival
+#define SAVE_BIRCH_TWIN_ASKS      1 // met the rival: the twin asks the player to go and see what is happening
+#define SAVE_BIRCH_BIRCH_IN_GRASS 2 // told to go; the rescue scene runs when Route 101 loads
+#define SAVE_BIRCH_AWAIT_BAG      3 // Birch is cornered and the player may not leave until a starter is chosen
+#define SAVE_BIRCH_STARTER_TAKEN  4 // the starter is chosen; Birch gives it in his lab
+#define SAVE_BIRCH_SEE_RIVAL      5 // Birch has handed it over and sent the player to the rival
+#define SAVE_BIRCH_NUM_STAGES     6
+
 // reserve: main-story-index, optional-story vars, spare
 #define RESERVED_VARS_START        (COUNTY_VARS_END + 1)
 #define RESERVED_VARS_COUNT        22
@@ -219,7 +237,7 @@
 #define VAR_RUSTBORO_CITY_STATE                          (LEGACY_VARS_START + 0x7)
 #define VAR_MOSSDEEP_CITY_STATE                          (LEGACY_VARS_START + 0x8)
 #define VAR_SOOTOPOLIS_CITY_STATE                        (LEGACY_VARS_START + 0x9)
-#define VAR_ROUTE101_STATE                               (LEGACY_VARS_START + 0xA)
+// LEGACY_VARS_START + 0xA was VAR_ROUTE101_STATE, retired into VAR_SAVE_BIRCH_STAGE
 #define VAR_ROUTE104_STATE                               (LEGACY_VARS_START + 0xB)
 #define VAR_ROUTE110_STATE                               (LEGACY_VARS_START + 0xC)
 #define VAR_ROUTE116_STATE                               (LEGACY_VARS_START + 0xD)

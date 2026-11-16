@@ -37,7 +37,23 @@ static const u8 gText_Mossdeep_Rod1FarCurrent[] = _("Somebody in {HINT_CITY} got
 static const u8 gText_Mossdeep_Rod1CloseBefore[] = _("People say the fisherman {HINT_ANCHOR} has a SUPER ROD to give away.");
 static const u8 gText_Mossdeep_Rod1CloseCurrent[] = _("The fisherman {HINT_ANCHOR} says a SUPER ROD catches POKéMON off the seafloor.");
 
-static const u8 *const sLilycoveStage0Far[] = {gText_Lilycove_Exhibit0FarCurrent};
+static const u8 gText_Littleroot_Birch0FarCurrent[] = _("PROF. BIRCH of {HINT_CITY} spends all day in the tall grass studying wild POKéMON, I heard.");
+static const u8 gText_Littleroot_Birch0FarAfter[] = _("PROF. BIRCH of {HINT_CITY} was jumped by a wild POKéMON, but a TRAINER saved him, I heard.");
+static const u8 gText_Littleroot_Birch0CloseCurrent[] = _("PROF. BIRCH is out studying wild POKéMON again. I hope he's careful.");
+static const u8 gText_Littleroot_Birch1FarCurrent[] = _("I heard PROF. BIRCH in {HINT_CITY} is in trouble, and nobody with a POKéMON is around to help.");
+static const u8 gText_Littleroot_Birch1CloseCurrent[] = _("Something is going on {HINT_ANCHOR}. PROF. BIRCH is in trouble!");
+static const u8 gText_Littleroot_Birch1CloseBefore[] = _("PROF. BIRCH went out {HINT_ANCHOR} to study wild POKéMON. It's dangerous without a POKéMON.");
+static const u8 gText_Littleroot_Birch2FarCurrent[] = _("PROF. BIRCH of {HINT_CITY} gave a POKéMON to the TRAINER who saved him, I heard.");
+static const u8 gText_Littleroot_Birch2CloseCurrent[] = _("PROF. BIRCH gave his rescuer a POKéMON. He wants them to visit his LAB.");
+
+static const u8 *const sLittlerootStage01Far[] = {gText_Littleroot_Birch0FarCurrent};
+static const u8 *const sLittlerootStage01Close[] = {gText_Littleroot_Birch0CloseCurrent, gText_Littleroot_Birch1CloseBefore};
+static const u8 *const sLittlerootStage23Far[] = {gText_Littleroot_Birch1FarCurrent};
+static const u8 *const sLittlerootStage23Close[] = {gText_Littleroot_Birch1CloseCurrent};
+static const u8 *const sLittlerootStage45Far[] = {gText_Littleroot_Birch2FarCurrent, gText_Littleroot_Birch0FarAfter};
+static const u8 *const sLittlerootStage45Close[] = {gText_Littleroot_Birch2CloseCurrent};
+
+static const u8 *const sLilycoveStage0Far[] ={gText_Lilycove_Exhibit0FarCurrent};
 static const u8 *const sLilycoveStage0Close[] = {gText_Lilycove_Exhibit0CloseCurrent, gText_Lilycove_Exhibit1CloseBefore};
 static const u8 *const sLilycoveStage1Far[] = {gText_Lilycove_Exhibit1FarCurrent, gText_Lilycove_Exhibit0FarAfter0, gText_Lilycove_Exhibit0FarAfter1};
 static const u8 *const sLilycoveStage1Close[] = {gText_Lilycove_Exhibit1CloseCurrent, gText_Lilycove_Exhibit0CloseAfter};
@@ -78,7 +94,9 @@ const struct SubplotDesc *GetCountySubplot(u32 countyId, u32 slot)
 
 u16 GetCountySlotVar(u32 countyId, u32 slot)
 {
-    assertf(countyId < COUNTY_VAR_SLICES_FREE, "county %d slice overlaps legacy vars (only counties 0-%d are free); retire legacy vars first", countyId, COUNTY_VAR_SLICES_FREE - 1)
+    u32 slice = GetCountyVarSlice(countyId);
+
+    assertf(slice < COUNTY_VAR_SLICES_FREE, "county %d uses var slice %d, which overlaps legacy vars (only slices 0-%d are free); retire legacy vars first", countyId, slice, COUNTY_VAR_SLICES_FREE - 1)
     {
         return 0;
     }
@@ -86,7 +104,7 @@ u16 GetCountySlotVar(u32 countyId, u32 slot)
     {
         return 0;
     }
-    return COUNTY_VARS_START + countyId * VARS_PER_COUNTY + 1 + slot;
+    return COUNTY_VARS_START + slice * VARS_PER_COUNTY + 1 + slot;
 }
 
 u32 GetSubplotStage(u32 countyId, u32 slot, const struct SubplotDesc *desc)

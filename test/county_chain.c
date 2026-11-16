@@ -109,12 +109,12 @@ TEST("CountyChain: Finishing a main-story slot is true only at its exact boundar
 
 TEST("CountyChain: The stored position lives in var 0 of the county's slice")
 {
-    EXPECT_EQ(GetCountyChainPosition(0), 0);
-    SetCountyChainPosition(0, 3);
-    EXPECT_EQ(GetCountyChainPosition(0), 3);
-    EXPECT_EQ(VarGet(COUNTY_VARS_START), 3);
-    EXPECT_EQ(GetCountyChainPosition(1), 0);
-    EXPECT_EQ(VarGet(GetCountySlotVar(0, 0)), 0);
+    EXPECT_EQ(GetCountyChainPosition(2), 0);
+    SetCountyChainPosition(2, 3);
+    EXPECT_EQ(GetCountyChainPosition(2), 3);
+    EXPECT_EQ(VarGet(COUNTY_VARS_START + 2 * VARS_PER_COUNTY), 3);
+    EXPECT_EQ(GetCountyChainPosition(3), 0);
+    EXPECT_EQ(VarGet(GetCountySlotVar(2, 0)), 0);
 }
 
 TEST("CountyChain: Advancing moves the stored position by one up to the end")

@@ -11,6 +11,20 @@ const struct RegionHeader *GetRegionHeader(void)
     return &sEmeraldRegion;
 }
 
+u32 GetCountyVarSlice(u32 countyId)
+{
+    AGB_ASSERT(countyId < NUM_COUNTIES);
+    if (countyId == COUNTY_ID(1, 3))
+        return COUNTY_VAR_SLICE_LITTLEROOT;
+    if (countyId == COUNTY_ID(1, 2))
+        return COUNTY_VAR_SLICE_OLDALE;
+    if (countyId == COUNTY_VAR_SLICE_LITTLEROOT)
+        return COUNTY_ID(1, 3);
+    if (countyId == COUNTY_VAR_SLICE_OLDALE)
+        return COUNTY_ID(1, 2);
+    return countyId;
+}
+
 const struct CountyHeader *GetCountyHeader(u32 countyId)
 {
     AGB_ASSERT(countyId < NUM_COUNTIES);

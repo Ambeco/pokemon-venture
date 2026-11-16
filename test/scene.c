@@ -486,16 +486,16 @@ TEST("Scene: SceneFindRing fails when every tile is blocked or the avoid radius 
     EXPECT(!SceneFindRing(30, 30, 3, 30, 30, 20, OpenGroundScore, NULL, &ring));
 }
 
-TEST("Scene: the Route 101 rescue trigger fires only on a map load at stage 0")
+TEST("Scene: the Route 101 rescue trigger fires only on a map load while Birch is in the grass")
 {
     u32 group = MAP_GROUP(MAP_ROUTE101), num = MAP_NUM(MAP_ROUTE101);
 
     Test_LoadMapAt(group, num, 10, 19);
-    VarSet(VAR_ROUTE101_STATE, 0);
+    VarSet(VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_BIRCH_IN_GRASS);
     EXPECT(SceneFindTriggerAt(group, num, 10 + MAP_OFFSET, 19 + MAP_OFFSET, TRUE) != NULL);
     EXPECT(SceneFindTriggerAt(group, num, 10 + MAP_OFFSET, 19 + MAP_OFFSET, FALSE) == NULL);
     EXPECT(SceneFindTriggerAt(group + 1, num, 10 + MAP_OFFSET, 19 + MAP_OFFSET, TRUE) == NULL);
-    VarSet(VAR_ROUTE101_STATE, 2);
+    VarSet(VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_AWAIT_BAG);
     EXPECT(SceneFindTriggerAt(group, num, 10 + MAP_OFFSET, 19 + MAP_OFFSET, TRUE) == NULL);
 }
 
@@ -513,7 +513,7 @@ TEST("Scene: Birch's rescue on Route 101 places Birch and the Zigzagoon, circles
     u32 shown;
 
     Test_LoadMapAt(MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), 10, 19);
-    VarSet(VAR_ROUTE101_STATE, 0);
+    VarSet(VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_BIRCH_IN_GRASS);
     FlagClear(FLAG_SCENE_NO_WILD);
     gSpecialVar_0x8004 = SCENE_ROUTE101_RESCUE;
     ScriptContext_SetupScript(Scene_EventScript_RunTriggered);
@@ -521,7 +521,7 @@ TEST("Scene: Birch's rescue on Route 101 places Birch and the Zigzagoon, circles
 
     EXPECT(!ScriptContext_IsEnabled());
     EXPECT_EQ(shown, 2);
-    EXPECT_EQ(VarGet(VAR_ROUTE101_STATE), 2);
+    EXPECT_EQ(VarGet(VAR_SAVE_BIRCH_STAGE), SAVE_BIRCH_AWAIT_BAG);
     EXPECT(FlagGet(FLAG_SCENE_NO_WILD));
     EXPECT(FlagGet(FLAG_HIDE_MAP_NAME_POPUP));
     ASSUME(GetObjectEventIdByLocalId(LOCALID_ROUTE101_BIRCH) < OBJECT_EVENTS_COUNT);
