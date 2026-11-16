@@ -599,6 +599,54 @@ TEST("Scene: Birch's rescue on Route 101 places Birch and the Zigzagoon, circles
     EXPECT(TileDistance(birch, &gObjectEvents[gPlayerAvatar.objectEventId]) > 2);
 }
 
+static void ExpectChaseKeepsMoving(s16 startX)
+{
+    struct ObjectEvent *birch, *zigzagoon;
+    u32 frame, birchSteps = 0, zigzagoonSteps = 0;
+    s16 birchX, birchY, zigX, zigY;
+
+    Test_LoadMapAt(MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), startX, 19);
+    VarSet(VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_BIRCH_IN_GRASS);
+    FlagClear(FLAG_SCENE_NO_WILD);
+    gSpecialVar_0x8004 = SCENE_ROUTE101_RESCUE;
+    ScriptContext_SetupScript(Scene_EventScript_RunTriggered);
+    birch = zigzagoon = NULL;
+    for (frame = 0; frame < 1500 && ScriptContext_IsEnabled(); frame++)
+    {
+        if (birch == NULL && GetObjectEventIdByLocalId(LOCALID_ROUTE101_BIRCH) < OBJECT_EVENTS_COUNT && GetObjectEventIdByLocalId(LOCALID_ROUTE101_ZIGZAGOON) < OBJECT_EVENTS_COUNT)
+        {
+            birch = &gObjectEvents[GetObjectEventIdByLocalId(LOCALID_ROUTE101_BIRCH)];
+            zigzagoon = &gObjectEvents[GetObjectEventIdByLocalId(LOCALID_ROUTE101_ZIGZAGOON)];
+            birchX = birch->currentCoords.x; birchY = birch->currentCoords.y;
+            zigX = zigzagoon->currentCoords.x; zigY = zigzagoon->currentCoords.y;
+        }
+        if (frame % 20 == 19)
+            Test_PressKeys(A_BUTTON);
+        else
+            Test_RunFrames(1);
+        if (birch == NULL)
+            continue;
+        if (birch->currentCoords.x != birchX || birch->currentCoords.y != birchY)
+            birchSteps++;
+        if (zigzagoon->currentCoords.x != zigX || zigzagoon->currentCoords.y != zigY)
+            zigzagoonSteps++;
+        birchX = birch->currentCoords.x; birchY = birch->currentCoords.y;
+        zigX = zigzagoon->currentCoords.x; zigY = zigzagoon->currentCoords.y;
+    }
+    ASSUME(birch != NULL);
+    // Two laps of a ring of 8 or 10 tiles, plus the approach: a stalled loop leaves the second lap unwalked.
+    EXPECT_GE(birchSteps, 16);
+    EXPECT_GE(zigzagoonSteps, 16);
+}
+
+TEST("Scene: Birch and the Zigzagoon keep moving through every lap of the chase, wherever the player enters")
+{
+    s16 x;
+
+    for (x = 8; x <= 13; x++)
+        ExpectChaseKeepsMoving(x);
+}
+
 // Scenes that are not in the scene table: const data here, run with SceneBeginScene.
 extern const u8 Scene_EventScript_RunPrepared[];
 
