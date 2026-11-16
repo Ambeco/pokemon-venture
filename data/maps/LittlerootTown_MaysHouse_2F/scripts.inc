@@ -13,7 +13,7 @@ LittlerootTown_MaysHouse_2F_OnTransition:
 
 LittlerootTown_MaysHouse_2F_EventScript_CheckShouldUpdateMayPos::
 	goto_if_set FLAG_MET_RIVAL_LILYCOVE, LittlerootTown_MaysHouse_2F_EventScript_TryUpdateMayPos
-	goto_if_ge VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_STARTER_TAKEN, LittlerootTown_MaysHouse_2F_EventScript_Ret
+	goto_if_ge VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_STARTER_TAKEN, LittlerootTown_MaysHouse_2F_EventScript_Ret
 	goto LittlerootTown_MaysHouse_2F_EventScript_TryUpdateMayPos
 
 LittlerootTown_MaysHouse_2F_EventScript_TryUpdateMayPos::
@@ -71,7 +71,7 @@ LittlerootTown_MaysHouse_2F_EventScript_MeetMay::
 	setvar VAR_LITTLEROOT_RIVAL_STATE, 3
 	setflag FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_2F_POKE_BALL
 	clearflag FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_RIVAL_BEDROOM
-	setvar VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_TWIN_ASKS
+	setvar VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_ASKS
 	savebgm MUS_DUMMY
 	fadedefaultbgm
 	releaseall

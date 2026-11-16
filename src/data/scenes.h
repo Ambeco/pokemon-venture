@@ -30,7 +30,7 @@ static const struct Scene sLittlerootNeedPokemon =
     .name = "LittlerootNeedPokemon",
     .actors = {LOCALID_PLAYER, LOCALID_LITTLEROOT_TWIN},
     .numActors = 2,
-    .stageVar = VAR_SAVE_BIRCH_STAGE,
+    .stageVar = VAR_SAVE_BIRCH_BEAT,
     .numSteps = ARRAY_COUNT(sLittlerootNeedPokemonSteps),
     .steps = sLittlerootNeedPokemonSteps,
 };
@@ -127,7 +127,7 @@ static const struct Scene sRoute101Rescue =
     .name = "Route101Rescue",
     .actors = {LOCALID_PLAYER, LOCALID_ROUTE101_BIRCH, LOCALID_ROUTE101_ZIGZAGOON},
     .numActors = 3,
-    .stageVar = VAR_SAVE_BIRCH_STAGE,
+    .stageVar = VAR_SAVE_BIRCH_BEAT,
     .numSteps = ARRAY_COUNT(sRoute101RescueSteps),
     .steps = sRoute101RescueSteps,
 };
@@ -170,7 +170,7 @@ static const struct Scene sMossdeepSuperRod =
     .name = "MossdeepSuperRod",
     .actors = {LOCALID_PLAYER},
     .numActors = 1,
-    .stageVar = SCENE_MOSSDEEP_SUPER_ROD_STAGE_VAR,
+    .stageVar = SCENE_MOSSDEEP_SUPER_ROD_BEAT_VAR,
     .numSteps = ARRAY_COUNT(sMossdeepSuperRodSteps),
     .steps = sMossdeepSuperRodSteps,
 };
@@ -189,5 +189,5 @@ static const struct SceneTrigger sSceneTriggers[] =
 {
     {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 1, SCENE_LITTLEROOT_ARRIVE_MALE, VAR_LITTLEROOT_INTRO_STATE, 1},
     {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 0, SCENE_LITTLEROOT_ARRIVE_FEMALE, VAR_LITTLEROOT_INTRO_STATE, 2},
-    {MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), SCENE_TRIGGER_ENTER_MAP, 0, 0, SCENE_ROUTE101_RESCUE, VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_BIRCH_IN_GRASS},
+    {MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), SCENE_TRIGGER_ENTER_MAP, 0, 0, SCENE_ROUTE101_RESCUE, VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_BIRCH_IN_GRASS},
 };

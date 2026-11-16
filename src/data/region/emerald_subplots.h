@@ -111,7 +111,7 @@ static const struct SubplotDesc sMossdeepSuperRodSubplot =
 };
 
 // The tutorial's first arc (design_story.md, "Opening"): the twin sends the player to Route 101, where Birch is
-// cornered, and his lab hands over the starter. Stages are SAVE_BIRCH_* (constants/vars.h) in VAR_SAVE_BIRCH_STAGE; its
+// cornered, and his lab hands over the starter. Stages are SAVE_BIRCH_* (constants/vars.h) in VAR_SAVE_BIRCH_BEAT; its
 // scenes and scripts advance them. It produces no key (the plot adapter reads the Starter from FLAG_SYS_POKEMON_GET).
 // Birch's Lab is not a special location of Littleroot's tile entry yet, so every stage is anchored to the Oldale road.
 static const struct SubplotStage sSaveBirchStages[SAVE_BIRCH_NUM_STAGES] =

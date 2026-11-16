@@ -159,7 +159,7 @@
       "x": 10,
       "y": 1,
       "elevation": 3,
-      "var": "VAR_SAVE_BIRCH_STAGE",
+      "var": "VAR_SAVE_BIRCH_BEAT",
       "var_value": "SAVE_BIRCH_TWIN_GUARDS",
       "script": "LittlerootTown_EventScript_NeedPokemonTriggerLeft"
     },
@@ -168,7 +168,7 @@
       "x": 11,
       "y": 1,
       "elevation": 3,
-      "var": "VAR_SAVE_BIRCH_STAGE",
+      "var": "VAR_SAVE_BIRCH_BEAT",
       "var_value": "SAVE_BIRCH_TWIN_GUARDS",
       "script": "LittlerootTown_EventScript_NeedPokemonTriggerRight"
     },
@@ -177,7 +177,7 @@
       "x": 11,
       "y": 1,
       "elevation": 3,
-      "var": "VAR_SAVE_BIRCH_STAGE",
+      "var": "VAR_SAVE_BIRCH_BEAT",
       "var_value": "SAVE_BIRCH_TWIN_ASKS",
       "script": "LittlerootTown_EventScript_GoSaveBirchTrigger"
     },

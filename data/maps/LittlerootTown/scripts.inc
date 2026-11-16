@@ -4,7 +4,7 @@ LittlerootTown_MapScripts::
 	map_script MAP_SCRIPT_ON_WARP_INTO_MAP_TABLE, LittlerootTown_OnWarp
 	.byte 0
 
-	@ State descriptions for VAR_LITTLEROOT_TOWN_STATE (0-2 were the start of the Save Birch subplot: VAR_SAVE_BIRCH_STAGE)
+	@ State descriptions for VAR_LITTLEROOT_TOWN_STATE (0-2 were the start of the Save Birch subplot: VAR_SAVE_BIRCH_BEAT)
 	@ 3: Received Pokedex
 	@ 4: Received Running Shoes
 
@@ -68,7 +68,7 @@ LittlerootTown_EventScript_SetExitedHouseAfterLatiSSTicketEvent::
 	return
 
 LittlerootTown_EventScript_SetTwinPos::
-	goto_if_eq VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_TWIN_GUARDS, LittlerootTown_EventScript_SetTwinGuardingRoutePos
+	goto_if_eq VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_GUARDS, LittlerootTown_EventScript_SetTwinGuardingRoutePos
 	setobjectxyperm LOCALID_LITTLEROOT_TWIN, 10, 1
 	setobjectmovementtype LOCALID_LITTLEROOT_TWIN, MOVEMENT_TYPE_FACE_UP
 	return
@@ -150,7 +150,7 @@ LittlerootTown_EventScript_Twin::
 	faceplayer
 	goto_if_set FLAG_ADVENTURE_STARTED, LittlerootTown_EventScript_GoodLuck
 	goto_if_set FLAG_RESCUED_BIRCH, LittlerootTown_EventScript_YouSavedBirch
-	goto_if_ne VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_TWIN_GUARDS, LittlerootTown_EventScript_GoSaveBirch
+	goto_if_ne VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_GUARDS, LittlerootTown_EventScript_GoSaveBirch
 	msgbox LittlerootTown_Text_IfYouGoInGrassPokemonWillJumpOut, MSGBOX_DEFAULT
 	release
 	end
@@ -161,13 +161,13 @@ LittlerootTown_EventScript_GoSaveBirch::
 	closemessage
 	applymovement LOCALID_LITTLEROOT_TWIN, Common_Movement_FaceOriginalDirection
 	waitmovement 0
-	call_if_eq VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_TWIN_ASKS, LittlerootTown_EventScript_SendPlayerToRoute101
+	call_if_eq VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_ASKS, LittlerootTown_EventScript_SendPlayerToRoute101
 	release
 	end
 
 @ A talk with the twin may repeat once the player is on the way, so it must not set the stage back.
 LittlerootTown_EventScript_SendPlayerToRoute101::
-	setvar VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_BIRCH_IN_GRASS
+	setvar VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_BIRCH_IN_GRASS
 	return
 
 LittlerootTown_EventScript_YouSavedBirch::
@@ -199,7 +199,7 @@ LittlerootTown_EventScript_GoSaveBirchTrigger::
 	closemessage
 	applymovement LOCALID_LITTLEROOT_TWIN, Common_Movement_FaceOriginalDirection
 	waitmovement 0
-	call_if_eq VAR_SAVE_BIRCH_STAGE, SAVE_BIRCH_TWIN_ASKS, LittlerootTown_EventScript_SendPlayerToRoute101
+	call_if_eq VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_ASKS, LittlerootTown_EventScript_SendPlayerToRoute101
 	releaseall
 	end
 

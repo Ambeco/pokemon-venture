@@ -67,7 +67,7 @@
 // counties swap. Scripts and map.json name a stored stage by these slice numbers; test/subplot.c checks they agree.
 #define COUNTY_VAR_SLICE_LITTLEROOT 0
 #define COUNTY_VAR_SLICE_OLDALE     1
-#define VAR_SAVE_BIRCH_STAGE        (COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + 2) // Littleroot, slot 1
+#define VAR_SAVE_BIRCH_BEAT        (COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + 2) // Littleroot, slot 1
 
 // Stages of the Save Birch subplot (Littleroot, slot 1), which replaced VAR_ROUTE101_STATE and the first values of
 // VAR_LITTLEROOT_TOWN_STATE (0-2) and VAR_BIRCH_LAB_STATE (2-3). Later values of those two vars belong to the Pokédex subplot.
@@ -237,7 +237,7 @@
 #define VAR_RUSTBORO_CITY_STATE                          (LEGACY_VARS_START + 0x7)
 #define VAR_MOSSDEEP_CITY_STATE                          (LEGACY_VARS_START + 0x8)
 #define VAR_SOOTOPOLIS_CITY_STATE                        (LEGACY_VARS_START + 0x9)
-// LEGACY_VARS_START + 0xA was VAR_ROUTE101_STATE, retired into VAR_SAVE_BIRCH_STAGE
+// LEGACY_VARS_START + 0xA was VAR_ROUTE101_STATE, retired into VAR_SAVE_BIRCH_BEAT
 #define VAR_ROUTE104_STATE                               (LEGACY_VARS_START + 0xB)
 #define VAR_ROUTE110_STATE                               (LEGACY_VARS_START + 0xC)
 #define VAR_ROUTE116_STATE                               (LEGACY_VARS_START + 0xD)

@@ -146,7 +146,7 @@ TEST("Subplot: County var slices are a permutation, and the tutorial counties' s
     EXPECT_EQ(GetCountyVarSlice(OLDALE), COUNTY_VAR_SLICE_OLDALE);
     EXPECT(COUNTY_VAR_SLICE_LITTLEROOT < COUNTY_VAR_SLICES_FREE);
     EXPECT(COUNTY_VAR_SLICE_OLDALE < COUNTY_VAR_SLICES_FREE);
-    EXPECT_EQ(GetCountySlotVar(LITTLEROOT, 1), VAR_SAVE_BIRCH_STAGE);
+    EXPECT_EQ(GetCountySlotVar(LITTLEROOT, 1), VAR_SAVE_BIRCH_BEAT);
 }
 
 TEST("Subplot: A stored subplot starts at stage 0 and keeps the stage set through its slot")
