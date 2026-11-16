@@ -79,6 +79,7 @@ static const char *const sStepKindNames[SCENE_STEP_KIND_COUNT] =
     [SCENE_STEP_LOCK_PLAYER] = "lock_player",
     [SCENE_STEP_UNLOCK_PLAYER] = "unlock_player",
     [SCENE_STEP_FACE] = "face",
+    [SCENE_STEP_FACE_ORIGINAL] = "face_original",
     [SCENE_STEP_WALK] = "walk",
     [SCENE_STEP_PARALLEL_WALK] = "parallel_walk",
     [SCENE_STEP_SAY] = "say",
@@ -135,6 +136,53 @@ bool32 SceneTriggerFires(u32 kind, u32 radius, s16 playerX, s16 playerY, s16 doo
     return FALSE;
 }
 
+bool32 SceneExitTriggerFires(enum Direction edge, u32 depth, s16 playerX, s16 playerY, s32 mapWidth, s32 mapHeight)
+{
+    switch (edge)
+    {
+    case DIR_NORTH:
+        return playerY == (s32)depth;
+    case DIR_SOUTH:
+        return playerY == mapHeight - 1 - (s32)depth;
+    case DIR_WEST:
+        return playerX == (s32)depth;
+    case DIR_EAST:
+        return playerX == mapWidth - 1 - (s32)depth;
+    default:
+        assertf(FALSE, "exit trigger edge %d is not a cardinal direction; did you mean DIR_NORTH, DIR_SOUTH, DIR_WEST or DIR_EAST?", edge)
+        {
+            return FALSE;
+        }
+    }
+    return FALSE;
+}
+
+// Fires only where the edge row (or column) is walkable straight ahead, so the trigger sits at the gap, not along the whole edge.
+static bool32 SceneExitTriggerHolds(const struct SceneTrigger *trigger, s16 playerX, s16 playerY)
+{
+    s32 width = gMapHeader.mapLayout->width, height = gMapHeader.mapLayout->height;
+    s16 edgeX = playerX, edgeY = playerY;
+
+    if (!SceneExitTriggerFires(trigger->edge, trigger->radius, playerX - MAP_OFFSET, playerY - MAP_OFFSET, width, height))
+        return FALSE;
+    switch (trigger->edge)
+    {
+    case DIR_NORTH:
+        edgeY = MAP_OFFSET;
+        break;
+    case DIR_SOUTH:
+        edgeY = MAP_OFFSET + height - 1;
+        break;
+    case DIR_WEST:
+        edgeX = MAP_OFFSET;
+        break;
+    default:
+        edgeX = MAP_OFFSET + width - 1;
+        break;
+    }
+    return MapGridGetCollisionAt(edgeX, edgeY) == 0;
+}
+
 const struct SceneTrigger *SceneFindTrigger(const struct SceneTrigger *table, u32 count, u32 mapGroup, u32 mapNum, s16 playerX, s16 playerY, bool32 mapJustLoaded)
 {
     u32 i;
@@ -150,6 +198,12 @@ const struct SceneTrigger *SceneFindTrigger(const struct SceneTrigger *table, u3
         if (trigger->kind == SCENE_TRIGGER_ENTER_MAP)
         {
             if (mapJustLoaded)
+                return trigger;
+            continue;
+        }
+        if (trigger->kind == SCENE_TRIGGER_EXIT)
+        {
+            if (SceneExitTriggerHolds(trigger, playerX, playerY))
                 return trigger;
             continue;
         }
@@ -188,7 +242,7 @@ bool8 SceneTryStartTrigger(bool32 tookStep)
     trigger = SceneFindTriggerAt(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, player->currentCoords.x, player->currentCoords.y, mapJustLoaded);
     if (trigger == NULL)
         return FALSE;
-    if (trigger->kind == SCENE_TRIGGER_ENTER_MAP)
+    if (trigger->kind == SCENE_TRIGGER_ENTER_MAP || trigger->kind == SCENE_TRIGGER_EXIT)
     {
         sNextAnchorSet = FALSE;
     }
@@ -961,6 +1015,11 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
         return SCENE_RESULT_UNLOCK;
     case SCENE_STEP_FACE:
         return StartFace(scene, step) ? SCENE_RESULT_WAIT_MOVEMENT : SCENE_RESULT_NEXT;
+    case SCENE_STEP_FACE_ORIGINAL:
+        sFaceScript[step->actor][0] = MOVEMENT_ACTION_FACE_ORIGINAL_DIRECTION;
+        sFaceScript[step->actor][1] = MOVEMENT_ACTION_STEP_END;
+        ScriptMovement_StartObjectMovementScript(GetActorLocalId(scene, step->actor), gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, sFaceScript[step->actor]);
+        return SCENE_RESULT_WAIT_MOVEMENT;
     case SCENE_STEP_WALK:
     case SCENE_STEP_PARALLEL_WALK:
         return StartWalks(scene, step, STEP_NUMBER()) ? SCENE_RESULT_WAIT_MOVEMENT : SCENE_RESULT_NEXT;

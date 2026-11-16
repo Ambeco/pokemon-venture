@@ -181,28 +181,6 @@ LittlerootTown_EventScript_GoodLuck::
 	release
 	end
 
-@ Both coord events run the same scene: the twin finds her own way to the player (data/scenes.h).
-LittlerootTown_EventScript_NeedPokemonTriggerLeft::
-LittlerootTown_EventScript_NeedPokemonTriggerRight::
-	setvar VAR_0x8004, SCENE_LITTLEROOT_NEED_POKEMON
-	call Scene_EventScript_Run
-	end
-
-LittlerootTown_EventScript_GoSaveBirchTrigger::
-	lockall
-	applymovement LOCALID_LITTLEROOT_TWIN, Common_Movement_WalkInPlaceFasterRight
-	waitmovement 0
-	applymovement LOCALID_PLAYER, Common_Movement_WalkInPlaceFasterLeft
-	waitmovement 0
-	special GetPlayerBigGuyGirlString
-	msgbox LittlerootTown_Text_CanYouGoSeeWhatsHappening, MSGBOX_DEFAULT
-	closemessage
-	applymovement LOCALID_LITTLEROOT_TWIN, Common_Movement_FaceOriginalDirection
-	waitmovement 0
-	call_if_eq VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_ASKS, LittlerootTown_EventScript_SendPlayerToRoute101
-	releaseall
-	end
-
 LittlerootTown_EventScript_TownSign::
 	msgbox LittlerootTown_Text_TownSign, MSGBOX_SIGN
 	end
@@ -789,7 +767,7 @@ LittlerootTown_Text_DangerousIfYouDontHavePokemon::
 	.string "It's dangerous if you don't have\n"
 	.string "your own POKéMON.$"
 
-LittlerootTown_Text_CanYouGoSeeWhatsHappening:
+LittlerootTown_Text_CanYouGoSeeWhatsHappening::
 	.string "Um, hi!\p"
 	.string "There are scary POKéMON outside!\n"
 	.string "I can hear their cries!\p"

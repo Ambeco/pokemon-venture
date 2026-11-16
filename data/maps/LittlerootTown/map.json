@@ -156,33 +156,6 @@
   "coord_events": [
     {
       "type": "trigger",
-      "x": 10,
-      "y": 1,
-      "elevation": 3,
-      "var": "VAR_SAVE_BIRCH_BEAT",
-      "var_value": "SAVE_BIRCH_TWIN_GUARDS",
-      "script": "LittlerootTown_EventScript_NeedPokemonTriggerLeft"
-    },
-    {
-      "type": "trigger",
-      "x": 11,
-      "y": 1,
-      "elevation": 3,
-      "var": "VAR_SAVE_BIRCH_BEAT",
-      "var_value": "SAVE_BIRCH_TWIN_GUARDS",
-      "script": "LittlerootTown_EventScript_NeedPokemonTriggerRight"
-    },
-    {
-      "type": "trigger",
-      "x": 11,
-      "y": 1,
-      "elevation": 3,
-      "var": "VAR_SAVE_BIRCH_BEAT",
-      "var_value": "SAVE_BIRCH_TWIN_ASKS",
-      "script": "LittlerootTown_EventScript_GoSaveBirchTrigger"
-    },
-    {
-      "type": "trigger",
       "x": 8,
       "y": 9,
       "elevation": 3,

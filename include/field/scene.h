@@ -65,6 +65,7 @@ enum SceneStepKind
     SCENE_STEP_LOCK_PLAYER,
     SCENE_STEP_UNLOCK_PLAYER,
     SCENE_STEP_FACE,
+    SCENE_STEP_FACE_ORIGINAL, // back to the facing the actor has when its map loads
     SCENE_STEP_WALK,
     SCENE_STEP_PARALLEL_WALK,
     SCENE_STEP_SAY,
@@ -151,6 +152,7 @@ enum SceneTriggerKind
     SCENE_TRIGGER_ON_DOOR,          // standing on the door tile
     SCENE_TRIGGER_IN_FRONT_OF_DOOR, // standing on the tile in front of the door
     SCENE_TRIGGER_ENTER_MAP,        // right after the map loads; no door, so the scene has no anchor (doorWarp is ignored)
+    SCENE_TRIGGER_EXIT,             // radius tiles inside the map edge `edge`, with a walkable tile on the edge straight ahead; no anchor
 };
 
 struct SceneTrigger
@@ -163,6 +165,7 @@ struct SceneTrigger
     u8 sceneId;
     u16 stageVar;
     u16 stageValue; // the trigger holds while VarGet(stageVar) equals this
+    u8 edge;        // exit only: enum Direction of the map edge (radius is the depth from it; 0 is the edge row itself)
 };
 
 struct Scene
@@ -179,6 +182,7 @@ struct Scene
 #define SCENE_LOCK_PLAYER()                 {.kind = SCENE_STEP_LOCK_PLAYER}
 #define SCENE_UNLOCK_PLAYER()               {.kind = SCENE_STEP_UNLOCK_PLAYER}
 #define SCENE_FACE(who, toward, side)       {.kind = SCENE_STEP_FACE, .actor = who, .target = {toward, side}}
+#define SCENE_FACE_ORIGINAL(who)            {.kind = SCENE_STEP_FACE_ORIGINAL, .actor = who}
 #define SCENE_WALK(who, toward, side)       {.kind = SCENE_STEP_WALK, .actor = who, .target = {toward, side}}
 #define SCENE_SLIDE(who, toward, side) {.kind = SCENE_STEP_WALK, .actor = who, .target = {toward, side}, .slide = TRUE}
 #define SCENE_JUMP(who)                     {.kind = SCENE_STEP_JUMP, .actor = who}
@@ -258,6 +262,9 @@ const struct Scene *GetScene(u32 sceneId);
 // Does a player at (playerX, playerY) set off a trigger of this kind for a door at (doorX, doorY)? Radius is in
 // tiles and only used by SCENE_TRIGGER_PROXIMITY.
 bool32 SceneTriggerFires(u32 kind, u32 radius, s16 playerX, s16 playerY, s16 doorX, s16 doorY);
+
+// Is the player `depth` tiles inside the edge `edge` of a width x height map (all in tiles, player coordinates without MAP_OFFSET)?
+bool32 SceneExitTriggerFires(enum Direction edge, u32 depth, s16 playerX, s16 playerY, s32 mapWidth, s32 mapHeight);
 
 // The first trigger of `table` that holds on the map for the player at (playerX, playerY), or NULL. A
 // SCENE_TRIGGER_ENTER_MAP trigger holds only when mapJustLoaded.

@@ -4,6 +4,7 @@
 #include "test/overworld_script.h"
 #include "battle.h"
 #include "battle_setup.h"
+#include "field_specials.h"
 #include "item.h"
 #include "pokemon.h"
 #include "script_menu.h"
@@ -32,7 +33,7 @@
 #include "constants/scenes.h"
 
 extern const u8 Scene_EventScript_RunTriggered[];
-extern const u8 LittlerootTown_EventScript_NeedPokemonTriggerLeft[];
+extern const u8 LittlerootTown_Text_CanYouGoSeeWhatsHappening[];
 extern const u8 LittlerootTown_Text_OurNewHomeLetsGoInside[];
 extern const u8 LittlerootTown_Text_IfYouGoInGrassPokemonWillJumpOut[];
 extern const u8 LittlerootTown_Text_DangerousIfYouDontHavePokemon[];
@@ -206,6 +207,10 @@ TEST("Scene: Every scene id has a scene with steps and a name")
     }
 }
 
+// Shared by the message tests (test builds are short of EWRAM).
+static EWRAM_DATA u8 sSeen[2][100];
+static EWRAM_DATA u8 sExpect[2][100];
+
 // Runs the overworld until the script ends, pressing A whenever a message is up, and remembers the
 // first text of each message box in `seen` (up to maxSeen).
 static u32 RunScriptDismissingMessages(u8 seen[][100], u32 maxSeen)
@@ -230,8 +235,6 @@ static u32 RunScriptDismissingMessages(u8 seen[][100], u32 maxSeen)
 
 TEST("Scene: Littleroot's little girl walks up to the player, warns them, pushes them back and returns to her post")
 {
-    static EWRAM_DATA u8 sSeen[2][100];
-    static EWRAM_DATA u8 sExpect[2][100];
     struct ObjectEvent *twin, *player;
     u32 shown;
 
@@ -242,7 +245,8 @@ TEST("Scene: Littleroot's little girl walks up to the player, warns them, pushes
     ASSUME(twin->initialCoords.x == 7 + MAP_OFFSET && twin->initialCoords.y == 2 + MAP_OFFSET);
     ObjectEventTurn(player, DIR_NORTH);
 
-    ScriptContext_SetupScript(LittlerootTown_EventScript_NeedPokemonTriggerLeft);
+    VarSet(VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_GUARDS);
+    EXPECT(SceneTryStartTrigger(TRUE)); // the exit trigger, not a ROM coord event
     shown = RunScriptDismissingMessages(sSeen, 2);
 
     EXPECT(!ScriptContext_IsEnabled());
@@ -257,6 +261,67 @@ TEST("Scene: Littleroot's little girl walks up to the player, warns them, pushes
     EXPECT_EQ(twin->currentCoords.x, 7 + MAP_OFFSET);
     EXPECT_EQ(twin->currentCoords.y, 2 + MAP_OFFSET);
     EXPECT_EQ((u32)player->facingDirection, DIR_NORTH); // slid, so still facing north
+}
+
+TEST("Scene: SceneExitTriggerFires measures the depth from the named edge")
+{
+    EXPECT(SceneExitTriggerFires(DIR_NORTH, 1, 5, 1, 20, 20));
+    EXPECT(!SceneExitTriggerFires(DIR_NORTH, 1, 5, 0, 20, 20));
+    EXPECT(!SceneExitTriggerFires(DIR_NORTH, 1, 5, 2, 20, 20));
+    EXPECT(SceneExitTriggerFires(DIR_NORTH, 0, 5, 0, 20, 20));
+    EXPECT(SceneExitTriggerFires(DIR_SOUTH, 1, 5, 18, 20, 20));
+    EXPECT(SceneExitTriggerFires(DIR_SOUTH, 0, 5, 19, 20, 20));
+    EXPECT(SceneExitTriggerFires(DIR_WEST, 2, 2, 7, 20, 30));
+    EXPECT(SceneExitTriggerFires(DIR_EAST, 1, 18, 7, 20, 30));
+    EXPECT(!SceneExitTriggerFires(DIR_EAST, 1, 19, 7, 20, 30));
+}
+
+TEST("Scene: Littleroot's exit triggers sit at the north gap only, and follow the stage")
+{
+    u32 group = MAP_GROUP(MAP_LITTLEROOT_TOWN), num = MAP_NUM(MAP_LITTLEROOT_TOWN);
+    const struct SceneTrigger *trigger;
+
+    Test_LoadMapAt(group, num, 10, 3);
+    VarSet(VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_GUARDS);
+    trigger = SceneFindTriggerAt(group, num, 10 + MAP_OFFSET, 1 + MAP_OFFSET, FALSE);
+    ASSUME(trigger != NULL);
+    EXPECT_EQ(trigger->sceneId, SCENE_LITTLEROOT_NEED_POKEMON);
+    EXPECT(SceneFindTriggerAt(group, num, 11 + MAP_OFFSET, 1 + MAP_OFFSET, FALSE) != NULL);
+    EXPECT(SceneFindTriggerAt(group, num, 10 + MAP_OFFSET, 2 + MAP_OFFSET, FALSE) == NULL); // one tile too deep
+    EXPECT(SceneFindTriggerAt(group, num, 10 + MAP_OFFSET, 0 + MAP_OFFSET, FALSE) == NULL);
+    EXPECT(SceneFindTriggerAt(group, num, 3 + MAP_OFFSET, 1 + MAP_OFFSET, FALSE) == NULL); // the edge ahead is trees
+    VarSet(VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_ASKS);
+    trigger = SceneFindTriggerAt(group, num, 11 + MAP_OFFSET, 1 + MAP_OFFSET, FALSE);
+    ASSUME(trigger != NULL);
+    EXPECT_EQ(trigger->sceneId, SCENE_LITTLEROOT_TWIN_ASKS);
+    VarSet(VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_BIRCH_IN_GRASS);
+    EXPECT(SceneFindTriggerAt(group, num, 11 + MAP_OFFSET, 1 + MAP_OFFSET, FALSE) == NULL);
+}
+
+TEST("Scene: the twin stops a player who has a Pokémon, asks them to go and look, and sends them to Route 101")
+{
+    struct ObjectEvent *twin, *player;
+
+    VarSet(VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_ASKS); // before the load: OnTransition places the twin by the stage
+    Test_LoadMapAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 11, 1);
+    player = &gObjectEvents[gPlayerAvatar.objectEventId];
+    twin = &gObjectEvents[GetObjectEventIdByLocalId(LOCALID_LITTLEROOT_TWIN)];
+    ASSUME(GetObjectEventIdByLocalId(LOCALID_LITTLEROOT_TWIN) < OBJECT_EVENTS_COUNT);
+    ASSUME(twin->initialCoords.x == 10 + MAP_OFFSET && twin->initialCoords.y == 1 + MAP_OFFSET);
+    ObjectEventTurn(player, DIR_NORTH);
+
+    EXPECT(SceneTryStartTrigger(TRUE));
+    EXPECT_EQ(RunScriptDismissingMessages(sSeen, 1), 1);
+    EXPECT(!ScriptContext_IsEnabled());
+    gSaveBlock2Ptr->playerGender = MALE;
+    GetPlayerBigGuyGirlString();
+    StringExpandPlaceholders(sExpect[0], LittlerootTown_Text_CanYouGoSeeWhatsHappening);
+    EXPECT_EQ(StringCompareN(sSeen[0], sExpect[0], 99), 0);
+    EXPECT_EQ(VarGet(VAR_SAVE_BIRCH_BEAT), SAVE_BIRCH_BIRCH_IN_GRASS);
+    EXPECT_EQ(player->currentCoords.x, 11 + MAP_OFFSET);
+    EXPECT_EQ(player->currentCoords.y, 1 + MAP_OFFSET);
+    EXPECT_EQ((u32)player->facingDirection, DIR_WEST); // turned to the twin, who stands at (10, 1)
+    EXPECT_EQ((u32)twin->facingDirection, DIR_NORTH);  // and she is back to facing her post
 }
 
 TEST("Scene: SceneTriggerFires proximity is Manhattan distance and includes the door tile and the radius edge")

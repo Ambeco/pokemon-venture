@@ -35,6 +35,32 @@ static const struct Scene sLittlerootNeedPokemon =
     .steps = sLittlerootNeedPokemonSteps,
 };
 
+extern const u8 LittlerootTown_Text_CanYouGoSeeWhatsHappening[];
+extern const u8 SceneCustom_SetBigGuyGirlString[];
+
+// Once the player has a Pokémon the twin, standing in the gap, stops them and sends them to Route 101.
+static const struct SceneStep sLittlerootTwinAsksSteps[] =
+{
+    SCENE_LOCK_PLAYER(),
+    SCENE_FACE(SCENE_ACTOR_1, SCENE_ACTOR_PLAYER, SCENE_SIDE_SELF),
+    SCENE_FACE(SCENE_ACTOR_PLAYER, SCENE_ACTOR_1, SCENE_SIDE_SELF),
+    SCENE_CUSTOM(SceneCustom_SetBigGuyGirlString),
+    SCENE_SAY(LittlerootTown_Text_CanYouGoSeeWhatsHappening),
+    SCENE_FACE_ORIGINAL(SCENE_ACTOR_1),
+    SCENE_ADVANCE(SAVE_BIRCH_BIRCH_IN_GRASS),
+    SCENE_UNLOCK_PLAYER(),
+};
+
+static const struct Scene sLittlerootTwinAsks =
+{
+    .name = "LittlerootTwinAsks",
+    .actors = {LOCALID_PLAYER, LOCALID_LITTLEROOT_TWIN},
+    .numActors = 2,
+    .stageVar = VAR_SAVE_BIRCH_BEAT,
+    .numSteps = ARRAY_COUNT(sLittlerootTwinAsksSteps),
+    .steps = sLittlerootTwinAsksSteps,
+};
+
 extern const u8 LittlerootTown_Text_OurNewHomeLetsGoInside[];
 
 // The mom heads for the tile in front of the door while the player takes the tile she leaves: she is one step ahead.
@@ -178,6 +204,7 @@ static const struct Scene sMossdeepSuperRod =
 static const struct Scene *const sScenes[SCENE_COUNT] =
 {
     [SCENE_LITTLEROOT_NEED_POKEMON] = &sLittlerootNeedPokemon,
+    [SCENE_LITTLEROOT_TWIN_ASKS] = &sLittlerootTwinAsks,
     [SCENE_LITTLEROOT_ARRIVE_MALE] = &sLittlerootArriveMale,
     [SCENE_LITTLEROOT_ARRIVE_FEMALE] = &sLittlerootArriveFemale,
     [SCENE_ROUTE101_RESCUE] = &sRoute101Rescue,
@@ -189,5 +216,7 @@ static const struct SceneTrigger sSceneTriggers[] =
 {
     {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 1, SCENE_LITTLEROOT_ARRIVE_MALE, VAR_LITTLEROOT_INTRO_STATE, 1},
     {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 0, SCENE_LITTLEROOT_ARRIVE_FEMALE, VAR_LITTLEROOT_INTRO_STATE, 2},
+    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_EXIT, 1, 0, SCENE_LITTLEROOT_NEED_POKEMON, VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_GUARDS, DIR_NORTH},
+    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_EXIT, 1, 0, SCENE_LITTLEROOT_TWIN_ASKS, VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_ASKS, DIR_NORTH},
     {MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), SCENE_TRIGGER_ENTER_MAP, 0, 0, SCENE_ROUTE101_RESCUE, VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_BIRCH_IN_GRASS},
 };
