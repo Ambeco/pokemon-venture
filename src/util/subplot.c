@@ -28,6 +28,15 @@ static const u8 gText_Rustboro_Cut1FarCurrent[] = _("There's a TRAINER in {HINT_
 static const u8 gText_Rustboro_Cut1CloseBefore[] = _("People say the man {HINT_ANCHOR} has an HM to give away.");
 static const u8 gText_Rustboro_Cut1CloseCurrent[] = _("That man {HINT_ANCHOR} gave away his HM. He says CUT can clear thin trees.");
 
+static const u8 gText_Mossdeep_Rod0FarCurrent[] = _("I heard a fisherman in {HINT_CITY} is handing out SUPER RODS to anyone who asks.");
+static const u8 gText_Mossdeep_Rod0FarAfter0[] = _("A fisherman in {HINT_CITY} gave someone a SUPER ROD, I heard.");
+static const u8 gText_Mossdeep_Rod0FarAfter1[] = _("Did you hear? A fisherman in {HINT_CITY} gave away a SUPER ROD.");
+static const u8 gText_Mossdeep_Rod0CloseCurrent[] = _("The fisherman {HINT_ANCHOR} won't stop talking about SUPER RODS.");
+static const u8 gText_Mossdeep_Rod0CloseAfter[] = _("The fisherman {HINT_ANCHOR} finally gave his SUPER ROD away.");
+static const u8 gText_Mossdeep_Rod1FarCurrent[] = _("Somebody in {HINT_CITY} got a SUPER ROD from a fisherman, I heard.");
+static const u8 gText_Mossdeep_Rod1CloseBefore[] = _("People say the fisherman {HINT_ANCHOR} has a SUPER ROD to give away.");
+static const u8 gText_Mossdeep_Rod1CloseCurrent[] = _("The fisherman {HINT_ANCHOR} says a SUPER ROD catches POKéMON off the seafloor.");
+
 static const u8 *const sLilycoveStage0Far[] = {gText_Lilycove_Exhibit0FarCurrent};
 static const u8 *const sLilycoveStage0Close[] = {gText_Lilycove_Exhibit0CloseCurrent, gText_Lilycove_Exhibit1CloseBefore};
 static const u8 *const sLilycoveStage1Far[] = {gText_Lilycove_Exhibit1FarCurrent, gText_Lilycove_Exhibit0FarAfter0, gText_Lilycove_Exhibit0FarAfter1};
@@ -37,6 +46,11 @@ static const u8 *const sRustboroStage0Far[] = {gText_Rustboro_Cut0FarCurrent};
 static const u8 *const sRustboroStage0Close[] = {gText_Rustboro_Cut0CloseCurrent, gText_Rustboro_Cut1CloseBefore};
 static const u8 *const sRustboroStage1Far[] = {gText_Rustboro_Cut1FarCurrent, gText_Rustboro_Cut0FarAfter0, gText_Rustboro_Cut0FarAfter1};
 static const u8 *const sRustboroStage1Close[] = {gText_Rustboro_Cut1CloseCurrent, gText_Rustboro_Cut0CloseAfter};
+
+static const u8 *const sMossdeepStage0Far[] = {gText_Mossdeep_Rod0FarCurrent};
+static const u8 *const sMossdeepStage0Close[] = {gText_Mossdeep_Rod0CloseCurrent, gText_Mossdeep_Rod1CloseBefore};
+static const u8 *const sMossdeepStage1Far[] = {gText_Mossdeep_Rod1FarCurrent, gText_Mossdeep_Rod0FarAfter0, gText_Mossdeep_Rod0FarAfter1};
+static const u8 *const sMossdeepStage1Close[] = {gText_Mossdeep_Rod1CloseCurrent, gText_Mossdeep_Rod0CloseAfter};
 
 #include "data/region/emerald_subplots.h"
 

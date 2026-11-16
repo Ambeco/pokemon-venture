@@ -47,6 +47,28 @@ static const struct SubplotStage sRustboroCutterStages[] =
 
 // Hint ranges follow the stages; each lists the lines that were once keyed by beat and state, so any NPC
 // of the subplot may say any of them.
+enum MossdeepSuperRodStage
+{
+    MOSSDEEP_SUPER_ROD_NOT_GIVEN,
+    MOSSDEEP_SUPER_ROD_GIVEN,
+};
+
+// The fisherman is an immobile NPC of the generic house role, and his talk runs the scene MossdeepSuperRod. The
+// Super Rod is a reported-only plot get, read by the adapter through FLAG_RECEIVED_SUPER_ROD, which the scene still
+// sets; the subplot produces no key. No hinters are placed yet (numHinters 0): nothing binds NPCs for Mossdeep, so the
+// hint texts are reachable only through the county query.
+static const struct SubplotStage sMossdeepSuperRodStages[] =
+{
+    [MOSSDEEP_SUPER_ROD_NOT_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE}},
+    [MOSSDEEP_SUPER_ROD_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE}},
+};
+
+static const struct SubplotHint sMossdeepSuperRodHints[] =
+{
+    {0, 0, TEXT_LIST(sMossdeepStage0Far), TEXT_LIST(sMossdeepStage0Close)},
+    {1, 1, TEXT_LIST(sMossdeepStage1Far), TEXT_LIST(sMossdeepStage1Close)},
+};
+
 static const struct SubplotHint sRustboroCutterHints[] =
 {
     {0, 0, TEXT_LIST(sRustboroStage0Far), TEXT_LIST(sRustboroStage0Close)},
@@ -77,8 +99,20 @@ static const struct SubplotDesc sLilycoveMuseumSubplot =
     .hints = sLilycoveMuseumHints,
 };
 
+static const struct SubplotDesc sMossdeepSuperRodSubplot =
+{
+    .backend = SUBPLOT_STORED,
+    .numStages = ARRAY_COUNT(sMossdeepSuperRodStages),
+    .stages = sMossdeepSuperRodStages,
+    .numHints = ARRAY_COUNT(sMossdeepSuperRodHints),
+    .hints = sMossdeepSuperRodHints,
+    .producesMainGet = TRUE,
+    .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_SUPER_ROD},
+};
+
 static const struct SubplotHost sEmeraldSubplotHosts[] =
 {
     {COUNTY_ID(0, 1), 0, &sRustboroCutterSubplot}, // Rustboro, county-story-index 3
     {COUNTY_ID(4, 0), 0, &sLilycoveMuseumSubplot}, // Lilycove, county-story-index 15
+    {COUNTY_ID(5, 1), 0, &sMossdeepSuperRodSubplot}, // Mossdeep
 };

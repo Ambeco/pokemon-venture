@@ -132,12 +132,56 @@ static const struct Scene sRoute101Rescue =
     .steps = sRoute101RescueSteps,
 };
 
+extern const u8 MossdeepCity_House3_Text_YouWantSuperRod[];
+extern const u8 MossdeepCity_House3_Text_SuperRodIsSuper[];
+extern const u8 MossdeepCity_House3_Text_TryDroppingRodInWater[];
+extern const u8 MossdeepCity_House3_Text_DontYouLikeToFish[];
+
+// The Super Rod fisherman (Mossdeep's subplot, slot 0 of county (5,1)), run from his talk script. It names no
+// actor or tile, so any house can host it. The stage var is the subplot's stored stage; FLAG_RECEIVED_SUPER_ROD
+// stays set for the main-plot adapter. A full bag ends the scene at the give, before the flag and the advance.
+static const struct SceneStep sSuperRodAcceptSteps[] =
+{
+    SCENE_SAY(MossdeepCity_House3_Text_SuperRodIsSuper),
+    SCENE_GIVE(ITEM_SUPER_ROD, 1),
+    SCENE_SET_FLAG(FLAG_RECEIVED_SUPER_ROD),
+    SCENE_ADVANCE(1),
+    SCENE_SAY(MossdeepCity_House3_Text_TryDroppingRodInWater),
+};
+
+static const struct SceneStep sSuperRodDeclineSteps[] =
+{
+    SCENE_SAY(MossdeepCity_House3_Text_DontYouLikeToFish),
+};
+
+static const struct SceneBranch sSuperRodAnswers[] =
+{
+    SCENE_BRANCH(NULL, sSuperRodAcceptSteps),
+    SCENE_BRANCH(NULL, sSuperRodDeclineSteps),
+};
+
+static const struct SceneStep sMossdeepSuperRodSteps[] =
+{
+    SCENE_ASK_YES_NO(MossdeepCity_House3_Text_YouWantSuperRod, sSuperRodAnswers),
+};
+
+static const struct Scene sMossdeepSuperRod =
+{
+    .name = "MossdeepSuperRod",
+    .actors = {LOCALID_PLAYER},
+    .numActors = 1,
+    .stageVar = SCENE_MOSSDEEP_SUPER_ROD_STAGE_VAR,
+    .numSteps = ARRAY_COUNT(sMossdeepSuperRodSteps),
+    .steps = sMossdeepSuperRodSteps,
+};
+
 static const struct Scene *const sScenes[SCENE_COUNT] =
 {
     [SCENE_LITTLEROOT_NEED_POKEMON] = &sLittlerootNeedPokemon,
     [SCENE_LITTLEROOT_ARRIVE_MALE] = &sLittlerootArriveMale,
     [SCENE_LITTLEROOT_ARRIVE_FEMALE] = &sLittlerootArriveFemale,
     [SCENE_ROUTE101_RESCUE] = &sRoute101Rescue,
+    [SCENE_MOSSDEEP_SUPER_ROD] = &sMossdeepSuperRod,
 };
 
 // The truck drops the player within 4 tiles of the door in both houses. Door warp 1 is Brendan's house, 0 is May's.

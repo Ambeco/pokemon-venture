@@ -13,6 +13,8 @@
 #include "fieldmap.h"
 #include "field_player_avatar.h"
 #include "scene.h"
+#include "subplot.h"
+#include "region_county.h"
 #include "script.h"
 #include "string_util.h"
 #include "main.h"
@@ -885,4 +887,80 @@ TEST("Scene: a wild battle step creates the wild Pokémon and waits")
     EXPECT_EQ(GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES), SPECIES_RALTS);
     EXPECT_EQ(GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL), 7);
     EXPECT(!FlagGet(FLAG_TEMP_5));
+}
+
+extern const u8 MossdeepCity_House3_Text_TryDroppingRodInWater[];
+extern const u8 MossdeepCity_House3_Text_DontYouLikeToFish[];
+
+// Steps the real Super Rod scene by hand (the headless tests cannot run Std_ObtainItem): `yes` answers the
+// question, `received` is what the give leaves in VAR_0x8007. Returns what the give asked for in the out params, 0 if it never did.
+static void StepSuperRodScene(bool32 yes, bool32 received, u32 *givenItem, u32 *givenQuantity)
+{
+    u32 i;
+
+    *givenItem = *givenQuantity = 0;
+    SceneBeginScene(GetScene(SCENE_MOSSDEEP_SUPER_ROD));
+    for (i = 0; i < 50; i++)
+    {
+        SceneNextStep();
+        if (gSpecialVar_Result == SCENE_RESULT_GIVE)
+        {
+            *givenItem = gSpecialVar_0x8000;
+            *givenQuantity = gSpecialVar_0x8001;
+            gSpecialVar_0x8007 = received;
+            SceneTakeAnswer();
+        }
+        else if (gSpecialVar_Result == SCENE_RESULT_ASK_YES_NO)
+        {
+            gSpecialVar_Result = yes;
+            SceneTakeAnswer();
+        }
+        else if (gSpecialVar_Result == SCENE_RESULT_END)
+        {
+            return;
+        }
+    }
+    EXPECT(FALSE); // the scene never ended
+}
+
+TEST("Scene: Mossdeep's Super Rod scene gives the rod on yes, sets the flag and the subplot stage, and says the last line")
+{
+    u32 item, quantity;
+
+    LoadTestMap();
+    FlagClear(FLAG_RECEIVED_SUPER_ROD);
+    VarSet(GetCountySlotVar(COUNTY_ID(5, 1), 0), 0);
+    StepSuperRodScene(TRUE, TRUE, &item, &quantity);
+    EXPECT_EQ(item, ITEM_SUPER_ROD);
+    EXPECT_EQ(quantity, 1);
+    EXPECT(FlagGet(FLAG_RECEIVED_SUPER_ROD));
+    EXPECT_EQ(GetCountySlotStage(COUNTY_ID(5, 1), 0), 1);
+    EXPECT_EQ(StringCompare(gStringVar4, MossdeepCity_House3_Text_TryDroppingRodInWater), 0);
+}
+
+TEST("Scene: Mossdeep's Super Rod scene with a full bag keeps the flag clear and the stage at 0")
+{
+    u32 item, quantity;
+
+    LoadTestMap();
+    FlagClear(FLAG_RECEIVED_SUPER_ROD);
+    VarSet(GetCountySlotVar(COUNTY_ID(5, 1), 0), 0);
+    StepSuperRodScene(TRUE, FALSE, &item, &quantity);
+    EXPECT_EQ(item, ITEM_SUPER_ROD);
+    EXPECT(!FlagGet(FLAG_RECEIVED_SUPER_ROD));
+    EXPECT_EQ(GetCountySlotStage(COUNTY_ID(5, 1), 0), 0);
+}
+
+TEST("Scene: Mossdeep's Super Rod scene on no gives nothing and changes nothing")
+{
+    u32 item, quantity;
+
+    LoadTestMap();
+    FlagClear(FLAG_RECEIVED_SUPER_ROD);
+    VarSet(GetCountySlotVar(COUNTY_ID(5, 1), 0), 0);
+    StepSuperRodScene(FALSE, TRUE, &item, &quantity);
+    EXPECT_EQ(item, 0);
+    EXPECT(!FlagGet(FLAG_RECEIVED_SUPER_ROD));
+    EXPECT_EQ(GetCountySlotStage(COUNTY_ID(5, 1), 0), 0);
+    EXPECT_EQ(StringCompare(gStringVar4, MossdeepCity_House3_Text_DontYouLikeToFish), 0);
 }

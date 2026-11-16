@@ -6,7 +6,8 @@
 #define SCENE_LITTLEROOT_ARRIVE_MALE   1
 #define SCENE_LITTLEROOT_ARRIVE_FEMALE 2
 #define SCENE_ROUTE101_RESCUE         3
-#define SCENE_COUNT                   4
+#define SCENE_MOSSDEEP_SUPER_ROD      4
+#define SCENE_COUNT                   5
 
 // What the driver script does after a step (SceneNextStep leaves one in VAR_RESULT).
 #define SCENE_RESULT_NEXT          0 // nothing to do: ask for the next step

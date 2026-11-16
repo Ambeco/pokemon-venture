@@ -10,12 +10,14 @@
 #include "region_county.h"
 #include "region_plot.h"
 #include "region_unlock.h"
+#include "scene.h"
 #include "region_city.h"
 #include "subplot.h"
 #include "string_util.h"
 
 #define LILYCOVE COUNTY_ID(4, 0)
 #define RUSTBORO COUNTY_ID(0, 1)
+#define MOSSDEEP COUNTY_ID(5, 1)
 #define PETALBURG COUNTY_ID(0, 2)
 
 static const u8 sTextA[] = _("a");
@@ -91,7 +93,7 @@ static const struct SubplotDesc sFullDesc =
     .actors = sActors,
 };
 
-TEST("Subplot: Rustboro and Lilycove host one subplot each, in slot 0")
+TEST("Subplot: Rustboro, Lilycove and Mossdeep host one subplot each, in slot 0")
 {
     u32 county, slot;
 
@@ -99,7 +101,7 @@ TEST("Subplot: Rustboro and Lilycove host one subplot each, in slot 0")
     {
         for (slot = 0; slot < SUBPLOTS_PER_COUNTY; slot++)
         {
-            if ((county == LILYCOVE || county == RUSTBORO) && slot == 0)
+            if ((county == LILYCOVE || county == RUSTBORO || county == MOSSDEEP) && slot == 0)
                 EXPECT(GetCountySubplot(county, slot) != NULL);
             else
                 EXPECT(GetCountySubplot(county, slot) == NULL);
@@ -504,16 +506,33 @@ TEST("Subplot: The Cutter hints follow the stage and expand the house reference"
 
 TEST("Subplot: Every Emerald host passes the placement check")
 {
-    u32 numHosts, i;
+    u32 numHosts, i, j, numOthers;
     const struct SubplotHost *hosts = GetSubplotHosts(&numHosts);
+    struct SubplotHost others[4];
 
-    EXPECT_EQ(numHosts, 2);
+    EXPECT_EQ(numHosts, 3);
     for (i = 0; i < numHosts; i++)
     {
-        struct SubplotHost others[1] = {hosts[1 - i]};
-
-        EXPECT_EQ(CheckSubplotPlacement(hosts[i].desc, hosts[i].county, hosts[i].slot, others, 1), SUBPLOT_PLACEMENT_OK);
+        for (j = 0, numOthers = 0; j < numHosts; j++)
+        {
+            if (j != i)
+                others[numOthers++] = hosts[j];
+        }
+        EXPECT_EQ(CheckSubplotPlacement(hosts[i].desc, hosts[i].county, hosts[i].slot, others, numOthers), SUBPLOT_PLACEMENT_OK);
     }
+}
+
+TEST("Subplot: Mossdeep's Super Rod subplot is stored, role-anchored, and its scene writes the slot var")
+{
+    const struct SubplotDesc *desc = GetCountySubplot(MOSSDEEP, 0);
+    const struct Scene *scene = GetScene(SCENE_MOSSDEEP_SUPER_ROD);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, SUBPLOT_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT_EQ(GetSubplotNeededRoles(desc), BUILDING_HOUSE);
+    EXPECT_EQ(desc->producedKey.type, SUBPLOT_KEY_NONE);
+    EXPECT_EQ(scene->stageVar, GetCountySlotVar(MOSSDEEP, 0));
 }
 
 TEST("Subplot: Placement needs every role of the descriptor, its anchors and its cutscene buildings")

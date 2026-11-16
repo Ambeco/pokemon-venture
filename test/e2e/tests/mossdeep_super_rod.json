@@ -1,0 +1,325 @@
+[
+  {
+    "name": "Mossdeep Super Rod: talking to the fisherman asks the question",
+    "snapshot": "mossdeep_house3_below_fisherman",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Hey there, TRAINER!\nA SUPER ROD really is super!\\pSay all you want, but this baby can\ncatch POKéMON off the seafloor!\\pWhat do you think?\nYou want it, don’t you?"
+      }
+    ],
+    "screenshot": {
+      "region": {
+        "x": 0,
+        "y": 104,
+        "width": 240,
+        "height": 56
+      },
+      "golden": "goldens/mossdeep_super_rod_question.png"
+    }
+  },
+  {
+    "name": "Mossdeep Super Rod: yes shows the obtain-item message",
+    "snapshot": "mossdeep_house3_below_fisherman",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 300
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gSpecialVar_0x8006",
+        "u16": 711
+      }
+    ],
+    "screenshot": {
+      "region": {
+        "x": 0,
+        "y": 104,
+        "width": 240,
+        "height": 56
+      },
+      "golden": "goldens/mossdeep_super_rod_obtained.png"
+    }
+  },
+  {
+    "name": "Mossdeep Super Rod: after receiving, the closing line is said and a second talk is about the seafloor",
+    "snapshot": "mossdeep_house3_below_fisherman",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 300
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [],
+    "screenshot": {
+      "region": {
+        "x": 0,
+        "y": 104,
+        "width": 240,
+        "height": 56
+      },
+      "golden": "goldens/mossdeep_super_rod_seafloor.png"
+    }
+  },
+  {
+    "name": "Mossdeep Super Rod: no gets the decline line and the question is asked again next time",
+    "snapshot": "mossdeep_house3_below_fisherman",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "DOWN"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Hey there, TRAINER!\nA SUPER ROD really is super!\\pSay all you want, but this baby can\ncatch POKéMON off the seafloor!\\pWhat do you think?\nYou want it, don’t you?"
+      }
+    ]
+  },
+  {
+    "name": "Mossdeep Super Rod: with a full Key Items pocket the bag-full text shows",
+    "snapshot": "mossdeep_house3_full_key_pocket",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 300
+      }
+    ],
+    "expect": [],
+    "screenshot": {
+      "region": {
+        "x": 0,
+        "y": 104,
+        "width": 240,
+        "height": 56
+      },
+      "golden": "goldens/mossdeep_super_rod_bag_full.png"
+    }
+  },
+  {
+    "name": "Mossdeep Super Rod: after the bag-full text the question is asked again and nothing advanced",
+    "snapshot": "mossdeep_house3_full_key_pocket",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 300
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Hey there, TRAINER!\nA SUPER ROD really is super!\\pSay all you want, but this baby can\ncatch POKéMON off the seafloor!\\pWhat do you think?\nYou want it, don’t you?"
+      }
+    ]
+  }
+]

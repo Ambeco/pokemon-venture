@@ -1055,6 +1055,7 @@ gStdScripts_End::
 	.include "data/scripts/route_blocker.inc"
 	.include "data/scripts/subplot_hinter.inc"
 	.include "data/scripts/scene.inc"
+	.include "data/scripts/scene_custom.inc"
 	.include "data/scripts/hall_of_fame.inc"
 	.include "data/scripts/hall_of_fame_frlg.inc"
 

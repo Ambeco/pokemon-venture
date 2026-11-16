@@ -27,8 +27,10 @@
 #include "constants/songs.h"
 #include "constants/map_event_ids.h"
 #include "constants/scenes.h"
+#include "constants/items.h"
 #include "constants/script_menu.h"
 #include "constants/vars.h"
+#include "region_county.h"
 
 #define WINDOW_WIDTH (2 * SCENE_WINDOW_HALF_WIDTH + 1)
 #define WINDOW_HEIGHT (2 * SCENE_WINDOW_HALF_HEIGHT + 1)
@@ -38,6 +40,9 @@
 STATIC_ASSERT(WINDOW_CELLS < 256, SceneQueueIndexFitsU8);
 
 extern const u8 Scene_EventScript_RunTriggered[];
+
+// Slot 0 of Mossdeep's county slice (GetCountySlotVar); test/subplot.c checks they agree.
+#define SCENE_MOSSDEEP_SUPER_ROD_STAGE_VAR (COUNTY_VARS_START + COUNTY_ID(5, 1) * VARS_PER_COUNTY + 1)
 
 #include "data/scenes.h"
 
@@ -895,6 +900,18 @@ static u32 PrepareBattle(const struct Scene *scene, const struct SceneStep *step
     }
     sPendingStep = step;
     return SCENE_RESULT_BATTLE;
+}
+
+void SceneLoadGive(void)
+{
+    const struct SceneStep *step = sPendingStep;
+
+    assertf(step != NULL && step->kind == SCENE_STEP_GIVE, "SceneLoadGive ran with no give step pending; did you call it outside Scene_EventScript_Run?")
+    {
+        return;
+    }
+    gSpecialVar_0x8000 = step->item;
+    gSpecialVar_0x8001 = step->quantity;
 }
 
 void SceneStartBattle(void)

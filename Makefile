@@ -363,6 +363,8 @@ TEST_SKIP_IS_FAIL := \x00
 endif
 
 check: $(TESTELF)
+	@python3 $(MISC_TOOL_DIR)/check_scene_custom.py --self-test
+	@python3 $(MISC_TOOL_DIR)/check_scene_custom.py
 	@cp $< $(HEADLESSELF)
 	$(PATCHELF) $(HEADLESSELF) gTestRunnerHeadless '\x01' gTestRunnerSkipIsFail "$(TEST_SKIP_IS_FAIL)"
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)

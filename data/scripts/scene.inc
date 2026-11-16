@@ -47,7 +47,9 @@ Scene_EventScript_AskChoice:
 	goto Scene_EventScript_NextStep
 
 @ Std_ObtainItem leaves its success in VAR_0x8007, which SceneTakeAnswer reads. It says nothing when the bag is full.
+@ `switch VAR_RESULT` above copies the result into VAR_0x8000, so the item is loaded again here.
 Scene_EventScript_Give:
+	special SceneLoadGive
 	callstd STD_OBTAIN_ITEM
 	goto_if_eq VAR_0x8007, FALSE, Scene_EventScript_GiveBagFull
 	special SceneTakeAnswer

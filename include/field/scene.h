@@ -284,6 +284,8 @@ void SceneNextStep(void);
 void SceneTakeAnswer(void);
 // Starts the battle of the current battle step; the driver waits for it with waitstate.
 void SceneStartBattle(void);
+// Puts the current give step's item and quantity back in VAR_0x8000/0x8001, which the driver's `switch` clobbers.
+void SceneLoadGive(void);
 // callnative: calls the current custom step's script as a subroutine.
 void SceneCallCustom(struct ScriptContext *ctx);
 
