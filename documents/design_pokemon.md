@@ -76,6 +76,23 @@ Route-story-indices determine wild Pokémon levels, trainer levels, hidden item 
 - Gym members, the rival, the Elite 4, and other "boss" trainers are not limited by domestication, habitat, or biome.
 - Low-level "bad guy" (Team Rocket-style) members are also not limited by domestication, habitat, or biome, but only use species whose base evolution has a catch rate of 255 (the starting cutoff, to be tuned by feel) (Rattata, Zubat, Caterpie, Pidgey, Spearow, Ekans, Oddish, Diglett, Meowth, Poliwag, Bellsprout, Geodude, Magikarp, etc.).
 
+### Rival teams
+
+The rival's team is a pure function of the seed, the rival's starter and the battle's route-story-index; nothing but the starter is stored. At a rival battle, the game replays the swap rules below over every route with a route-story-index below the battle's, in story order, so the team never includes species from routes the player has not reached and is the same on every playthrough of a seed. The replay can run while the cutscene before the battle plays.
+
+- **Starter:** the rival takes the starter whose type beats the player's starter, if one is offered; otherwise the stride pick from "Randomized starters". The starter is always slot 1.
+- **Candidates:** each species that spawns on a replayed route is judged by its line's final form: that form's (randomized) types and catch rate. Legendaries, babies and starters (commonness 0-2) are never candidates, since they never spawn wild. When the rival fields a candidate, it uses the stage of the line that fits the battle's level (level evolutions by level, other evolutions by their estimated levels), so early teams are unevolved.
+- **Type coverage:** the team's covered types are the union of its members' final-form types.
+- **Swap rules, in priority order:**
+  1. The rival never loses fire, grass or water coverage: a swap that removes the team's only fire, grass or water type is refused, even if it would add a missing one (a fire/flying rival missing grass skips a grass/flying candidate, and waits for a different grass one).
+  2. A candidate that adds a missing fire, grass or water type (without breaking rule 1) is always taken, dropping the member(s) whose types overlap it.
+  3. Otherwise a candidate replaces a member only if its final form has a lower catch rate than that member's and its types overlap no other member; a swap never drops a fire, grass or water member whose type is not also covered elsewhere (rule 1).
+  4. A free slot (the team grows with the battle number, up to 6) takes the lowest-catch-rate candidate with no overlap, preferring fire/grass/water if missing.
+- **Result:** with many hundreds of species, a non-conflicting fire, grass and water Pokémon almost always turns up, so late teams are a fire, a grass and a water Pokémon plus three distinctly typed ones, all with low catch rates. This is likely, not guaranteed: if a type never turns up, the rival simply lacks it; no fallback is invented.
+- **Second rival:** Wally uses the same function with his own starting pick.
+- **Tests:** seed sweeps assert rule 1 is never violated between consecutive battles, coverage of fire, grass and water by the last rival battle for almost all seeds (log the failures), and no duplicate types outside the forced adds.
+- **Cost:** one pass over the replayed routes' encounter tables per rival battle; measure against the CPU budget (design.md, "Resource budget").
+
 ### Experience
 
 - The whole party gains experience after every battle, as in Sword/Shield (`I_EXP_SHARE_FLAG` in `include/config/item.h`, set permanently rather than toggled by a key item).
@@ -259,3 +276,9 @@ Cons:
 Showing the switch-hint grades in the field party menu while inside a gym, graded against the gym type.
 - Pros: helps plan a gym's battles before they start.
 - Cons: a rare case for extra UI; the gym guide's advice covers the same need.
+
+### Rival team swapped in by idle cycles as the player enters routes
+
+Update a stored rival team whenever the player enters a route, using idle frames.
+- Pros: team reflects the routes the player actually saw.
+- Cons: needs six stored slots in the save; the team depends on the player's route order, so seeds are not reproducible; idle-frame scheduling on the GBA is awkward.
