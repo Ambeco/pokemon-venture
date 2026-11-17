@@ -158,6 +158,100 @@ static const struct Scene sRoute101Rescue =
     .steps = sRoute101RescueSteps,
 };
 
+extern const u8 SceneCustom_FadeOut[];
+extern const u8 SceneCustom_ChooseStarter[];
+extern const u8 SceneCustom_HideRivalBedroom[];
+extern const u8 SceneCustom_HealAndGoToLab[];
+extern const u8 Route101_Text_YouSavedMe[];
+
+// Stage SAVE_BIRCH_AWAIT_BAG of Save Birch, run from the bag's talk script: the screen fades, the Zigzagoon goes,
+// the player picks the starter (the first battle follows and the scene resumes after it), Birch thanks them and
+// sends them to his lab. The no-wild flag is lifted here, where the rescue's music and flags end.
+static const struct SceneStep sRoute101BagSteps[] =
+{
+    SCENE_SET_FLAG(FLAG_SYS_POKEMON_GET),
+    SCENE_SET_FLAG(FLAG_RESCUED_BIRCH),
+    SCENE_CUSTOM(SceneCustom_FadeOut),
+    SCENE_HIDE(SCENE_ACTOR_2),
+    SCENE_FACE(SCENE_ACTOR_PLAYER, SCENE_ACTOR_1, SCENE_SIDE_SELF),
+    SCENE_CUSTOM(SceneCustom_ChooseStarter),
+    SCENE_WALK(SCENE_ACTOR_1, SCENE_ACTOR_PLAYER, SCENE_SIDE_FRONT),
+    SCENE_SAY(Route101_Text_YouSavedMe),
+    SCENE_SET_FLAG(FLAG_HIDE_ROUTE_101_BIRCH_ZIGZAGOON_BATTLE),
+    SCENE_CLEAR_FLAG(FLAG_HIDE_LITTLEROOT_TOWN_BIRCHS_LAB_BIRCH),
+    SCENE_SET_FLAG(FLAG_HIDE_ROUTE_101_BIRCH_STARTERS_BAG),
+    SCENE_ADVANCE(SAVE_BIRCH_STARTER_TAKEN),
+    SCENE_CLEAR_FLAG(FLAG_SCENE_NO_WILD),
+    SCENE_CLEAR_FLAG(FLAG_HIDE_MAP_NAME_POPUP),
+    SCENE_CUSTOM(SceneCustom_HideRivalBedroom),
+    SCENE_CUSTOM(SceneCustom_HealAndGoToLab),
+};
+
+static const struct Scene sRoute101Bag =
+{
+    .name = "Route101Bag",
+    .actors = {LOCALID_PLAYER, LOCALID_ROUTE101_BIRCH, LOCALID_ROUTE101_ZIGZAGOON},
+    .numActors = 3,
+    .stageVar = VAR_SAVE_BIRCH_BEAT,
+    .numSteps = ARRAY_COUNT(sRoute101BagSteps),
+    .steps = sRoute101BagSteps,
+};
+
+extern const u8 SceneCustom_AnnounceStarter[];
+extern const u8 SceneCustom_NicknameStarter[];
+extern const u8 LittlerootTown_ProfessorBirchsLab_Text_WhyNotGiveNicknameToMon[];
+extern const u8 LittlerootTown_ProfessorBirchsLab_Text_MightBeGoodIdeaToGoSeeRival[];
+extern const u8 LittlerootTown_ProfessorBirchsLab_Text_DontBeThatWay[];
+extern const u8 LittlerootTown_ProfessorBirchsLab_Text_GetRivalToTeachYou[];
+
+static const struct SceneStep sLabNicknameSteps[] = {SCENE_CUSTOM(SceneCustom_NicknameStarter)};
+
+static const struct SceneBranch sLabNicknameAnswers[] =
+{
+    SCENE_BRANCH(NULL, sLabNicknameSteps),
+    SCENE_EMPTY_BRANCH(NULL),
+};
+
+// Declining twice in a row is the same as accepting; vanilla asks again until the answer is yes.
+static const struct SceneBranch sLabDontBeThatWayAnswers[] =
+{
+    SCENE_EMPTY_BRANCH(NULL),
+    SCENE_EMPTY_BRANCH(NULL),
+};
+
+static const struct SceneStep sLabDeclineRivalSteps[] =
+{
+    SCENE_ASK_YES_NO(LittlerootTown_ProfessorBirchsLab_Text_DontBeThatWay, sLabDontBeThatWayAnswers),
+};
+
+static const struct SceneBranch sLabRivalAnswers[] =
+{
+    SCENE_EMPTY_BRANCH(NULL),
+    SCENE_BRANCH(NULL, sLabDeclineRivalSteps),
+};
+
+// Stage SAVE_BIRCH_STARTER_TAKEN of Save Birch, run from the lab's on-frame script: Birch hands over the starter
+// the pick already gave, the player may nickname it, and Birch sends them to the rival.
+static const struct SceneStep sLabStarterSteps[] =
+{
+    SCENE_CUSTOM(SceneCustom_AnnounceStarter),
+    SCENE_ASK_YES_NO(LittlerootTown_ProfessorBirchsLab_Text_WhyNotGiveNicknameToMon, sLabNicknameAnswers),
+    SCENE_ASK_YES_NO(LittlerootTown_ProfessorBirchsLab_Text_MightBeGoodIdeaToGoSeeRival, sLabRivalAnswers),
+    SCENE_SAY(LittlerootTown_ProfessorBirchsLab_Text_GetRivalToTeachYou),
+    SCENE_CLEAR_FLAG(FLAG_HIDE_ROUTE_101_BOY),
+    SCENE_ADVANCE(SAVE_BIRCH_SEE_RIVAL),
+};
+
+static const struct Scene sLabStarter =
+{
+    .name = "LabStarter",
+    .actors = {LOCALID_PLAYER},
+    .numActors = 1,
+    .stageVar = VAR_SAVE_BIRCH_BEAT,
+    .numSteps = ARRAY_COUNT(sLabStarterSteps),
+    .steps = sLabStarterSteps,
+};
+
 extern const u8 MossdeepCity_House3_Text_YouWantSuperRod[];
 extern const u8 MossdeepCity_House3_Text_SuperRodIsSuper[];
 extern const u8 MossdeepCity_House3_Text_TryDroppingRodInWater[];
@@ -256,6 +350,8 @@ static const struct Scene *const sScenes[SCENE_COUNT] =
     [SCENE_MOSSDEEP_SUPER_ROD] = &sMossdeepSuperRod,
     [SCENE_ROUTE103_RIVAL_MAY] = &sRoute103RivalMay,
     [SCENE_ROUTE103_RIVAL_BRENDAN] = &sRoute103RivalBrendan,
+    [SCENE_ROUTE101_BAG] = &sRoute101Bag,
+    [SCENE_LAB_STARTER] = &sLabStarter,
 };
 
 // The truck drops the player within 4 tiles of the door in both houses. Door warp 1 is Brendan's house, 0 is May's.

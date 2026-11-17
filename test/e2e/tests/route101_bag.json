@@ -1,0 +1,124 @@
+[
+  {
+    "name": "Route 101 bag: the starter pick and first battle end with Birch's thanks and the lab hand-over",
+    "snapshot": "route101_bag_pending",
+    "steps": [
+      {
+        "press": "UP",
+        "hold": 16
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "LEFT",
+        "hold": 16
+      },
+      {
+        "press": "LEFT",
+        "hold": 16
+      },
+      {
+        "press": "LEFT",
+        "hold": 16
+      },
+      {
+        "press": "UP",
+        "hold": 16
+      },
+      {
+        "press": "UP",
+        "hold": 16
+      },
+      {
+        "press": "UP",
+        "hold": 16
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 400
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "battle": true
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "wait": 400
+      }
+    ],
+    "settleFrames": 60,
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "PROF. BIRCH: So, Aaa.\\pI’ve heard so much about you from\nyour father.\\pI’ve heard that you don’t have your\nown POKéMON yet.\\pBut the way you battled earlier,\nyou pulled it off with aplomb!\\pI guess you have your father’s blood\nin your veins after all!\\pOh, yes. As thanks for rescuing me,\nI’d like you to have the POKéMON you\\lused earlier.\\pAaa received the Torchic!"
+      }
+    ]
+  }
+]

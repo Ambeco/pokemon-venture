@@ -1,0 +1,102 @@
+[
+  {
+    "name": "Birch's lab: declining the nickname and the rival ends with his send-off",
+    "snapshot": "lab_starter_pending",
+    "steps": [
+      {
+        "wait": 300
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "B"
+      },
+      {
+        "wait": 150
+      }
+    ],
+    "settleFrames": 60,
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "PROF. BIRCH: Great!\nMAY should be happy, too.\\pGet MAY to teach you what it\nmeans to be a TRAINER."
+      }
+    ]
+  }
+]

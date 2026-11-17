@@ -155,20 +155,23 @@ LittlerootTown_EventScript_Twin::
 	release
 	end
 
+@ The first ask is the twin-asks scene (the exit trigger runs it too); a repeat talk, once the player is on the way,
+@ only repeats the request and must not set the stage back.
 LittlerootTown_EventScript_GoSaveBirch::
+	goto_if_eq VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_ASKS, LittlerootTown_EventScript_RunTwinAsks
 	special GetPlayerBigGuyGirlString
 	msgbox LittlerootTown_Text_CanYouGoSeeWhatsHappening, MSGBOX_DEFAULT
 	closemessage
 	applymovement LOCALID_LITTLEROOT_TWIN, Common_Movement_FaceOriginalDirection
 	waitmovement 0
-	call_if_eq VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_ASKS, LittlerootTown_EventScript_SendPlayerToRoute101
 	release
 	end
 
-@ A talk with the twin may repeat once the player is on the way, so it must not set the stage back.
-LittlerootTown_EventScript_SendPlayerToRoute101::
-	setvar VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_BIRCH_IN_GRASS
-	return
+LittlerootTown_EventScript_RunTwinAsks::
+	setvar VAR_0x8004, SCENE_LITTLEROOT_TWIN_ASKS
+	call Scene_EventScript_Run
+	release
+	end
 
 LittlerootTown_EventScript_YouSavedBirch::
 	special GetPlayerBigGuyGirlString
