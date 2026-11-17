@@ -8,13 +8,9 @@
 #define SCENE_ROUTE101_RESCUE         3
 #define SCENE_MOSSDEEP_SUPER_ROD      4
 #define SCENE_LITTLEROOT_TWIN_ASKS    5
-#define SCENE_ROUTE103_RIVAL_MAY_TREECKO     6
-#define SCENE_ROUTE103_RIVAL_MAY_TORCHIC     7
-#define SCENE_ROUTE103_RIVAL_MAY_MUDKIP      8
-#define SCENE_ROUTE103_RIVAL_BRENDAN_TREECKO 9
-#define SCENE_ROUTE103_RIVAL_BRENDAN_TORCHIC 10
-#define SCENE_ROUTE103_RIVAL_BRENDAN_MUDKIP  11
-#define SCENE_COUNT                   12
+#define SCENE_ROUTE103_RIVAL_MAY     6
+#define SCENE_ROUTE103_RIVAL_BRENDAN 7
+#define SCENE_COUNT                   8
 
 // What the driver script does after a step (SceneNextStep leaves one in VAR_RESULT).
 #define SCENE_RESULT_NEXT          0 // nothing to do: ask for the next step

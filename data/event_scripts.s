@@ -51,6 +51,7 @@
 #include "constants/mystery_gift.h"
 #include "constants/party_menu.h"
 #include "constants/pokeball.h"
+#include "constants/rival.h"
 #include "constants/scenes.h"
 #include "constants/pokedex.h"
 #include "constants/pokemon.h"

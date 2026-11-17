@@ -34,10 +34,9 @@ Route103_EventScript_RivalMay::
 	waitmovement 0
 	applymovement LOCALID_ROUTE103_RIVAL, Common_Movement_Delay48
 	waitmovement 0
-	switch VAR_STARTER_MON
-	case 0, Route103_EventScript_StartMayBattleTreecko
-	case 1, Route103_EventScript_StartMayBattleTorchic
-	case 2, Route103_EventScript_StartMayBattleMudkip
+	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_MAY
+	call Scene_EventScript_Run
+	goto Route103_EventScript_AfterMayScene
 	end
 
 Route103_EventScript_RivalBrendan::
@@ -50,53 +49,16 @@ Route103_EventScript_RivalBrendan::
 	waitmovement 0
 	applymovement LOCALID_ROUTE103_RIVAL, Common_Movement_Delay48
 	waitmovement 0
-	switch VAR_STARTER_MON
-	case 0, Route103_EventScript_StartBrendanBattleTreecko
-	case 1, Route103_EventScript_StartBrendanBattleTorchic
-	case 2, Route103_EventScript_StartBrendanBattleMudkip
-	end
-
-Route103_EventScript_StartMayBattleTreecko::
-	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_MAY_TREECKO
-	call Scene_EventScript_Run
-	goto Route103_EventScript_AfterMayScene
-	end
-
-Route103_EventScript_StartMayBattleTorchic::
-	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_MAY_TORCHIC
-	call Scene_EventScript_Run
-	goto Route103_EventScript_AfterMayScene
-	end
-
-Route103_EventScript_StartMayBattleMudkip::
-	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_MAY_MUDKIP
-	call Scene_EventScript_Run
-	goto Route103_EventScript_AfterMayScene
-	end
-
-Route103_EventScript_StartBrendanBattleTreecko::
-	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_BRENDAN_TREECKO
+	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_BRENDAN
 	call Scene_EventScript_Run
 	goto Route103_EventScript_AfterBrendanScene
 	end
 
-Route103_EventScript_StartBrendanBattleTorchic::
-	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_BRENDAN_TORCHIC
-	call Scene_EventScript_Run
-	goto Route103_EventScript_AfterBrendanScene
-	end
-
-Route103_EventScript_StartBrendanBattleMudkip::
-	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_BRENDAN_MUDKIP
-	call Scene_EventScript_Run
-	goto Route103_EventScript_AfterBrendanScene
-	end
-
-@ Declining the battle in the scene leaves the rival waiting; any starter's trainer flag counts as won.
+@ Declining the battle in the scene leaves the rival waiting; the trainer flag tells a win.
 Route103_EventScript_AfterMayScene::
-	goto_if_defeated TRAINER_MAY_ROUTE_103_TREECKO, Route103_EventScript_AfterMayBattle
-	goto_if_defeated TRAINER_MAY_ROUTE_103_TORCHIC, Route103_EventScript_AfterMayBattle
-	goto_if_defeated TRAINER_MAY_ROUTE_103_MUDKIP, Route103_EventScript_AfterMayBattle
+	setvar VAR_0x8004, RIVAL_ENCOUNTER_ROUTE_103
+	specialvar VAR_RESULT, ScriptHasRivalBeenDefeated
+	goto_if_eq VAR_RESULT, TRUE, Route103_EventScript_AfterMayBattle
 	releaseall
 	end
 
@@ -105,11 +67,10 @@ Route103_EventScript_AfterMayBattle::
 	goto Route103_EventScript_RivalExit
 	end
 
-@ Declining the battle in the scene leaves the rival waiting; any starter's trainer flag counts as won.
 Route103_EventScript_AfterBrendanScene::
-	goto_if_defeated TRAINER_BRENDAN_ROUTE_103_TREECKO, Route103_EventScript_AfterBrendanBattle
-	goto_if_defeated TRAINER_BRENDAN_ROUTE_103_TORCHIC, Route103_EventScript_AfterBrendanBattle
-	goto_if_defeated TRAINER_BRENDAN_ROUTE_103_MUDKIP, Route103_EventScript_AfterBrendanBattle
+	setvar VAR_0x8004, RIVAL_ENCOUNTER_ROUTE_103
+	specialvar VAR_RESULT, ScriptHasRivalBeenDefeated
+	goto_if_eq VAR_RESULT, TRUE, Route103_EventScript_AfterBrendanBattle
 	releaseall
 	end
 

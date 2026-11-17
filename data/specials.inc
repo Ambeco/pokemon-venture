@@ -651,4 +651,5 @@ gSpecials::
 	def_special SceneNextStep
 	def_special SceneTakeAnswer
 	def_special SceneStartBattle
+	def_special ScriptHasRivalBeenDefeated
 	def_special SceneLoadGive

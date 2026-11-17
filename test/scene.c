@@ -14,6 +14,7 @@
 #include "fieldmap.h"
 #include "field_player_avatar.h"
 #include "scene.h"
+#include "rival.h"
 #include "subplot.h"
 #include "region_county.h"
 #include "script.h"
@@ -207,23 +208,15 @@ TEST("Scene: Every scene id has a scene with steps and a name")
     }
 }
 
-// The rival's six scenes (Route 103) each ask "battle or not yet" and fight the trainer for that gender and starter.
-TEST("Scene: Each Route 103 rival scene asks a choice whose first branch fights the matching trainer")
+// Both Route 103 rival scenes ask "battle or not yet"; the first branch fights whichever trainer the rival API picks.
+TEST("Scene: Each Route 103 rival scene asks a choice whose first branch fights the rival")
 {
-    static const struct { u16 scene; u16 trainer; } cases[] =
-    {
-        {SCENE_ROUTE103_RIVAL_MAY_TREECKO, TRAINER_MAY_ROUTE_103_TREECKO},
-        {SCENE_ROUTE103_RIVAL_MAY_TORCHIC, TRAINER_MAY_ROUTE_103_TORCHIC},
-        {SCENE_ROUTE103_RIVAL_MAY_MUDKIP, TRAINER_MAY_ROUTE_103_MUDKIP},
-        {SCENE_ROUTE103_RIVAL_BRENDAN_TREECKO, TRAINER_BRENDAN_ROUTE_103_TREECKO},
-        {SCENE_ROUTE103_RIVAL_BRENDAN_TORCHIC, TRAINER_BRENDAN_ROUTE_103_TORCHIC},
-        {SCENE_ROUTE103_RIVAL_BRENDAN_MUDKIP, TRAINER_BRENDAN_ROUTE_103_MUDKIP},
-    };
+    static const u16 sceneIds[] = {SCENE_ROUTE103_RIVAL_MAY, SCENE_ROUTE103_RIVAL_BRENDAN};
     u32 i;
 
-    for (i = 0; i < ARRAY_COUNT(cases); i++)
+    for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
     {
-        const struct Scene *scene = GetScene(cases[i].scene);
+        const struct Scene *scene = GetScene(sceneIds[i]);
         const struct SceneStep *ask = &scene->steps[0];
 
         ASSUME(scene->numSteps == 1);
@@ -232,11 +225,41 @@ TEST("Scene: Each Route 103 rival scene asks a choice whose first branch fights 
         EXPECT(ask->branches[0].label != NULL && ask->branches[1].label != NULL);
         EXPECT_EQ(ask->branches[0].numSteps, 1);
         EXPECT_EQ(ask->branches[0].steps[0].kind, SCENE_STEP_BATTLE);
-        EXPECT_EQ(ask->branches[0].steps[0].trainer, cases[i].trainer);
+        EXPECT(ask->branches[0].steps[0].rival);
+        EXPECT_EQ(ask->branches[0].steps[0].trainer, RIVAL_ENCOUNTER_ROUTE_103);
         EXPECT(ask->branches[0].steps[0].text != NULL);
         EXPECT_EQ(ask->branches[1].numSteps, 1);
         EXPECT_EQ(ask->branches[1].steps[0].kind, SCENE_STEP_SAY);
     }
+}
+
+TEST("Rival: GetRivalTrainer picks the opposite gender's trainer for the player's starter")
+{
+    static const u16 may[] = {TRAINER_MAY_ROUTE_103_TREECKO, TRAINER_MAY_ROUTE_103_TORCHIC, TRAINER_MAY_ROUTE_103_MUDKIP};
+    static const u16 brendan[] = {TRAINER_BRENDAN_ROUTE_103_TREECKO, TRAINER_BRENDAN_ROUTE_103_TORCHIC, TRAINER_BRENDAN_ROUTE_103_MUDKIP};
+    u32 starter;
+
+    for (starter = 0; starter < 3; starter++)
+    {
+        VarSet(VAR_STARTER_MON, starter);
+        gSaveBlock2Ptr->playerGender = MALE;
+        EXPECT_EQ(GetRivalGender(), FEMALE);
+        EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_ROUTE_103), may[starter]);
+        gSaveBlock2Ptr->playerGender = FEMALE;
+        EXPECT_EQ(GetRivalGender(), MALE);
+        EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_ROUTE_103), brendan[starter]);
+    }
+}
+
+TEST("Rival: HasRivalBeenDefeated reads the flag of the trainer picked now")
+{
+    VarSet(VAR_STARTER_MON, 1);
+    gSaveBlock2Ptr->playerGender = MALE;
+    FlagClear(TRAINER_FLAGS_START + TRAINER_MAY_ROUTE_103_TORCHIC);
+    EXPECT(!HasRivalBeenDefeated(RIVAL_ENCOUNTER_ROUTE_103));
+    FlagSet(TRAINER_FLAGS_START + TRAINER_MAY_ROUTE_103_TORCHIC);
+    EXPECT(HasRivalBeenDefeated(RIVAL_ENCOUNTER_ROUTE_103));
+    FlagClear(TRAINER_FLAGS_START + TRAINER_MAY_ROUTE_103_TORCHIC);
 }
 
 // Shared by the message tests (test builds are short of EWRAM).

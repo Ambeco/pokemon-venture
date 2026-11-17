@@ -45,10 +45,10 @@
     ],
     "screenshot": {
       "region": {
-        "x": 8,
-        "y": 8,
-        "width": 96,
-        "height": 32
+        "x": 16,
+        "y": 14,
+        "width": 80,
+        "height": 22
       },
       "golden": "goldens/route103_rival_choices.png"
     }

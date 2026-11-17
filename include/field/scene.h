@@ -140,7 +140,8 @@ struct SceneStep
     u8 numBranches;
     u16 item;                         // give
     u16 quantity;
-    u16 trainer;                      // battle: trainer id (used when species is 0)
+    u16 trainer;                      // battle: trainer id (used when species is 0), or the RivalEncounter when `rival` is set
+    bool8 rival;                      // battle: the trainer comes from GetRivalTrainer(trainer)
     u16 species;                      // battle: a wild Pokémon of this species at `level`
     u8 level;
     const u8 *script;                 // custom
@@ -210,6 +211,7 @@ struct Scene
 #define SCENE_GIVE(itemId, amount)          {.kind = SCENE_STEP_GIVE, .item = itemId, .quantity = amount}
 #define SCENE_GIVE_OR_ELSE(itemId, amount, bagFullBranch) {.kind = SCENE_STEP_GIVE, .item = itemId, .quantity = amount, .branches = bagFullBranch, .numBranches = 1}
 #define SCENE_BATTLE_TRAINER(opponent, defeatText) {.kind = SCENE_STEP_BATTLE, .trainer = opponent, .text = defeatText}
+#define SCENE_BATTLE_RIVAL(encounter, defeatText)  {.kind = SCENE_STEP_BATTLE, .rival = TRUE, .trainer = encounter, .text = defeatText}
 #define SCENE_BATTLE_WILD(speciesId, levelValue)   {.kind = SCENE_STEP_BATTLE, .species = speciesId, .level = levelValue}
 #define SCENE_CUSTOM(eventScript)           {.kind = SCENE_STEP_CUSTOM, .script = eventScript}
 

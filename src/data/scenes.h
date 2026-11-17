@@ -212,12 +212,12 @@ extern const u8 Route103_Text_BrendanNotYet[];
 
 // The rival's challenge on Route 103, run from his talk script after he faces the player. The player may refuse
 // ("Not yet") to heal first; the script then releases and the rival waits. The after-battle talk and his exit stay
-// in the script, which tells a win from a refusal by the trainer flag. The trainer depends on the starter and the
-// rival's gender, so there is one scene per combination.
-#define ROUTE103_RIVAL_SCENE(sceneName, trainerId, letsBattle, defeated, notYet) \
+// in the script, which tells a win from a refusal by the trainer flag. GetRivalTrainer picks the trainer for the
+// starter; the two scenes differ only in the rival's texts.
+#define ROUTE103_RIVAL_SCENE(sceneName, letsBattle, defeated, notYet) \
 static const struct SceneStep sceneName##FightSteps[] = \
 { \
-    SCENE_BATTLE_TRAINER(trainerId, defeated), \
+    SCENE_BATTLE_RIVAL(RIVAL_ENCOUNTER_ROUTE_103, defeated), \
 }; \
 static const struct SceneStep sceneName##NotYetSteps[] = \
 { \
@@ -242,12 +242,9 @@ static const struct Scene sceneName = \
     .steps = sceneName##Steps, \
 }
 
-ROUTE103_RIVAL_SCENE(sRoute103RivalMayTreecko, TRAINER_MAY_ROUTE_103_TREECKO, Route103_Text_MayLetsBattle, Route103_Text_MayDefeated, Route103_Text_MayNotYet);
-ROUTE103_RIVAL_SCENE(sRoute103RivalMayTorchic, TRAINER_MAY_ROUTE_103_TORCHIC, Route103_Text_MayLetsBattle, Route103_Text_MayDefeated, Route103_Text_MayNotYet);
-ROUTE103_RIVAL_SCENE(sRoute103RivalMayMudkip, TRAINER_MAY_ROUTE_103_MUDKIP, Route103_Text_MayLetsBattle, Route103_Text_MayDefeated, Route103_Text_MayNotYet);
-ROUTE103_RIVAL_SCENE(sRoute103RivalBrendanTreecko, TRAINER_BRENDAN_ROUTE_103_TREECKO, Route103_Text_BrendanLetsBattle, Route103_Text_BrendanDefeated, Route103_Text_BrendanNotYet);
-ROUTE103_RIVAL_SCENE(sRoute103RivalBrendanTorchic, TRAINER_BRENDAN_ROUTE_103_TORCHIC, Route103_Text_BrendanLetsBattle, Route103_Text_BrendanDefeated, Route103_Text_BrendanNotYet);
-ROUTE103_RIVAL_SCENE(sRoute103RivalBrendanMudkip, TRAINER_BRENDAN_ROUTE_103_MUDKIP, Route103_Text_BrendanLetsBattle, Route103_Text_BrendanDefeated, Route103_Text_BrendanNotYet);
+
+ROUTE103_RIVAL_SCENE(sRoute103RivalMay, Route103_Text_MayLetsBattle, Route103_Text_MayDefeated, Route103_Text_MayNotYet);
+ROUTE103_RIVAL_SCENE(sRoute103RivalBrendan, Route103_Text_BrendanLetsBattle, Route103_Text_BrendanDefeated, Route103_Text_BrendanNotYet);
 
 static const struct Scene *const sScenes[SCENE_COUNT] =
 {
@@ -257,12 +254,8 @@ static const struct Scene *const sScenes[SCENE_COUNT] =
     [SCENE_LITTLEROOT_ARRIVE_FEMALE] = &sLittlerootArriveFemale,
     [SCENE_ROUTE101_RESCUE] = &sRoute101Rescue,
     [SCENE_MOSSDEEP_SUPER_ROD] = &sMossdeepSuperRod,
-    [SCENE_ROUTE103_RIVAL_MAY_TREECKO] = &sRoute103RivalMayTreecko,
-    [SCENE_ROUTE103_RIVAL_MAY_TORCHIC] = &sRoute103RivalMayTorchic,
-    [SCENE_ROUTE103_RIVAL_MAY_MUDKIP] = &sRoute103RivalMayMudkip,
-    [SCENE_ROUTE103_RIVAL_BRENDAN_TREECKO] = &sRoute103RivalBrendanTreecko,
-    [SCENE_ROUTE103_RIVAL_BRENDAN_TORCHIC] = &sRoute103RivalBrendanTorchic,
-    [SCENE_ROUTE103_RIVAL_BRENDAN_MUDKIP] = &sRoute103RivalBrendanMudkip,
+    [SCENE_ROUTE103_RIVAL_MAY] = &sRoute103RivalMay,
+    [SCENE_ROUTE103_RIVAL_BRENDAN] = &sRoute103RivalBrendan,
 };
 
 // The truck drops the player within 4 tiles of the door in both houses. Door warp 1 is Brendan's house, 0 is May's.

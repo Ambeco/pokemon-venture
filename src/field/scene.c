@@ -17,6 +17,7 @@
 #include "script_movement.h"
 #include "script_pokemon_util.h"
 #include "sound.h"
+#include "rival.h"
 #include "string_util.h"
 #include "text.h"
 #include "constants/battle_setup.h"
@@ -985,7 +986,7 @@ void SceneStartBattle(void)
     InitTrainerBattleParameter();
     TRAINER_BATTLE_PARAM.mode = TRAINER_BATTLE_SINGLE_NO_INTRO_TEXT;
     TRAINER_BATTLE_PARAM.playMusicA = TRUE;
-    TRAINER_BATTLE_PARAM.opponentA = step->trainer;
+    TRAINER_BATTLE_PARAM.opponentA = step->rival ? GetRivalTrainer(step->trainer) : step->trainer;
     TRAINER_BATTLE_PARAM.defeatTextA = (u8 *)step->text;
     PlayTrainerEncounterMusic();
     BattleSetup_StartTrainerBattle();
