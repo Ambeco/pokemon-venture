@@ -201,6 +201,54 @@ static const struct Scene sMossdeepSuperRod =
     .steps = sMossdeepSuperRodSteps,
 };
 
+extern const u8 Route103_Text_BattleNow[];
+extern const u8 Route103_Text_NotYet[];
+extern const u8 Route103_Text_MayLetsBattle[];
+extern const u8 Route103_Text_MayDefeated[];
+extern const u8 Route103_Text_MayNotYet[];
+extern const u8 Route103_Text_BrendanLetsBattle[];
+extern const u8 Route103_Text_BrendanDefeated[];
+extern const u8 Route103_Text_BrendanNotYet[];
+
+// The rival's challenge on Route 103, run from his talk script after he faces the player. The player may refuse
+// ("Not yet") to heal first; the script then releases and the rival waits. The after-battle talk and his exit stay
+// in the script, which tells a win from a refusal by the trainer flag. The trainer depends on the starter and the
+// rival's gender, so there is one scene per combination.
+#define ROUTE103_RIVAL_SCENE(sceneName, trainerId, letsBattle, defeated, notYet) \
+static const struct SceneStep sceneName##FightSteps[] = \
+{ \
+    SCENE_BATTLE_TRAINER(trainerId, defeated), \
+}; \
+static const struct SceneStep sceneName##NotYetSteps[] = \
+{ \
+    SCENE_SAY(notYet), \
+}; \
+static const struct SceneBranch sceneName##Answers[] = \
+{ \
+    SCENE_BRANCH(Route103_Text_BattleNow, sceneName##FightSteps), \
+    SCENE_BRANCH(Route103_Text_NotYet, sceneName##NotYetSteps), \
+}; \
+static const struct SceneStep sceneName##Steps[] = \
+{ \
+    SCENE_ASK_CHOICE(letsBattle, sceneName##Answers), \
+}; \
+static const struct Scene sceneName = \
+{ \
+    .name = #sceneName, \
+    .actors = {LOCALID_PLAYER}, \
+    .numActors = 1, \
+    .stageVar = VAR_OLDALE_RIVAL_STATE, \
+    .numSteps = ARRAY_COUNT(sceneName##Steps), \
+    .steps = sceneName##Steps, \
+}
+
+ROUTE103_RIVAL_SCENE(sRoute103RivalMayTreecko, TRAINER_MAY_ROUTE_103_TREECKO, Route103_Text_MayLetsBattle, Route103_Text_MayDefeated, Route103_Text_MayNotYet);
+ROUTE103_RIVAL_SCENE(sRoute103RivalMayTorchic, TRAINER_MAY_ROUTE_103_TORCHIC, Route103_Text_MayLetsBattle, Route103_Text_MayDefeated, Route103_Text_MayNotYet);
+ROUTE103_RIVAL_SCENE(sRoute103RivalMayMudkip, TRAINER_MAY_ROUTE_103_MUDKIP, Route103_Text_MayLetsBattle, Route103_Text_MayDefeated, Route103_Text_MayNotYet);
+ROUTE103_RIVAL_SCENE(sRoute103RivalBrendanTreecko, TRAINER_BRENDAN_ROUTE_103_TREECKO, Route103_Text_BrendanLetsBattle, Route103_Text_BrendanDefeated, Route103_Text_BrendanNotYet);
+ROUTE103_RIVAL_SCENE(sRoute103RivalBrendanTorchic, TRAINER_BRENDAN_ROUTE_103_TORCHIC, Route103_Text_BrendanLetsBattle, Route103_Text_BrendanDefeated, Route103_Text_BrendanNotYet);
+ROUTE103_RIVAL_SCENE(sRoute103RivalBrendanMudkip, TRAINER_BRENDAN_ROUTE_103_MUDKIP, Route103_Text_BrendanLetsBattle, Route103_Text_BrendanDefeated, Route103_Text_BrendanNotYet);
+
 static const struct Scene *const sScenes[SCENE_COUNT] =
 {
     [SCENE_LITTLEROOT_NEED_POKEMON] = &sLittlerootNeedPokemon,
@@ -209,6 +257,12 @@ static const struct Scene *const sScenes[SCENE_COUNT] =
     [SCENE_LITTLEROOT_ARRIVE_FEMALE] = &sLittlerootArriveFemale,
     [SCENE_ROUTE101_RESCUE] = &sRoute101Rescue,
     [SCENE_MOSSDEEP_SUPER_ROD] = &sMossdeepSuperRod,
+    [SCENE_ROUTE103_RIVAL_MAY_TREECKO] = &sRoute103RivalMayTreecko,
+    [SCENE_ROUTE103_RIVAL_MAY_TORCHIC] = &sRoute103RivalMayTorchic,
+    [SCENE_ROUTE103_RIVAL_MAY_MUDKIP] = &sRoute103RivalMayMudkip,
+    [SCENE_ROUTE103_RIVAL_BRENDAN_TREECKO] = &sRoute103RivalBrendanTreecko,
+    [SCENE_ROUTE103_RIVAL_BRENDAN_TORCHIC] = &sRoute103RivalBrendanTorchic,
+    [SCENE_ROUTE103_RIVAL_BRENDAN_MUDKIP] = &sRoute103RivalBrendanMudkip,
 };
 
 // The truck drops the player within 4 tiles of the door in both houses. Door warp 1 is Brendan's house, 0 is May's.

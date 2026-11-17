@@ -207,6 +207,38 @@ TEST("Scene: Every scene id has a scene with steps and a name")
     }
 }
 
+// The rival's six scenes (Route 103) each ask "battle or not yet" and fight the trainer for that gender and starter.
+TEST("Scene: Each Route 103 rival scene asks a choice whose first branch fights the matching trainer")
+{
+    static const struct { u16 scene; u16 trainer; } cases[] =
+    {
+        {SCENE_ROUTE103_RIVAL_MAY_TREECKO, TRAINER_MAY_ROUTE_103_TREECKO},
+        {SCENE_ROUTE103_RIVAL_MAY_TORCHIC, TRAINER_MAY_ROUTE_103_TORCHIC},
+        {SCENE_ROUTE103_RIVAL_MAY_MUDKIP, TRAINER_MAY_ROUTE_103_MUDKIP},
+        {SCENE_ROUTE103_RIVAL_BRENDAN_TREECKO, TRAINER_BRENDAN_ROUTE_103_TREECKO},
+        {SCENE_ROUTE103_RIVAL_BRENDAN_TORCHIC, TRAINER_BRENDAN_ROUTE_103_TORCHIC},
+        {SCENE_ROUTE103_RIVAL_BRENDAN_MUDKIP, TRAINER_BRENDAN_ROUTE_103_MUDKIP},
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(cases); i++)
+    {
+        const struct Scene *scene = GetScene(cases[i].scene);
+        const struct SceneStep *ask = &scene->steps[0];
+
+        ASSUME(scene->numSteps == 1);
+        EXPECT_EQ(ask->kind, SCENE_STEP_ASK_CHOICE);
+        ASSUME(ask->numBranches == 2);
+        EXPECT(ask->branches[0].label != NULL && ask->branches[1].label != NULL);
+        EXPECT_EQ(ask->branches[0].numSteps, 1);
+        EXPECT_EQ(ask->branches[0].steps[0].kind, SCENE_STEP_BATTLE);
+        EXPECT_EQ(ask->branches[0].steps[0].trainer, cases[i].trainer);
+        EXPECT(ask->branches[0].steps[0].text != NULL);
+        EXPECT_EQ(ask->branches[1].numSteps, 1);
+        EXPECT_EQ(ask->branches[1].steps[0].kind, SCENE_STEP_SAY);
+    }
+}
+
 // Shared by the message tests (test builds are short of EWRAM).
 static EWRAM_DATA u8 sSeen[2][100];
 static EWRAM_DATA u8 sExpect[2][100];

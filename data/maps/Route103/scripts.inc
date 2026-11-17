@@ -34,7 +34,6 @@ Route103_EventScript_RivalMay::
 	waitmovement 0
 	applymovement LOCALID_ROUTE103_RIVAL, Common_Movement_Delay48
 	waitmovement 0
-	msgbox Route103_Text_MayLetsBattle, MSGBOX_DEFAULT
 	switch VAR_STARTER_MON
 	case 0, Route103_EventScript_StartMayBattleTreecko
 	case 1, Route103_EventScript_StartMayBattleTorchic
@@ -51,7 +50,6 @@ Route103_EventScript_RivalBrendan::
 	waitmovement 0
 	applymovement LOCALID_ROUTE103_RIVAL, Common_Movement_Delay48
 	waitmovement 0
-	msgbox Route103_Text_BrendanLetsBattle, MSGBOX_DEFAULT
 	switch VAR_STARTER_MON
 	case 0, Route103_EventScript_StartBrendanBattleTreecko
 	case 1, Route103_EventScript_StartBrendanBattleTorchic
@@ -59,38 +57,60 @@ Route103_EventScript_RivalBrendan::
 	end
 
 Route103_EventScript_StartMayBattleTreecko::
-	trainerbattle_no_intro TRAINER_MAY_ROUTE_103_TREECKO, Route103_Text_MayDefeated
-	goto Route103_EventScript_AfterMayBattle
+	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_MAY_TREECKO
+	call Scene_EventScript_Run
+	goto Route103_EventScript_AfterMayScene
 	end
 
 Route103_EventScript_StartMayBattleTorchic::
-	trainerbattle_no_intro TRAINER_MAY_ROUTE_103_TORCHIC, Route103_Text_MayDefeated
-	goto Route103_EventScript_AfterMayBattle
+	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_MAY_TORCHIC
+	call Scene_EventScript_Run
+	goto Route103_EventScript_AfterMayScene
 	end
 
 Route103_EventScript_StartMayBattleMudkip::
-	trainerbattle_no_intro TRAINER_MAY_ROUTE_103_MUDKIP, Route103_Text_MayDefeated
-	goto Route103_EventScript_AfterMayBattle
+	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_MAY_MUDKIP
+	call Scene_EventScript_Run
+	goto Route103_EventScript_AfterMayScene
 	end
 
 Route103_EventScript_StartBrendanBattleTreecko::
-	trainerbattle_no_intro TRAINER_BRENDAN_ROUTE_103_TREECKO, Route103_Text_BrendanDefeated
-	goto Route103_EventScript_AfterBrendanBattle
+	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_BRENDAN_TREECKO
+	call Scene_EventScript_Run
+	goto Route103_EventScript_AfterBrendanScene
 	end
 
 Route103_EventScript_StartBrendanBattleTorchic::
-	trainerbattle_no_intro TRAINER_BRENDAN_ROUTE_103_TORCHIC, Route103_Text_BrendanDefeated
-	goto Route103_EventScript_AfterBrendanBattle
+	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_BRENDAN_TORCHIC
+	call Scene_EventScript_Run
+	goto Route103_EventScript_AfterBrendanScene
 	end
 
 Route103_EventScript_StartBrendanBattleMudkip::
-	trainerbattle_no_intro TRAINER_BRENDAN_ROUTE_103_MUDKIP, Route103_Text_BrendanDefeated
-	goto Route103_EventScript_AfterBrendanBattle
+	setvar VAR_0x8004, SCENE_ROUTE103_RIVAL_BRENDAN_MUDKIP
+	call Scene_EventScript_Run
+	goto Route103_EventScript_AfterBrendanScene
+	end
+
+@ Declining the battle in the scene leaves the rival waiting; any starter's trainer flag counts as won.
+Route103_EventScript_AfterMayScene::
+	goto_if_defeated TRAINER_MAY_ROUTE_103_TREECKO, Route103_EventScript_AfterMayBattle
+	goto_if_defeated TRAINER_MAY_ROUTE_103_TORCHIC, Route103_EventScript_AfterMayBattle
+	goto_if_defeated TRAINER_MAY_ROUTE_103_MUDKIP, Route103_EventScript_AfterMayBattle
+	releaseall
 	end
 
 Route103_EventScript_AfterMayBattle::
 	msgbox Route103_Text_MayTimeToHeadBack, MSGBOX_DEFAULT
 	goto Route103_EventScript_RivalExit
+	end
+
+@ Declining the battle in the scene leaves the rival waiting; any starter's trainer flag counts as won.
+Route103_EventScript_AfterBrendanScene::
+	goto_if_defeated TRAINER_BRENDAN_ROUTE_103_TREECKO, Route103_EventScript_AfterBrendanBattle
+	goto_if_defeated TRAINER_BRENDAN_ROUTE_103_TORCHIC, Route103_EventScript_AfterBrendanBattle
+	goto_if_defeated TRAINER_BRENDAN_ROUTE_103_MUDKIP, Route103_EventScript_AfterBrendanBattle
+	releaseall
 	end
 
 Route103_EventScript_AfterBrendanBattle::
@@ -290,7 +310,7 @@ Route103_Text_MayRoute103Pokemon:
 	.string "MAY: Let's see… The POKéMON found\n"
 	.string "on ROUTE 103 include…$"
 
-Route103_Text_MayLetsBattle:
+Route103_Text_MayLetsBattle::
 	.string "Oh, hi, {PLAYER}{KUN}!\p"
 	.string "…Oh, I see, my dad gave you\n"
 	.string "a POKéMON as a gift.\p"
@@ -299,9 +319,23 @@ Route103_Text_MayLetsBattle:
 	.string "I'll give you a taste of what being\n"
 	.string "a TRAINER is like.$"
 
-Route103_Text_MayDefeated:
+Route103_Text_MayDefeated::
 	.string "Wow! That's great!\n"
 	.string "{PLAYER}{KUN}, you're pretty good!$"
+
+Route103_Text_BattleNow::
+	.string "Let's battle!$"
+
+Route103_Text_NotYet::
+	.string "Not yet$"
+
+Route103_Text_MayNotYet::
+	.string "MAY: Okay! Get your POKéMON ready,\n"
+	.string "then come talk to me.$"
+
+Route103_Text_BrendanNotYet::
+	.string "BRENDAN: Sure. Get ready, then come\n"
+	.string "talk to me.$"
 
 Route103_Text_MayTimeToHeadBack:
 	.string "MAY: I think I know why my dad has\n"
@@ -317,7 +351,7 @@ Route103_Text_BrendanRoute103Pokemon:
 	.string "BRENDAN: Okay, so it's this one and\n"
 	.string "that one that live on ROUTE 103…$"
 
-Route103_Text_BrendanLetsBattle:
+Route103_Text_BrendanLetsBattle::
 	.string "Hey, it's {PLAYER}!\p"
 	.string "…Oh, yeah, Dad gave you a POKéMON.\p"
 	.string "Since we're here, how about a little\n"
@@ -325,7 +359,7 @@ Route103_Text_BrendanLetsBattle:
 	.string "I'll teach you what being a TRAINER's\n"
 	.string "about!$"
 
-Route103_Text_BrendanDefeated:
+Route103_Text_BrendanDefeated::
 	.string "Huh, {PLAYER}, you're not too shabby.$"
 
 Route103_Text_BrendanTimeToHeadBack:

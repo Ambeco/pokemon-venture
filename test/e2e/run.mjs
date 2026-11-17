@@ -49,6 +49,17 @@ function parseHex(s) {
 // the message prompt animate forever, and the emulator is deterministic, so a frame count is reproducible.
 const DEFAULT_SETTLE_FRAMES = 120;
 
+// Waits for a battle to start (the overworld callback gives way), then presses A until the overworld returns:
+// Fight, the first move, "fainted" and result texts all advance with A. For a fight the player's mon wins in a turn or two.
+async function runBattle(game, { maxPresses = 120, startTimeoutFrames = 900 } = {}) {
+  await game.waitUntil("a battle to start (CB2_Overworld to give way)", async () => !(await game.isOverworld()), { timeoutFrames: startTimeoutFrames, interval: 2 });
+  for (let presses = 0; presses < maxPresses; presses++) {
+    if (await game.isOverworld()) return;
+    await game.press("A", { delay: 30 });
+  }
+  throw new Error(`The battle was still running after ${maxPresses} presses of A (emulator frame ${game.frame}); did the player's Pokémon lose?`);
+}
+
 async function runSteps(game, test) {
   const delay = test.inputDelayFrames ?? DEFAULT_INPUT_DELAY_FRAMES;
   for (const [i, step] of (test.steps ?? []).entries()) {
@@ -56,8 +67,9 @@ async function runSteps(game, test) {
     try {
       if (step.press) await game.press(step.press, { hold: step.hold ?? DEFAULT_HOLD_FRAMES, delay: step.delay ?? delay });
       else if (step.wait !== undefined) await game.tick(step.wait);
+      else if (step.battle) await runBattle(game, typeof step.battle === "object" ? step.battle : {});
       else if (step.waitStable) await game.waitForStableScreen(typeof step.waitStable === "object" ? step.waitStable : {});
-      else throw new Error(`Unknown step. Use {"press": "A"}, {"wait": frames} or {"waitStable": true}.`);
+      else throw new Error(`Unknown step. Use {"press": "A"}, {"wait": frames}, {"waitStable": true} or {"battle": true}.`);
     } catch (e) {
       throw new Error(`${where}: ${e.message}`);
     }

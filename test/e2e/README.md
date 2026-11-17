@@ -36,6 +36,7 @@ Build the ROM first (`make -j` in WSL): the runner needs `pokeemerald.gba` and t
         { "press": "UP" },                          // optional "hold" (default 6) and "delay"
         { "wait": 30 },
         { "waitStable": true }                      // until the screen stops changing; avoid on maps with water/flower animation
+        { "battle": true }                          // waits for a battle to start, then presses A until the overworld returns (the player's mon must win)
       ],
       "expect": [
         { "symbol": "gStringVar4", "text": "decoded game text, \n and \\p for control codes" },

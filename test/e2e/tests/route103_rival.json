@@ -1,0 +1,165 @@
+[
+  {
+    "name": "Route 103 rival: asks whether to battle, with both choices listed",
+    "snapshot": "route103_below_rival",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 300
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Oh, hi, Aaa!\\p…Oh, I see, my dad gave you\na POKéMON as a gift.\\pSince we’re here, let’s have a quick\nbattle!\\pI’ll give you a taste of what being\na TRAINER is like."
+      }
+    ],
+    "screenshot": {
+      "region": {
+        "x": 8,
+        "y": 8,
+        "width": 96,
+        "height": 32
+      },
+      "golden": "goldens/route103_rival_choices.png"
+    }
+  },
+  {
+    "name": "Route 103 rival: Let's battle fights the rival and ends with her parting talk",
+    "snapshot": "route103_below_rival",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 300
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "battle": true
+      },
+      {
+        "wait": 300
+      }
+    ],
+    "settleFrames": 300,
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "MAY: I think I know why my dad has\nan eye out for you now.\\pI mean, you just got that POKéMON,\nbut it already likes you.\\pYou might be able to befriend any\nkind of POKéMON easily.\\pWell, it’s time to head back to\nthe LAB."
+      }
+    ]
+  },
+  {
+    "name": "Route 103 rival: Not yet shows her reply and starts no battle",
+    "snapshot": "route103_below_rival",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 150
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 300
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "DOWN"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "MAY: Okay! Get your POKéMON ready,\nthen come talk to me."
+      }
+    ]
+  }
+]
