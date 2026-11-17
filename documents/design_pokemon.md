@@ -107,11 +107,11 @@ Wild encounters are limited by a minimum catch rate that falls as the story prog
 Later work, after the base randomization. Starters come from four hardcoded tables: "grass", "fire" and "water" (about 9 each, one per generation's starter line) and "bonus".
 
 - **Rolling the offer:** coprime strides over the grass, fire and water tables pick one of each ("at random", from the seed). The final stride is saved, because the rival (and sometimes a second rival) take their starters from it.
-- **Types are not guaranteed:** with randomized types the "grass", "fire" and "water" tables are just three species lists, and their members need not have those types. The rival takes the next table's pick to the right of the player's, so usually has no type advantage. This is expected, not a problem.
+- **Randomized types:** the table names are only the vanilla types. When types are randomized, every non-Splash starter in all four tables (and Pikachu and Eevee) is checked against its randomized type, and the first triplets are rolled by the same strides from the species that are now grass, fire and water, so the opening choices still cover the three types. Once those run out, the remaining starters are offered in random order, in whatever types they have. The rival takes the next pick to the right of the player's in the offered order, so may have no type advantage; this is expected, not a problem.
 - **Professor's bag:** the bag graphic shows the edges of more balls than the three on offer. Interacting with it has the professor shout for the player to just grab one of the three. A second interaction repeats the shout. A third makes the three offered balls roll off screen and the next grass/fire/water triplet roll in, and every later interaction rolls out the next triplet, so the player can browse. A player who does not care takes one of the first three, which is the intended default.
 - **Past the triplets:** after all grass/fire/water triplets, only two balls roll out: Pikachu and Eevee. Then the bag rolls triplets from the bonus table.
 - **Bonus table (hardcoded list):** lines whose first species has a base stat total of 307-320, whose first evolution comes at level 14-18 and second at 30-36, and whose final species has a total of 525-535; the normal starters are excluded.
-- **Last triplet:** Magikarp, Feebas and Cosmog, each knowing only Splash. The bag is then empty, so the player is stuck with one of them (or, realistically, restarts).
+- **Last triplet:** Magikarp, Feebas and Cosmog, each knowing only Splash, always come last whatever the randomization (and are never part of the type scan above). The bag is then empty, so the player is stuck with one of them (or, realistically, restarts).
 
 ### Pokédex habitat view
 
