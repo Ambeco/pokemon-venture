@@ -276,7 +276,7 @@ OldaleTown_EventScript_RivalFinish::
 	applymovement LOCALID_OLDALE_RIVAL, OldaleTown_Movement_RivalExit
 	waitmovement 0
 	removeobject LOCALID_OLDALE_RIVAL
-	setvar VAR_OLDALE_RIVAL_STATE, 2
+	setvar VAR_RIVAL_DEX_BEAT, RIVAL_DEX_RIVAL_AT_LAB
 	setflag FLAG_HIDE_OLDALE_TOWN_RIVAL
 	releaseall
 	end

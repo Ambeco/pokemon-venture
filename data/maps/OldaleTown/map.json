@@ -132,7 +132,7 @@
       "x": 8,
       "y": 19,
       "elevation": 3,
-      "var": "VAR_OLDALE_RIVAL_STATE",
+      "var": "VAR_RIVAL_DEX_BEAT",
       "var_value": "1",
       "script": "OldaleTown_EventScript_RivalTrigger1"
     },
@@ -141,7 +141,7 @@
       "x": 9,
       "y": 19,
       "elevation": 3,
-      "var": "VAR_OLDALE_RIVAL_STATE",
+      "var": "VAR_RIVAL_DEX_BEAT",
       "var_value": "1",
       "script": "OldaleTown_EventScript_RivalTrigger2"
     },
@@ -150,7 +150,7 @@
       "x": 10,
       "y": 19,
       "elevation": 3,
-      "var": "VAR_OLDALE_RIVAL_STATE",
+      "var": "VAR_RIVAL_DEX_BEAT",
       "var_value": "1",
       "script": "OldaleTown_EventScript_RivalTrigger3"
     }

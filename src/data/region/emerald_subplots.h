@@ -166,8 +166,33 @@ static const struct SubplotDesc sMovingInSubplot =
     .hints = sMovingInHints,
 };
 
+// The tutorial's second arc: the Route 103 rival, the rival's reappearance in Oldale, the Pokédex in Birch's lab and the
+// Running Shoes. Stages are RIVAL_DEX_* in VAR_RIVAL_DEX_BEAT; vanilla scripts advance them (the Oldale rival is
+// hidden by Littleroot's transition if the player skips him). Every stage is anchored to the Oldale road.
+static const struct SubplotStage sRivalDexStages[RIVAL_DEX_NUM_STAGES] =
+{
+    [0 ... RIVAL_DEX_NUM_STAGES - 1] = {.anchor = {BEAT_ANCHOR_ROUTE_ROUTE, COUNTY_ID(1, 2), COUNTY_ID(1, 3), BEAT_LOCATION_NONE, 0}},
+};
+
+static const struct SubplotHint sRivalDexHints[] =
+{
+    {SUBPLOT_STAGE_BEFORE, RIVAL_DEX_CHALLENGE, TEXT_LIST(sOldaleDex0Far), TEXT_LIST(sOldaleDex0Close)},
+    {RIVAL_DEX_RIVAL_IN_OLDALE, RIVAL_DEX_RIVAL_AT_LAB, TEXT_LIST(sOldaleDex1Far), TEXT_LIST(sOldaleDex1Close)},
+    {RIVAL_DEX_POKEDEX_GIVEN, SUBPLOT_STAGE_AFTER, TEXT_LIST(sOldaleDex2Far), TEXT_LIST(sOldaleDex2Close)},
+};
+
+static const struct SubplotDesc sRivalDexSubplot =
+{
+    .backend = SUBPLOT_STORED,
+    .numStages = ARRAY_COUNT(sRivalDexStages),
+    .stages = sRivalDexStages,
+    .numHints = ARRAY_COUNT(sRivalDexHints),
+    .hints = sRivalDexHints,
+};
+
 static const struct SubplotHost sEmeraldSubplotHosts[] =
 {
+    {COUNTY_ID(1, 2), 0, &sRivalDexSubplot}, // Oldale, county-story-index 1
     {COUNTY_ID(1, 3), 0, &sMovingInSubplot}, // Littleroot, county-story-index 0
     {COUNTY_ID(1, 3), 1, &sSaveBirchSubplot}, // Littleroot, county-story-index 0
     {COUNTY_ID(0, 1), 0, &sRustboroCutterSubplot}, // Rustboro, county-story-index 3

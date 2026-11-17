@@ -54,7 +54,21 @@ static const u8 gText_Littleroot_Move2FarCurrent[] = _("The new family in {HINT_
 static const u8 gText_Littleroot_Move2CloseCurrent[] = _("The new family {HINT_ANCHOR} has settled in. Their kid should go and meet the neighbor.");
 static const u8 gText_Littleroot_Move2FarAfter[] = _("A new family moved into {HINT_CITY} not long ago, I heard.");
 
-static const u8 *const sLittlerootMove0Far[] = {gText_Littleroot_Move0FarCurrent};
+static const u8 gText_Oldale_Dex0FarCurrent[] = _("A TRAINER from {HINT_CITY} is waiting to challenge anyone with a POKéMON, I heard.");
+static const u8 gText_Oldale_Dex0CloseCurrent[] = _("The kid {HINT_ANCHOR} keeps asking passersby for a POKéMON battle.");
+static const u8 gText_Oldale_Dex1FarCurrent[] = _("PROF. BIRCH of {HINT_CITY} wants to hand out a POKéDEX, I heard.");
+static const u8 gText_Oldale_Dex1CloseCurrent[] = _("PROF. BIRCH has a POKéDEX for you. His LAB is {HINT_ANCHOR}.");
+static const u8 gText_Oldale_Dex2FarCurrent[] = _("A TRAINER from {HINT_CITY} got a POKéDEX and set off to see the world, I heard.");
+static const u8 gText_Oldale_Dex2CloseCurrent[] = _("A TRAINER with a POKéDEX and RUNNING SHOES came through {HINT_ANCHOR}.");
+
+static const u8 *const sOldaleDex0Far[] = {gText_Oldale_Dex0FarCurrent};
+static const u8 *const sOldaleDex0Close[] = {gText_Oldale_Dex0CloseCurrent};
+static const u8 *const sOldaleDex1Far[] = {gText_Oldale_Dex1FarCurrent};
+static const u8 *const sOldaleDex1Close[] = {gText_Oldale_Dex1CloseCurrent};
+static const u8 *const sOldaleDex2Far[] = {gText_Oldale_Dex2FarCurrent};
+static const u8 *const sOldaleDex2Close[] = {gText_Oldale_Dex2CloseCurrent};
+
+static const u8 *const sLittlerootMove0Far[] ={gText_Littleroot_Move0FarCurrent};
 static const u8 *const sLittlerootMove0Close[] = {gText_Littleroot_Move0CloseCurrent};
 static const u8 *const sLittlerootMove1Far[] = {gText_Littleroot_Move1FarCurrent};
 static const u8 *const sLittlerootMove1Close[] = {gText_Littleroot_Move1CloseCurrent};

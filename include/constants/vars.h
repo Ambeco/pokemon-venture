@@ -70,7 +70,7 @@
 #define VAR_SAVE_BIRCH_BEAT        (COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + 2) // Littleroot, slot 1
 
 // Stages of the Save Birch subplot (Littleroot, slot 1), which replaced VAR_ROUTE101_STATE and the first values of
-// VAR_LITTLEROOT_TOWN_STATE (0-2) and VAR_BIRCH_LAB_STATE (2-3). Later values of those two vars belong to the Pokédex subplot.
+// VAR_LITTLEROOT_TOWN_STATE (0-2) and VAR_BIRCH_LAB_STATE (2-3); their later values went to Rival and Pokédex.
 #define SAVE_BIRCH_TWIN_GUARDS    0 // the twin blocks the way north until the player has met the rival
 #define SAVE_BIRCH_TWIN_ASKS      1 // met the rival: the twin asks the player to go and see what is happening
 #define SAVE_BIRCH_BIRCH_IN_GRASS 2 // told to go; the rescue scene runs when Route 101 loads
@@ -91,6 +91,17 @@
 #define MOVING_IN_CLOCK_SET       6 // set the clock
 #define MOVING_IN_MEET_RIVAL      7 // told to go and meet the neighbor
 #define MOVING_IN_NUM_STAGES      8
+
+#define VAR_RIVAL_DEX_BEAT         (COUNTY_VARS_START + COUNTY_VAR_SLICE_OLDALE * VARS_PER_COUNTY + 1) // Oldale, slot 0
+
+// Stages of the Rival and Pokédex subplot (Oldale, slot 0), which replaced VAR_OLDALE_RIVAL_STATE and the later values of
+// VAR_LITTLEROOT_TOWN_STATE (3-4) and VAR_BIRCH_LAB_STATE (4-5).
+#define RIVAL_DEX_CHALLENGE       0 // the rival waits on Route 103 to challenge the player
+#define RIVAL_DEX_RIVAL_IN_OLDALE 1 // beaten; the rival meets the player again in Oldale
+#define RIVAL_DEX_RIVAL_AT_LAB    2 // the rival has gone to Birch's lab, where the Pokédex is given on entry
+#define RIVAL_DEX_POKEDEX_GIVEN   3 // Pokédex and Poké Balls received; the mom waits outside with the Running Shoes
+#define RIVAL_DEX_SHOES_GIVEN     4 // Running Shoes received
+#define RIVAL_DEX_NUM_STAGES      5
 
 // reserve: main-story-index, optional-story vars, spare
 #define RESERVED_VARS_START        (COUNTY_VARS_END + 1)
@@ -242,7 +253,7 @@
 // legacy Emerald story vars (to be retired)
 #define VAR_DISTRIBUTE_EON_TICKET                        (LEGACY_VARS_START + 0x0) // This var is read and written, but is always zero. The only way to obtain the Eon Ticket in Emerald is via Record Mixing
 #define VAR_BIRCH_STATE                                  (LEGACY_VARS_START + 0x1)
-#define VAR_LITTLEROOT_TOWN_STATE                        (LEGACY_VARS_START + 0x2)
+// LEGACY_VARS_START + 0x2 was VAR_LITTLEROOT_TOWN_STATE, retired into VAR_SAVE_BIRCH_BEAT and VAR_RIVAL_DEX_BEAT
 #define VAR_OLDALE_TOWN_STATE                            (LEGACY_VARS_START + 0x3)
 #define VAR_LAVARIDGE_TOWN_STATE                         (LEGACY_VARS_START + 0x4)
 #define VAR_PETALBURG_CITY_STATE                         (LEGACY_VARS_START + 0x5)
@@ -259,7 +270,7 @@
 #define VAR_ROUTE121_STATE                               (LEGACY_VARS_START + 0x10)
 #define VAR_ROUTE128_STATE                               (LEGACY_VARS_START + 0x11)
 #define VAR_LITTLEROOT_HOUSES_STATE_MAY                  (LEGACY_VARS_START + 0x12)
-#define VAR_BIRCH_LAB_STATE                              (LEGACY_VARS_START + 0x13)
+// LEGACY_VARS_START + 0x13 was VAR_BIRCH_LAB_STATE, retired into VAR_SAVE_BIRCH_BEAT and VAR_RIVAL_DEX_BEAT
 #define VAR_PETALBURG_GYM_STATE                          (LEGACY_VARS_START + 0x14) // 0-1: Wally tutorial, 2-6: 0-4 badges, 7: Defeated Norman, 8: Rematch Norman
 #define VAR_LITTLEROOT_HOUSES_STATE_BRENDAN              (LEGACY_VARS_START + 0x15)
 #define VAR_LITTLEROOT_RIVAL_STATE                       (LEGACY_VARS_START + 0x16)
@@ -285,7 +296,7 @@
 #define VAR_SOOTOPOLIS_MYSTERY_EVENTS_STATE              (LEGACY_VARS_START + 0x2A)
 #define VAR_VICTORY_ROAD_1F_STATE                        (LEGACY_VARS_START + 0x2B)
 #define VAR_STEVENS_HOUSE_STATE                          (LEGACY_VARS_START + 0x2C)
-#define VAR_OLDALE_RIVAL_STATE                           (LEGACY_VARS_START + 0x2D)
+// LEGACY_VARS_START + 0x2D was VAR_OLDALE_RIVAL_STATE, retired into VAR_RIVAL_DEX_BEAT
 #define VAR_JAGGED_PASS_STATE                            (LEGACY_VARS_START + 0x2E)
 #define VAR_SCOTT_PETALBURG_ENCOUNTER                    (LEGACY_VARS_START + 0x2F)
 #define VAR_SKY_PILLAR_STATE                             (LEGACY_VARS_START + 0x30)

@@ -95,7 +95,7 @@ static const struct SubplotDesc sFullDesc =
     .actors = sActors,
 };
 
-TEST("Subplot: Rustboro, Lilycove and Mossdeep host one subplot each in slot 0, Littleroot one in slots 0 and 1")
+TEST("Subplot: Rustboro, Lilycove and Mossdeep host one subplot each in slot 0, Littleroot in slots 0 and 1, Oldale in slot 0")
 {
     u32 county, slot;
 
@@ -104,7 +104,7 @@ TEST("Subplot: Rustboro, Lilycove and Mossdeep host one subplot each in slot 0, 
         for (slot = 0; slot < SUBPLOTS_PER_COUNTY; slot++)
         {
             if (((county == LILYCOVE || county == RUSTBORO || county == MOSSDEEP) && slot == 0)
-             || (county == LITTLEROOT && slot <= 1))
+             || ((county == LITTLEROOT && slot <= 1) || (county == OLDALE && slot == 0)))
                 EXPECT(GetCountySubplot(county, slot) != NULL);
             else
                 EXPECT(GetCountySubplot(county, slot) == NULL);
@@ -531,9 +531,9 @@ TEST("Subplot: Every Emerald host passes the placement check")
 {
     u32 numHosts, i, j, numOthers;
     const struct SubplotHost *hosts = GetSubplotHosts(&numHosts);
-    struct SubplotHost others[5];
+    struct SubplotHost others[6];
 
-    EXPECT_EQ(numHosts, 5);
+    EXPECT_EQ(numHosts, 6);
     for (i = 0; i < numHosts; i++)
     {
         for (j = 0, numOthers = 0; j < numHosts; j++)
@@ -593,6 +593,21 @@ TEST("Subplot: Moving in is stored in Littleroot's slot 0 and its scenes run on 
     EXPECT_EQ(MOVING_IN_TRUCK_MALE, 1);
     EXPECT_EQ(MOVING_IN_TRUCK_FEMALE, 2);
     EXPECT_EQ(MOVING_IN_MEET_RIVAL, MOVING_IN_NUM_STAGES - 1);
+}
+
+TEST("Subplot: Rival and Pokedex is stored in Oldale's slot 0 and the Route 103 rival scenes run on the slot var")
+{
+    const struct SubplotDesc *desc = GetCountySubplot(OLDALE, 0);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, SUBPLOT_STORED);
+    EXPECT_EQ(desc->numStages, RIVAL_DEX_NUM_STAGES);
+    EXPECT_EQ(GetCountySlotVar(OLDALE, 0), VAR_RIVAL_DEX_BEAT);
+    EXPECT_EQ(GetScene(SCENE_ROUTE103_RIVAL_MAY)->stageVar, VAR_RIVAL_DEX_BEAT);
+    EXPECT_EQ(GetScene(SCENE_ROUTE103_RIVAL_BRENDAN)->stageVar, VAR_RIVAL_DEX_BEAT);
+    EXPECT_EQ(RIVAL_DEX_SHOES_GIVEN, RIVAL_DEX_NUM_STAGES - 1);
+    EXPECT_EQ(RIVAL_DEX_RIVAL_AT_LAB, RIVAL_DEX_RIVAL_IN_OLDALE + 1);
+    EXPECT_EQ(RIVAL_DEX_POKEDEX_GIVEN, RIVAL_DEX_RIVAL_AT_LAB + 1);
 }
 
 TEST("Subplot: Placement needs every role of the descriptor, its anchors and its cutscene buildings")

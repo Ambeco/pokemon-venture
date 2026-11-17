@@ -237,7 +237,7 @@ static const struct Scene sceneName = \
     .name = #sceneName, \
     .actors = {LOCALID_PLAYER}, \
     .numActors = 1, \
-    .stageVar = VAR_OLDALE_RIVAL_STATE, \
+    .stageVar = VAR_RIVAL_DEX_BEAT, \
     .numSteps = ARRAY_COUNT(sceneName##Steps), \
     .steps = sceneName##Steps, \
 }
