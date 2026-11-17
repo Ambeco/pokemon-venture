@@ -407,15 +407,15 @@ TEST("Scene: Littleroot's arrival triggers cover the truck drop-off tiles and no
     events = gMapHeader.events;
     // Brendan's door is warp 1 at (5, 8) and the truck drops him at (3, 10); May's is warp 0 at (14, 8), dropped at (12, 10).
     ASSUME(events->warps[1].x == 5 && events->warps[1].y == 8 && events->warps[0].x == 14 && events->warps[0].y == 8);
-    VarSet(VAR_LITTLEROOT_INTRO_STATE, 1);
+    VarSet(VAR_MOVING_IN_BEAT, 1);
     EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) != NULL);
     EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) == NULL);
     EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN) + 1, MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) == NULL);
-    VarSet(VAR_LITTLEROOT_INTRO_STATE, 2);
+    VarSet(VAR_MOVING_IN_BEAT, 2);
     EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) != NULL);
     EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 3 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) == NULL);
     EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 14 + MAP_OFFSET, 20 + MAP_OFFSET, FALSE) == NULL);
-    VarSet(VAR_LITTLEROOT_INTRO_STATE, 3); // past stage 0: no trigger
+    VarSet(VAR_MOVING_IN_BEAT, 3); // past stage 0: no trigger
     EXPECT(SceneFindTriggerAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 12 + MAP_OFFSET, 10 + MAP_OFFSET, FALSE) == NULL);
 }
 
@@ -427,7 +427,7 @@ static bool32 RunArrival(u32 introState, u32 dropX, u32 hideFlagToSet, u32 hideF
     u32 frame;
     bool32 wasShowing = FALSE, gotText = FALSE, textMatched = FALSE;
 
-    VarSet(VAR_LITTLEROOT_INTRO_STATE, introState);
+    VarSet(VAR_MOVING_IN_BEAT, introState);
     FlagSet(hideFlagToSet);
     FlagClear(hideFlagToClear);
     FlagSet(FLAG_HIDE_LITTLEROOT_TOWN_MOM_OUTSIDE);
@@ -468,7 +468,7 @@ TEST("Scene: Littleroot's arrival starts by itself for the boy, walks his mom in
     EXPECT(RunArrival(1, 3, FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_TRUCK, FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_TRUCK));
     EXPECT_EQ((u32)gSaveBlock1Ptr->location.mapGroup, MAP_GROUP(MAP_LITTLEROOT_TOWN_BRENDANS_HOUSE_1F));
     EXPECT_EQ((u32)gSaveBlock1Ptr->location.mapNum, MAP_NUM(MAP_LITTLEROOT_TOWN_BRENDANS_HOUSE_1F));
-    EXPECT_GE(VarGet(VAR_LITTLEROOT_INTRO_STATE), 3);
+    EXPECT_GE(VarGet(VAR_MOVING_IN_BEAT), 3);
     EXPECT(FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_MOM_OUTSIDE));
     EXPECT(!FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_FAT_MAN));
     EXPECT(!FlagGet(FLAG_HIDE_MAP_NAME_POPUP));
@@ -480,7 +480,7 @@ TEST("Scene: Littleroot's arrival starts by itself for the girl, walks her mom i
     EXPECT(RunArrival(2, 12, FLAG_HIDE_LITTLEROOT_TOWN_BRENDANS_HOUSE_TRUCK, FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_TRUCK));
     EXPECT_EQ((u32)gSaveBlock1Ptr->location.mapGroup, MAP_GROUP(MAP_LITTLEROOT_TOWN_MAYS_HOUSE_1F));
     EXPECT_EQ((u32)gSaveBlock1Ptr->location.mapNum, MAP_NUM(MAP_LITTLEROOT_TOWN_MAYS_HOUSE_1F));
-    EXPECT_GE(VarGet(VAR_LITTLEROOT_INTRO_STATE), 3);
+    EXPECT_GE(VarGet(VAR_MOVING_IN_BEAT), 3);
     EXPECT(FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_MOM_OUTSIDE));
     EXPECT(!FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_FAT_MAN));
     EXPECT(FlagGet(FLAG_HIDE_LITTLEROOT_TOWN_MAYS_HOUSE_TRUCK));
@@ -489,10 +489,10 @@ TEST("Scene: Littleroot's arrival starts by itself for the girl, walks her mom i
 TEST("Scene: a trigger does not fire after stage 0 or without a step or map load")
 {
     Test_LoadMapAt(MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), 3, 10);
-    VarSet(VAR_LITTLEROOT_INTRO_STATE, 6);
+    VarSet(VAR_MOVING_IN_BEAT, 6);
     Test_RunFieldFrames(30);
     EXPECT(!ScriptContext_IsEnabled());
-    VarSet(VAR_LITTLEROOT_INTRO_STATE, 1);
+    VarSet(VAR_MOVING_IN_BEAT, 1);
     Test_RunFieldFrames(30); // the arrival check was consumed by the first frame; standing still does not recheck
     EXPECT(!ScriptContext_IsEnabled());
 }

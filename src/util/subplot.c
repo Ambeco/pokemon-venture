@@ -46,7 +46,22 @@ static const u8 gText_Littleroot_Birch1CloseBefore[] = _("PROF. BIRCH went out {
 static const u8 gText_Littleroot_Birch2FarCurrent[] = _("PROF. BIRCH of {HINT_CITY} gave a POKéMON to the TRAINER who saved him, I heard.");
 static const u8 gText_Littleroot_Birch2CloseCurrent[] = _("PROF. BIRCH gave his rescuer a POKéMON. He wants them to visit his LAB.");
 
-static const u8 *const sLittlerootStage01Far[] = {gText_Littleroot_Birch0FarCurrent};
+static const u8 gText_Littleroot_Move0FarCurrent[] = _("A moving truck pulled into {HINT_CITY} today, I heard. New neighbors!");
+static const u8 gText_Littleroot_Move0CloseCurrent[] = _("A moving truck just pulled in {HINT_ANCHOR}. We have new neighbors!");
+static const u8 gText_Littleroot_Move1FarCurrent[] = _("The new family in {HINT_CITY} is still unpacking, I heard. Their wall clock isn't even set.");
+static const u8 gText_Littleroot_Move1CloseCurrent[] = _("The new family {HINT_ANCHOR} is still unpacking. Their clock isn't even set yet.");
+static const u8 gText_Littleroot_Move2FarCurrent[] = _("The new family in {HINT_CITY} has settled in, I heard. Their kid should meet the neighbors.");
+static const u8 gText_Littleroot_Move2CloseCurrent[] = _("The new family {HINT_ANCHOR} has settled in. Their kid should go and meet the neighbor.");
+static const u8 gText_Littleroot_Move2FarAfter[] = _("A new family moved into {HINT_CITY} not long ago, I heard.");
+
+static const u8 *const sLittlerootMove0Far[] = {gText_Littleroot_Move0FarCurrent};
+static const u8 *const sLittlerootMove0Close[] = {gText_Littleroot_Move0CloseCurrent};
+static const u8 *const sLittlerootMove1Far[] = {gText_Littleroot_Move1FarCurrent};
+static const u8 *const sLittlerootMove1Close[] = {gText_Littleroot_Move1CloseCurrent};
+static const u8 *const sLittlerootMove2Far[] = {gText_Littleroot_Move2FarCurrent, gText_Littleroot_Move2FarAfter};
+static const u8 *const sLittlerootMove2Close[] = {gText_Littleroot_Move2CloseCurrent};
+
+static const u8 *const sLittlerootStage01Far[] ={gText_Littleroot_Birch0FarCurrent};
 static const u8 *const sLittlerootStage01Close[] = {gText_Littleroot_Birch0CloseCurrent, gText_Littleroot_Birch1CloseBefore};
 static const u8 *const sLittlerootStage23Far[] = {gText_Littleroot_Birch1FarCurrent};
 static const u8 *const sLittlerootStage23Close[] = {gText_Littleroot_Birch1CloseCurrent};

@@ -79,6 +79,19 @@
 #define SAVE_BIRCH_SEE_RIVAL      5 // Birch has handed it over and sent the player to the rival
 #define SAVE_BIRCH_NUM_STAGES     6
 
+#define VAR_MOVING_IN_BEAT         (COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + 1) // Littleroot, slot 0
+
+// Stages of the Moving in subplot (Littleroot, slot 0), which replaced VAR_LITTLEROOT_INTRO_STATE with the same values.
+#define MOVING_IN_ON_TRUCK        0 // before the player reaches the truck's exit
+#define MOVING_IN_TRUCK_MALE      1 // in the truck, male player
+#define MOVING_IN_TRUCK_FEMALE    2 // in the truck, female player
+#define MOVING_IN_ENTERED_HOUSE   3 // the player entered the new house
+#define MOVING_IN_SET_CLOCK       4 // told to go and set the wall clock
+#define MOVING_IN_ON_STAIRS       5 // entered the 2F to set the clock
+#define MOVING_IN_CLOCK_SET       6 // set the clock
+#define MOVING_IN_MEET_RIVAL      7 // told to go and meet the neighbor
+#define MOVING_IN_NUM_STAGES      8
+
 // reserve: main-story-index, optional-story vars, spare
 #define RESERVED_VARS_START        (COUNTY_VARS_END + 1)
 #define RESERVED_VARS_COUNT        22
@@ -253,7 +266,7 @@
 #define VAR_BOARD_BRINEY_BOAT_STATE                      (LEGACY_VARS_START + 0x17)
 #define VAR_DEVON_CORP_3F_STATE                          (LEGACY_VARS_START + 0x18)
 #define VAR_BRINEY_HOUSE_STATE                           (LEGACY_VARS_START + 0x19)
-#define VAR_LITTLEROOT_INTRO_STATE                       (LEGACY_VARS_START + 0x1A)
+// LEGACY_VARS_START + 0x1A was VAR_LITTLEROOT_INTRO_STATE, retired into VAR_MOVING_IN_BEAT
 #define VAR_MAUVILLE_GYM_STATE                           (LEGACY_VARS_START + 0x1B)
 #define VAR_GIFT_UNUSED_7                                (LEGACY_VARS_START + 0x1C) // var is written to, but never read
 #define VAR_BRINEY_LOCATION                              (LEGACY_VARS_START + 0x1D)

@@ -87,7 +87,7 @@
       "x": 3,
       "y": 1,
       "elevation": 3,
-      "var": "VAR_LITTLEROOT_INTRO_STATE",
+      "var": "VAR_MOVING_IN_BEAT",
       "var_value": "0",
       "script": "InsideOfTruck_EventScript_SetIntroFlags"
     },
@@ -96,7 +96,7 @@
       "x": 3,
       "y": 2,
       "elevation": 3,
-      "var": "VAR_LITTLEROOT_INTRO_STATE",
+      "var": "VAR_MOVING_IN_BEAT",
       "var_value": "0",
       "script": "InsideOfTruck_EventScript_SetIntroFlags"
     },
@@ -105,7 +105,7 @@
       "x": 3,
       "y": 3,
       "elevation": 3,
-      "var": "VAR_LITTLEROOT_INTRO_STATE",
+      "var": "VAR_MOVING_IN_BEAT",
       "var_value": "0",
       "script": "InsideOfTruck_EventScript_SetIntroFlags"
     }

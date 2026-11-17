@@ -8,7 +8,7 @@ LittlerootTown_MapScripts::
 	@ 3: Received Pokedex
 	@ 4: Received Running Shoes
 
-	@ State descriptions for VAR_LITTLEROOT_INTRO_STATE
+	@ State descriptions for VAR_MOVING_IN_BEAT
 	@ 1: In truck male
 	@ 2: In truck female
 	@ 3: Entered house

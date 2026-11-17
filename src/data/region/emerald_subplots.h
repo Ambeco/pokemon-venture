@@ -140,8 +140,35 @@ static const struct SubplotDesc sSaveBirchSubplot =
     .hints = sSaveBirchHints,
 };
 
+// The tutorial's opening (design_story.md, "Opening"): the truck ride, the first look at the house and the wall
+// clock. Stages are MOVING_IN_* (constants/vars.h) in VAR_MOVING_IN_BEAT, which kept VAR_LITTLEROOT_INTRO_STATE's
+// values, so the vanilla scripts and scenes advance them. Every stage is anchored to the player's home (the mom's house).
+// The stage 6 clock beat and the mom's TV report are still vanilla scripts. The neighbor's house and its Lati TV beat
+// (VAR_LITTLEROOT_HOUSES_STATE_*, values 3-5) are main arc, so those vars stay legacy.
+static const struct SubplotStage sMovingInStages[MOVING_IN_NUM_STAGES] =
+{
+    [0 ... MOVING_IN_NUM_STAGES - 1] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOME_HEALING}},
+};
+
+static const struct SubplotHint sMovingInHints[] =
+{
+    {SUBPLOT_STAGE_BEFORE, MOVING_IN_TRUCK_FEMALE, TEXT_LIST(sLittlerootMove0Far), TEXT_LIST(sLittlerootMove0Close)},
+    {MOVING_IN_ENTERED_HOUSE, MOVING_IN_CLOCK_SET, TEXT_LIST(sLittlerootMove1Far), TEXT_LIST(sLittlerootMove1Close)},
+    {MOVING_IN_MEET_RIVAL, SUBPLOT_STAGE_AFTER, TEXT_LIST(sLittlerootMove2Far), TEXT_LIST(sLittlerootMove2Close)},
+};
+
+static const struct SubplotDesc sMovingInSubplot =
+{
+    .backend = SUBPLOT_STORED,
+    .numStages = ARRAY_COUNT(sMovingInStages),
+    .stages = sMovingInStages,
+    .numHints = ARRAY_COUNT(sMovingInHints),
+    .hints = sMovingInHints,
+};
+
 static const struct SubplotHost sEmeraldSubplotHosts[] =
 {
+    {COUNTY_ID(1, 3), 0, &sMovingInSubplot}, // Littleroot, county-story-index 0
     {COUNTY_ID(1, 3), 1, &sSaveBirchSubplot}, // Littleroot, county-story-index 0
     {COUNTY_ID(0, 1), 0, &sRustboroCutterSubplot}, // Rustboro, county-story-index 3
     {COUNTY_ID(4, 0), 0, &sLilycoveMuseumSubplot}, // Lilycove, county-story-index 15
