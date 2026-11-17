@@ -102,6 +102,20 @@ Wild encounters are limited by a minimum catch rate that falls as the story prog
 - Ideally every legendary and starter is obtainable, but the mechanism is undecided. Starters might come as gift Pokémon after a (possibly weekly repeatable) subplot, as in Pokémon Yellow.
 - The post-Elite Four solo legendary location might spawn a new legendary each week: 50% a legendary the player does not own, 50% fully random.
 
+### Randomized starters
+
+Later work, after the base randomization. Starters come from four hardcoded tables: "grass", "fire" and "water" (about 9 each, one per generation's starter line) and "bonus".
+
+- **Rolling the offer:** coprime strides over the grass, fire and water tables pick one of each ("at random", from the seed). The final stride is saved, because the rival (and sometimes a second rival) take their starters from it.
+- **Professor's bag:** the bag graphic shows the edges of more balls than the three on offer. Interacting with it has the professor shout for the player to just grab one of the three. A second interaction repeats the shout. A third makes the three offered balls roll off screen and the next grass/fire/water triplet roll in, and every later interaction rolls out the next triplet, so the player can browse. A player who does not care takes one of the first three, which is the intended default.
+- **Past the triplets:** after all grass/fire/water triplets, only two balls roll out: Pikachu and Eevee. Then the bag rolls triplets from the bonus table.
+- **Bonus table (hardcoded list):** lines whose first species has a base stat total of 307-320, whose first evolution comes at level 14-18 and second at 30-36, and whose final species has a total of 525-535; the normal starters are excluded.
+- **Last triplet:** Magikarp, Feebas and Cosmog, each knowing only Splash. The bag is then empty, so the player is stuck with one of them (or, realistically, restarts).
+
+### Pokédex habitat view
+
+As in Sword/Shield, the Pokédex entry shows where the species can be encountered. Selecting a region tile shows the species that spawn there: caught ones in color, the rest as black silhouettes. Both read the tile's encounter table, regenerated on demand like any other (see "Route encounter selection").
+
 ### Move pools
 
 Moves are generated procedurally per species, from per-species anatomy and per-move requirements.

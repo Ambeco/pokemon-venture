@@ -207,3 +207,6 @@
 - Review the "Exceptions to the normal rules" in `Emerald.md`: decide each (rule change or table change), then renumber the counties to match. Candidates for rule changes: a callback gym sharing a block with the previous gym (G4 forced to step 0), an arc dictating its own callback host.
 - Ports (design_region.md, "Ports") are decided but not yet cross-checked: the layer-2 growth constraint for the ocean county (exempt, since it is reached by teleport), the interaction with the Surf land-count threshold, and giving the Surf-gated sea routes the Surf block's level.
 - V2 readiness (several regions, as in Gold/Silver and FireRed/LeafGreen; design_data.md, "Regions and multiple regions"): the 24 county var slices, `GetRegionHeader()` and the tile table assume one region; give them a region index and a per-region seed when V2 starts.
+- Randomized starters (design_pokemon.md, "Randomized starters"): build the four tables and the bonus list, the stride roll and its saved stride (for the rivals), and the rolling bag.
+- New Game configuration menu and Nuzlocke mode (design_dev.md, "New Game configuration and Nuzlocke mode").
+- Pokédex habitat view and region-tile species view (design_pokemon.md, "Pokédex habitat view").

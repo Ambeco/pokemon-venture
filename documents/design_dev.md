@@ -41,6 +41,12 @@ A debug-menu toggle (Flags/Vars: "Toggle Story mode", `FLAG_VENTURE_STORY_MODE`;
 - Wild catches: every skipped wild Pokémon is marked seen. It is given to the player (party, else PC) unless the party or a box already holds the same species (forms are separate species), shininess and an equal or better IV total; a tie counts as already owned. A corner popup (queued, shown by `StoryMode_Tick` from `OverworldBasic` once the field is visible) reports caught, already-owned and no-room results.
 - Near-invulnerability: in real fights, `Cmd_datahpupdate` clamps damage to a player-side battler so it keeps 1 HP (not in link battles).
 
+## New Game configuration and Nuzlocke mode
+
+Later work. Choosing "New Game" on the title screen opens a configuration menu that sets the `RANDOMIZE_*` bits (see design.md, "Randomization switches"), such as randomized Pokémon types and moves, plus other settings. The result is stored in the save's randomization mask.
+
+Nuzlocke mode is one of those settings. Entering a route (or other area) shows the map-name popup with a small icon saying whether a Pokémon has already been caught there. The same reminder icon appears in wild battles and on the region map.
+
 ## End-to-end tests
 
 Two tiers. `make check` (the headless `mgba-rom-test` ROM) covers logic and game state, including real maps and NPC scripts through `Test_LoadMap`/`Test_LoadMapAt` (`include/test/map_loaded.h`), with message flows driven by `Test_RunFrames` and `Test_PressKeys` (an NPC script is talked to, its message waits for A, and a long text takes one A per page); it has no VBlank, so nothing reaches VRAM or OAM, and no real key handling. `test/e2e` covers what needs those: UI as drawn, real input and multi-screen flows. Use the e2e tier only when the in-ROM tier cannot cover a scenario.
