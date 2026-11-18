@@ -89,7 +89,7 @@
 
 - Implement route-story-index and county-story-index lookups over the hardcoded region (design_region.md, "Route story indices").
 - Arc cutscene placement: main-story-index list (rival or arc items) to host county to route/city/building, without storing it; maintain the main-story-index and the per-county completion masks for the main arc.
-- Rival team stored in six vars and folded in on each route's first entry (design_pokemon.md, "Rival teams"); no code yet.
+- Rival team (design_pokemon.md, "Rival teams"): the swap-rule engine `rival_team.c` exists and is tested; still to do: candidate extraction from a route's encounter table (final form, types, catch rate; exclude legendaries, babies, starters), twelve stored vars (rival and Wally; reserve in `vars.md` first, `vars.h` edits rebuild everything so run one full `make check` after), the route-entry hook, the cap from rival wins, and feeding the stored team into the battle (dynamic party, `RANDOMIZE_TRAINERS`).
 - Replace Emerald's fixed rival and Wally encounters, and the Magma/Aqua beats, with generic cutscenes; preserve the text.
 - Done when: rival battles occur at the right gym positions on generated places, and arcs finish.
 
