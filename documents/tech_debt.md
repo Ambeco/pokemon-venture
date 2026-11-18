@@ -24,3 +24,5 @@ One line per item, roughly highest priority first. Delete an item when it is pai
 - Each subplot port hand-edits 6+ places (`map.json`/`scripts.inc` vars, `emerald_subplots.h`, `scenes.h`, `scene_custom.inc`, `vars.h`, `debug.inc`, docs); no checklist or checker ties a retired legacy var to the stage var that replaced it.
 - `custom` scene steps in `data/scripts/scene_custom.inc` are raw script labels with no declared inputs/outputs (VAR_0x8000 clobber, `waitfanfare`); each new one risks the same bug and only e2e catches it.
 - e2e coverage is per-scene JSON plus hand-written recipes (`test/e2e/recipes/*.mjs`, 7 files) with save-block poking per case; the Lilycove hinter box-frame golden failed 2026-11-15 uninvestigated.
+- Retiring legacy vars (`VAR_RIVAL_DEX_BEAT` replaced three state vars) has no save migration: saves past the tutorial need a fresh game; the choice is implicit in each port rather than a stated policy.
+- Subplot `producedKey` for the first key is undecided (Save Birch, Cutter's House and Mossdeep each set `producesMainGet`/plot-get adapters differently): the plot-get adapter is a per-subplot special case.
