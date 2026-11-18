@@ -45,6 +45,7 @@ Other files: `Emerald.md` (the hardcoded Emerald stage: one entry per county, pl
 
 - ROM space is not expected to be a problem. The extra per-species and per-move metadata costs tens of thousands of bytes, but the hand-authored learnset/move tables, most maps, and encounter tables are dropped.
 - RAM is scarce (hence the bitpacking and regeneration from the player-ID seed).
+- Locality rule: only the on-screen county (and its routes and locations) is generated and held in RAM. Code that reads anything county-specific of a county that is not on-screen, beyond what is trivially derivable from the county header bits (such as `storyIdx`), needs extreme scrutiny; so does code where one route or location refers to another's contents. Prefer global state (the main-story-index, stored vars) or the header over reaching into another county's generated data.
 - CPU time is the bigger hurdle: on-demand regeneration of the region, species mapping, encounter filtering, and learn-level move picks must be cheap enough for a GBA.
 
 ## Development approach: hardcode first, then randomize
