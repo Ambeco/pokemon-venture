@@ -20,3 +20,7 @@ One line per item, roughly highest priority first. Delete an item when it is pai
 - Touching `include/constants/vars.h` rebuilds nearly everything (20+ min); full `make check` takes 10+ min; `grep -r` over the WSL share is very slow.
 - `data/maps/*/events.inc` is generated and gitignored (edit `map.json` only); `core.filemode=false` and `safe.directory=*` are needed from Windows git: unexpected prerequisites not enforced anywhere.
 - Doc files named inconsistently (`Emerald.md`, `Emerald_walkthrough.md`, `Kanto.md`, `vars.md` vs `design_*.md`); `design_pokemon.md`, `design_story.md` and `design_region.md` (240-280 lines each) cover several topics apiece.
+- `src/util/subplot.c` (637 lines) mixes the stage resolver with per-subplot hint strings and `sXxxFar/Close` tables (6 arrays per new stage trio, hand-copied); hint text belongs in `src/data/region/` beside `emerald_subplots.h`, ideally one table row per stage.
+- Each subplot port hand-edits 6+ places (`map.json`/`scripts.inc` vars, `emerald_subplots.h`, `scenes.h`, `scene_custom.inc`, `vars.h`, `debug.inc`, docs); no checklist or checker ties a retired legacy var to the stage var that replaced it.
+- `custom` scene steps in `data/scripts/scene_custom.inc` are raw script labels with no declared inputs/outputs (VAR_0x8000 clobber, `waitfanfare`); each new one risks the same bug and only e2e catches it.
+- e2e coverage is per-scene JSON plus hand-written recipes (`test/e2e/recipes/*.mjs`, 7 files) with save-block poking per case; the Lilycove hinter box-frame golden failed 2026-11-15 uninvestigated.
