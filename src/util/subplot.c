@@ -98,6 +98,22 @@ static const u8 *const sLilycoveCase0Close[] = {gText_Lilycove_Case0CloseCurrent
 static const u8 *const sLilycoveCase1Far[] = {gText_Lilycove_Case1FarCurrent, gText_Lilycove_Case0FarAfter};
 static const u8 *const sLilycoveCase1Close[] = {gText_Lilycove_Case1CloseCurrent, gText_Lilycove_Case0CloseAfter};
 
+static const u8 gText_Rustboro_Fossil0FarCurrent[] = _("I heard a researcher in {HINT_CITY} can bring fossils back to life.");
+static const u8 gText_Rustboro_Fossil0FarAfter[] = _("A TRAINER in {HINT_CITY} had a fossil revived into a live POKéMON, I heard.");
+static const u8 gText_Rustboro_Fossil0CloseCurrent[] = _("The DEVON researcher says his machine can revive fossils. Got any?");
+static const u8 gText_Rustboro_Fossil1CloseBefore[] = _("Bring a fossil to the DEVON researcher, and his machine will revive it.");
+static const u8 gText_Rustboro_Fossil1FarCurrent[] = _("A researcher in {HINT_CITY} is reviving a fossil right now, I heard.");
+static const u8 gText_Rustboro_Fossil1CloseCurrent[] = _("The fossil machine is still running. The researcher says it takes a while.");
+static const u8 gText_Rustboro_Fossil2FarCurrent[] = _("The fossil in {HINT_CITY} is revived and waiting for its TRAINER, I heard.");
+static const u8 gText_Rustboro_Fossil2CloseCurrent[] = _("The fossil machine has finished. Talk to the researcher!");
+
+static const u8 *const sRustboroFossil0Far[] = {gText_Rustboro_Fossil0FarCurrent, gText_Rustboro_Fossil0FarAfter};
+static const u8 *const sRustboroFossil0Close[] = {gText_Rustboro_Fossil0CloseCurrent, gText_Rustboro_Fossil1CloseBefore};
+static const u8 *const sRustboroFossil1Far[] = {gText_Rustboro_Fossil1FarCurrent};
+static const u8 *const sRustboroFossil1Close[] = {gText_Rustboro_Fossil1CloseCurrent};
+static const u8 *const sRustboroFossil2Far[] = {gText_Rustboro_Fossil2FarCurrent};
+static const u8 *const sRustboroFossil2Close[] = {gText_Rustboro_Fossil2CloseCurrent};
+
 static const u8 *const sLilycoveStage0Far[] ={gText_Lilycove_Exhibit0FarCurrent};
 static const u8 *const sLilycoveStage0Close[] = {gText_Lilycove_Exhibit0CloseCurrent, gText_Lilycove_Exhibit1CloseBefore};
 static const u8 *const sLilycoveStage1Far[] = {gText_Lilycove_Exhibit1FarCurrent, gText_Lilycove_Exhibit0FarAfter0, gText_Lilycove_Exhibit0FarAfter1};

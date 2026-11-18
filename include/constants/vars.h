@@ -190,8 +190,7 @@
 #define VAR_JAGGED_PASS_ASH_WEATHER                      (MINIGAME_VARS_START + 0x37)
 #define VAR_GLASS_WORKSHOP_STATE                         (MINIGAME_VARS_START + 0x38)
 
-#define VAR_FOSSIL_RESURRECTION_STATE                    (MINIGAME_VARS_START + 0x39)
-#define VAR_WHICH_FOSSIL_REVIVED                         (MINIGAME_VARS_START + 0x3A)
+// MINIGAME_VARS_START + 0x39 and + 0x3A were the fossil revival's state and choice, retired into Rustboro's slot 1 and FLAG_FOSSIL_IS_ANORITH
 #define VAR_FOSSIL_MANIAC_STATE                          (MINIGAME_VARS_START + 0x3B)
 #define VAR_PACIFIDLOG_TM_RECEIVED_DAY                   (MINIGAME_VARS_START + 0x3C)
 

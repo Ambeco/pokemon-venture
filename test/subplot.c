@@ -95,7 +95,7 @@ static const struct SubplotDesc sFullDesc =
     .actors = sActors,
 };
 
-TEST("Subplot: Rustboro and Mossdeep host one subplot in slot 0, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
+TEST("Subplot: Mossdeep hosts one subplot in slot 0, Rustboro, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
 {
     u32 county, slot;
 
@@ -103,8 +103,8 @@ TEST("Subplot: Rustboro and Mossdeep host one subplot in slot 0, Lilycove and Li
     {
         for (slot = 0; slot < SUBPLOTS_PER_COUNTY; slot++)
         {
-            if (((county == RUSTBORO || county == MOSSDEEP) && slot == 0)
-             || ((county == LITTLEROOT || county == LILYCOVE) && slot <= 1) || (county == OLDALE && slot == 0))
+            if ((county == MOSSDEEP && slot == 0)
+             || ((county == LITTLEROOT || county == LILYCOVE || county == RUSTBORO) && slot <= 1) || (county == OLDALE && slot == 0))
                 EXPECT(GetCountySubplot(county, slot) != NULL);
             else
                 EXPECT(GetCountySubplot(county, slot) == NULL);
@@ -531,9 +531,9 @@ TEST("Subplot: Every Emerald host passes the placement check")
 {
     u32 numHosts, i, j, numOthers;
     const struct SubplotHost *hosts = GetSubplotHosts(&numHosts);
-    struct SubplotHost others[7];
+    struct SubplotHost others[8];
 
-    EXPECT_EQ(numHosts, 7);
+    EXPECT_EQ(numHosts, 8);
     for (i = 0; i < numHosts; i++)
     {
         for (j = 0, numOthers = 0; j < numHosts; j++)
@@ -543,6 +543,23 @@ TEST("Subplot: Every Emerald host passes the placement check")
         }
         EXPECT_EQ(CheckSubplotPlacement(hosts[i].desc, hosts[i].county, hosts[i].slot, others, numOthers), SUBPLOT_PLACEMENT_OK);
     }
+}
+
+TEST("Subplot: Rustboro's fossil revival is stored in slot 1, anchored on the service role, and its choice is a flag")
+{
+    const struct SubplotDesc *desc = GetCountySubplot(RUSTBORO, 1);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, SUBPLOT_STORED);
+    EXPECT_EQ(desc->numStages, 3);
+    EXPECT_EQ(GetSubplotNeededRoles(desc), BUILDING_SERVICE);
+    EXPECT_EQ(GetCountySlotStage(RUSTBORO, 1), 0);
+    SetCountySlotStage(RUSTBORO, 1, 2);
+    EXPECT_EQ(GetCountySlotStage(RUSTBORO, 1), 2);
+    EXPECT_EQ(GetCountySlotStage(RUSTBORO, 0), 0);
+    EXPECT(GetCountySlotHint(RUSTBORO, 1, SUBPLOT_FAR, 0) == desc->hints[2].far.texts[0]);
+    FlagSet(FLAG_FOSSIL_IS_ANORITH);
+    EXPECT(FlagGet(FLAG_FOSSIL_IS_ANORITH));
 }
 
 TEST("Subplot: Lilycove's Pokeblock Case subplot is stored in slot 1, anchored on the contest hall, and its hints follow the stage")

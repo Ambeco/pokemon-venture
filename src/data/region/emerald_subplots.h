@@ -22,6 +22,39 @@ static const struct SubplotStage sLilycoveMuseumStages[] =
     },
 };
 
+enum RustboroFossilStage
+{
+    RUSTBORO_FOSSIL_IDLE,
+    RUSTBORO_FOSSIL_REVIVING,
+    RUSTBORO_FOSSIL_READY,
+};
+
+// The Devon researcher is an immobile NPC of the service role (he offers a service, like a name rater). Receiving the
+// revived Pokémon returns the stage to idle, so the other fossil can be revived next; FLAG_FOSSIL_IS_ANORITH records
+// which one is in the machine, and FLAG_RECEIVED_REVIVED_FOSSIL_MON (read by Route 114's Fossil Maniac) is set on receipt.
+// No hinters are placed yet (numHinters 0).
+static const struct SubplotStage sRustboroFossilStages[] =
+{
+    [0 ... RUSTBORO_FOSSIL_READY] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_SERVICE}},
+};
+
+static const struct SubplotHint sRustboroFossilHints[] =
+{
+    {RUSTBORO_FOSSIL_IDLE, RUSTBORO_FOSSIL_IDLE, TEXT_LIST(sRustboroFossil0Far), TEXT_LIST(sRustboroFossil0Close)},
+    {RUSTBORO_FOSSIL_REVIVING, RUSTBORO_FOSSIL_REVIVING, TEXT_LIST(sRustboroFossil1Far), TEXT_LIST(sRustboroFossil1Close)},
+    {RUSTBORO_FOSSIL_READY, RUSTBORO_FOSSIL_READY, TEXT_LIST(sRustboroFossil2Far), TEXT_LIST(sRustboroFossil2Close)},
+};
+
+static const struct SubplotDesc sRustboroFossilSubplot =
+{
+    .backend = SUBPLOT_STORED,
+    .numStages = ARRAY_COUNT(sRustboroFossilStages),
+    .stages = sRustboroFossilStages,
+    .numHints = ARRAY_COUNT(sRustboroFossilHints),
+    .hints = sRustboroFossilHints,
+    .requiredRoles = BUILDING_SERVICE,
+};
+
 enum LilycoveCaseStage
 {
     LILYCOVE_CASE_NOT_GIVEN,
@@ -227,6 +260,7 @@ static const struct SubplotHost sEmeraldSubplotHosts[] =
     {COUNTY_ID(1, 3), 0, &sMovingInSubplot}, // Littleroot, county-story-index 0
     {COUNTY_ID(1, 3), 1, &sSaveBirchSubplot}, // Littleroot, county-story-index 0
     {COUNTY_ID(0, 1), 0, &sRustboroCutterSubplot}, // Rustboro, county-story-index 3
+    {COUNTY_ID(0, 1), 1, &sRustboroFossilSubplot}, // Rustboro, county-story-index 3
     {COUNTY_ID(4, 0), 0, &sLilycoveMuseumSubplot}, // Lilycove, county-story-index 15
     {COUNTY_ID(4, 0), 1, &sLilycoveCaseSubplot}, // Lilycove, county-story-index 15
     {COUNTY_ID(5, 1), 0, &sMossdeepSuperRodSubplot}, // Mossdeep
