@@ -615,27 +615,25 @@ TEST("Subplot: The first subplot of the chain is available from the start")
     EXPECT(IsCountySlotAvailable(LITTLEROOT, 0));
 }
 
-TEST("Subplot: With no declared key, each subplot in the Littleroot and Oldale chain waits for the previous one to complete")
+TEST("Subplot: With no declared key, a subplot waits for the previous slot of its county to complete")
 {
     EXPECT(!IsCountySlotAvailable(LITTLEROOT, 1));
-    EXPECT(!IsCountySlotAvailable(OLDALE, 0));
-
     SetCountySlotStage(LITTLEROOT, 0, MOVING_IN_NUM_STAGES - 2);
     EXPECT(!IsCountySlotAvailable(LITTLEROOT, 1));
     SetCountySlotStage(LITTLEROOT, 0, MOVING_IN_NUM_STAGES - 1);
     EXPECT(IsCountySlotAvailable(LITTLEROOT, 1));
-    EXPECT(!IsCountySlotAvailable(OLDALE, 0));
-
-    SetCountySlotStage(LITTLEROOT, 1, SAVE_BIRCH_NUM_STAGES - 2);
-    EXPECT(!IsCountySlotAvailable(OLDALE, 0));
-    SetCountySlotStage(LITTLEROOT, 1, SAVE_BIRCH_NUM_STAGES - 1);
-    EXPECT(IsCountySlotAvailable(OLDALE, 0));
 }
 
-TEST("Subplot: A subplot whose county precedes no hosting county has no chain predecessor")
+TEST("Subplot: A county's first subplot waits for the main-story-index to reach the county")
 {
-    EXPECT(IsCountySlotAvailable(RUSTBORO, 0));
-    EXPECT(IsCountySlotAvailable(LILYCOVE, 0));
+    u32 numHosts;
+    const struct SubplotHost *hosts = GetSubplotHosts(&numHosts);
+
+    EXPECT(!IsChainPredecessorComplete(hosts, numHosts, OLDALE, 0, 3));
+    EXPECT(IsChainPredecessorComplete(hosts, numHosts, OLDALE, 0, 4));
+    EXPECT(IsChainPredecessorComplete(hosts, numHosts, OLDALE, 0, 7));
+    EXPECT(IsChainPredecessorComplete(hosts, numHosts, LITTLEROOT, 0, 0));
+    EXPECT(!IsCountySlotAvailable(OLDALE, 0));
 }
 
 TEST("Subplot: Placement needs every role of the descriptor, its anchors and its cutscene buildings")

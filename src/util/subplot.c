@@ -6,6 +6,8 @@
 #include "event_data.h"
 #include "global.fieldmap.h"
 #include "region_city.h"
+#include "county_chain.h"
+#include "plot_stage.h"
 #include "region_county.h"
 #include "region_tile.h"
 #include "string_util.h"
@@ -394,22 +396,14 @@ static const struct SubplotHost *FindPreviousHostInCounty(const struct SubplotHo
     return best;
 }
 
-// The chain predecessor: the previous slot's subplot in the same county, else the last subplot of the county
-// before it in story order. NULL when there is none (a county that hosts nothing breaks the chain).
-static const struct SubplotHost *FindChainPredecessor(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 slot)
+bool32 IsChainPredecessorComplete(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 slot, u32 mainStoryIndex)
 {
-    const struct SubplotHost *prev = FindPreviousHostInCounty(hosts, numHosts, county, slot);
-    u32 storyIdx = GetCountyHeader(county)->storyIdx;
+    const struct SubplotHost *prev;
 
-    if (prev != NULL || storyIdx == 0)
-        return prev;
-    return FindPreviousHostInCounty(hosts, numHosts, GetCountyByStoryIdx(storyIdx - 1), SUBPLOT_MAX_SLOTS);
-}
-
-bool32 IsChainPredecessorComplete(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 slot)
-{
-    const struct SubplotHost *prev = FindChainPredecessor(hosts, numHosts, county, slot);
-
+    // Earlier counties are done once the main story has reached this county's slots (4x + s).
+    if (mainStoryIndex / COUNTY_MAIN_SLOTS < GetCountyHeader(county)->storyIdx)
+        return FALSE;
+    prev = FindPreviousHostInCounty(hosts, numHosts, county, slot);
     return prev == NULL || GetSubplotStage(prev->county, prev->slot, prev->desc) >= (u32)prev->desc->numStages - 1;
 }
 
@@ -423,7 +417,7 @@ bool32 IsCountySlotAvailable(u32 countyId, u32 slot)
     {
         return FALSE;
     }
-    return IsChainPredecessorComplete(hosts, numHosts, countyId, slot) && IsSubplotAvailable(desc, countyId, hosts, numHosts);
+    return IsChainPredecessorComplete(hosts, numHosts, countyId, slot, GetMainStoryIndex()) && IsSubplotAvailable(desc, countyId, hosts, numHosts);
 }
 
 static bool32 HasEarlierProducer(u32 mcguffinId, u32 county, u32 slot, const struct SubplotHost *hosts, u32 numHosts)

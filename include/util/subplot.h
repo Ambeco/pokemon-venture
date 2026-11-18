@@ -257,12 +257,11 @@ enum SubplotPlacementProblem
 // hosted in an earlier county, or in an earlier slot of this one.
 u32 CheckSubplotPlacement(const struct SubplotDesc *desc, u32 county, u32 slot, const struct SubplotHost *hosts, u32 numHosts);
 
-#define SUBPLOT_MAX_SLOTS 4
-
-// TRUE iff the subplot before (county, slot) in the chain (the previous slot's, else the previous county's last)
-// reached its last stage, or there is none. A subplot with no declared key is unlocked by its predecessor's
-// completion (design_subplots.md, "County chain").
-bool32 IsChainPredecessorComplete(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 slot);
+// TRUE iff the chain before (county, slot) is done: the main-story-index has reached the county's slots
+// (4x + s, x its story index), so every earlier county is finished, and the previous slot's subplot in the
+// same county reached its last stage (or there is none). A subplot with no declared key is unlocked by this
+// (design_subplots.md, "County chain").
+bool32 IsChainPredecessorComplete(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 slot, u32 mainStoryIndex);
 
 // IsSubplotAvailable plus IsChainPredecessorComplete over Emerald's hosts, for the subplot in (county, slot).
 bool32 IsCountySlotAvailable(u32 countyId, u32 slot);
