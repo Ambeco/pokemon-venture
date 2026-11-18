@@ -17,6 +17,9 @@ LilycoveCity_ContestLobby_EventScript_GivePokeblockCase::
 	giveitem ITEM_POKEBLOCK_CASE
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_ShowBagIsFull
 	setflag FLAG_RECEIVED_POKEBLOCK_CASE
+	setvar VAR_0x8004, 1
+	setvar VAR_0x8005, 1
+	special SetCurrentSubplotStage
 	msgbox LilycoveCity_ContestLobby_Text_NowThatWeveClearedThatUp, MSGBOX_DEFAULT
 	return
 

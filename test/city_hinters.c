@@ -376,7 +376,7 @@ TEST("CityHinters: Subplot news is the current close hint of the stage, and a mi
 
     EXPECT(WriteSubplotNews(sNews, LILYCOVE, 0));
     EXPECT(sNews[0] != EOS);
-    EXPECT(!WriteSubplotNews(sNews, LILYCOVE, 1));
+    EXPECT(!WriteSubplotNews(sNews, LILYCOVE, 2));
 }
 
 TEST("CityHinters: The first undone blocking get is an item of the list, and a step-3 list names none")

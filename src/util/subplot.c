@@ -85,6 +85,19 @@ static const u8 *const sLittlerootStage23Close[] = {gText_Littleroot_Birch1Close
 static const u8 *const sLittlerootStage45Far[] = {gText_Littleroot_Birch2FarCurrent, gText_Littleroot_Birch0FarAfter};
 static const u8 *const sLittlerootStage45Close[] = {gText_Littleroot_Birch2CloseCurrent};
 
+static const u8 gText_Lilycove_Case0FarCurrent[] = _("I heard the CONTEST HALL in {HINT_CITY} hands a POKéBLOCK CASE to newcomers.");
+static const u8 gText_Lilycove_Case0FarAfter[] = _("A TRAINER got a POKéBLOCK CASE at the CONTEST HALL in {HINT_CITY}, I heard.");
+static const u8 gText_Lilycove_Case0CloseCurrent[] = _("The receptionist {HINT_ANCHOR} has a POKéBLOCK CASE for you if you enter a CONTEST.");
+static const u8 gText_Lilycove_Case0CloseAfter[] = _("The receptionist {HINT_ANCHOR} gave a TRAINER a POKéBLOCK CASE.");
+static const u8 gText_Lilycove_Case1FarCurrent[] = _("Someone in {HINT_CITY} can now make POKéBLOCKS, thanks to the CONTEST HALL.");
+static const u8 gText_Lilycove_Case1CloseBefore[] = _("People say the receptionist {HINT_ANCHOR} hands out a POKéBLOCK CASE.");
+static const u8 gText_Lilycove_Case1CloseCurrent[] = _("The receptionist {HINT_ANCHOR} already gave out the POKéBLOCK CASE.");
+
+static const u8 *const sLilycoveCase0Far[] = {gText_Lilycove_Case0FarCurrent};
+static const u8 *const sLilycoveCase0Close[] = {gText_Lilycove_Case0CloseCurrent, gText_Lilycove_Case1CloseBefore};
+static const u8 *const sLilycoveCase1Far[] = {gText_Lilycove_Case1FarCurrent, gText_Lilycove_Case0FarAfter};
+static const u8 *const sLilycoveCase1Close[] = {gText_Lilycove_Case1CloseCurrent, gText_Lilycove_Case0CloseAfter};
+
 static const u8 *const sLilycoveStage0Far[] ={gText_Lilycove_Exhibit0FarCurrent};
 static const u8 *const sLilycoveStage0Close[] = {gText_Lilycove_Exhibit0CloseCurrent, gText_Lilycove_Exhibit1CloseBefore};
 static const u8 *const sLilycoveStage1Far[] = {gText_Lilycove_Exhibit1FarCurrent, gText_Lilycove_Exhibit0FarAfter0, gText_Lilycove_Exhibit0FarAfter1};
@@ -469,7 +482,7 @@ static const u8 *const sBuildingRoleNames[] =
 {
     COMPOUND_STRING("POKéMON CENTER"), COMPOUND_STRING("MART"), COMPOUND_STRING("GYM"), COMPOUND_STRING("POKéMON LEAGUE"), COMPOUND_STRING("home"), COMPOUND_STRING("bedroom"), COMPOUND_STRING("MARKET"),
     COMPOUND_STRING("MOTEL"), COMPOUND_STRING("HERB SHOP"), COMPOUND_STRING("HOT SPRINGS"), COMPOUND_STRING("HALL"), COMPOUND_STRING("FAN CLUB"), COMPOUND_STRING("SCHOOL"), COMPOUND_STRING("SERVICE house"),
-    COMPOUND_STRING("house"),
+    COMPOUND_STRING("house"), COMPOUND_STRING("CONTEST HALL"),
 };
 
 static const u8 *const sLocationKindNames[] =

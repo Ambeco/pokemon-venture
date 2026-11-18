@@ -22,6 +22,37 @@ static const struct SubplotStage sLilycoveMuseumStages[] =
     },
 };
 
+enum LilycoveCaseStage
+{
+    LILYCOVE_CASE_NOT_GIVEN,
+    LILYCOVE_CASE_GIVEN,
+};
+
+// The Pokéblock Case is a reported-only plot get (FLAG_RECEIVED_POKEBLOCK_CASE, still set by the script and read by
+// the adapter), so the subplot produces no key. The receptionist is an immobile NPC of the contest hall role; no hinters
+// are placed yet (numHinters 0), since nothing binds NPCs for generated Lilycove maps.
+static const struct SubplotStage sLilycoveCaseStages[] =
+{
+    [LILYCOVE_CASE_NOT_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_CONTEST_HALL}},
+    [LILYCOVE_CASE_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_CONTEST_HALL}},
+};
+
+static const struct SubplotHint sLilycoveCaseHints[] =
+{
+    {0, 0, TEXT_LIST(sLilycoveCase0Far), TEXT_LIST(sLilycoveCase0Close)},
+    {1, 1, TEXT_LIST(sLilycoveCase1Far), TEXT_LIST(sLilycoveCase1Close)},
+};
+
+static const struct SubplotDesc sLilycoveCaseSubplot =
+{
+    .backend = SUBPLOT_STORED,
+    .numStages = ARRAY_COUNT(sLilycoveCaseStages),
+    .stages = sLilycoveCaseStages,
+    .numHints = ARRAY_COUNT(sLilycoveCaseHints),
+    .hints = sLilycoveCaseHints,
+    .requiredRoles = BUILDING_CONTEST_HALL,
+};
+
 enum RustboroCutterStage
 {
     RUSTBORO_CUTTER_HM_NOT_GIVEN,
@@ -197,5 +228,6 @@ static const struct SubplotHost sEmeraldSubplotHosts[] =
     {COUNTY_ID(1, 3), 1, &sSaveBirchSubplot}, // Littleroot, county-story-index 0
     {COUNTY_ID(0, 1), 0, &sRustboroCutterSubplot}, // Rustboro, county-story-index 3
     {COUNTY_ID(4, 0), 0, &sLilycoveMuseumSubplot}, // Lilycove, county-story-index 15
+    {COUNTY_ID(4, 0), 1, &sLilycoveCaseSubplot}, // Lilycove, county-story-index 15
     {COUNTY_ID(5, 1), 0, &sMossdeepSuperRodSubplot}, // Mossdeep
 };

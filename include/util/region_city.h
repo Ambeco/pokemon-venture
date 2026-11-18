@@ -69,9 +69,10 @@ enum BuildingRole
     BUILDING_SCHOOL         = 1 << 12,
     BUILDING_SERVICE        = 1 << 13, // name rater, friendship rater, move tutor, reminder, deleter
     BUILDING_HOUSE          = 1 << 14, // generic house
+    BUILDING_CONTEST_HALL   = 1 << 15, // contest lobby with its receptionists
 };
 
-#define NUM_BUILDING_ROLES 15
+#define NUM_BUILDING_ROLES 16
 
 struct GymSlot
 {

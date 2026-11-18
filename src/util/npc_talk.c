@@ -65,6 +65,7 @@ static const struct TalkPool sRolePools[NUM_BUILDING_ROLES] =
     [12] = {{COMPOUND_STRING("The kids at the SCHOOL in {HINT_CITY} study hard."), COMPOUND_STRING("Knowing your types wins battles.")}},
     [13] = {{COMPOUND_STRING("They offer a useful service here."), COMPOUND_STRING("Ask the staff. They know their stuff.")}},
     [14] = {{COMPOUND_STRING("This is a nice house, isn't it?"), COMPOUND_STRING("We've lived in {HINT_CITY} for years.")}},
+    [15] = {{COMPOUND_STRING("Enter a CONTEST at {HINT_CITY}'s CONTEST HALL and show off your POKéMON."), COMPOUND_STRING("Appeal is what wins a CONTEST.")}},
 };
 
 static const struct TalkPool sThanksPool =
