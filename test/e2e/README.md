@@ -48,6 +48,13 @@ Build the ROM first (`make -j` in WSL): the runner needs `pokeemerald.gba` and t
 
 Symbols come from `pokeemerald.map`; static symbols are not listed there.
 
+## Recipe tips
+
+- Write a var at `sb1 + 0x139C + 2 * (varId - 0x4000)` (`sb1` read fresh from `gSaveBlock1Ptr`; `VAR_SAVE_BIRCH_BEAT` is `0x4022`). Write it after `teleport` so a map-load or on-frame scene starts as the snapshot is taken.
+- Run `node run.mjs` from PowerShell with the UNC path as the working directory.
+- A failing test's `out/<name>/actual_full.png` shows where it stopped (assert screens and message boxes included).
+- Scene-driven maps can need a specific start tile (Route 101's rescue asserts from tiles that are too close, and a coord trigger at y=18 pushes the player north).
+
 ## Snapshots
 
 Savestates embed ROM addresses, so they are never committed: they are cached under `cache/` keyed by the ROM hash and the recipe code, and rebuilt when either changes.
