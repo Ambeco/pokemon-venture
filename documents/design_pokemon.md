@@ -78,10 +78,10 @@ Route-story-indices determine wild Pokémon levels, trainer levels, hidden item 
 
 ### Rival teams
 
-The rival's team is a pure function of the seed, the rival's starter and the battle's route-story-index; nothing but the starter is stored. At a rival battle, the game replays the swap rules below over every route with a route-story-index below the battle's, in story order, so the team never includes species from routes the player has not reached and is the same on every playthrough of a seed. The replay can run while the cutscene before the battle plays.
+The rival's team is stored (six vars, one species each) and updated as the player enters routes. Each route is folded into the team once, on its first entry, by applying the swap rules below to that route's encounter table, which is already generated because the route is on-screen. A rival battle then reads the stored team and generates nothing: replaying every earlier county and route at battle time would need all of them in RAM (design.md, "Resource budget", locality rule). The team therefore reflects the routes the player actually entered, in the order entered, so two players of one seed may differ; the starter and the swap rules are functions of the seed. The update runs during the route's entry transition.
 
 - **Starter:** the rival takes the starter whose type beats the player's starter, if one is offered; otherwise the stride pick from "Randomized starters". The starter is always slot 1.
-- **Candidates:** each species that spawns on a replayed route is judged by its line's final form: that form's (randomized) types and catch rate. Legendaries, babies and starters (commonness 0-2) are never candidates, since they never spawn wild. When the rival fields a candidate, it uses the stage of the line that fits the battle's level (level evolutions by level, other evolutions by their estimated levels), so early teams are unevolved.
+- **Candidates:** each species that spawns on the entered route is judged by its line's final form: that form's (randomized) types and catch rate. Legendaries, babies and starters (commonness 0-2) are never candidates, since they never spawn wild. When the rival fields a candidate, it uses the stage of the line that fits the battle's level (level evolutions by level, other evolutions by their estimated levels), so early teams are unevolved.
 - **Type coverage:** the team's covered types are the union of its members' final-form types.
 - **Swap rules, in priority order:**
   1. The rival never loses fire, grass or water coverage: a swap that removes the team's only fire, grass or water type is refused, even if it would add a missing one (a fire/flying rival missing grass skips a grass/flying candidate, and waits for a different grass one).
@@ -90,8 +90,8 @@ The rival's team is a pure function of the seed, the rival's starter and the bat
   4. A free slot (the team grows with the battle number, up to 6) takes the lowest-catch-rate candidate with no overlap, preferring fire/grass/water if missing.
 - **Result:** with many hundreds of species, a non-conflicting fire, grass and water Pokémon almost always turns up, so late teams are a fire, a grass and a water Pokémon plus three distinctly typed ones, all with low catch rates. This is likely, not guaranteed: if a type never turns up, the rival simply lacks it; no fallback is invented.
 - **Second rival:** Wally uses the same function with his own starting pick.
-- **Tests:** seed sweeps assert rule 1 is never violated between consecutive battles, coverage of fire, grass and water by the last rival battle for almost all seeds (log the failures), and no duplicate types outside the forced adds.
-- **Cost:** one pass over the replayed routes' encounter tables per rival battle; measure against the CPU budget (design.md, "Resource budget").
+- **Tests:** seed sweeps (entering routes in story order) assert rule 1 is never violated between consecutive battles, coverage of fire, grass and water by the last rival battle for almost all seeds (log the failures), and no duplicate types outside the forced adds.
+- **Cost:** one pass over the entered route's encounter table per first entry; measure against the CPU budget (design.md, "Resource budget").
 
 ### Experience
 
@@ -277,8 +277,20 @@ Showing the switch-hint grades in the field party menu while inside a gym, grade
 - Pros: helps plan a gym's battles before they start.
 - Cons: a rare case for extra UI; the gym guide's advice covers the same need.
 
-### Rival team swapped in by idle cycles as the player enters routes
+### Rival team replayed over every earlier route at battle time
 
-Update a stored rival team whenever the player enters a route, using idle frames.
-- Pros: team reflects the routes the player actually saw.
-- Cons: needs six stored slots in the save; the team depends on the player's route order, so seeds are not reproducible; idle-frame scheduling on the GBA is awkward.
+Store only the starter; at a rival battle, replay the swap rules over every route below the battle's route-story-index, in story order.
+- Pros: nothing stored; the team is a pure function of the seed, so it is reproducible and independent of the player's route order.
+- Cons: needs every earlier county and route generated in memory during the fight, which RAM does not allow (design.md, "Resource budget").
+
+### Bitpacked rival team
+
+Pack the six species ids at 11 bits each (about 1,570 species; the starter slot fewer) into about 60 bits.
+- Pros: 4 vars instead of 6.
+- Cons: the saving is two vars; the packing and unpacking code adds complexity for little gain.
+
+### Species-to-family bi-mapping
+
+A table mapping each species to its family and back (Pichu, Pikachu and Raichu are one family), to store families instead of species.
+- Pros: none that matter here; a team still needs a species per slot.
+- Cons: about 541 families do not fit in 9 bits, so the table costs ROM and gains nothing.
