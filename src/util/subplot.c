@@ -6,6 +6,7 @@
 #include "event_data.h"
 #include "global.fieldmap.h"
 #include "region_city.h"
+#include "region_county.h"
 #include "region_tile.h"
 #include "string_util.h"
 #include "subplot.h"
@@ -379,6 +380,39 @@ bool32 IsSubplotAvailable(const struct SubplotDesc *desc, u32 hostCounty, const 
     return TRUE;
 }
 
+// The hosted subplot in the highest slot of `county` below `belowSlot`; NULL if none.
+static const struct SubplotHost *FindPreviousHostInCounty(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 belowSlot)
+{
+    const struct SubplotHost *best = NULL;
+    u32 i;
+
+    for (i = 0; i < numHosts; i++)
+    {
+        if (hosts[i].county == county && hosts[i].slot < belowSlot && (best == NULL || hosts[i].slot > best->slot))
+            best = &hosts[i];
+    }
+    return best;
+}
+
+// The chain predecessor: the previous slot's subplot in the same county, else the last subplot of the county
+// before it in story order. NULL when there is none (a county that hosts nothing breaks the chain).
+static const struct SubplotHost *FindChainPredecessor(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 slot)
+{
+    const struct SubplotHost *prev = FindPreviousHostInCounty(hosts, numHosts, county, slot);
+    u32 storyIdx = GetCountyHeader(county)->storyIdx;
+
+    if (prev != NULL || storyIdx == 0)
+        return prev;
+    return FindPreviousHostInCounty(hosts, numHosts, GetCountyByStoryIdx(storyIdx - 1), SUBPLOT_MAX_SLOTS);
+}
+
+bool32 IsChainPredecessorComplete(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 slot)
+{
+    const struct SubplotHost *prev = FindChainPredecessor(hosts, numHosts, county, slot);
+
+    return prev == NULL || GetSubplotStage(prev->county, prev->slot, prev->desc) >= (u32)prev->desc->numStages - 1;
+}
+
 bool32 IsCountySlotAvailable(u32 countyId, u32 slot)
 {
     u32 numHosts;
@@ -389,7 +423,7 @@ bool32 IsCountySlotAvailable(u32 countyId, u32 slot)
     {
         return FALSE;
     }
-    return IsSubplotAvailable(desc, countyId, hosts, numHosts);
+    return IsChainPredecessorComplete(hosts, numHosts, countyId, slot) && IsSubplotAvailable(desc, countyId, hosts, numHosts);
 }
 
 static bool32 HasEarlierProducer(u32 mcguffinId, u32 county, u32 slot, const struct SubplotHost *hosts, u32 numHosts)

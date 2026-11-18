@@ -610,6 +610,34 @@ TEST("Subplot: Rival and Pokedex is stored in Oldale's slot 0 and the Route 103 
     EXPECT_EQ(RIVAL_DEX_POKEDEX_GIVEN, RIVAL_DEX_RIVAL_AT_LAB + 1);
 }
 
+TEST("Subplot: The first subplot of the chain is available from the start")
+{
+    EXPECT(IsCountySlotAvailable(LITTLEROOT, 0));
+}
+
+TEST("Subplot: With no declared key, each subplot in the Littleroot and Oldale chain waits for the previous one to complete")
+{
+    EXPECT(!IsCountySlotAvailable(LITTLEROOT, 1));
+    EXPECT(!IsCountySlotAvailable(OLDALE, 0));
+
+    SetCountySlotStage(LITTLEROOT, 0, MOVING_IN_NUM_STAGES - 2);
+    EXPECT(!IsCountySlotAvailable(LITTLEROOT, 1));
+    SetCountySlotStage(LITTLEROOT, 0, MOVING_IN_NUM_STAGES - 1);
+    EXPECT(IsCountySlotAvailable(LITTLEROOT, 1));
+    EXPECT(!IsCountySlotAvailable(OLDALE, 0));
+
+    SetCountySlotStage(LITTLEROOT, 1, SAVE_BIRCH_NUM_STAGES - 2);
+    EXPECT(!IsCountySlotAvailable(OLDALE, 0));
+    SetCountySlotStage(LITTLEROOT, 1, SAVE_BIRCH_NUM_STAGES - 1);
+    EXPECT(IsCountySlotAvailable(OLDALE, 0));
+}
+
+TEST("Subplot: A subplot whose county precedes no hosting county has no chain predecessor")
+{
+    EXPECT(IsCountySlotAvailable(RUSTBORO, 0));
+    EXPECT(IsCountySlotAvailable(LILYCOVE, 0));
+}
+
 TEST("Subplot: Placement needs every role of the descriptor, its anchors and its cutscene buildings")
 {
     struct SubplotStage stages[] = {{.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}, .extraRoles = BUILDING_HOUSE}};

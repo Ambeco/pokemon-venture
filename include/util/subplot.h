@@ -257,7 +257,14 @@ enum SubplotPlacementProblem
 // hosted in an earlier county, or in an earlier slot of this one.
 u32 CheckSubplotPlacement(const struct SubplotDesc *desc, u32 county, u32 slot, const struct SubplotHost *hosts, u32 numHosts);
 
-// IsSubplotAvailable over Emerald's hosts, for the subplot in (county, slot).
+#define SUBPLOT_MAX_SLOTS 4
+
+// TRUE iff the subplot before (county, slot) in the chain (the previous slot's, else the previous county's last)
+// reached its last stage, or there is none. A subplot with no declared key is unlocked by its predecessor's
+// completion (design_subplots.md, "County chain").
+bool32 IsChainPredecessorComplete(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 slot);
+
+// IsSubplotAvailable plus IsChainPredecessorComplete over Emerald's hosts, for the subplot in (county, slot).
 bool32 IsCountySlotAvailable(u32 countyId, u32 slot);
 
 // County whose city has this MAPSEC; asserts there is none.
