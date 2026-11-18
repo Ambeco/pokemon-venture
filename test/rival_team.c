@@ -3,9 +3,11 @@
 #include "constants/pokemon.h"
 #include "rival_team.h"
 
+#define KEY_MASK ((1u << TYPE_FIRE) | (1u << TYPE_GRASS) | (1u << TYPE_WATER))
+
 static struct RivalMember Mon(u16 species, u8 type1, u8 type2, u8 catchRate)
 {
-    struct RivalMember m = {.species = species, .types = {type1, type2}, .catchRate = catchRate};
+    struct RivalMember m = {.species = species, .family = species, .types = {type1, type2}, .catchRate = catchRate};
 
     return m;
 }
@@ -27,29 +29,27 @@ static bool32 HasSpecies(const struct RivalTeam *team, u16 species)
     return FALSE;
 }
 
-static bool32 TeamsEqual(const struct RivalTeam *a, const struct RivalTeam *b)
-{
-    u32 i;
-
-    if (a->count != b->count)
-        return FALSE;
-    for (i = 0; i < a->count; i++)
-    {
-        if (a->members[i].species != b->members[i].species)
-            return FALSE;
-    }
-    return TRUE;
-}
-
-TEST("RivalTeam: A new team holds only the starter")
+TEST("RivalTeam: A new team holds only the starter, protected")
 {
     struct RivalTeam team;
     struct RivalMember starter = Mono(1, TYPE_FIRE, 45);
 
     InitRivalTeam(&team, &starter);
     EXPECT_EQ(team.count, 1);
-    EXPECT_EQ(team.members[0].species, 1);
+    EXPECT_EQ(team.protectedCount, 1);
     EXPECT_EQ(GetRivalTeamTypeMask(&team), 1u << TYPE_FIRE);
+}
+
+TEST("RivalTeam: A team without a starter starts empty and protects nobody")
+{
+    struct RivalTeam team;
+    struct RivalMember first = Mono(1, TYPE_NORMAL, 200);
+
+    InitRivalTeam(&team, NULL);
+    EXPECT_EQ(team.count, 0);
+    EXPECT_EQ(team.protectedCount, 0);
+    EXPECT(FoldRivalCandidate(&team, &first, NULL));
+    EXPECT_EQ(team.count, 1);
 }
 
 TEST("RivalTeam: Rule 4 gives a free slot to a candidate that overlaps nothing")
@@ -58,20 +58,26 @@ TEST("RivalTeam: Rule 4 gives a free slot to a candidate that overlaps nothing")
     struct RivalMember starter = Mono(1, TYPE_FIRE, 45), normal = Mono(2, TYPE_NORMAL, 255);
 
     InitRivalTeam(&team, &starter);
-    EXPECT(FoldRivalCandidate(&team, 2, &normal));
+    EXPECT(FoldRivalCandidate(&team, &normal, NULL));
     EXPECT_EQ(team.count, 2);
     EXPECT(HasSpecies(&team, 2));
 }
 
-TEST("RivalTeam: Rule 4 does not exceed the cap")
+TEST("RivalTeam: The team never exceeds six members")
 {
     struct RivalTeam team;
-    struct RivalMember starter = Mono(1, TYPE_FIRE, 45), normal = Mono(2, TYPE_NORMAL, 255), rock = Mono(3, TYPE_ROCK, 255);
+    struct RivalMember starter = Mono(1, TYPE_FIRE, 45);
+    u32 i;
 
     InitRivalTeam(&team, &starter);
-    EXPECT(FoldRivalCandidate(&team, 2, &normal));
-    EXPECT(!FoldRivalCandidate(&team, 2, &rock));
-    EXPECT_EQ(team.count, 2);
+    for (i = 0; i < 12; i++)
+    {
+        struct RivalMember m = Mono(10 + i, TYPE_NORMAL + i % 8, 255);
+
+        FoldRivalCandidate(&team, &m, NULL);
+    }
+    EXPECT(team.count <= RIVAL_TEAM_MAX);
+    EXPECT_EQ(team.members[0].species, 1);
 }
 
 TEST("RivalTeam: A species already on the team is ignored")
@@ -80,8 +86,8 @@ TEST("RivalTeam: A species already on the team is ignored")
     struct RivalMember starter = Mono(1, TYPE_FIRE, 45), normal = Mono(2, TYPE_NORMAL, 255);
 
     InitRivalTeam(&team, &starter);
-    FoldRivalCandidate(&team, 6, &normal);
-    EXPECT(!FoldRivalCandidate(&team, 6, &normal));
+    FoldRivalCandidate(&team, &normal, NULL);
+    EXPECT(!FoldRivalCandidate(&team, &normal, NULL));
     EXPECT_EQ(team.count, 2);
 }
 
@@ -91,8 +97,8 @@ TEST("RivalTeam: Rule 2 takes a missing key type and drops the member it overlap
     struct RivalMember starter = Mono(1, TYPE_FIRE, 45), flyer = Mono(2, TYPE_FLYING, 255), grassFlyer = Mon(3, TYPE_GRASS, TYPE_FLYING, 120);
 
     InitRivalTeam(&team, &starter);
-    FoldRivalCandidate(&team, 2, &flyer);
-    EXPECT(FoldRivalCandidate(&team, 2, &grassFlyer));
+    FoldRivalCandidate(&team, &flyer, NULL);
+    EXPECT(FoldRivalCandidate(&team, &grassFlyer, NULL));
     EXPECT(HasSpecies(&team, 3));
     EXPECT(!HasSpecies(&team, 2));
     EXPECT_EQ(team.count, 2);
@@ -104,8 +110,8 @@ TEST("RivalTeam: Rule 1 refuses a swap that removes the only fire type, even to 
     struct RivalMember starter = Mono(1, TYPE_WATER, 45), fireFlyer = Mon(2, TYPE_FIRE, TYPE_FLYING, 200), grassFlyer = Mon(3, TYPE_GRASS, TYPE_FLYING, 120);
 
     InitRivalTeam(&team, &starter);
-    FoldRivalCandidate(&team, 2, &fireFlyer);
-    EXPECT(!FoldRivalCandidate(&team, 2, &grassFlyer));
+    FoldRivalCandidate(&team, &fireFlyer, NULL);
+    EXPECT(!FoldRivalCandidate(&team, &grassFlyer, NULL));
     EXPECT(HasSpecies(&team, 2));
     EXPECT(!HasSpecies(&team, 3));
 }
@@ -116,32 +122,35 @@ TEST("RivalTeam: A candidate that overlaps the starter cannot add a missing key 
     struct RivalMember starter = Mon(1, TYPE_FIRE, TYPE_FIGHTING, 45), grassFighter = Mon(2, TYPE_GRASS, TYPE_FIGHTING, 100);
 
     InitRivalTeam(&team, &starter);
-    EXPECT(!FoldRivalCandidate(&team, 6, &grassFighter));
+    EXPECT(!FoldRivalCandidate(&team, &grassFighter, NULL));
     EXPECT_EQ(team.count, 1);
 }
 
 TEST("RivalTeam: Rule 2 on a full team with no overlap replaces the highest catch rate member that keeps coverage")
 {
     struct RivalTeam team;
-    struct RivalMember starter = Mono(1, TYPE_FIRE, 45), normal = Mono(2, TYPE_NORMAL, 255), rock = Mono(3, TYPE_ROCK, 100), grass = Mono(4, TYPE_GRASS, 90);
+    struct RivalMember starter = Mono(1, TYPE_FIRE, 45), grass = Mono(9, TYPE_GRASS, 90);
+    struct RivalMember filler[] = {Mono(2, TYPE_NORMAL, 255), Mono(3, TYPE_ROCK, 100), Mono(4, TYPE_GROUND, 120), Mono(5, TYPE_ICE, 110), Mono(6, TYPE_BUG, 130)};
+    u32 i;
 
     InitRivalTeam(&team, &starter);
-    FoldRivalCandidate(&team, 3, &normal);
-    FoldRivalCandidate(&team, 3, &rock);
-    EXPECT(FoldRivalCandidate(&team, 3, &grass));
+    for (i = 0; i < ARRAY_COUNT(filler); i++)
+        FoldRivalCandidate(&team, &filler[i], NULL);
+    ASSUME(team.count == RIVAL_TEAM_MAX);
+    EXPECT(FoldRivalCandidate(&team, &grass, NULL));
     EXPECT(!HasSpecies(&team, 2));
-    EXPECT(HasSpecies(&team, 3));
-    EXPECT(HasSpecies(&team, 4));
+    EXPECT(HasSpecies(&team, 9));
+    EXPECT_EQ(team.count, RIVAL_TEAM_MAX);
 }
 
-TEST("RivalTeam: Rule 3 swaps in a lower catch rate candidate that overlaps no other member")
+TEST("RivalTeam: Rule 3 swaps in a lower catch rate candidate that overlaps one member")
 {
     struct RivalTeam team;
-    struct RivalMember starter = Mono(1, TYPE_FIRE, 45), normal = Mono(2, TYPE_NORMAL, 255), rare = Mono(3, TYPE_ROCK, 60);
+    struct RivalMember starter = Mono(1, TYPE_FIRE, 45), normal = Mono(2, TYPE_NORMAL, 255), rare = Mon(3, TYPE_NORMAL, TYPE_ROCK, 60);
 
     InitRivalTeam(&team, &starter);
-    FoldRivalCandidate(&team, 2, &normal);
-    EXPECT(FoldRivalCandidate(&team, 2, &rare));
+    FoldRivalCandidate(&team, &normal, NULL);
+    EXPECT(FoldRivalCandidate(&team, &rare, NULL));
     EXPECT(HasSpecies(&team, 3));
     EXPECT(!HasSpecies(&team, 2));
 }
@@ -149,11 +158,11 @@ TEST("RivalTeam: Rule 3 swaps in a lower catch rate candidate that overlaps no o
 TEST("RivalTeam: Rule 3 keeps a member that is easier to catch than the candidate")
 {
     struct RivalTeam team;
-    struct RivalMember starter = Mono(1, TYPE_FIRE, 45), rare = Mono(2, TYPE_NORMAL, 60), common = Mono(3, TYPE_ROCK, 200);
+    struct RivalMember starter = Mono(1, TYPE_FIRE, 45), rare = Mono(2, TYPE_NORMAL, 60), common = Mon(3, TYPE_NORMAL, TYPE_ROCK, 200);
 
     InitRivalTeam(&team, &starter);
-    FoldRivalCandidate(&team, 2, &rare);
-    EXPECT(!FoldRivalCandidate(&team, 2, &common));
+    FoldRivalCandidate(&team, &rare, NULL);
+    EXPECT(!FoldRivalCandidate(&team, &common, NULL));
     EXPECT(HasSpecies(&team, 2));
 }
 
@@ -163,65 +172,78 @@ TEST("RivalTeam: Rule 3 refuses a candidate overlapping two members")
     struct RivalMember starter = Mono(1, TYPE_FIRE, 45), a = Mono(2, TYPE_NORMAL, 255), b = Mono(3, TYPE_ROCK, 255), both = Mon(4, TYPE_NORMAL, TYPE_ROCK, 50);
 
     InitRivalTeam(&team, &starter);
-    FoldRivalCandidate(&team, 3, &a);
-    FoldRivalCandidate(&team, 3, &b);
-    EXPECT(!FoldRivalCandidate(&team, 3, &both));
+    FoldRivalCandidate(&team, &a, NULL);
+    FoldRivalCandidate(&team, &b, NULL);
+    EXPECT(!FoldRivalCandidate(&team, &both, NULL));
     EXPECT_EQ(team.count, 3);
 }
 
-TEST("RivalTeam: Rule 3 never drops the starter or a member holding the only key type")
+TEST("RivalTeam: Rule 3 never drops the starter")
 {
     struct RivalTeam team;
-    struct RivalMember starter = Mono(1, TYPE_NORMAL, 255), fire = Mono(2, TYPE_FIRE, 200), rare = Mono(3, TYPE_ROCK, 20);
+    struct RivalMember starter = Mono(1, TYPE_NORMAL, 255), rare = Mon(2, TYPE_NORMAL, TYPE_ROCK, 20);
 
     InitRivalTeam(&team, &starter);
-    FoldRivalCandidate(&team, 2, &fire);
-    EXPECT(!FoldRivalCandidate(&team, 2, &rare));
+    EXPECT(!FoldRivalCandidate(&team, &rare, NULL));
     EXPECT(HasSpecies(&team, 1));
+}
+
+TEST("RivalTeam: Rule 3 never drops the only holder of a key type")
+{
+    struct RivalTeam team;
+    struct RivalMember starter = Mono(1, TYPE_NORMAL, 255), fireFlyer = Mon(2, TYPE_FIRE, TYPE_FLYING, 200), rare = Mon(3, TYPE_FLYING, TYPE_ROCK, 20);
+
+    InitRivalTeam(&team, &starter);
+    FoldRivalCandidate(&team, &fireFlyer, NULL);
+    EXPECT(!FoldRivalCandidate(&team, &rare, NULL));
     EXPECT(HasSpecies(&team, 2));
 }
 
 TEST("RivalTeam: Folding a route takes candidates adding a missing key type before cheaper ones")
 {
     struct RivalTeam team;
-    struct RivalMember starter = Mono(1, TYPE_FIRE, 45);
-    struct RivalMember route[] = {Mono(2, TYPE_NORMAL, 30), Mono(3, TYPE_GRASS, 200)};
+    struct RivalMember starter = Mono(1, TYPE_FIRE, 45), normal = Mono(2, TYPE_NORMAL, 30), grass = Mono(3, TYPE_GRASS, 200);
+    struct RivalMember route[2];
 
+    route[0] = normal;
+    route[1] = grass;
     InitRivalTeam(&team, &starter);
-    EXPECT(FoldRivalRoute(&team, 2, route, ARRAY_COUNT(route)));
-    EXPECT(HasSpecies(&team, 3));
-    EXPECT(!HasSpecies(&team, 2));
+    EXPECT(FoldRivalRoute(&team, route, ARRAY_COUNT(route), NULL));
+    EXPECT_EQ(team.members[1].species, 3);
+    EXPECT_EQ(team.members[2].species, 2);
 }
 
-TEST("RivalTeam: Folding a route twice gives the same team as folding it once")
+TEST("RivalTeam: A secondary rival never takes a family the primary holds")
 {
-    u32 seed, i;
+    struct RivalTeam primary, secondary;
+    struct RivalMember wallyMon = Mono(5, TYPE_PSYCHIC, 45), sameFamily = Mono(6, TYPE_NORMAL, 100), other = Mono(7, TYPE_ROCK, 100);
 
-    for (seed = 1; seed <= 40; seed++)
-    {
-        struct RivalTeam once, twice;
-        struct RivalMember starter = Mono(1, TYPE_FIRE, 45);
-        struct RivalMember route[12];
-        u32 state = seed * 2654435761u;
-
-        for (i = 0; i < ARRAY_COUNT(route); i++)
-        {
-            state = state * 1664525u + 1013904223u;
-            route[i] = Mon(2 + i, (state >> 16) % NUMBER_OF_MON_TYPES, (state >> 24) % NUMBER_OF_MON_TYPES, 3 + (state >> 8) % 250);
-            if (route[i].types[0] == TYPE_MYSTERY) route[i].types[0] = TYPE_NORMAL;
-            if (route[i].types[1] == TYPE_MYSTERY) route[i].types[1] = TYPE_NORMAL;
-        }
-        InitRivalTeam(&once, &starter);
-        FoldRivalRoute(&once, 4, route, ARRAY_COUNT(route));
-        twice = once;
-        EXPECT(!FoldRivalRoute(&twice, 4, route, ARRAY_COUNT(route)));
-        EXPECT(TeamsEqual(&once, &twice));
-        EXPECT(once.count <= 4);
-        EXPECT_EQ(once.members[0].species, 1);
-    }
+    wallyMon.family = 5;
+    sameFamily.family = 5;
+    InitRivalTeam(&primary, NULL);
+    FoldRivalCandidate(&primary, &wallyMon, NULL);
+    InitRivalTeam(&secondary, NULL);
+    EXPECT(!FoldRivalCandidate(&secondary, &sameFamily, &primary));
+    EXPECT(FoldRivalCandidate(&secondary, &other, &primary));
 }
 
-TEST("RivalTeam: Folding never loses a key type the team covered")
+TEST("RivalTeam: A secondary member whose family the primary takes counts as catch rate 255 and is replaced")
+{
+    struct RivalTeam primary, secondary;
+    struct RivalMember mine = Mono(5, TYPE_NORMAL, 20), cand = Mon(8, TYPE_NORMAL, TYPE_ROCK, 255), wallyMon = Mono(6, TYPE_PSYCHIC, 45);
+
+    InitRivalTeam(&primary, NULL);
+    InitRivalTeam(&secondary, NULL);
+    FoldRivalCandidate(&secondary, &mine, &primary);
+    EXPECT(!FoldRivalCandidate(&secondary, &cand, &primary));
+    wallyMon.family = mine.family;
+    FoldRivalCandidate(&primary, &wallyMon, NULL);
+    EXPECT(FoldRivalCandidate(&secondary, &cand, &primary));
+    EXPECT(HasSpecies(&secondary, 8));
+    EXPECT(!HasSpecies(&secondary, 5));
+}
+
+TEST("RivalTeam: One route pass keeps the starter, six members at most and every key type held")
 {
     u32 seed, i;
 
@@ -232,7 +254,7 @@ TEST("RivalTeam: Folding never loses a key type the team covered")
         u32 state = seed * 40503u, route, before;
 
         InitRivalTeam(&team, &starter);
-        for (route = 0; route < 6; route++)
+        for (route = 0; route < 8; route++)
         {
             struct RivalMember cands[8];
 
@@ -240,13 +262,16 @@ TEST("RivalTeam: Folding never loses a key type the team covered")
             {
                 state = state * 1664525u + 1013904223u;
                 cands[i] = Mon(100 + route * 8 + i, (state >> 16) % TYPE_FAIRY, (state >> 24) % TYPE_FAIRY, 3 + (state >> 8) % 250);
-                if (cands[i].types[0] == TYPE_MYSTERY) cands[i].types[0] = TYPE_NORMAL;
-                if (cands[i].types[1] == TYPE_MYSTERY) cands[i].types[1] = TYPE_NORMAL;
+                if (cands[i].types[0] == TYPE_MYSTERY)
+                    cands[i].types[0] = TYPE_NORMAL;
+                if (cands[i].types[1] == TYPE_MYSTERY)
+                    cands[i].types[1] = TYPE_NORMAL;
             }
-            before = GetRivalTeamTypeMask(&team) & ((1u << TYPE_FIRE) | (1u << TYPE_GRASS) | (1u << TYPE_WATER));
-            FoldRivalRoute(&team, 1 + route, cands, ARRAY_COUNT(cands));
+            before = GetRivalTeamTypeMask(&team) & KEY_MASK;
+            FoldRivalRoute(&team, cands, ARRAY_COUNT(cands), NULL);
             EXPECT_EQ(before & GetRivalTeamTypeMask(&team), before);
-            EXPECT(team.count <= 1 + route);
+            EXPECT(team.count <= RIVAL_TEAM_MAX);
+            EXPECT_EQ(team.members[0].species, 1);
         }
     }
 }
