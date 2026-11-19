@@ -148,7 +148,7 @@ SHELL := bash -o pipefail
 ASFLAGS := -mcpu=arm7tdmi -march=armv4t -meabi=5 --defsym MODERN=1 --defsym $(GAME_VERSION)=1
 
 INCLUDE_DIRS := include
-INCLUDES_C_DIRS := $(INCLUDE_DIRS) include/audio include/backpack include/battle include/field include/field/effects include/field/scripts include/mainmenu include/menus include/minigames include/pokemon include/pokenav include/test include/trade include/trainers include/util include/gba src 
+INCLUDES_C_DIRS := $(INCLUDE_DIRS) include/audio include/backpack include/battle include/field include/field/effects include/field/scripts include/mainmenu include/menus include/minigames include/pokemon include/pokenav include/test include/trade include/trainers include/util include/region include/story include/gba src 
 INCLUDE_CPP_ARGS := $(INCLUDES_C_DIRS:%=-iquote %)
 INCLUDE_SCANINC_ARGS := $(INCLUDES_C_DIRS:%=-I%)
 

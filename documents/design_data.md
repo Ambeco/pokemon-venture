@@ -13,7 +13,7 @@ How the generated region is stored and read: determinism and seeds, the county h
 
 ### County headers
 
-Code: `include/util/region_county.h`, `src/util/region_county.c`, Emerald data in `src/data/region/emerald_region.h`.
+Code: `include/region/region_county.h`, `src/region/region_county.c`, Emerald data in `src/data/region/emerald_region.h`.
 
 The 24 county headers plus a small region header are cached for the whole session (24 x 3 bytes = 72 bytes), and they carry everything a county needs to know about its neighbors, so a county is generated from its own header and its neighbors' headers and never from a neighbor's generated content. Because they are always resident, a field is stored only if it is the output of a global constraint (the terrain shape, the story-index walk, the settlement quota) and so cannot be recomputed from the other headers plus a per-county hash.
 
@@ -34,7 +34,7 @@ Derived, never stored: island (a land county whose neighbors are ocean), the cit
 
 ### Region tiles
 
-Code: `include/util/region_tile.h`, `src/util/region_tile.c`, Emerald data in `src/data/region/emerald_tiles.h`.
+Code: `include/region/region_tile.h`, `src/region/region_tile.c`, Emerald data in `src/data/region/emerald_tiles.h`.
 
 Tile positions and names are not in the headers. They are read through accessors keyed by county id or region-map cell: `GetRegionTileFlags(x, y)`, the city (`DoesCountyHaveCity`, `GetCountyCityPos`, `GetCountyCityMapSec`), the special locations (count, then position and MAPSEC per index) and the route tiles (count, then position per index). In the hardcoded Emerald stage they answer from a per-county ROM table (city tile and up to 6 special locations in county-local coordinates); route tiles come from the route generator: the county's halves toward every neighbor `DoCountiesHaveRoute` joins, plus its outside-city locations, with a road crossing a city tile absorbed by the city; later they answer from per-county hashes, so callers do not change. Everything is asked through the county, so a county is still generated from its own header and its neighbors' headers only.
 
@@ -46,7 +46,7 @@ Tile positions and names are not in the headers. They are read through accessors
 
 ### City data
 
-Code: `include/util/region_city.h`, `src/util/region_city.c`, Emerald data in `src/data/region/emerald_cities.h`.
+Code: `include/region/region_city.h`, `src/region/region_city.c`, Emerald data in `src/data/region/emerald_cities.h`.
 
 Read-only per-county metadata behind accessors, like the tiles: `GetCountyCityTheme`, `DoesCountyCityHaveBuilding(countyId, role)`, `GetCountyGymOrdinal` (0 = none, 1-8 gyms, 9 the Elite Four county), `GetCountyGymType`, `GetCountyGymLeader` (a trainer id, so the name comes from trainer data) and `GetCountyCityName` (the region map's name for the city's MAPSEC). The hardcoded Emerald stage answers from a ROM table; the generator later answers from hashes and the main plot planner, so NPC text and gym scripts do not change. Everything but the gym ordinal asserts that the county has a city.
 
@@ -56,7 +56,7 @@ Read-only per-county metadata behind accessors, like the tiles: `GetCountyCityTh
 
 ### Region dump
 
-`DumpRegion()` / `PrintRegionToLog()` (`include/util/region_dump.h`, debug menu: Utilities, "Print region (log)") print an ASCII map of the 28x15 cells (city, special location, route, empty; county separators) and three lines per county (header fields with capital/Elite Four/reserved; the city's name, MAPSEC, tile, theme, building roles, gym ordinal, type and leader; route count and special locations with their kinds) through the accessors, so it shows whatever the generator later produces. After the county lines it prints one line per route lock (tile, gated county and its story index, and the planner key bound to it), one per Enclave (unlock index and map flag), and one per main-story-index through the Elite Four block (the vanilla list's items, with the callback host at step 1, or the step-3 unlock key). Lines are emitted one at a time to keep stack use small.
+`DumpRegion()` / `PrintRegionToLog()` (`include/region/region_dump.h`, debug menu: Utilities, "Print region (log)") print an ASCII map of the 28x15 cells (city, special location, route, empty; county separators) and three lines per county (header fields with capital/Elite Four/reserved; the city's name, MAPSEC, tile, theme, building roles, gym ordinal, type and leader; route count and special locations with their kinds) through the accessors, so it shows whatever the generator later produces. After the county lines it prints one line per route lock (tile, gated county and its story index, and the planner key bound to it), one per Enclave (unlock index and map flag), and one per main-story-index through the Elite Four block (the vanilla list's items, with the callback host at step 1, or the step-3 unlock key). Lines are emitted one at a time to keep stack use small.
 
 ### Regions and multiple regions
 

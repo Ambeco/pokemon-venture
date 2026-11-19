@@ -23,7 +23,7 @@
   - Pitstop capacity: the deal caps a county's pitstops by its free tiles; Emerald met it only by bumping Sealed Chamber, Mirage Tower and Desert Ruins to detours.
   - Show only landmarks on the region-map screen once the generated region replaces Emerald's map (`IsLocationOnMap`).
   - Review Emerald's class assignments (`emerald_tiles.h` comment lists them).
-- Extend the region dump (`src/util/region_dump.c`) as more data appears; Milestones 1 and 2 consume the city accessors, and the gym scripts and NPC text are untouched so far.
+- Extend the region dump (`src/region/region_dump.c`) as more data appears; Milestones 1 and 2 consume the city accessors, and the gym scripts and NPC text are untouched so far.
 - Story state storage (design_story.md, "Story state storage"): the first 32 vars are temp and object-GFX, so reservations are named regions in `0x4020`-`0x40FF`, not Var0-31.
   - Count authored-chapter stage vars (after Milestone 1a's bucketing) and the optional inter-county stories; the slice is 4 vars per county, 3 used by the main line (`Emerald.md`, "Per-county storage needs").
   - Retire Emerald vars as Milestones 1a, 2 and 3 land: the 62 legacy vars in `vars.h` shrink toward zero and county slices become usable (only the first 14 are free now); trim `test/vars.c`'s table as they go.
@@ -55,7 +55,7 @@
 - County chain (design_chapters.md, "County chain"; `county_chain.h` is unused by game code yet):
   - Build real chains (County planning), and read the stored position for Emerald counties once their legacy vars are retired.
   - Advance the global main-story-index when `DidChainJustFinishMainSlot` fires (no stored index exists until Milestone 3; `GetMainStoryIndex` is computed by the adapter).
-- Scene runner (design_scenes.md, "Scene runner"; `src/field/scene.c`, first conversion is Littleroot's "need a Pokémon" girl):
+- Scene runner (design_scenes.md, "Scene runner"; `src/story/scene.c`, first conversion is Littleroot's "need a Pokémon" girl):
   - Check the wild form of `battle` in a real game or `make e2e` (no ported scene uses it yet, and the headless tests cannot run battles); the trainer form and `ask_choice` are covered by `test/e2e/tests/route103_rival.json`.
   - Give `give` a stage reward (a descriptor field) and `battle` a wild double or two-trainer form when a chapter needs them.
   - Route generation must guarantee the rescue's grass in view of the route entrance and an open 8-10 tile ring near it (design_scenes.md, "Scene runner") and keep the ring off the entrance-to-bag path.
@@ -73,7 +73,7 @@
 ### Milestone 1: NPC texts shuffled, still hinting the current arcs and chapter
 
 - Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when chapters are ported.
-- Grow the text pools in `src/util/npc_talk.c` (two lines per theme and role, one thank-you pool, three gym shapes): more lines per pool, theme-specific lines per building role, thank-yous that depend on the arc state, and far references (see Milestone 1a). Check the pool lines in-game once.
+- Grow the text pools in `src/story/npc_talk.c` (two lines per theme and role, one thank-you pool, three gym shapes): more lines per pool, theme-specific lines per building role, thank-yous that depend on the arc state, and far references (see Milestone 1a). Check the pool lines in-game once.
 - Kanto text extraction (`Kanto.md`, "What the ROM can carry"): a build tool copies Kanto's generic texts out of `data/maps/*_Frlg/scripts.inc` into their own data file, which the pools above draw from alongside Hoenn's. City and island sign slogans (17) go into the city table as themes; building-role talk (fan club, name rater, school, bike shop, museum, ...) and generic NPC and sign texts need classifying by role and theme, which is this milestone's pool design. Only the Emerald-reusable roles are extracted; skip story texts and the deferred roles.
 - Replace fixed `msgbox` scripts in `data/maps/*/scripts.inc` with `generic_npc_talk role` (design_city_npcs.md, "NPC dialogue"), via a conversion tool rather than by hand; only the fallbacks of Lilycove's and Rustboro's four hinters are converted. The tool must work out each NPC's building role, and keep NPCs that carry story state (flags, items, battles) as they are.
 - Routes: hint NPCs there (cities already have an arc hinter in every four local ids); at map load for generated maps, bind hinters and make sure a map has at least four NPCs using the generic talk.
