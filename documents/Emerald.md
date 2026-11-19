@@ -1,6 +1,6 @@
 # Pokémon Emerald reference
 
-Emerald-specific data for the hardcoded stage (design.md, "Development approach"): one entry per county (city, gym, theme, places, planner steps, storage), the vocabularies they use, the planner inputs and exceptions, and the rival arc, story arc and subplots the first version reuses. The per-Part walkthrough analysis (McGuffin chain, buckets, levels) is in `Emerald_walkthrough.md`. Generic design lives in the `design*.md` files; Emerald examples used to explain it stay there.
+Emerald-specific data for the hardcoded stage (design.md, "Development approach"): one entry per county (city, gym, theme, places, planner steps, storage), the vocabularies they use, the planner inputs and exceptions, and the rival arc, story arc and chapters the first version reuses. The per-Part walkthrough analysis (McGuffin chain, buckets, levels) is in `Emerald_walkthrough.md`. Generic design lives in the `design*.md` files; Emerald examples used to explain it stay there.
 
 ## Counties
 
@@ -12,7 +12,7 @@ Whole-region facts: capital Lilycove; ports Dewford, Slateport and Lilycove (des
 
 Planner steps. Main-story-index `4x + s` (design_story.md "Main plot planner"): step 0 and 2 list gets, step 1 is the optional callback (host named), step 3 unlocks county x+1 via the named McGuffin; empty steps are omitted. Gets within a list are unordered for the planner; the county picks the order, so "G4 then Surf" inside a list means the county's script orders them. `G1`-`G8` are gyms (each with its HM), `RB1`-`RB5` rival battles, `Magma`/`Aqua` beats the arc beats. Route-story-index is 4 times the county number. "Done when" is the predicate the read-only adapter uses (see "Step predicates for the read-only adapter"; code `src/data/region/emerald_plot_gets.h`). Callbacks: 6 in about 21 blocks (indices 5, 45, 57, 61, 77, 81), four of them after Fly; no block has two different callback hosts.
 
-Storage. "Gets" counts main-arc gets by host county (callback gets count for the host, not the block; a gym and its HM are two gets; a reserved county has none), "max list" is the largest single list the county hosts (what a completion mask must hold), and "chain vars" and "bools" are the county's own optional subplot state, estimated from the flags and vars Emerald's scripts set in the county's maps, classified by name rather than by reading each script. Strictly ordered subplots in one county merge into one chain var; one-shot gifts and independent visits are one bool each. Fan-club gifts, Shoal Cave salt and shells, and the Lilycove paintings count as bools but could become counters.
+Storage. "Gets" counts main-arc gets by host county (callback gets count for the host, not the block; a gym and its HM are two gets; a reserved county has none), "max list" is the largest single list the county hosts (what a completion mask must hold), and "chain vars" and "bools" are the county's own optional chapter state, estimated from the flags and vars Emerald's scripts set in the county's maps, classified by name rather than by reading each script. Strictly ordered chapters in one county merge into one chain var; one-shot gifts and independent visits are one bool each. Fan-club gifts, Shoal Cave salt and shells, and the Lilycove paintings count as bools but could become counters.
 
 ### 0. Littleroot — (1,3), Land, Temperate fresh-water swamp forest
 
@@ -183,7 +183,7 @@ Counted from the entries above, classifying each place by where it is in Emerald
 - Inside cities: 10 over 16 cities, about 0.6 per city (Devon Corp, Mauville Game Corner, Lilycove Dept. Store and Contest Hall, Mossdeep Game Corner and Space Center, Cave of Origin, Birch's Lab, Shipyard, Museum). Counting the 8 gyms and the Elite Four gives 19, about 1.2 per city.
 - The entries list only notable places, so these are lower bounds.
 
-Themes and gyms. A theme is the city's Bulbapedia slogan (its `motto`, the text NPCs use via `$city.theme.motto`, design_subplots.md "Text references") plus requirement tags that explain why it fits; in Emerald each of the 16 cities has its own, and generated regions will need more authored themes. The tags are a starting vocabulary, not final. Gym types do not follow from the slogans (Dewford is Fighting), so in the hardcoded stage gym type is its own per-city field, not a theme property; design_region.md's "theme affects gym type" stays a goal for the generator. Every Pokémon of gyms 1-8 was verified once offline against `trainers.party` to have the gym's type (the test runner has no real trainer data). Building roles per city are best fits, not verified per building.
+Themes and gyms. A theme is the city's Bulbapedia slogan (its `motto`, the text NPCs use via `$city.theme.motto`, design_chapters.md "Text references") plus requirement tags that explain why it fits; in Emerald each of the 16 cities has its own, and generated regions will need more authored themes. The tags are a starting vocabulary, not final. Gym types do not follow from the slogans (Dewford is Fighting), so in the hardcoded stage gym type is its own per-city field, not a theme property; design_region.md's "theme affects gym type" stays a goal for the generator. Every Pokémon of gyms 1-8 was verified once offline against `trainers.party` to have the gym's type (the test runner has no real trainer data). Building roles per city are best fits, not verified per building.
 
 ## Special-location kinds and building roles
 
@@ -207,7 +207,7 @@ A building role is what an NPC can refer to ("the museum", "the Pokémon Center"
 - Community and shopping: house (generic), market (Slateport Market), department store, motel (Cove Lily Motel), herb shop, hot springs, hall (Dewford Hall), fan club (several cities), trainers' school, secret base guild, trade house, and service (name rater, friendship rater, move tutor, move reminder, move deleter, merged: the move reminder's and deleter's houses use the generic `LAYOUT_HOUSE2`, so there is no unique tile to map, and tutors are NPCs).
 - Story-bound (inside-city special locations): lab, company, museum, shipyard, Game Corner, Contest Hall, space center, cave entrance.
 
-Placeholder NPC objects per host map (design_subplots.md, "Subplot abstraction", Placement): 2 for each building role, 3 for a gym, 1 for a service building, 4 for a city's outdoor map; routes get none.
+Placeholder NPC objects per host map (design_chapters.md, "Chapter abstraction", Placement): 2 for each building role, 3 for a gym, 1 for a service building, 4 for a city's outdoor map; routes get none.
 
 ## Rival arc
 
@@ -219,7 +219,7 @@ Placeholder NPC objects per host map (design_subplots.md, "Subplot abstraction",
 
 Two eco-terrorist factions, Magma and Aqua, argue industrial progress versus environmental preservation. They awaken the Ground and Sea legendary Pokémon and lose control of them. Then a Flying legendary arrives from a tower landmark and pacifies them, and Magma and Aqua learn the error of their ways.
 
-## Subplots
+## Chapters
 
 - A man in sunglasses teaches you Cut.
 - Mr. Briney's Wingull is stolen.
@@ -282,7 +282,7 @@ Resolved readings: the Woods grunt is `VAR_PETALBURG_WOODS_STATE >= 1`, set afte
 HMs other than Fly, each needing the HM and its gym's badge (`needs:` lines in `Emerald_walkthrough.md` list every lock; the Steps above give the unlocks they trigger: Rock Smash at Rusturf opens Verdanturf, Surf at Route 118 opens the Weather Institute county, Dive at Sootopolis and Waterfall at Ever Grande unlock those counties). Flash: see design_story.md, "Dark maps".
 
 - Special items (as designed, fixed in this stage): Go-Goggles (Route 111 desert), Devon Scope (Route 120 bridge and Fortree gym entrance), Wailmer Pail (the planner's placeholder lock for Rustboro, index 11; vanilla Emerald has no lock there).
-- Not traversal: the Bicycle (a utility item; it gates the Cycling Road and Jagged Pass optionally), the Basement Key, Storage Key and Magma Emblem (subplot and arc keys), Fly (a convenience, never a lock).
+- Not traversal: the Bicycle (a utility item; it gates the Cycling Road and Jagged Pass optionally), the Basement Key, Storage Key and Magma Emblem (chapter and arc keys), Fly (a convenience, never a lock).
 
 ### Blocker McGuffins
 
@@ -294,10 +294,10 @@ A person standing in the way until a boolean. Emerald has these (chain entry, wh
 | 14 | Gym boy, Petalburg west exit | `VAR_PETALBURG_CITY_STATE >= 3` (Petalburg:8 moves him, Petalburg:47 frees the path) |
 | 133 | Ace Trainers, League lobby | 8 badges (popcount of `FLAG_BADGE01_GET`-`08`) |
 | 41 | Cycling Road gate | Bicycle held (`FLAG_RECEIVED_BIKE`) |
-| 13/77 | Norman, Petalburg gym | 4 badges (derived stage, design_subplots.md "Interface rules from paper tests") |
+| 13/77 | Norman, Petalburg gym | 4 badges (derived stage, design_chapters.md "Interface rules from paper tests") |
 | 36, 55 | Aqua grunts at the Museum, Magma grunts at the cable car | arc beats owned by the arc (main arc bucket); not generic blockers |
 
-The two planner blockers (indices 39, 67: unlocks into Meteor Falls and Mossdeep) have no Emerald counterpart yet. Until the pool grows (design_story.md, "Blocker McGuffins"), subplots author their own blocker scripts; the first generic blockers are those two, written as one parameterized "NPC blocks the route until the index passes step s" script.
+The two planner blockers (indices 39, 67: unlocks into Meteor Falls and Mossdeep) have no Emerald counterpart yet. Until the pool grows (design_story.md, "Blocker McGuffins"), chapters author their own blocker scripts; the first generic blockers are those two, written as one parameterized "NPC blocks the route until the index passes step s" script.
 
 ## Per-county storage needs
 
@@ -322,7 +322,7 @@ Numbered so they can be struck off as the rules or the table change.
 8. Rival Battle 3 moves from the Mauville cell to the Cycling Road cell (Route 110).
 9. Seafloor Cavern moves from the Ever Grande cell to Mossdeep's. Victory Road lives in Sootopolis's cell, so Wally battle 2 is a callback.
 10. Mt. Pyre (14) is forced before Lilycove (15); Emerald lets the player visit Lilycove first.
-11. Blocks 9 and 16 have no mandatory gets, so their unlocks need blocker McGuffins that vanilla Emerald lacks (or a tiny subplot each). Block 8 (Fallarbor) has no get to name either, so its unlock is implicit: Fiery Path entered.
+11. Blocks 9 and 16 have no mandatory gets, so their unlocks need blocker McGuffins that vanilla Emerald lacks (or a tiny chapter each). Block 8 (Fallarbor) has no get to name either, so its unlock is implicit: Fiery Path entered.
 12. Verdanturf's unlock uses Rock Smash + Dynamo Badge, which also gates Route 117; vanilla leaves it open.
 13. The Elite Four county has two gates: Waterfall + Rain Badge into Ever Grande, and 8 badges into the League lobby.
 14. The empty county (3,2) must take a reserved index (23) and holds no legendary location.

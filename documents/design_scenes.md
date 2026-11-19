@@ -4,13 +4,13 @@ How a stage places actors and runs cutscenes: the object budget, anchors and tri
 
 ### Actor placement
 
-City planning asks, for the actors and triggers to place in the city: the chain's current stage, each optional subplot's current stage, the "after" pseudo-stage of every completed chain subplot, and the "before" pseudo-stage of every not-started one. Cutscene actors are spawned and removed at runtime and count against the same budget.
+City planning asks, for the actors and triggers to place in the city: the chain's current stage, each optional chapter's current stage, the "after" pseudo-stage of every completed chain chapter, and the "before" pseudo-stage of every not-started one. Cutscene actors are spawned and removed at runtime and count against the same budget.
 
 Object budget: the engine holds 16 object events live and 64 object templates per map, and the player and any follower use some. So the limit is 16 - (player and follower overhead) - actors within any screen-sized area, and 64 - (player and follower overhead) - actors over the whole map. Generic NPCs fill in after actors, spread apart from each other and from actors to stay under both limits. The exact spawn margin around the screen is to be checked in the engine.
 
 A stage that has passed places nothing of its predecessor (Route 101: the professor, the Zigzagoon and the bag exist only in the tutorial's stage).
 
-An actor is placed relative to its trigger or anchor (left of a door, on the door, on a chair, at every exit), so mapgen can check for a walkable route when it places the actor, which guarantees a route from the actor to the player at the trigger. A placement may also need a feature of the building: "chair", "in front of the TV", "center-stage" (the spot for a gym leader, boss or professor in a specific map) or "anywhere". Features are rare, and a host building without the feature fails placement. An actor is either a prop (a graphic with no interaction, such as the moving truck) or an NPC. Subplots mark short-lived actors "transient"; a test requires every non-transient actor to be placed in every scene, so the mom or professor cannot vanish by accident (a scene that must omit one places it in a debug map).
+An actor is placed relative to its trigger or anchor (left of a door, on the door, on a chair, at every exit), so mapgen can check for a walkable route when it places the actor, which guarantees a route from the actor to the player at the trigger. A placement may also need a feature of the building: "chair", "in front of the TV", "center-stage" (the spot for a gym leader, boss or professor in a specific map) or "anywhere". Features are rare, and a host building without the feature fails placement. An actor is either a prop (a graphic with no interaction, such as the moving truck) or an NPC. Chapters mark short-lived actors "transient"; a test requires every non-transient actor to be placed in every scene, so the mom or professor cannot vanish by accident (a scene that must omit one places it in a debug map).
 
 ### Scenes
 
@@ -89,13 +89,13 @@ Cons:
 - Only testable by running the script in the ROM.
 - Converting Kanto's scripts means converting each by hand.
 
-### Runtime-spawned NPCs for every subplot beat
+### Runtime-spawned NPCs for every chapter beat
 
-The generic cutscene runner creates every subplot NPC and event at runtime, instead of placeholder object events in each building.
+The generic cutscene runner creates every chapter NPC and event at runtime, instead of placeholder object events in each building.
 
 Pros:
-- A subplot is independent of the host city's buildings.
+- A chapter is independent of the host city's buildings.
 
 Cons:
-- Subplots tied to a building (a gym, a shop, a house) lose their interiors.
-- Large rewrite of every subplot up front.
+- Chapters tied to a building (a gym, a shop, a house) lose their interiors.
+- Large rewrite of every chapter up front.

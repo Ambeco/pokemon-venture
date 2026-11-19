@@ -37,10 +37,10 @@ Levels:
 ### Part 2
 
 15. Petalburg Woods, small trees restrict travel to the west side — needs?: Cut (HM01 + Stone Badge) — gives: Petalburg Woods full access — bucket: gate
-16. Petalburg Woods, Devon researcher and Aqua grunt — needs?: Route 104 access — gives: Aqua grunt defeated — bucket: special-location subplot (Petalburg Woods, Route 104 flower shop)
-17. Route 104 north, Flower Shop middle sister — needs?: Aqua grunt defeated — gives: Wailmer Pail — bucket: special-location subplot (Petalburg Woods, Route 104 flower shop)
-18. Route 104 north to Rustboro — needs?: Wailmer Pail — gives: Rustboro access — bucket: special-location subplot (Petalburg Woods, Route 104 flower shop)
-19. Rustboro, Cutter's House — needs?: Rustboro access — gives: HM01 Cut — bucket: city subplot (convert)
+16. Petalburg Woods, Devon researcher and Aqua grunt — needs?: Route 104 access — gives: Aqua grunt defeated — bucket: special-location chapter (Petalburg Woods, Route 104 flower shop)
+17. Route 104 north, Flower Shop middle sister — needs?: Aqua grunt defeated — gives: Wailmer Pail — bucket: special-location chapter (Petalburg Woods, Route 104 flower shop)
+18. Route 104 north to Rustboro — needs?: Wailmer Pail — gives: Rustboro access — bucket: special-location chapter (Petalburg Woods, Route 104 flower shop)
+19. Rustboro, Cutter's House — needs?: Rustboro access — gives: HM01 Cut — bucket: city chapter (convert)
 20. Devon Corporation, first floor only — needs?: Devon Goods — gives: Devon HQ upper floors access — bucket: main arc (Devon Goods)
 21. Rustboro Gym (Roxanne) — needs?: Devon HQ upper floors access — gives: Stone Badge (Gym 1, enables Cut in the field) — bucket: gym
 22. Rustboro, Stop Thief (Aqua grunt flees Devon) — needs: Stone Badge — gives: Route 116 access — bucket: main arc (Devon Goods)
@@ -63,11 +63,11 @@ Levels:
 26. Rustboro, Devon Corporation return — needs: Devon Goods — gives: PokéNav (Map, Condition, Match Call), Letter for Steven — bucket: main arc (Devon Goods)
 27. Rival Battle 2 (optional, outside the Poké Mart) — needs?: PokéNav Match Call — gives: Rival Battle 2 done — bucket: main arc (rival)
 28. Briney sails to Dewford (Routes 105-106) — needs: Letter — gives: Dewford access — bucket: main arc (Devon Goods)
-29. Dewford, Fisherman quiz — needs?: Dewford access — gives: Old Rod — bucket: city subplot (convert)
+29. Dewford, Fisherman quiz — needs?: Dewford access — gives: Old Rod — bucket: city chapter (convert)
 30. Dewford Gym (Brawly) — needs?: Old Rod — gives: Knuckle Badge (Gym 2, enables Flash in the field) — bucket: gym
 31. Routes 105-108 sea, full exploration — needs: Surf + Balance Badge (fifth) (key: P8 #78) — gives: Sea routes full access — bucket: gate
-32. Granite Cave 1F, Hiker near entrance — needs?: Knuckle Badge — gives: HM05 Flash — unlocks: Granite Cave underground (P3 #33), Ancient Tomb (P11 #95), Victory Road (P18 #132) — bucket: special-location subplot (Granite Cave)
-33. Granite Cave underground (dark) — needs?: Flash — gives: Granite Cave underground access — bucket: special-location subplot (Granite Cave)
+32. Granite Cave 1F, Hiker near entrance — needs?: Knuckle Badge — gives: HM05 Flash — unlocks: Granite Cave underground (P3 #33), Ancient Tomb (P11 #95), Victory Road (P18 #132) — bucket: special-location chapter (Granite Cave)
+33. Granite Cave underground (dark) — needs?: Flash — gives: Granite Cave underground access — bucket: special-location chapter (Granite Cave)
 34. Granite Cave 1F side room (a warp off lit 1F, no Flash needed), Steven — needs: Letter — gives: Letter delivered — bucket: main arc (Devon Goods)
 35. Dewford pier, Briney to Slateport (Route 109 beach) — needs: Devon Goods — gives: Slateport access — bucket: main arc (Devon Goods)
 
@@ -86,9 +86,9 @@ Levels:
 37. Slateport, Stern's Shipyard (Dock) — needs?: Slateport access — gives: Shipyard visit — bucket: main arc (Devon Goods)
 38. Oceanic Museum, deliver to Stern, fight two grunts, meet Archie — needs: Museum access (and $50, or enter free if broke) — gives: Devon Goods delivered, Scott registered — bucket: main arc (Devon Goods)
 39. Slateport Harbor, new ferry unfinished — needs?: Devon Goods delivered — gives: Ferry access (later) — bucket: main arc (Devon Goods)
-40. Slateport, buy Harbor Mail — needs?: Devon Goods delivered — gives: Harbor Mail — unlocks: Coin Case (P5 #45); the Market's extra bargains need TM Secret Power (key: P6 #58) — bucket: city subplot (convert)
+40. Slateport, buy Harbor Mail — needs?: Devon Goods delivered — gives: Harbor Mail — unlocks: Coin Case (P5 #45); the Market's extra bargains need TM Secret Power (key: P6 #58) — bucket: city chapter (convert)
 41. Route 110, pedestrians limited to the lower path; Seaside Cycling Road — needs: Bike (key: P5 #47) — gives: Seaside Cycling Road access — bucket: gate
-42. Route 110, Trick House (Trick Master puzzle 1; a new puzzle opens with each Badge, most mazes also need field moves) — needs?: Slateport access — gives: Trick House puzzle 1 done — unlocks: puzzle 2 with the Dynamo Badge (P5 #51) — bucket: special-location subplot (Trick House; one subplot, badge-counted puzzles)
+42. Route 110, Trick House (Trick Master puzzle 1; a new puzzle opens with each Badge, most mazes also need field moves) — needs?: Slateport access — gives: Trick House puzzle 1 done — unlocks: puzzle 2 with the Dynamo Badge (P5 #51) — bucket: special-location chapter (Trick House; one chapter, badge-counted puzzles)
 43. Route 110, Rival Battle 3 — needs?: Trick House puzzle 1 done — gives: Itemfinder, Rival Battle 3 done — bucket: main arc (rival)
 44. Route 110 to Mauville — needs?: Rival Battle 3 done — gives: Mauville access — bucket: plain access
 
@@ -102,13 +102,13 @@ Levels:
 
 ### Part 5
 
-45. Mauville, woman next to the Poké Mart — needs: Harbor Mail (key: P4 #40) — gives: Coin Case — bucket: city subplot (convert)
-46. Mauville Game Corner — needs: Coin Case — gives: Game Corner access — bucket: city subplot (convert)
-47. Mauville, Rydel's Cycles (checks your dirty Running Shoes) — needs: Running Shoes — gives: Mach Bike or Acro Bike (Mach Bike climbs muddy slopes, e.g. Granite Cave; Acro Bike scales Jagged Pass) — unlocks: Seaside Cycling Road (P4 #41), Jagged Pass northward (P7 #69), Mirage Tower (P8 #75), Sky Pillar return (P18 #129) — bucket: city subplot (convert)
-48. Mauville, Scientist in the southeast house — needs?: Mauville access — gives: HM06 Rock Smash — unlocks: Rusturf debris (P2 #24), Granite Cave B2F rocks (P5 #51), Mirage Tower (P8 #75), Trick House puzzle 3 (P7 #72), Seafloor Cavern (P15 #117), Desert Ruins (P8 #74) — bucket: city subplot (convert)
+45. Mauville, woman next to the Poké Mart — needs: Harbor Mail (key: P4 #40) — gives: Coin Case — bucket: city chapter (convert)
+46. Mauville Game Corner — needs: Coin Case — gives: Game Corner access — bucket: city chapter (convert)
+47. Mauville, Rydel's Cycles (checks your dirty Running Shoes) — needs: Running Shoes — gives: Mach Bike or Acro Bike (Mach Bike climbs muddy slopes, e.g. Granite Cave; Acro Bike scales Jagged Pass) — unlocks: Seaside Cycling Road (P4 #41), Jagged Pass northward (P7 #69), Mirage Tower (P8 #75), Sky Pillar return (P18 #129) — bucket: city chapter (convert)
+48. Mauville, Scientist in the southeast house — needs?: Mauville access — gives: HM06 Rock Smash — unlocks: Rusturf debris (P2 #24), Granite Cave B2F rocks (P5 #51), Mirage Tower (P8 #75), Trick House puzzle 3 (P7 #72), Seafloor Cavern (P15 #117), Desert Ruins (P8 #74) — bucket: city chapter (convert)
 49. Mauville Gym, Wally's Challenge outside — needs?: Mauville access — gives: Wally Battle done, Wally in PokéNav — bucket: main arc (Wally)
 50. Mauville Gym (Wattson) — needs?: Wally Battle done — gives: Dynamo Badge (Gym 3, enables Rock Smash in the field) — unlocks: Rusturf debris (P2 #24), Trick House puzzle 2 (P5 #51) — bucket: gym
-51. Granite Cave B2F cracked rocks (lock first mentioned in P3 #33) and Trick House puzzle 2 (lock in P4 #42) (optional) — needs: Rock Smash (key: P5 #48) / Dynamo Badge (key: P5 #50) — gives: Nosepass encounters; puzzle 2 — bucket: special-location subplot (Granite Cave)
+51. Granite Cave B2F cracked rocks (lock first mentioned in P3 #33) and Trick House puzzle 2 (lock in P4 #42) (optional) — needs: Rock Smash (key: P5 #48) / Dynamo Badge (key: P5 #50) — gives: Nosepass encounters; puzzle 2 — bucket: special-location chapter (Granite Cave)
 52. Route 118, only the west side explorable — needs?: Surf (key: P8 #78) — gives: Route 118 full access (resolved in P9 #86) — bucket: gate
 
 
@@ -128,11 +128,11 @@ Levels:
 55. Route 112 south, Team Magma Grunts guard the cable car and elevated terrain blocks the west — needs: Meteorite theft seen (key: P7 #65) — gives: Mt. Chimney cable car access — bucket: main arc (Aqua/Magma, Meteorite, legendaries, League)
 56. Fiery Path — needs?: Route 112 south access — gives: Route 112 north access — bucket: plain access
 57. Fiery Path side tunnels, boulders — needs: Strength (HM04 key: P5 #24, Heat Badge key: P7 #70) — gives: Fiery Path side tunnel access — bucket: gate
-58. Route 111 north, boy at the Secret Base tree — needs?: Route 112 north access — gives: TM Secret Power — unlocks: Slateport Market bargains (P4 #40) — bucket: special-location subplot (Route 111 north Secret Base tree)
-59. Route 113, Glass Workshop owner — needs?: Route 111 north access — gives: Soot Sack — bucket: special-location subplot (Route 113 Glass Workshop)
+58. Route 111 north, boy at the Secret Base tree — needs?: Route 112 north access — gives: TM Secret Power — unlocks: Slateport Market bargains (P4 #40) — bucket: special-location chapter (Route 111 north Secret Base tree)
+59. Route 113, Glass Workshop owner — needs?: Route 111 north access — gives: Soot Sack — bucket: special-location chapter (Route 113 Glass Workshop)
 60. Fallarbor Town — needs?: Route 113 access — gives: Fallarbor access — bucket: plain access
 61. Fallarbor, Professor Cozmo's house — needs: Meteorite (key: P7 #67) — gives: TM (Normal) — bucket: main arc (Aqua/Magma, Meteorite, legendaries, League)
-62. Route 114, Fossil Maniac's little brother — needs?: Fallarbor access — gives: TM Dig — unlocks: Sealed Chamber Braille wall (P17 #124) — bucket: special-location subplot (Route 114 Fossil Maniac's brother)
+62. Route 114, Fossil Maniac's little brother — needs?: Fallarbor access — gives: TM Dig — unlocks: Sealed Chamber Braille wall (P17 #124) — bucket: special-location chapter (Route 114 Fossil Maniac's brother)
 63. Route 114 — needs?: Fallarbor access — gives: Route 114 access — bucket: plain access
 
 
@@ -157,7 +157,7 @@ Levels:
 69. Jagged Pass northward (rough terrain) — needs: Acro Bike (key: P5 #47) — gives: Jagged Pass northward access — bucket: gate
 70. Lavaridge Gym (Flannery) — needs?: Lavaridge access — gives: Heat Badge (Gym 4, enables Strength in the field), TM Overheat — unlocks: Go-Goggles (P7 #71), Strength in the field (P6 #57, P9 #87, P12 #102, P15 #117), Gym 5 fight (P8 #77) — bucket: gym
 71. Lavaridge, May/Brendan outside the Gym — needs: Heat Badge — gives: Go-Goggles — unlocks: Route 111 desert (P6 #54) — bucket: main arc (rival)
-72. Trick House puzzle 3 (optional) — needs: Rock Smash — gives: Trick House puzzle 3 done — bucket: special-location subplot (Trick House; one subplot, badge-counted puzzles)
+72. Trick House puzzle 3 (optional) — needs: Rock Smash — gives: Trick House puzzle 3 done — bucket: special-location chapter (Trick House; one chapter, badge-counted puzzles)
 
 
 Levels:
@@ -173,14 +173,14 @@ Levels:
 
 ### Part 8
 
-73. Route 111 desert, first visit — needs: Route 111 desert access (P6 #54) — gives: Desert access, Mirage Tower and Desert Ruins found — bucket: special-location subplot (Desert and Mirage Tower)
-74. Desert Ruins, sealed — needs: Sealed Chamber opened (key: P17 #125) + Rock Smash — gives: Regirock — bucket: special-location subplot (Desert Ruins)
-75. Mirage Tower, climb needs the Mach Bike and Rock Smash — needs: Mach Bike (key: P5 #47) + Rock Smash (key: P5 #48) — gives: Root Fossil or Claw Fossil (pick one; the other falls away) — bucket: special-location subplot (Desert and Mirage Tower)
-76. Rustboro, Devon Corporation second-floor scientist — needs: Fossil — gives: Lileep or Anorith — bucket: city subplot (convert)
+73. Route 111 desert, first visit — needs: Route 111 desert access (P6 #54) — gives: Desert access, Mirage Tower and Desert Ruins found — bucket: special-location chapter (Desert and Mirage Tower)
+74. Desert Ruins, sealed — needs: Sealed Chamber opened (key: P17 #125) + Rock Smash — gives: Regirock — bucket: special-location chapter (Desert Ruins)
+75. Mirage Tower, climb needs the Mach Bike and Rock Smash — needs: Mach Bike (key: P5 #47) + Rock Smash (key: P5 #48) — gives: Root Fossil or Claw Fossil (pick one; the other falls away) — bucket: special-location chapter (Desert and Mirage Tower)
+76. Rustboro, Devon Corporation second-floor scientist — needs: Fossil — gives: Lileep or Anorith — bucket: city chapter (convert)
 77. Petalburg Gym, Norman (minimum 3 Gym Trainers on the way) — needs: 4 Badges (Stone P2 #21, Knuckle P3 #30, Dynamo P5 #50, Heat P7 #70) — gives: Balance Badge (Gym 5, enables Surf in the field), TM Facade; resolves the Gym 5 lock (P1 #13) — bucket: gym
 78. Petalburg, Wally's father's house — needs: Norman defeated — gives: HM03 Surf — unlocks: Route 103 east (P1 #7), Routes 105-108 (P3 #31), Route 118 (P5 #52), Abandoned Ship (P9 #81), New Mauville (P9 #84), Mt. Pyre route (P12 #99), Route 115 (P8 #79) — bucket: gym
 79. Route 115, full exploration — needs: Surf (key: P8 #78) — gives: Route 115 full access — bucket: gate
-80. Island Cave (Route 105), sealed — needs: Sealed Chamber opened (key: P17 #125) + a lap of the chamber — gives: Regice — bucket: special-location subplot (Island Cave)
+80. Island Cave (Route 105), sealed — needs: Sealed Chamber opened (key: P17 #125) + a lap of the chamber — gives: Regice — bucket: special-location chapter (Island Cave)
 
 
 Levels:
@@ -200,12 +200,12 @@ Levels:
 ### Part 9
 
 81. Abandoned Ship, partly flooded — needs: Surf (key: P8 #78); Dive for the flooded rooms (key: P14 #113) — gives: Abandoned Ship access — bucket: gate
-82. Abandoned Ship, Captain's Office — needs?: Abandoned Ship access — gives: Storage Key — unlocks: northeast cabin (TM Ice Beam) — bucket: special-location subplot (Abandoned Ship)
-83. Mauville, Wattson asks you to shut down New Mauville's generator — needs: Norman defeated (P8 #77; his defeat moves Wattson from the gym to the city) — gives: Basement Key — bucket: special-location subplot (New Mauville)
-84. New Mauville (entrance on Route 110 by Surf) — needs: Basement Key + Surf (key: P8 #78) — gives: Generator shut down — bucket: special-location subplot (New Mauville)
-85. Mauville, report back to Wattson — needs: Generator shut down — gives: TM Thunderbolt — bucket: special-location subplot (New Mauville)
+82. Abandoned Ship, Captain's Office — needs?: Abandoned Ship access — gives: Storage Key — unlocks: northeast cabin (TM Ice Beam) — bucket: special-location chapter (Abandoned Ship)
+83. Mauville, Wattson asks you to shut down New Mauville's generator — needs: Norman defeated (P8 #77; his defeat moves Wattson from the gym to the city) — gives: Basement Key — bucket: special-location chapter (New Mauville)
+84. New Mauville (entrance on Route 110 by Surf) — needs: Basement Key + Surf (key: P8 #78) — gives: Generator shut down — bucket: special-location chapter (New Mauville)
+85. Mauville, report back to Wattson — needs: Generator shut down — gives: TM Thunderbolt — bucket: special-location chapter (New Mauville)
 86. Route 118 east side and the river — needs: Surf (key: P8 #78) — gives: Route 118 full access (resolves P5 #52), Good Rod (Fisherman) — bucket: gate
-87. Trick House puzzle 4 (optional) — needs: Strength — gives: Trick House puzzle 4 done — bucket: special-location subplot (Trick House; one subplot, badge-counted puzzles)
+87. Trick House puzzle 4 (optional) — needs: Strength — gives: Trick House puzzle 4 done — bucket: special-location chapter (Trick House; one chapter, badge-counted puzzles)
 
 
 Levels:
@@ -234,11 +234,11 @@ Levels:
 ### Part 11
 
 93. Route 120 — needs?: Fortree access — gives: Route 120 access — bucket: plain access
-94. Route 120, northern bridge blocked by an invisible Kecleon (Steven) — needs?: Route 120 access — gives: Devon Scope — unlocks: Fortree Gym entrance (P10 #92) — bucket: special-location subplot (Route 120 Kecleon bridge)
-95. Ancient Tomb (Route 120), sealed — needs: Sealed Chamber opened (key: P17 #125) + Flash — gives: Registeel — bucket: special-location subplot (Ancient Tomb)
+94. Route 120, northern bridge blocked by an invisible Kecleon (Steven) — needs?: Route 120 access — gives: Devon Scope — unlocks: Fortree Gym entrance (P10 #92) — bucket: special-location chapter (Route 120 Kecleon bridge)
+95. Ancient Tomb (Route 120), sealed — needs: Sealed Chamber opened (key: P17 #125) + Flash — gives: Registeel — bucket: special-location chapter (Ancient Tomb)
 96. Fortree Gym (Winona) — needs: Devon Scope (key: P11 #94) — gives: Feather Badge (Gym 6, enables Fly in the field), TM Aerial Ace — bucket: gym
 97. Route 121 to Lilycove, Aqua Grunts rush toward Mt. Pyre — needs?: Fortree Gym beaten — gives: Route 121 and Lilycove access — bucket: main arc (Aqua/Magma, Meteorite, legendaries, League)
-98. Trick House puzzle 5 (optional) — needs?: Feather Badge — gives: Trick House puzzle 5 done — bucket: special-location subplot (Trick House; one subplot, badge-counted puzzles)
+98. Trick House puzzle 5 (optional) — needs?: Feather Badge — gives: Trick House puzzle 5 done — bucket: special-location chapter (Trick House; one chapter, badge-counted puzzles)
 
 
 Levels:
@@ -267,7 +267,7 @@ Levels:
 
 103. Slateport Harbor, Archie takes Captain Stern's submarine — needs?: Magma Hideout resolved — gives: Aqua Hideout location revealed — bucket: main arc (Aqua/Magma, Meteorite, legendaries, League)
 104. Lilycove City, full visit — needs?: Slateport sub scene — gives: Lilycove access — bucket: plain access
-105. Lilycove Contest Hall, left receptionist — needs?: Lilycove access — gives: Pokéblock Case — unlocks: Safari Zone entry — bucket: city subplot (convert)
+105. Lilycove Contest Hall, left receptionist — needs?: Lilycove access — gives: Pokéblock Case — unlocks: Safari Zone entry — bucket: city chapter (convert)
 106. Lilycove, Rival Battle 5 blocks the Department Store (optional) — needs?: Lilycove access — gives: Rival Battle 5 done, Department Store access — bucket: main arc (rival)
 107. Aqua Hideout (warp panels; Archie's office; Admin Matt) — needs?: Slateport sub scene — gives: Master Ball, Matt defeated, Archie escapes by submarine, the blockade off Lilycove's beach gone (eastern sea open) — bucket: main arc (Aqua/Magma, Meteorite, legendaries, League)
 
@@ -282,11 +282,11 @@ Levels:
 
 108. Route 124 east of Lilycove — needs: Surf (key: P8 #78) + blockade gone (P13 #107) — gives: Route 124 and Mossdeep access — bucket: gate
 109. Mossdeep City — needs?: Route 124 access — gives: Mossdeep access — bucket: plain access
-110. Mossdeep, Fisherman east of the Gym — needs?: Mossdeep access — gives: Super Rod — bucket: city subplot (convert)
+110. Mossdeep, Fisherman east of the Gym — needs?: Mossdeep access — gives: Super Rod — bucket: city chapter (convert)
 111. Mossdeep Gym (Tate & Liza, double battle; warp panels) — needs?: Mossdeep access — gives: Mind Badge (Gym 7, enables Dive in the field), TM Calm Mind — bucket: gym
 112. Mossdeep Space Center, Maxie and Tabitha multi battle with Steven — needs: Mind Badge — gives: Magma rocket-fuel plot ended — bucket: main arc (Aqua/Magma, Meteorite, legendaries, League)
 113. Mossdeep, Steven's house — needs: Space Center battle won — gives: HM Dive — unlocks: Abandoned Ship hidden floor (P15 #115), Seafloor Cavern (P15 #117), Sootopolis entrance (P16 #119), Sealed Chamber (P17 #123) — bucket: main arc (Aqua/Magma, Meteorite, legendaries, League)
-114. Trick House puzzle 6 (optional) — needs?: Mind Badge — gives: Trick House puzzle 6 done — bucket: special-location subplot (Trick House; one subplot, badge-counted puzzles)
+114. Trick House puzzle 6 (optional) — needs?: Mind Badge — gives: Trick House puzzle 6 done — bucket: special-location chapter (Trick House; one chapter, badge-counted puzzles)
 
 
 Levels:
@@ -300,8 +300,8 @@ Levels:
 
 ### Part 15
 
-115. Abandoned Ship hidden floor (Key to Room 1, then Room 4, Room 6, Room 2) — needs: Surf + Dive (key: P14 #113) — gives: Scanner — bucket: special-location subplot (Abandoned Ship)
-116. Slateport Harbor, Captain Stern — needs: Scanner — gives: DeepSeaTooth or DeepSeaScale (via the Scientist in the Captain's Office) — bucket: special-location subplot (Abandoned Ship)
+115. Abandoned Ship hidden floor (Key to Room 1, then Room 4, Room 6, Room 2) — needs: Surf + Dive (key: P14 #113) — gives: Scanner — bucket: special-location chapter (Abandoned Ship)
+116. Slateport Harbor, Captain Stern — needs: Scanner — gives: DeepSeaTooth or DeepSeaScale (via the Scientist in the Captain's Office) — bucket: special-location chapter (Abandoned Ship)
 117. Route 128, Seafloor Cavern entrance underwater, then Rock Smash and Strength boulders and Surf currents inside — needs: Dive (key: P14 #113) + Rock Smash + Strength + Surf — gives: Seafloor Cavern access — bucket: gate
 118. Seafloor Cavern, Shelly then Archie — needs: Seafloor Cavern access — gives: Kyogre awakened, Hoenn weather crisis, Steven points to Sootopolis — bucket: main arc (Aqua/Magma, Meteorite, legendaries, League)
 
@@ -334,9 +334,9 @@ Levels:
 
 ### Part 17
 
-123. Routes 132-134, Sealed Chamber Dive spot — needs: Dive (key: P14 #113) — gives: Sealed Chamber access — bucket: special-location subplot (Sealed Chamber)
-124. Sealed Chamber, Braille wall 'Dig here' — needs: TM Dig (key: P6 #62) — gives: Sealed Chamber back room access — bucket: special-location subplot (Sealed Chamber)
-125. Sealed Chamber back wall 'First comes Wailord. Last comes Relicanth.' — needs: Wailord first and Relicanth last in the party (Relicanth by Dive, Wailmer by Good/Super Rod) — gives: Sealed Chamber opened — unlocks: Regirock (P8 #74), Regice (P8 #80), Registeel (P11 #95) — bucket: special-location subplot (Sealed Chamber)
+123. Routes 132-134, Sealed Chamber Dive spot — needs: Dive (key: P14 #113) — gives: Sealed Chamber access — bucket: special-location chapter (Sealed Chamber)
+124. Sealed Chamber, Braille wall 'Dig here' — needs: TM Dig (key: P6 #62) — gives: Sealed Chamber back room access — bucket: special-location chapter (Sealed Chamber)
+125. Sealed Chamber back wall 'First comes Wailord. Last comes Relicanth.' — needs: Wailord first and Relicanth last in the party (Relicanth by Dive, Wailmer by Good/Super Rod) — gives: Sealed Chamber opened — unlocks: Regirock (P8 #74), Regice (P8 #80), Registeel (P11 #95) — bucket: special-location chapter (Sealed Chamber)
 126. Sky Pillar climb (cracked tiles on 4F) — needs?: Sky Pillar access — gives: Rayquaza awakened — bucket: main arc (Aqua/Magma, Meteorite, legendaries, League)
 127. Sootopolis, Rayquaza ends the fight — needs: Rayquaza awakened — gives: HM Waterfall (from Wallace; field use needs Rain Badge), Gym open — unlocks: Meteor Falls (P7 #64), Ever Grande (P18 #131) — bucket: main arc (Aqua/Magma, Meteorite, legendaries, League)
 128. Sootopolis Gym (Juan) — needs?: Rayquaza ended the fight — gives: Rain Badge (Gym 8, all Pokémon obey, enables Waterfall in the field), TM Water Pulse — bucket: gym
@@ -351,7 +351,7 @@ Levels:
 ### Part 18
 
 129. Sky Pillar, return visit (unstable floors) — needs: Mach Bike (key: P5 #47) — gives: Rayquaza battle (L70, optional) — bucket: gate
-130. Trick House puzzle 7 (optional) — needs?: Rain Badge — gives: Trick House puzzle 7 done — bucket: special-location subplot (Trick House; one subplot, badge-counted puzzles)
+130. Trick House puzzle 7 (optional) — needs?: Rain Badge — gives: Trick House puzzle 7 done — bucket: special-location chapter (Trick House; one chapter, badge-counted puzzles)
 131. Ever Grande City, waterfall blocks the city — needs: Waterfall + Rain Badge (key: P17 #127) — gives: Ever Grande access — bucket: gate
 132. Victory Road (Flash in the dark, Strength, Rock Smash, Surf, Waterfall inside) — needs?: Ever Grande access — gives: Victory Road passage, Wally Battle 2 — bucket: gate
 
@@ -379,11 +379,11 @@ Levels:
 
 ## Lock/key buckets
 
-Each chain entry is tagged with exactly one bucket (design_subplots.md "Scope"): plain access (no real lock, just the planner's path), main arc (stays on Emerald vars behind the adapter until Milestone 3), gym (a fixed per-city beat for now; includes Surf as Norman's reward), gate (an HM, key item or blocker NPC on a route), city subplot (convert) and special-location subplot (convert), grouped by location. The Trick House is one subplot with badge-counted puzzles.
+Each chain entry is tagged with exactly one bucket (design_chapters.md "Scope"): plain access (no real lock, just the planner's path), main arc (stays on Emerald vars behind the adapter until Milestone 3), gym (a fixed per-city beat for now; includes Surf as Norman's reward), gate (an HM, key item or blocker NPC on a route), city chapter (convert) and special-location chapter (convert), grouped by location. The Trick House is one chapter with badge-counted puzzles.
 
-Pairs where a key and its lock sit in different hosts. Per design_subplots.md ("Placement and requirements") these are planner unlock steps, not subplot-relative outputs:
+Pairs where a key and its lock sit in different hosts. Per design_chapters.md ("Placement and requirements") these are planner unlock steps, not chapter-relative outputs:
 
 - 40 (Slateport) to 45 (Mauville), 47/48 (Mauville bike and Rock Smash) to many locks, 75 (Mirage Tower) to 76 (Rustboro), 58 to 40's Market bargains, 62 to 124, 125 to 74/80/95.
 - 115 ends in Slateport (116) and 83-85 starts in Mauville; both are mostly location-local and probably keep the location as host, with the town beat as a start or finish hook.
 
-The subplot "Briney's Wingull is stolen" appears in `Emerald.md`'s subplot list but not in the chain (no key or lock), so it needs no bucket.
+The chapter "Briney's Wingull is stolen" appears in `Emerald.md`'s chapter list but not in the chain (no key or lock), so it needs no bucket.

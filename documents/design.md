@@ -8,6 +8,13 @@ The mod procedurally generates a Pokémon region rather than using a fixed map. 
 
 The goal of the region generation below is a game region map with cities, routes, and special locations that mirrors what a normal mainline Pokémon game looks like.
 
+## Vocabulary
+
+- Scene: one cutscene or interaction beat (`design_scenes.md`).
+- Chapter: an immutable, unsplittable sequence of scenes, usually tied to a special location or a small story. It is the unit that is placed, shuffled and hosted. A chapter has stages, and its code type is still named `SubplotDesc` (see `remaining_work.md`).
+- Subplot: an ordered sequence of related chapters that tells one story and interleaves with other subplots. The main story is the cross-county plot; a county's chain is the sequence of chapters it assigns to its main-story slots.
+- Example: most of the tutorial up to and including the Zigzagoon fight is one chapter in block 0 of the main plot. The second tutorial chapter starts with talking to the professor and ends when he gives the Pokédex; it is hardcoded in main-story block 1, slot 1 (the callback to Littleroot). Oldale needs no tutorial chapter of its own, but the chapters in main-story block 1, slot 0 must be completable with only the starter, since the player has no Poké Balls yet. Vanilla Emerald has just the one chapter "battle May", after which the main plot advances to block 1, slot 1.
+
 ## Layered generation
 
 Generation is a stack of layers, each computed only from the layers above it, never from its own neighbors or from later layers:
@@ -34,7 +41,7 @@ Detail lives in topic files; this file keeps the principles, the development ord
 | `design_data.md` | How region data is stored and read: determinism and seeds, county headers, region tiles, city data, the region dump, multiple regions. |
 | `design_pokemon.md` | Everything about Pokémon and battle: biome type affinity, the species-to-biome mapping, species metadata, route encounter selection, trainer teams and levels, experience, catch-rate floor, legendaries and starters, move pools, shops and trading, type-recolored sprites, type icons, battle damage estimates, the team analyzer, gym guide advice. |
 | `design_story.md` | The main story: arcs, arc progression, the main plot planner (steps, items, unlock gating, Surf, McGuffin kinds, the soft-lock proof's inputs), story state storage, McGuffins, the story graph and the soft-lock argument. |
-| `design_subplots.md` | Subplots as data: scope and buckets, placement and requirements, the descriptor/accessor/adapter interfaces, text references, rules from paper tests, building roles and NPC spawning, county planning, plot kinds, the county chain. |
+| `design_chapters.md` | Chapters (and the subplots built from them) as data: scope and buckets, placement and requirements, the descriptor/accessor/adapter interfaces, text references, rules from paper tests, building roles and NPC spawning, county planning, plot kinds, the county chain. |
 | `design_scenes.md` | Actor placement and budgets, and the scene runner: triggers, the step vocabulary, the worked Route 101 example. |
 | `design_city_npcs.md` | City planning steps, hinter NPCs, hint texts and beat anchors, main-beat hints, route blockers, Pokémon Center news, generic NPC dialogue. |
 | `design_dev.md` | The base codebase, config choices that shape the design, story mode, and the end-to-end test tier. |
@@ -52,16 +59,16 @@ Other files: `Emerald.md` (the hardcoded Emerald stage: one entry per county, pl
 
 The region starts as a hardcoded Pokémon Emerald region and is progressively abstracted and randomized, rather than building the generator first. Hardcoded content exercises the same metadata the generator will later produce, and keeps the story testable throughout.
 
-Why this order: if NPCs don't talk about subplots and story arcs, testers can't tell how to progress, which would cripple testing; and subplot babble requires city/route/location metadata anyway. NPC talk exists to support subplot shuffling, so its interfaces (descriptor, stage accessor, text references; see "Subplot abstraction" (design_subplots.md)) are defined first, for the end state, and NPC talk is built on them before any subplot is ported.
+Why this order: if NPCs don't talk about chapters and story arcs, testers can't tell how to progress, which would cripple testing; and chapter babble requires city/route/location metadata anyway. NPC talk exists to support chapter shuffling, so its interfaces (descriptor, stage accessor, text references; see "Chapter abstraction" (design_chapters.md)) are defined first, for the end state, and NPC talk is built on them before any chapter is ported.
 
 Stages, each leaving the game playable:
 
 1. Divide the Emerald region map(s) into the 6x4 counties with hardcoded terrain type (mountainous, ocean, flat), biome, population, special location, story order, McGuffin keys and locks, and capital (Lilycove City). A key/lock is basically anywhere story advancement moves from one county to a non-adjacent county. The story-arc id is also hardcoded.
 2. Hardcode the region tiles within each county: which are cities, routes, and special locations.
-3. For each city and special location, hardcode its named buildings, subplot McGuffins, and city "theme"; hardcode which cities have gyms, the leader's name, and the gym type.
-4. Define the subplot interfaces (see "Subplot abstraction" (design_subplots.md)), then implement the "random" NPC talking on them: some NPCs give story-arc state text, some give city/location subplot McGuffins, some talk about named buildings, the gym type, gym leader, or the city's theme. Remaining NPCs talk about their immediate vicinity or random text.
-5. Abstract the subplots per city/location, add more, and randomize them; likewise abstract story-arc advancement (less visible, since region tiles keep hardcoded story indices).
-6. With subplots no longer fixed, building locations are no longer fixed: randomize city layouts within a region tile (except special buildings).
+3. For each city and special location, hardcode its named buildings, chapter McGuffins, and city "theme"; hardcode which cities have gyms, the leader's name, and the gym type.
+4. Define the chapter interfaces (see "Chapter abstraction" (design_chapters.md)), then implement the "random" NPC talking on them: some NPCs give story-arc state text, some give city/location chapter McGuffins, some talk about named buildings, the gym type, gym leader, or the city's theme. Remaining NPCs talk about their immediate vicinity or random text.
+5. Abstract the chapters per city/location, add more, and randomize them; likewise abstract story-arc advancement (less visible, since region tiles keep hardcoded story indices).
+6. With chapters no longer fixed, building locations are no longer fixed: randomize city layouts within a region tile (except special buildings).
 7. Abstract McGuffins and make them randomizable; until then, shuffling is limited by McGuffins and encounter tables.
 8. Implement randomized encounter tables by the route's biome.
 9. Shuffle city locations within a county, and which special locations are in each county.
@@ -70,7 +77,7 @@ Stages, each leaving the game playable:
 
 Random Pokémon types and move sets can be implemented at virtually any point in this order.
 
-The work for each step is broken into milestones 0-12 in `remaining_work.md`. Milestone 0 covers the hardcoded foundation (stages 1-3); Milestone 1a defines the subplot interfaces and ports the first subplot; the milestones then follow the order: shuffled NPC texts, shuffled subplots, non-fixed arc cutscenes, random types, encounters, moves, trainers, procedural buildings and terrain, shuffled McGuffins, randomized city placement, procedural story indices, procedural terrain and biomes.
+The work for each step is broken into milestones 0-12 in `remaining_work.md`. Milestone 0 covers the hardcoded foundation (stages 1-3); Milestone 1a defines the chapter interfaces and ports the first chapter; the milestones then follow the order: shuffled NPC texts, shuffled chapters, non-fixed arc cutscenes, random types, encounters, moves, trainers, procedural buildings and terrain, shuffled McGuffins, randomized city placement, procedural story indices, procedural terrain and biomes.
 
 ### Randomization switches
 
@@ -93,6 +100,6 @@ Pros:
 - Finds generator performance problems early.
 
 Cons:
-- Story progression can't be tested without NPC hints, which need subplot/city metadata the generator would have to produce first.
+- Story progression can't be tested without NPC hints, which need chapter/city metadata the generator would have to produce first.
 - Everything must work before anything is playable.
 - Random layouts make bugs hard to reproduce.

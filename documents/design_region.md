@@ -25,7 +25,7 @@ A few special locations are reserved for legendaries: 2-3 after roughly the 7th 
 
 - If the county has a city, routes are generated for the city as if the reserved location did not exist, then one extra route runs from the city to the reserved location. That route and the location get end-game route-story-indices (100+), above every ordinary index.
 - If the county has no city, routes generate as normal, and the reserved location is the county's ordinary special location and what routes attach to.
-- In a county with a city, McGuffins gating progress out of the county require only the city's subplot, never the reserved location's. The reserved location is an optional dead end.
+- In a county with a city, McGuffins gating progress out of the county require only the city's chapter, never the reserved location's. The reserved location is an optional dead end.
 
 ### Enclaves
 

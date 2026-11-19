@@ -120,7 +120,7 @@ Wild encounters are limited by a minimum catch rate that falls as the story prog
 
 - Around the seventh to eighth gym, McGuffins unlock a pair or trio of reserved special locations, each holding a pair or trio of legendaries from a single game generation.
 - After the Elite Four, another reserved special location unlocks, holding a solo legendary.
-- Ideally every legendary and starter is obtainable, but the mechanism is undecided. Starters might come as gift Pokémon after a (possibly weekly repeatable) subplot, as in Pokémon Yellow.
+- Ideally every legendary and starter is obtainable, but the mechanism is undecided. Starters might come as gift Pokémon after a (possibly weekly repeatable) chapter, as in Pokémon Yellow.
 - The post-Elite Four solo legendary location might spawn a new legendary each week: 50% a legendary the player does not own, 50% fully random.
 
 ### Randomized starters
