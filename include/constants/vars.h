@@ -62,14 +62,14 @@
 #define COUNTY_VARS_END            (COUNTY_VARS_START + COUNTY_VARS_COUNT - 1)
 
 // A county's slice is GetCountyVarSlice(county), which is the county id except for Littleroot (county 19) and Oldale
-// (county 14): the legacy block overlays slices 14 and up, and the tutorial subplots must be stored before enough legacy
+// (county 14): the legacy block overlays slices 14 and up, and the tutorial chapters must be stored before enough legacy
 // vars are retired to free those slices, so they take slices 0 and 1 (counties 0 and 1 host nothing) and the two
-// counties swap. Scripts and map.json name a stored stage by these slice numbers; test/subplot.c checks they agree.
+// counties swap. Scripts and map.json name a stored stage by these slice numbers; test/chapter.c checks they agree.
 #define COUNTY_VAR_SLICE_LITTLEROOT 0
 #define COUNTY_VAR_SLICE_OLDALE     1
 #define VAR_SAVE_BIRCH_BEAT        (COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + 2) // Littleroot, slot 1
 
-// Stages of the Save Birch subplot (Littleroot, slot 1), which replaced VAR_ROUTE101_STATE and the first values of
+// Stages of the Save Birch chapter (Littleroot, slot 1), which replaced VAR_ROUTE101_STATE and the first values of
 // VAR_LITTLEROOT_TOWN_STATE (0-2) and VAR_BIRCH_LAB_STATE (2-3); their later values went to Rival and Pokédex.
 #define SAVE_BIRCH_TWIN_GUARDS    0 // the twin blocks the way north until the player has met the rival
 #define SAVE_BIRCH_TWIN_ASKS      1 // met the rival: the twin asks the player to go and see what is happening
@@ -81,7 +81,7 @@
 
 #define VAR_MOVING_IN_BEAT         (COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + 1) // Littleroot, slot 0
 
-// Stages of the Moving in subplot (Littleroot, slot 0), which replaced VAR_LITTLEROOT_INTRO_STATE with the same values.
+// Stages of the Moving in chapter (Littleroot, slot 0), which replaced VAR_LITTLEROOT_INTRO_STATE with the same values.
 #define MOVING_IN_ON_TRUCK        0 // before the player reaches the truck's exit
 #define MOVING_IN_TRUCK_MALE      1 // in the truck, male player
 #define MOVING_IN_TRUCK_FEMALE    2 // in the truck, female player
@@ -94,7 +94,7 @@
 
 #define VAR_RIVAL_DEX_BEAT         (COUNTY_VARS_START + COUNTY_VAR_SLICE_OLDALE * VARS_PER_COUNTY + 1) // Oldale, slot 0
 
-// Stages of the Rival and Pokédex subplot (Oldale, slot 0), which replaced VAR_OLDALE_RIVAL_STATE and the later values of
+// Stages of the Rival and Pokédex chapter (Oldale, slot 0), which replaced VAR_OLDALE_RIVAL_STATE and the later values of
 // VAR_LITTLEROOT_TOWN_STATE (3-4) and VAR_BIRCH_LAB_STATE (4-5).
 #define RIVAL_DEX_CHALLENGE       0 // the rival waits on Route 103 to challenge the player
 #define RIVAL_DEX_RIVAL_IN_OLDALE 1 // beaten; the rival meets the player again in Oldale
@@ -117,7 +117,7 @@
 #define ENGINE_VARS_END            (ENGINE_VARS_START + ENGINE_VARS_COUNT - 1)
 
 // legacy: Emerald story vars not yet retired. They overlay the last county slices and the reserve
-// until the main arc and subplots are ported; retiring one frees its address for county use.
+// until the main arc and chapters are ported; retiring one frees its address for county use.
 #define LEGACY_VARS_COUNT          61
 #define LEGACY_VARS_START          (RESERVED_VARS_END + 1 - LEGACY_VARS_COUNT)
 #define LEGACY_VARS_END            RESERVED_VARS_END

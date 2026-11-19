@@ -42,7 +42,7 @@ STATIC_ASSERT(WINDOW_CELLS < 256, SceneQueueIndexFitsU8);
 
 extern const u8 Scene_EventScript_RunTriggered[];
 
-// Slot 0 of Mossdeep's county slice (GetCountySlotVar); test/subplot.c checks they agree.
+// Slot 0 of Mossdeep's county slice (GetCountySlotVar); test/chapter.c checks they agree.
 #define SCENE_MOSSDEEP_SUPER_ROD_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(5, 1) * VARS_PER_COUNTY + 1)
 
 #include "data/scenes.h"

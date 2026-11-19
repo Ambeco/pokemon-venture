@@ -1054,7 +1054,7 @@ gStdScripts_End::
 	.include "data/scripts/trainer_battle.inc"
 	.include "data/scripts/new_game.inc"
 	.include "data/scripts/route_blocker.inc"
-	.include "data/scripts/subplot_hinter.inc"
+	.include "data/scripts/chapter_hinter.inc"
 	.include "data/scripts/scene.inc"
 	.include "data/scripts/scene_custom.inc"
 	.include "data/scripts/hall_of_fame.inc"

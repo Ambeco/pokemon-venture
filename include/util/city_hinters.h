@@ -5,11 +5,11 @@
  * City planner hinter steps (design_city_npcs.md, "City planning", steps 5 and 6).
  *
  * PlanCountyHinters() lists the hinter NPCs a county's city must hold. It is derived on demand from the
- * subplot descriptors and the main plot, and stores nothing. A record binds one NPC to one beat: the NPC
+ * chapter descriptors and the main plot, and stores nothing. A record binds one NPC to one beat: the NPC
  * says the before, current or after entry for that beat, with the distance in the record.
  *
- * Subplot hinters: each subplot hosted by the county contributes numHinters records per stage. They stand
- * in the host city, so they are always SUBPLOT_CLOSE; far records exist only for main-plot hinters.
+ * Chapter hinters: each chapter hosted by the county contributes numHinters records per stage. They stand
+ * in the host city, so they are always CHAPTER_CLOSE; far records exist only for main-plot hinters.
  * Main-plot hinters: each main-story beat the county hosts gets one hinter for the next beat (the next
  * main-story-index with something to do), who is far unless that beat is also in this county.
  *
@@ -24,16 +24,16 @@
 
 enum HinterKind
 {
-    HINTER_SUBPLOT,
+    HINTER_CHAPTER,
     HINTER_MAIN,
 };
 
 struct HinterPlacement
 {
     u8 kind;     // enum HinterKind
-    u8 slot;     // subplot slot; main: the county-hosted main-story-index this hinter was planned for
-    u8 beat;     // subplot stage; main: the main-story-index of the next beat
-    u8 distance; // enum SubplotDistance
+    u8 slot;     // chapter slot; main: the county-hosted main-story-index this hinter was planned for
+    u8 beat;     // chapter stage; main: the main-story-index of the next beat
+    u8 distance; // enum ChapterDistance
     u16 role;    // BuildingRole bit of the building the NPC stands in, 0 = outdoors
     u8 targetCounty; // county hosting the beat
     u8 selector; // distinguishes this NPC's text among the county's hinters
@@ -58,13 +58,13 @@ u8 *WriteGymLeaderName(u8 *dst, u32 county);
 // The text is line-broken to fit the field message box, so dst must start a message (not append to one).
 u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance);
 
-// Writes the current close hint of the county's subplot in `slot` (with its anchor expanded) at dst. FALSE
-// when there is no subplot or it has no text there.
-bool32 WriteSubplotNews(u8 *dst, u32 county, u32 slot);
+// Writes the current close hint of the county's chapter in `slot` (with its anchor expanded) at dst. FALSE
+// when there is no chapter or it has no text there.
+bool32 WriteChapterNews(u8 *dst, u32 county, u32 slot);
 
 /**
  * The Pokémon Center news about the main-story-index's list. Away from the host county it is the far
- * main-beat hint. In the host county it is the current close hint of the subplot that produces the first
+ * main-beat hint. In the host county it is the current close hint of the chapter that produces the first
  * blocking get still undone (`producesMainGet`), else the close main-beat hint. A non-blocker step-3
  * unlock has no beat but still has block x's county: away from it the news is a vague "something
  * unfolding near <city>", in it a vague "right here" line (the county has no details to give yet). In the

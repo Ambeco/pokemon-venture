@@ -63,7 +63,7 @@ LilycoveCity_LilycoveMuseum_2F_OnFrame:
 LilycoveCity_LilycoveMuseum_2F_EventScript_CheckExhibitHall::
 	setvar VAR_TEMP_0, 1
 	setvar VAR_0x8004, 0
-	special GetCurrentSubplotStage
+	special GetCurrentChapterStage
 	goto_if_eq VAR_RESULT, 0, LilycoveCity_LilycoveMuseum_2F_EventScript_ShowExhibitHall
 	end
 
@@ -85,7 +85,7 @@ LilycoveCity_LilycoveMuseum_2F_EventScript_ShowExhibitHall::
 	msgbox LilycoveCity_LilycoveMuseum_2F_Text_PleaseObtainPaintingsForExhibit, MSGBOX_SIGN
 	setvar VAR_0x8004, 0
 	setvar VAR_0x8005, 1
-	special SetCurrentSubplotStage
+	special SetCurrentChapterStage
 	releaseall
 	end
 

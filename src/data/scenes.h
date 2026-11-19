@@ -257,8 +257,8 @@ extern const u8 MossdeepCity_House3_Text_SuperRodIsSuper[];
 extern const u8 MossdeepCity_House3_Text_TryDroppingRodInWater[];
 extern const u8 MossdeepCity_House3_Text_DontYouLikeToFish[];
 
-// The Super Rod fisherman (Mossdeep's subplot, slot 0 of county (5,1)), run from his talk script. It names no
-// actor or tile, so any house can host it. The stage var is the subplot's stored stage; FLAG_RECEIVED_SUPER_ROD
+// The Super Rod fisherman (Mossdeep's chapter, slot 0 of county (5,1)), run from his talk script. It names no
+// actor or tile, so any house can host it. The stage var is the chapter's stored stage; FLAG_RECEIVED_SUPER_ROD
 // stays set for the main-plot adapter. A full bag ends the scene at the give, before the flag and the advance.
 static const struct SceneStep sSuperRodAcceptSteps[] =
 {

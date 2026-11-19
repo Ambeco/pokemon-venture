@@ -639,13 +639,13 @@ gSpecials::
 	def_special UpdateTrainerCardPhotoIcons
 	def_special StickerManGetBragFlags
 	def_special CheckAddCoins
-	def_special GetCurrentSubplotStage
-	def_special SetCurrentSubplotStage
-	def_special ShowCurrentSubplotHint
+	def_special GetCurrentChapterStage
+	def_special SetCurrentChapterStage
+	def_special ShowCurrentChapterHint
 	def_special ShowMainBeatHint
 	def_special IsMainStoryIndexPast
 	def_special ShowPokemonCenterNews
-	def_special IsCurrentSubplotAvailable
+	def_special IsCurrentChapterAvailable
 	def_special ShowGenericNpcTalk
 	def_special SceneBegin
 	def_special SceneNextStep

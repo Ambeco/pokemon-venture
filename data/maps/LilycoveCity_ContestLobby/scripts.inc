@@ -351,7 +351,7 @@ LilycoveCity_ContestLobby_EventScript_SetDebug::
 	setflag FLAG_HIDE_LILYCOVE_MUSEUM_CURATOR
 	setvar VAR_0x8004, 0
 	setvar VAR_0x8005, 1
-	special SetCurrentSubplotStage
+	special SetCurrentChapterStage
 	additem ITEM_CONTEST_PASS
 	setvar VAR_0x800B, 8
 	setvar VAR_CONTEST_RANK, CONTEST_RANK_MASTER

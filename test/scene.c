@@ -15,7 +15,7 @@
 #include "field_player_avatar.h"
 #include "scene.h"
 #include "rival.h"
-#include "subplot.h"
+#include "chapter.h"
 #include "region_county.h"
 #include "script.h"
 #include "string_util.h"
@@ -1091,7 +1091,7 @@ static void StepSuperRodScene(bool32 yes, bool32 received, u32 *givenItem, u32 *
     EXPECT(FALSE); // the scene never ended
 }
 
-TEST("Scene: Mossdeep's Super Rod scene gives the rod on yes, sets the flag and the subplot stage, and says the last line")
+TEST("Scene: Mossdeep's Super Rod scene gives the rod on yes, sets the flag and the chapter stage, and says the last line")
 {
     u32 item, quantity;
 

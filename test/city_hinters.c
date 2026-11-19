@@ -7,7 +7,7 @@
 #include "constants/characters.h"
 #include "plot_stage.h"
 #include "region_tile.h"
-#include "subplot.h"
+#include "chapter.h"
 #include "data.h"
 #include "battle_main.h"
 #include "region_plot.h"
@@ -19,50 +19,50 @@
 TEST("CityHinters: Lilycove holds one hinter per museum stage, close, bound to that stage")
 {
     struct HinterPlacement out[MAX_COUNTY_HINTERS];
-    u32 i, subplot = 0, count = PlanCountyHinters(LILYCOVE, out, ARRAY_COUNT(out));
+    u32 i, chapter = 0, count = PlanCountyHinters(LILYCOVE, out, ARRAY_COUNT(out));
 
     for (i = 0; i < count && i < ARRAY_COUNT(out); i++)
     {
-        if (out[i].kind != HINTER_SUBPLOT)
+        if (out[i].kind != HINTER_CHAPTER)
             continue;
         EXPECT_EQ(out[i].slot, 0);
-        EXPECT_EQ(out[i].beat, subplot);
-        EXPECT_EQ(out[i].distance, SUBPLOT_CLOSE);
+        EXPECT_EQ(out[i].beat, chapter);
+        EXPECT_EQ(out[i].distance, CHAPTER_CLOSE);
         EXPECT_EQ(out[i].targetCounty, LILYCOVE);
-        subplot++;
+        chapter++;
     }
-    EXPECT_EQ(subplot, 2);
+    EXPECT_EQ(chapter, 2);
 }
 
-// LilycoveCity_EventScript_Man3 and _RichBoy call `subplot_hinter 0, 0, 0` and `subplot_hinter 0, 1, 1`.
+// LilycoveCity_EventScript_Man3 and _RichBoy call `chapter_hinter 0, 0, 0` and `chapter_hinter 0, 1, 1`.
 TEST("CityHinters: Lilycove's hinter NPCs are bound with the slot, beat and selector the planner gives")
 {
     struct HinterPlacement out[MAX_COUNTY_HINTERS];
     u32 count = PlanCountyHinters(LILYCOVE, out, ARRAY_COUNT(out));
 
     ASSUME(count >= 2);
-    EXPECT_EQ(out[0].kind, HINTER_SUBPLOT);
+    EXPECT_EQ(out[0].kind, HINTER_CHAPTER);
     EXPECT_EQ(out[0].slot, 0);
     EXPECT_EQ(out[0].beat, 0);
     EXPECT_EQ(out[0].selector, 0);
-    EXPECT_EQ(out[1].kind, HINTER_SUBPLOT);
+    EXPECT_EQ(out[1].kind, HINTER_CHAPTER);
     EXPECT_EQ(out[1].slot, 0);
     EXPECT_EQ(out[1].beat, 1);
     EXPECT_EQ(out[1].selector, 1);
 }
 
-// RustboroCity_EventScript_Woman and _Twin call `subplot_hinter 0, 0, 0` and `subplot_hinter 0, 1, 1`.
+// RustboroCity_EventScript_Woman and _Twin call `chapter_hinter 0, 0, 0` and `chapter_hinter 0, 1, 1`.
 TEST("CityHinters: Rustboro's hinter NPCs are bound with the slot, beat and selector the planner gives")
 {
     struct HinterPlacement out[MAX_COUNTY_HINTERS];
     u32 count = PlanCountyHinters(COUNTY_ID(0, 1), out, ARRAY_COUNT(out));
 
     ASSUME(count >= 2);
-    EXPECT_EQ(out[0].kind, HINTER_SUBPLOT);
+    EXPECT_EQ(out[0].kind, HINTER_CHAPTER);
     EXPECT_EQ(out[0].slot, 0);
     EXPECT_EQ(out[0].beat, 0);
     EXPECT_EQ(out[0].selector, 0);
-    EXPECT_EQ(out[1].kind, HINTER_SUBPLOT);
+    EXPECT_EQ(out[1].kind, HINTER_CHAPTER);
     EXPECT_EQ(out[1].slot, 0);
     EXPECT_EQ(out[1].beat, 1);
     EXPECT_EQ(out[1].selector, 1);
@@ -144,7 +144,7 @@ TEST("CityHinters: Main hinters point at the next beat; far unless that beat is 
             EXPECT_EQ(out[i].beat, GetNextMainBeat(out[i].slot));
             EXPECT(GetMainBeatHost(out[i].beat, &host));
             EXPECT_EQ(out[i].targetCounty, host);
-            EXPECT_EQ(out[i].distance, host == county ? SUBPLOT_CLOSE : SUBPLOT_FAR);
+            EXPECT_EQ(out[i].distance, host == county ? CHAPTER_CLOSE : CHAPTER_FAR);
         }
     }
     EXPECT(mainCount > 0);
@@ -179,11 +179,11 @@ TEST("CityHinters: News away from the host is the far main-beat hint; in the hos
     ASSUME(index < MAIN_STORY_INDEX_POSTGAME);
     other = (host + 1) % NUM_COUNTIES;
     EXPECT(WritePokemonCenterNews(sNews, index, other));
-    WriteMainBeatHint(sExpect, index, SUBPLOT_FAR);
+    WriteMainBeatHint(sExpect, index, CHAPTER_FAR);
     EXPECT_EQ(StringCompare(sNews, sExpect), 0);
-    // Emerald hosts no subplot that produces a main get, so the host county falls back to the close hint.
+    // Emerald hosts no chapter that produces a main get, so the host county falls back to the close hint.
     EXPECT(WritePokemonCenterNews(sNews, index, host));
-    WriteMainBeatHint(sExpect, index, SUBPLOT_CLOSE);
+    WriteMainBeatHint(sExpect, index, CHAPTER_CLOSE);
     EXPECT_EQ(StringCompare(sNews, sExpect), 0);
 }
 
@@ -254,9 +254,9 @@ TEST("CityHinters: Every line of the news and of the main-beat hints fits the me
 
         if (!GetMainBeatHost(index, &host) || !DoesCountyHaveCity(host))
             continue;
-        WriteMainBeatHint(sText, index, SUBPLOT_FAR);
+        WriteMainBeatHint(sText, index, CHAPTER_FAR);
         EXPECT_LE(GetWidestLineWidth(sText), 208);
-        WriteMainBeatHint(sText, index, SUBPLOT_CLOSE);
+        WriteMainBeatHint(sText, index, CHAPTER_CLOSE);
         EXPECT_LE(GetWidestLineWidth(sText), 208);
     }
 }
@@ -273,7 +273,7 @@ static void ExpectHintFits(const u8 *text, u32 county, const struct BeatAnchor *
     EXPECT_LE(GetWidestLineWidth(sExpanded), 208);
 }
 
-static void ExpectListFits(const struct SubplotTextList *list, u32 county, const struct BeatAnchor *anchor)
+static void ExpectListFits(const struct ChapterTextList *list, u32 county, const struct BeatAnchor *anchor)
 {
     u32 i;
 
@@ -281,15 +281,15 @@ static void ExpectListFits(const struct SubplotTextList *list, u32 county, const
         ExpectHintFits(list->texts[i], county, anchor);
 }
 
-TEST("CityHinters: Every line of every subplot hint, with its anchor expanded, fits the message box")
+TEST("CityHinters: Every line of every chapter hint, with its anchor expanded, fits the message box")
 {
     u32 county, slot, stage, hint;
 
     for (county = 0; county < NUM_COUNTIES; county++)
     {
-        for (slot = 0; slot < SUBPLOTS_PER_COUNTY; slot++)
+        for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
         {
-            const struct SubplotDesc *desc = GetCountySubplot(county, slot);
+            const struct ChapterDesc *desc = GetCountyChapter(county, slot);
 
             if (desc == NULL)
                 continue;
@@ -359,24 +359,24 @@ TEST("CityHinters: Postgame and host-less news is generic, fixed per county")
     }
 }
 
-TEST("CityHinters: A subplot counts as producing only the planner item it names")
+TEST("CityHinters: A chapter counts as producing only the planner item it names")
 {
-    struct SubplotDesc desc = {.producesMainGet = TRUE, .mainGet = {PLOT_KIND_ARC, 3}};
-    struct SubplotDesc none = {0};
+    struct ChapterDesc desc = {.producesMainGet = TRUE, .mainGet = {PLOT_KIND_ARC, 3}};
+    struct ChapterDesc none = {0};
 
-    EXPECT(DoesSubplotProduce(&desc, PLOT_KIND_ARC, 3));
-    EXPECT(!DoesSubplotProduce(&desc, PLOT_KIND_ARC, 4));
-    EXPECT(!DoesSubplotProduce(&desc, PLOT_KIND_RIVAL, 3));
-    EXPECT(!DoesSubplotProduce(&none, PLOT_KIND_GYM, 0));
+    EXPECT(DoesChapterProduce(&desc, PLOT_KIND_ARC, 3));
+    EXPECT(!DoesChapterProduce(&desc, PLOT_KIND_ARC, 4));
+    EXPECT(!DoesChapterProduce(&desc, PLOT_KIND_RIVAL, 3));
+    EXPECT(!DoesChapterProduce(&none, PLOT_KIND_GYM, 0));
 }
 
-TEST("CityHinters: Subplot news is the current close hint of the stage, and a missing subplot has none")
+TEST("CityHinters: Chapter news is the current close hint of the stage, and a missing chapter has none")
 {
     static EWRAM_DATA u8 sNews[300];
 
-    EXPECT(WriteSubplotNews(sNews, LILYCOVE, 0));
+    EXPECT(WriteChapterNews(sNews, LILYCOVE, 0));
     EXPECT(sNews[0] != EOS);
-    EXPECT(!WriteSubplotNews(sNews, LILYCOVE, 2));
+    EXPECT(!WriteChapterNews(sNews, LILYCOVE, 2));
 }
 
 TEST("CityHinters: The first undone blocking get is an item of the list, and a step-3 list names none")
@@ -424,10 +424,10 @@ TEST("CityHinters: Every main beat has a hint with its host city, far and close"
 
         if (!GetMainBeatHost(index, &host) || !DoesCountyHaveCity(host))
             continue;
-        end = WriteMainBeatHint(sBuf, index, SUBPLOT_FAR);
+        end = WriteMainBeatHint(sBuf, index, CHAPTER_FAR);
         EXPECT(end > sBuf && end - sBuf < 240);
         EXPECT(sBuf[0] != EOS);
-        end = WriteMainBeatHint(sBuf, index, SUBPLOT_CLOSE);
+        end = WriteMainBeatHint(sBuf, index, CHAPTER_CLOSE);
         EXPECT(end > sBuf);
         checked++;
     }
@@ -445,8 +445,8 @@ TEST("CityHinters: Far and close main-beat hints open differently and name the c
             break;
     }
     ASSUME(index < NUM_COUNTIES * 4);
-    WriteMainBeatHint(sFar, index, SUBPLOT_FAR);
-    WriteMainBeatHint(sClose, index, SUBPLOT_CLOSE);
+    WriteMainBeatHint(sFar, index, CHAPTER_FAR);
+    WriteMainBeatHint(sClose, index, CHAPTER_CLOSE);
     EXPECT(StringCompare(sFar, sClose) != 0);
     EXPECT(StringLength(sFar) > StringLength(GetCountyCityName(host)));
 }
@@ -480,7 +480,7 @@ TEST("CityHinters: A gym main-beat hint names the leader, the type and the HM it
         if (items[0].kind != PLOT_KIND_GYM || items[0].hmOnly)
             continue;
         county = GetGymCounty(items[0].ordinal);
-        WriteMainBeatHint(sText, index, SUBPLOT_FAR);
+        WriteMainBeatHint(sText, index, CHAPTER_FAR);
         // Single words only: the line breaker may turn any space into a newline.
         if (GetCountyGymType(county) != TYPE_NONE)
         {
@@ -511,7 +511,7 @@ TEST("CityHinters: A non-gym main-beat hint carries no gym detail")
         ResolveVanillaPlotList(index, items, ARRAY_COUNT(items));
         if (items[0].kind == PLOT_KIND_GYM)
             continue;
-        WriteMainBeatHint(sText, index, SUBPLOT_FAR);
+        WriteMainBeatHint(sText, index, CHAPTER_FAR);
         EXPECT(!ContainsString(sText, COMPOUND_STRING("leader,")));
         EXPECT(!ContainsString(sText, COMPOUND_STRING("earns")));
     }

@@ -16,7 +16,7 @@
 #include "region_county.h"
 #include "region_tile.h"
 #include "string_util.h"
-#include "subplot.h"
+#include "chapter.h"
 #include "text.h"
 
 #define LILYCOVE COUNTY_ID(4, 0)

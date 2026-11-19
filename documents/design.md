@@ -11,7 +11,7 @@ The goal of the region generation below is a game region map with cities, routes
 ## Vocabulary
 
 - Scene: one cutscene or interaction beat (`design_scenes.md`).
-- Chapter: an immutable, unsplittable sequence of scenes, usually tied to a special location or a small story. It is the unit that is placed, shuffled and hosted. A chapter has stages, and its code type is still named `SubplotDesc` (see `remaining_work.md`).
+- Chapter: an immutable, unsplittable sequence of scenes, usually tied to a special location or a small story. It is the unit that is placed, shuffled and hosted. A chapter has stages (code: `ChapterDesc`).
 - Subplot: an ordered sequence of related chapters that tells one story and interleaves with other subplots. The main story is the cross-county plot; a county's chain is the sequence of chapters it assigns to its main-story slots.
 - Example: most of the tutorial up to and including the Zigzagoon fight is one chapter in block 0 of the main plot. The second tutorial chapter starts with talking to the professor and ends when he gives the Pokédex; it is hardcoded in main-story block 1, slot 1 (the callback to Littleroot). Oldale needs no tutorial chapter of its own, but the chapters in main-story block 1, slot 0 must be completable with only the starter, since the player has no Poké Balls yet. Vanilla Emerald has just the one chapter "battle May", after which the main plot advances to block 1, slot 1.
 
@@ -41,7 +41,7 @@ Detail lives in topic files; this file keeps the principles, the development ord
 | `design_data.md` | How region data is stored and read: determinism and seeds, county headers, region tiles, city data, the region dump, multiple regions. |
 | `design_pokemon.md` | Everything about Pokémon and battle: biome type affinity, the species-to-biome mapping, species metadata, route encounter selection, trainer teams and levels, experience, catch-rate floor, legendaries and starters, move pools, shops and trading, type-recolored sprites, type icons, battle damage estimates, the team analyzer, gym guide advice. |
 | `design_story.md` | The main story: arcs, arc progression, the main plot planner (steps, items, unlock gating, Surf, McGuffin kinds, the soft-lock proof's inputs), story state storage, McGuffins, the story graph and the soft-lock argument. |
-| `design_chapters.md` | Chapters (and the subplots built from them) as data: scope and buckets, placement and requirements, the descriptor/accessor/adapter interfaces, text references, rules from paper tests, building roles and NPC spawning, county planning, plot kinds, the county chain. |
+| `design_chapters.md` | Chapters (and the chapters built from them) as data: scope and buckets, placement and requirements, the descriptor/accessor/adapter interfaces, text references, rules from paper tests, building roles and NPC spawning, county planning, plot kinds, the county chain. |
 | `design_scenes.md` | Actor placement and budgets, and the scene runner: triggers, the step vocabulary, the worked Route 101 example. |
 | `design_city_npcs.md` | City planning steps, hinter NPCs, hint texts and beat anchors, main-beat hints, route blockers, Pokémon Center news, generic NPC dialogue. |
 | `design_dev.md` | The base codebase, config choices that shape the design, story mode, and the end-to-end test tier. |

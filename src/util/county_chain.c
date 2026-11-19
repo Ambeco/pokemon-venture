@@ -4,7 +4,7 @@
 #include "county_chain.h"
 #include "region_county.h"
 #include "event_data.h"
-#include "subplot.h"
+#include "chapter.h"
 
 static void AssertChainValid(const struct CountyChainEntry *chain, u32 numEntries)
 {
@@ -12,7 +12,7 @@ static void AssertChainValid(const struct CountyChainEntry *chain, u32 numEntrie
 
     for (i = 0; i < numEntries; i++)
     {
-        assertf(chain[i].numStages >= 1, "chain entry %d (subplot slot %d) has no stages; did you mean to leave the subplot out of the chain?", i, chain[i].subplotSlot)
+        assertf(chain[i].numStages >= 1, "chain entry %d (chapter slot %d) has no stages; did you mean to leave the chapter out of the chain?", i, chain[i].chapterSlot)
         {
             return;
         }

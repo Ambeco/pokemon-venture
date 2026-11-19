@@ -10,13 +10,13 @@ RustboroCity_DevonCorp_2F_OnTransition:
 @ Receiving the Pokémon returns it to 0, so the other fossil can be revived next.
 RustboroCity_DevonCorp_2F_EventScript_GetFossilStage::
 	setvar VAR_0x8004, 1
-	special GetCurrentSubplotStage
+	special GetCurrentChapterStage
 	return
 
 @ VAR_0x8005 = new stage
 RustboroCity_DevonCorp_2F_EventScript_SetFossilStage::
 	setvar VAR_0x8004, 1
-	special SetCurrentSubplotStage
+	special SetCurrentChapterStage
 	return
 
 RustboroCity_DevonCorp_2F_EventScript_SetFossilReady::

@@ -18,7 +18,7 @@
 #include "constants/identity_salts.h"
 #include "region_map.h"
 #include "region_tile.h"
-#include "subplot.h"
+#include "chapter.h"
 
 #define NUM_MAIN_INDICES (NUM_COUNTIES * 4)
 
@@ -128,15 +128,15 @@ u32 PlanCountyHinters(u32 countyId, struct HinterPlacement *out, u32 maxOut)
     u32 total = 0, slot, stage, i, index, next, host;
 
     InitRoom(&room, countyId);
-    for (slot = 0; slot < SUBPLOTS_PER_COUNTY; slot++)
+    for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
     {
-        const struct SubplotDesc *desc = GetCountySubplot(countyId, slot);
+        const struct ChapterDesc *desc = GetCountyChapter(countyId, slot);
 
         if (desc == NULL)
             continue;
         for (stage = 0; stage < desc->numStages; stage++)
         {
-            const struct SubplotStage *s = &desc->stages[stage];
+            const struct ChapterStage *s = &desc->stages[stage];
 
             assertf(s->hinterRoles == 0 || (s->hinterRoles & ~0x7FFF) == 0, "county %d slot %d stage %d: hinterRoles 0x%x has bits that are no BuildingRole", countyId, slot, stage, s->hinterRoles)
             {
@@ -144,7 +144,7 @@ u32 PlanCountyHinters(u32 countyId, struct HinterPlacement *out, u32 maxOut)
             }
             for (i = 0; i < s->numHinters; i++)
             {
-                struct HinterPlacement rec = {HINTER_SUBPLOT, slot, stage, GetBeatDistance(countyId, &s->anchor, countyId), 0, countyId, 0};
+                struct HinterPlacement rec = {HINTER_CHAPTER, slot, stage, GetBeatDistance(countyId, &s->anchor, countyId), 0, countyId, 0};
 
                 if (!AddHinter(out, maxOut, &total, &room, countyId, s->hinterRoles, rec))
                     return total;
@@ -160,7 +160,7 @@ u32 PlanCountyHinters(u32 countyId, struct HinterPlacement *out, u32 maxOut)
             continue; // the last beat has nothing left to hint at
         GetMainBeatHost(next, &host);
         {
-            struct HinterPlacement rec = {HINTER_MAIN, index, next, host == countyId ? SUBPLOT_CLOSE : SUBPLOT_FAR, 0, host, 0};
+            struct HinterPlacement rec = {HINTER_MAIN, index, next, host == countyId ? CHAPTER_CLOSE : CHAPTER_FAR, 0, host, 0};
 
             if (!AddHinter(out, maxOut, &total, &room, countyId, 0, rec))
                 return total;
@@ -283,7 +283,7 @@ u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance)
         }
         phrase = &sMainBeatPhrases[items[0].kind];
     }
-    dst = StringCopy(dst, distance == SUBPLOT_CLOSE ? sCloseOpening : sFarOpening);
+    dst = StringCopy(dst, distance == CHAPTER_CLOSE ? sCloseOpening : sFarOpening);
     dst = StringCopy(dst, phrase->lead);
     dst = WriteBeatAnchorReference(dst, host, &anchor);
     dst = StringCopy(dst, phrase->tail);
@@ -294,33 +294,33 @@ u8 *WriteMainBeatHint(u8 *dst, u32 index, u32 distance)
     return dst;
 }
 
-bool32 WriteSubplotNews(u8 *dst, u32 county, u32 slot)
+bool32 WriteChapterNews(u8 *dst, u32 county, u32 slot)
 {
-    const struct SubplotDesc *desc = GetCountySubplot(county, slot);
+    const struct ChapterDesc *desc = GetCountyChapter(county, slot);
     u32 stage;
     const u8 *text;
 
     if (desc == NULL)
         return FALSE;
-    stage = GetSubplotStage(county, slot, desc);
-    text = GetCountySlotHint(county, slot, SUBPLOT_CLOSE, 0);
+    stage = GetChapterStage(county, slot, desc);
+    text = GetCountySlotHint(county, slot, CHAPTER_CLOSE, 0);
     if (text == NULL)
         return FALSE;
-    BufferSubplotHintCount(desc, stage);
+    BufferChapterHintCount(desc, stage);
     ExpandHintTemplate(dst, text, county, &desc->stages[stage].anchor);
     BreakStringForFieldMessage(dst); // a template without manual breaks would overflow the box
     return TRUE;
 }
 
-static bool32 FindProducingSubplot(u32 county, const struct PlotSlot *item, u32 *slot)
+static bool32 FindProducingChapter(u32 county, const struct PlotSlot *item, u32 *slot)
 {
     u32 s;
 
-    for (s = 0; s < SUBPLOTS_PER_COUNTY; s++)
+    for (s = 0; s < CHAPTERS_PER_COUNTY; s++)
     {
-        const struct SubplotDesc *desc = GetCountySubplot(county, s);
+        const struct ChapterDesc *desc = GetCountyChapter(county, s);
 
-        if (desc != NULL && DoesSubplotProduce(desc, item->kind, item->ordinal))
+        if (desc != NULL && DoesChapterProduce(desc, item->kind, item->ordinal))
         {
             *slot = s;
             return TRUE;
@@ -404,12 +404,12 @@ bool32 WritePokemonCenterNews(u8 *dst, u32 mainIndex, u32 playerCounty)
     }
     if (host != playerCounty)
     {
-        WriteMainBeatHint(dst, mainIndex, SUBPLOT_FAR);
+        WriteMainBeatHint(dst, mainIndex, CHAPTER_FAR);
         return TRUE;
     }
-    if (GetFirstUndonePlotSlot(mainIndex, &item) && FindProducingSubplot(host, &item, &slot) && WriteSubplotNews(dst, host, slot))
+    if (GetFirstUndonePlotSlot(mainIndex, &item) && FindProducingChapter(host, &item, &slot) && WriteChapterNews(dst, host, slot))
         return TRUE;
-    WriteMainBeatHint(dst, mainIndex, SUBPLOT_CLOSE);
+    WriteMainBeatHint(dst, mainIndex, CHAPTER_CLOSE);
     return TRUE;
 }
 
@@ -432,6 +432,6 @@ void ShowMainBeatHint(void)
         return;
     if (!GetMainBeatHost(own, &hinterHost) || !GetMainBeatHost(target, &host))
         return;
-    WriteMainBeatHint(gStringVar4, target, host == hinterHost ? SUBPLOT_CLOSE : SUBPLOT_FAR);
+    WriteMainBeatHint(gStringVar4, target, host == hinterHost ? CHAPTER_CLOSE : CHAPTER_FAR);
     gSpecialVar_Result = TRUE;
 }

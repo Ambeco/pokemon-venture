@@ -10,7 +10,7 @@ RustboroCity_CuttersHouse_EventScript_Cutter::
 	setflag FLAG_RECEIVED_HM_CUT
 	setvar VAR_0x8004, 0
 	setvar VAR_0x8005, 1
-	special SetCurrentSubplotStage
+	special SetCurrentChapterStage
 	msgbox RustboroCity_CuttersHouse_Text_ExplainCut, MSGBOX_DEFAULT
 	release
 	end

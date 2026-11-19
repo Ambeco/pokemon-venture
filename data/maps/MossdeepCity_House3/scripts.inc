@@ -6,7 +6,7 @@ MossdeepCity_House3_EventScript_SuperRodFisherman::
 	lock
 	faceplayer
 	setvar VAR_0x8004, 0
-	special GetCurrentSubplotStage
+	special GetCurrentChapterStage
 	goto_if_eq VAR_RESULT, 1, MossdeepCity_House3_EventScript_ReceivedSuperRod
 	setvar VAR_0x8004, SCENE_MOSSDEEP_SUPER_ROD
 	call Scene_EventScript_Run

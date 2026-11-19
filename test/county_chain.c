@@ -3,9 +3,9 @@
 #include "constants/vars.h"
 #include "county_chain.h"
 #include "event_data.h"
-#include "subplot.h"
+#include "chapter.h"
 
-// design_subplots.md's "County chain" worked example: slot 0 is Nugget Bridge (1), Copycat Girl (1) and the Rocket hideout (3);
+// design_chapters.md's "County chain" worked example: slot 0 is Nugget Bridge (1), Copycat Girl (1) and the Rocket hideout (3);
 // slot 1 is a callback hosted by another county, so it has no entries; slot 2 is two stages, slot 3 one.
 static const struct CountyChainEntry sChain[] =
 {

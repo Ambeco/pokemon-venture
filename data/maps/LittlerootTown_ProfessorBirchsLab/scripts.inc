@@ -12,7 +12,7 @@ LittlerootTown_ProfessorBirchsLab_MapScripts::
 	@ 5: Birch told player to choose Johto starter
 	@ 6: Chose Johto starter
 
-	@ State descriptions for VAR_BIRCH_LAB_STATE (2-3 were the end of the Save Birch subplot: VAR_SAVE_BIRCH_BEAT)
+	@ State descriptions for VAR_BIRCH_LAB_STATE (2-3 were the end of the Save Birch chapter: VAR_SAVE_BIRCH_BEAT)
 	@ 4: Defeated rival on Route 103
 	@ 5: Received pokedex
 

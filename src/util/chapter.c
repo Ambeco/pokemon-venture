@@ -11,7 +11,7 @@
 #include "region_county.h"
 #include "region_tile.h"
 #include "string_util.h"
-#include "subplot.h"
+#include "chapter.h"
 
 static const u8 gText_Lilycove_Exhibit0FarCurrent[] = _("I heard the new exhibit hall at the MUSEUM in {HINT_CITY} is about to open.");
 static const u8 gText_Lilycove_Exhibit0FarAfter0[] = _("The MUSEUM in {HINT_CITY} finally opened its new exhibit hall, I heard.");
@@ -129,26 +129,26 @@ static const u8 *const sMossdeepStage0Close[] = {gText_Mossdeep_Rod0CloseCurrent
 static const u8 *const sMossdeepStage1Far[] = {gText_Mossdeep_Rod1FarCurrent, gText_Mossdeep_Rod0FarAfter0, gText_Mossdeep_Rod0FarAfter1};
 static const u8 *const sMossdeepStage1Close[] = {gText_Mossdeep_Rod1CloseCurrent, gText_Mossdeep_Rod0CloseAfter};
 
-#include "data/region/emerald_subplots.h"
+#include "data/region/emerald_chapters.h"
 
-const struct SubplotHost *GetSubplotHosts(u32 *numHosts)
+const struct ChapterHost *GetChapterHosts(u32 *numHosts)
 {
-    *numHosts = ARRAY_COUNT(sEmeraldSubplotHosts);
-    return sEmeraldSubplotHosts;
+    *numHosts = ARRAY_COUNT(sEmeraldChapterHosts);
+    return sEmeraldChapterHosts;
 }
 
-const struct SubplotDesc *GetCountySubplot(u32 countyId, u32 slot)
+const struct ChapterDesc *GetCountyChapter(u32 countyId, u32 slot)
 {
     u32 i;
 
-    assertf(slot < SUBPLOTS_PER_COUNTY, "subplot slot %d >= %d; var 0 of a county slice is its chain position", slot, SUBPLOTS_PER_COUNTY)
+    assertf(slot < CHAPTERS_PER_COUNTY, "chapter slot %d >= %d; var 0 of a county slice is its chain position", slot, CHAPTERS_PER_COUNTY)
     {
         return NULL;
     }
-    for (i = 0; i < ARRAY_COUNT(sEmeraldSubplotHosts); i++)
+    for (i = 0; i < ARRAY_COUNT(sEmeraldChapterHosts); i++)
     {
-        if (sEmeraldSubplotHosts[i].county == countyId && sEmeraldSubplotHosts[i].slot == slot)
-            return sEmeraldSubplotHosts[i].desc;
+        if (sEmeraldChapterHosts[i].county == countyId && sEmeraldChapterHosts[i].slot == slot)
+            return sEmeraldChapterHosts[i].desc;
     }
     return NULL;
 }
@@ -161,25 +161,25 @@ u16 GetCountySlotVar(u32 countyId, u32 slot)
     {
         return 0;
     }
-    assertf(slot < SUBPLOTS_PER_COUNTY, "subplot slot %d >= %d", slot, SUBPLOTS_PER_COUNTY)
+    assertf(slot < CHAPTERS_PER_COUNTY, "chapter slot %d >= %d", slot, CHAPTERS_PER_COUNTY)
     {
         return 0;
     }
     return COUNTY_VARS_START + slice * VARS_PER_COUNTY + 1 + slot;
 }
 
-u32 GetSubplotStage(u32 countyId, u32 slot, const struct SubplotDesc *desc)
+u32 GetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc)
 {
     u32 stage;
 
-    assertf(desc != NULL, "county %d hosts no subplot in slot %d", countyId, slot)
+    assertf(desc != NULL, "county %d hosts no chapter in slot %d", countyId, slot)
     {
         return 0;
     }
-    if (desc->backend == SUBPLOT_STORED)
+    if (desc->backend == CHAPTER_STORED)
     {
         stage = VarGet(GetCountySlotVar(countyId, slot));
-        assertf(stage < desc->numStages, "county %d slot %d holds stage %d but the subplot has %d", countyId, slot, stage, desc->numStages)
+        assertf(stage < desc->numStages, "county %d slot %d holds stage %d but the chapter has %d", countyId, slot, stage, desc->numStages)
         {
             return 0;
         }
@@ -193,13 +193,13 @@ u32 GetSubplotStage(u32 countyId, u32 slot, const struct SubplotDesc *desc)
     return 0;
 }
 
-void SetSubplotStage(u32 countyId, u32 slot, const struct SubplotDesc *desc, u32 stage)
+void SetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc, u32 stage)
 {
-    assertf(desc != NULL, "county %d hosts no subplot in slot %d", countyId, slot)
+    assertf(desc != NULL, "county %d hosts no chapter in slot %d", countyId, slot)
     {
         return;
     }
-    assertf(desc->backend == SUBPLOT_STORED, "county %d slot %d is an adapter subplot, which is read-only; did you mean to port it to the stored backend?", countyId, slot)
+    assertf(desc->backend == CHAPTER_STORED, "county %d slot %d is an adapter chapter, which is read-only; did you mean to port it to the stored backend?", countyId, slot)
     {
         return;
     }
@@ -212,54 +212,54 @@ void SetSubplotStage(u32 countyId, u32 slot, const struct SubplotDesc *desc, u32
 
 u32 GetCountySlotStage(u32 countyId, u32 slot)
 {
-    return GetSubplotStage(countyId, slot, GetCountySubplot(countyId, slot));
+    return GetChapterStage(countyId, slot, GetCountyChapter(countyId, slot));
 }
 
 void SetCountySlotStage(u32 countyId, u32 slot, u32 stage)
 {
-    SetSubplotStage(countyId, slot, GetCountySubplot(countyId, slot), stage);
+    SetChapterStage(countyId, slot, GetCountyChapter(countyId, slot), stage);
 }
 
 // Position on the line BEFORE, 0, 1, ..., AFTER, so ranges can end at a pseudo-stage.
 static u32 StageRank(u32 stage)
 {
-    if (stage == SUBPLOT_STAGE_BEFORE)
+    if (stage == CHAPTER_STAGE_BEFORE)
         return 0;
-    return stage == SUBPLOT_STAGE_AFTER ? 0x200 : stage + 1;
+    return stage == CHAPTER_STAGE_AFTER ? 0x200 : stage + 1;
 }
 
-bool32 DoesSubplotHintCover(const struct SubplotHint *hint, u32 subplotStage)
+bool32 DoesChapterHintCover(const struct ChapterHint *hint, u32 chapterStage)
 {
-    u32 rank = StageRank(subplotStage);
+    u32 rank = StageRank(chapterStage);
 
     return StageRank(hint->firstStage) <= rank && rank <= StageRank(hint->lastStage);
 }
 
-const struct SubplotHint *FindSubplotHint(const struct SubplotDesc *desc, u32 subplotStage)
+const struct ChapterHint *FindChapterHint(const struct ChapterDesc *desc, u32 chapterStage)
 {
     u32 i;
 
     for (i = 0; i < desc->numHints; i++)
     {
-        if (DoesSubplotHintCover(&desc->hints[i], subplotStage))
+        if (DoesChapterHintCover(&desc->hints[i], chapterStage))
             return &desc->hints[i];
     }
     return NULL;
 }
 
-const u8 *GetSubplotHint(const struct SubplotDesc *desc, u32 subplotStage, u32 distance, u32 selector)
+const u8 *GetChapterHint(const struct ChapterDesc *desc, u32 chapterStage, u32 distance, u32 selector)
 {
-    const struct SubplotHint *hint;
-    const struct SubplotTextList *list;
+    const struct ChapterHint *hint;
+    const struct ChapterTextList *list;
 
-    assertf(desc != NULL, "no subplot to hint about")
+    assertf(desc != NULL, "no chapter to hint about")
     {
         return NULL;
     }
-    hint = FindSubplotHint(desc, subplotStage);
+    hint = FindChapterHint(desc, chapterStage);
     if (hint == NULL)
         return NULL;
-    list = distance == SUBPLOT_FAR ? &hint->far : &hint->close;
+    list = distance == CHAPTER_FAR ? &hint->far : &hint->close;
     if (list->count == 0)
         return NULL;
     return list->texts[selector % list->count];
@@ -267,21 +267,21 @@ const u8 *GetSubplotHint(const struct SubplotDesc *desc, u32 subplotStage, u32 d
 
 const u8 *GetCountySlotHint(u32 countyId, u32 slot, u32 distance, u32 selector)
 {
-    const struct SubplotDesc *desc = GetCountySubplot(countyId, slot);
+    const struct ChapterDesc *desc = GetCountyChapter(countyId, slot);
 
-    return GetSubplotHint(desc, GetSubplotStage(countyId, slot, desc), distance, selector);
+    return GetChapterHint(desc, GetChapterStage(countyId, slot, desc), distance, selector);
 }
 
-bool32 DoesSubplotProduce(const struct SubplotDesc *desc, u32 kind, u32 ordinal)
+bool32 DoesChapterProduce(const struct ChapterDesc *desc, u32 kind, u32 ordinal)
 {
     return desc->producesMainGet && desc->mainGet.kind == kind && desc->mainGet.ordinal == ordinal;
 }
 
-u32 GetSubplotActors(const struct SubplotDesc *desc, u32 stage, const struct SubplotActor **out, u32 maxOut)
+u32 GetChapterActors(const struct ChapterDesc *desc, u32 stage, const struct ChapterActor **out, u32 maxOut)
 {
     u32 i, total = 0;
 
-    assertf(desc != NULL, "no subplot to list actors for")
+    assertf(desc != NULL, "no chapter to list actors for")
     {
         return 0;
     }
@@ -305,73 +305,73 @@ u32 GetCountyFromCityMapSec(u32 mapSec)
         if (DoesCountyHaveCity(county) && GetCountyCityMapSec(county) == mapSec)
             return county;
     }
-    assertf(FALSE, "MAPSEC %d is no county's city; only a city can host subplots for now", mapSec)
+    assertf(FALSE, "MAPSEC %d is no county's city; only a city can host chapters for now", mapSec)
     {
         return 0;
     }
     return 0;
 }
 
-u32 ResolveSubplotKey(const struct SubplotKeyRef *ref, u32 hostCounty)
+u32 ResolveChapterKey(const struct ChapterKeyRef *ref, u32 hostCounty)
 {
     switch (ref->type)
     {
-    case SUBPLOT_KEY_NONE:
+    case CHAPTER_KEY_NONE:
         return MCGUFFIN_ID_NONE;
-    case SUBPLOT_KEY_HOST_POOL:
+    case CHAPTER_KEY_HOST_POOL:
         return GetCountyMcGuffinId(hostCounty, ref->a);
-    case SUBPLOT_KEY_ITEM:
+    case CHAPTER_KEY_ITEM:
         return GetPlotItemMcGuffinId(ref->a, ref->b);
     }
-    assertf(FALSE, "unknown SubplotKeyType %d; did you mean to add a case to ResolveSubplotKey?", ref->type)
+    assertf(FALSE, "unknown ChapterKeyType %d; did you mean to add a case to ResolveChapterKey?", ref->type)
     {
         return MCGUFFIN_ID_NONE;
     }
     return MCGUFFIN_ID_NONE;
 }
 
-u32 ResolveHintStage(const struct SubplotDesc *desc, u32 stage)
+u32 ResolveHintStage(const struct ChapterDesc *desc, u32 stage)
 {
-    if (stage == SUBPLOT_STAGE_BEFORE)
+    if (stage == CHAPTER_STAGE_BEFORE)
         return 0;
-    if (stage == SUBPLOT_STAGE_AFTER)
+    if (stage == CHAPTER_STAGE_AFTER)
         return desc->numStages - 1;
     return stage;
 }
 
-u32 GetSubplotHintCount(const struct SubplotDesc *desc, u32 beat, u32 badgesHeld)
+u32 GetChapterHintCount(const struct ChapterDesc *desc, u32 beat, u32 badgesHeld)
 {
     beat = ResolveHintStage(desc, beat);
-    assertf(beat < desc->numStages, "no subplot stage %d", beat)
+    assertf(beat < desc->numStages, "no chapter stage %d", beat)
     {
         return 0;
     }
     switch (desc->stages[beat].hintCount)
     {
-    case SUBPLOT_COUNT_NONE:
+    case CHAPTER_COUNT_NONE:
         return 0;
-    case SUBPLOT_COUNT_BADGES_SHORT:
+    case CHAPTER_COUNT_BADGES_SHORT:
         return desc->minBadges > badgesHeld ? desc->minBadges - badgesHeld : 0;
     }
-    assertf(FALSE, "unknown SubplotHintCount %d; did you mean to add a case to GetSubplotHintCount?", desc->stages[beat].hintCount)
+    assertf(FALSE, "unknown ChapterHintCount %d; did you mean to add a case to GetChapterHintCount?", desc->stages[beat].hintCount)
     {
         return 0;
     }
     return 0;
 }
 
-void BufferSubplotHintCount(const struct SubplotDesc *desc, u32 beat)
+void BufferChapterHintCount(const struct ChapterDesc *desc, u32 beat)
 {
     beat = ResolveHintStage(desc, beat);
-    assertf(beat < desc->numStages, "no subplot stage %d", beat)
+    assertf(beat < desc->numStages, "no chapter stage %d", beat)
     {
         return;
     }
-    if (desc->stages[beat].hintCount != SUBPLOT_COUNT_NONE)
-        ConvertIntToDecimalStringN(gStringVar1, GetSubplotHintCount(desc, beat, GetBadgeCount()), STR_CONV_MODE_LEFT_ALIGN, 3);
+    if (desc->stages[beat].hintCount != CHAPTER_COUNT_NONE)
+        ConvertIntToDecimalStringN(gStringVar1, GetChapterHintCount(desc, beat, GetBadgeCount()), STR_CONV_MODE_LEFT_ALIGN, 3);
 }
 
-u32 GetSubplotNeededRoles(const struct SubplotDesc *desc)
+u32 GetChapterNeededRoles(const struct ChapterDesc *desc)
 {
     u32 stage, roles = desc->requiredRoles;
 
@@ -380,41 +380,41 @@ u32 GetSubplotNeededRoles(const struct SubplotDesc *desc)
     return roles;
 }
 
-bool32 IsMcGuffinProducedBy(const struct SubplotHost *hosts, u32 numHosts, u32 mcguffinId)
+bool32 IsMcGuffinProducedBy(const struct ChapterHost *hosts, u32 numHosts, u32 mcguffinId)
 {
     u32 i;
 
     for (i = 0; i < numHosts; i++)
     {
-        const struct SubplotDesc *desc = hosts[i].desc;
+        const struct ChapterDesc *desc = hosts[i].desc;
 
-        if (desc->producedKey.type == SUBPLOT_KEY_NONE || ResolveSubplotKey(&desc->producedKey, hosts[i].county) != mcguffinId)
+        if (desc->producedKey.type == CHAPTER_KEY_NONE || ResolveChapterKey(&desc->producedKey, hosts[i].county) != mcguffinId)
             continue;
-        if (GetSubplotStage(hosts[i].county, hosts[i].slot, desc) >= desc->producedKeyStage)
+        if (GetChapterStage(hosts[i].county, hosts[i].slot, desc) >= desc->producedKeyStage)
             return TRUE;
     }
     return FALSE;
 }
 
-bool32 IsSubplotAvailable(const struct SubplotDesc *desc, u32 hostCounty, const struct SubplotHost *hosts, u32 numHosts)
+bool32 IsChapterAvailable(const struct ChapterDesc *desc, u32 hostCounty, const struct ChapterHost *hosts, u32 numHosts)
 {
     u32 i;
 
     if (GetBadgeCount() < desc->minBadges)
         return FALSE;
-    for (i = 0; i < SUBPLOT_MAX_REQUIRED_KEYS; i++)
+    for (i = 0; i < CHAPTER_MAX_REQUIRED_KEYS; i++)
     {
-        if (desc->requiredKeys[i].type != SUBPLOT_KEY_NONE
-         && !IsMcGuffinProducedBy(hosts, numHosts, ResolveSubplotKey(&desc->requiredKeys[i], hostCounty)))
+        if (desc->requiredKeys[i].type != CHAPTER_KEY_NONE
+         && !IsMcGuffinProducedBy(hosts, numHosts, ResolveChapterKey(&desc->requiredKeys[i], hostCounty)))
             return FALSE;
     }
     return TRUE;
 }
 
-// The hosted subplot in the highest slot of `county` below `belowSlot`; NULL if none.
-static const struct SubplotHost *FindPreviousHostInCounty(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 belowSlot)
+// The hosted chapter in the highest slot of `county` below `belowSlot`; NULL if none.
+static const struct ChapterHost *FindPreviousHostInCounty(const struct ChapterHost *hosts, u32 numHosts, u32 county, u32 belowSlot)
 {
-    const struct SubplotHost *best = NULL;
+    const struct ChapterHost *best = NULL;
     u32 i;
 
     for (i = 0; i < numHosts; i++)
@@ -425,40 +425,40 @@ static const struct SubplotHost *FindPreviousHostInCounty(const struct SubplotHo
     return best;
 }
 
-bool32 IsChainPredecessorComplete(const struct SubplotHost *hosts, u32 numHosts, u32 county, u32 slot, u32 mainStoryIndex)
+bool32 IsChainPredecessorComplete(const struct ChapterHost *hosts, u32 numHosts, u32 county, u32 slot, u32 mainStoryIndex)
 {
-    const struct SubplotHost *prev;
+    const struct ChapterHost *prev;
 
     // Earlier counties are done once the main story has reached this county's slots (4x + s).
     if (mainStoryIndex / COUNTY_MAIN_SLOTS < GetCountyHeader(county)->storyIdx)
         return FALSE;
     prev = FindPreviousHostInCounty(hosts, numHosts, county, slot);
-    return prev == NULL || GetSubplotStage(prev->county, prev->slot, prev->desc) >= (u32)prev->desc->numStages - 1;
+    return prev == NULL || GetChapterStage(prev->county, prev->slot, prev->desc) >= (u32)prev->desc->numStages - 1;
 }
 
 bool32 IsCountySlotAvailable(u32 countyId, u32 slot)
 {
     u32 numHosts;
-    const struct SubplotHost *hosts = GetSubplotHosts(&numHosts);
-    const struct SubplotDesc *desc = GetCountySubplot(countyId, slot);
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+    const struct ChapterDesc *desc = GetCountyChapter(countyId, slot);
 
-    assertf(desc != NULL, "county %d hosts no subplot in slot %d", countyId, slot)
+    assertf(desc != NULL, "county %d hosts no chapter in slot %d", countyId, slot)
     {
         return FALSE;
     }
-    return IsChainPredecessorComplete(hosts, numHosts, countyId, slot, GetMainStoryIndex()) && IsSubplotAvailable(desc, countyId, hosts, numHosts);
+    return IsChainPredecessorComplete(hosts, numHosts, countyId, slot, GetMainStoryIndex()) && IsChapterAvailable(desc, countyId, hosts, numHosts);
 }
 
-static bool32 HasEarlierProducer(u32 mcguffinId, u32 county, u32 slot, const struct SubplotHost *hosts, u32 numHosts)
+static bool32 HasEarlierProducer(u32 mcguffinId, u32 county, u32 slot, const struct ChapterHost *hosts, u32 numHosts)
 {
     u32 i, storyIdx = GetCountyHeader(county)->storyIdx;
 
     for (i = 0; i < numHosts; i++)
     {
-        const struct SubplotDesc *desc = hosts[i].desc;
+        const struct ChapterDesc *desc = hosts[i].desc;
         u32 hostIdx = GetCountyHeader(hosts[i].county)->storyIdx;
 
-        if (desc->producedKey.type == SUBPLOT_KEY_NONE || ResolveSubplotKey(&desc->producedKey, hosts[i].county) != mcguffinId)
+        if (desc->producedKey.type == CHAPTER_KEY_NONE || ResolveChapterKey(&desc->producedKey, hosts[i].county) != mcguffinId)
             continue;
         if (hostIdx < storyIdx || (hosts[i].county == county && hosts[i].slot < slot))
             return TRUE;
@@ -466,16 +466,16 @@ static bool32 HasEarlierProducer(u32 mcguffinId, u32 county, u32 slot, const str
     return FALSE;
 }
 
-u32 CheckSubplotPlacement(const struct SubplotDesc *desc, u32 county, u32 slot, const struct SubplotHost *hosts, u32 numHosts)
+u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 slot, const struct ChapterHost *hosts, u32 numHosts)
 {
-    u32 needed = GetSubplotNeededRoles(desc), bit, i;
+    u32 needed = GetChapterNeededRoles(desc), bit, i;
 
     if (!DoesCountyHaveCity(county))
-        return SUBPLOT_PLACEMENT_NO_CITY;
+        return CHAPTER_PLACEMENT_NO_CITY;
     for (bit = 0; bit < NUM_BUILDING_ROLES; bit++)
     {
         if ((needed & (1u << bit)) && !DoesCountyCityHaveBuilding(county, 1u << bit))
-            return SUBPLOT_PLACEMENT_MISSING_ROLE;
+            return CHAPTER_PLACEMENT_MISSING_ROLE;
     }
     if (desc->producesMainGet && desc->minBadges > 0)
     {
@@ -483,15 +483,15 @@ u32 CheckSubplotPlacement(const struct SubplotDesc *desc, u32 county, u32 slot, 
         struct GymSlot gym = GetGymSlot(desc->minBadges);
 
         if (4 * get.block + get.step <= 4 * gym.block + gym.step)
-            return SUBPLOT_PLACEMENT_BEFORE_BADGES;
+            return CHAPTER_PLACEMENT_BEFORE_BADGES;
     }
-    for (i = 0; i < SUBPLOT_MAX_REQUIRED_KEYS; i++)
+    for (i = 0; i < CHAPTER_MAX_REQUIRED_KEYS; i++)
     {
-        if (desc->requiredKeys[i].type != SUBPLOT_KEY_NONE
-         && !HasEarlierProducer(ResolveSubplotKey(&desc->requiredKeys[i], county), county, slot, hosts, numHosts))
-            return SUBPLOT_PLACEMENT_KEY_NOT_EARLIER;
+        if (desc->requiredKeys[i].type != CHAPTER_KEY_NONE
+         && !HasEarlierProducer(ResolveChapterKey(&desc->requiredKeys[i], county), county, slot, hosts, numHosts))
+            return CHAPTER_PLACEMENT_KEY_NOT_EARLIER;
     }
-    return SUBPLOT_PLACEMENT_OK;
+    return CHAPTER_PLACEMENT_OK;
 }
 
 static const u8 *const sBuildingRoleNames[] =
@@ -538,7 +538,7 @@ u32 GetBeatAnchorCounty(u32 hostCounty, const struct BeatAnchor *anchor)
 
 u32 GetBeatDistance(u32 hostCounty, const struct BeatAnchor *anchor, u32 hinterCounty)
 {
-    return hinterCounty == GetBeatAnchorCounty(hostCounty, anchor) ? SUBPLOT_CLOSE : SUBPLOT_FAR;
+    return hinterCounty == GetBeatAnchorCounty(hostCounty, anchor) ? CHAPTER_CLOSE : CHAPTER_FAR;
 }
 
 static const u8 sFallbackPlace[] = _("spot");
@@ -643,28 +643,28 @@ static u32 GetCurrentMapCounty(void)
     return GetCountyFromCityMapSec(gMapHeader.regionMapSectionId);
 }
 
-// Script special: VAR_0x8004 = slot; VAR_RESULT = stage of the current map's county subplot.
-void GetCurrentSubplotStage(void)
+// Script special: VAR_0x8004 = slot; VAR_RESULT = stage of the current map's county chapter.
+void GetCurrentChapterStage(void)
 {
     gSpecialVar_Result = GetCountySlotStage(GetCurrentMapCounty(), gSpecialVar_0x8004);
 }
 
 // Script special: VAR_0x8004 = slot, VAR_0x8005 = stage.
-void SetCurrentSubplotStage(void)
+void SetCurrentChapterStage(void)
 {
     SetCountySlotStage(GetCurrentMapCounty(), gSpecialVar_0x8004, gSpecialVar_0x8005);
 }
 
 // Script special: VAR_0x8004 = slot, VAR_0x8005 = beat (the stage whose anchor and count the text names),
-// VAR_0x8006 = the NPC's selector. Puts the hinter's text for the subplot's current stage in gStringVar4 and
+// VAR_0x8006 = the NPC's selector. Puts the hinter's text for the chapter's current stage in gStringVar4 and
 // sets VAR_RESULT = TRUE; FALSE (buffer untouched) means "say generic text". The hinter stands in the host
 // city, so it is always close.
-void ShowCurrentSubplotHint(void)
+void ShowCurrentChapterHint(void)
 {
     u32 county = GetCurrentMapCounty();
     u32 slot = gSpecialVar_0x8004;
     u32 beat = gSpecialVar_0x8005;
-    const struct SubplotDesc *desc = GetCountySubplot(county, slot);
+    const struct ChapterDesc *desc = GetCountyChapter(county, slot);
     const u8 *text;
 
     gSpecialVar_Result = FALSE;
@@ -672,17 +672,17 @@ void ShowCurrentSubplotHint(void)
     {
         return;
     }
-    text = GetCountySlotHint(county, slot, SUBPLOT_CLOSE, gSpecialVar_0x8006);
+    text = GetCountySlotHint(county, slot, CHAPTER_CLOSE, gSpecialVar_0x8006);
     if (text == NULL)
         return;
-    BufferSubplotHintCount(desc, beat);
+    BufferChapterHintCount(desc, beat);
     ExpandHintTemplate(gStringVar4, text, county, &desc->stages[ResolveHintStage(desc, beat)].anchor);
     BreakStringForFieldMessage(gStringVar4);
     gSpecialVar_Result = TRUE;
 }
 
-// Script special: VAR_0x8004 = slot; VAR_RESULT = TRUE iff the current map's county subplot has its badges and keys.
-void IsCurrentSubplotAvailable(void)
+// Script special: VAR_0x8004 = slot; VAR_RESULT = TRUE iff the current map's county chapter has its badges and keys.
+void IsCurrentChapterAvailable(void)
 {
     gSpecialVar_Result = IsCountySlotAvailable(GetCurrentMapCounty(), gSpecialVar_0x8004);
 }

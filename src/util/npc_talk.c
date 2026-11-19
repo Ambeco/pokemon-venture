@@ -16,7 +16,7 @@
 #include "region_city.h"
 #include "region_county.h"
 #include "region_tile.h"
-#include "subplot.h"
+#include "chapter.h"
 
 #define NUM_MAIN_INDICES (NUM_COUNTIES * 4)
 #define LINES_PER_POOL   2

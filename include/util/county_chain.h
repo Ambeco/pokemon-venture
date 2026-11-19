@@ -2,17 +2,17 @@
 #define GUARD_COUNTY_CHAIN_H
 
 /**
- * The county chain (design_subplots.md, "County chain"): a county's progress through the subplots that fulfil its
+ * The county chain (design_chapters.md, "County chain"): a county's progress through the chapters that fulfil its
  * main-story slots, stored as one position in var 0 of its slice.
  *
- * A chain is an ordered list of entries, each a subplot (by its subplot slot, vars 1-3 of the slice) that
+ * A chain is an ordered list of entries, each a chapter (by its chapter slot, vars 1-3 of the slice) that
  * supplies one main-story slot, with the number of stages it contributes. The position counts through the
  * concatenated stages of all entries, so it only ever advances by one, and ResolveChainPosition turns it
  * back into (entry, stage). ResolveChainPosition and the other Chain* functions are pure, so an adapter
  * can feed them a position computed from Emerald's old vars; only Get/Set/AdvanceCountyChainPosition touch
  * the stored var.
  *
- * Two kinds of "slot" exist: a subplot slot addresses a county's subplot vars (see subplot.h), a main-story
+ * Two kinds of "slot" exist: a chapter slot addresses a county's chapter vars (see chapter.h), a main-story
  * slot (0 to COUNTY_MAIN_SLOTS - 1, the `s` of main-story-index `4x + s`) is a step of the main plot a county
  * hosts. A chain covers only the main-story slots its county fulfils itself: slot 1 is usually a callback
  * hosted by another county and has no entries, which the functions here accept.
@@ -27,8 +27,8 @@
 struct CountyChainEntry
 {
     u8 mainSlot;    // main-story slot this entry helps fulfil; entries are ordered by non-decreasing mainSlot
-    u8 subplotSlot; // the county's subplot slot that runs the entry
-    u8 numStages;   // stages this entry adds to the position (>= 1): the subplot's stages without before/after pseudo-stages
+    u8 chapterSlot; // the county's chapter slot that runs the entry
+    u8 numStages;   // stages this entry adds to the position (>= 1): the chapter's stages without before/after pseudo-stages
 };
 
 enum ChainState

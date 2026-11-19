@@ -11,7 +11,7 @@
 #include "region_city.h"
 #include "script.h"
 #include "string_util.h"
-#include "subplot.h"
+#include "chapter.h"
 #include "constants/maps.h"
 #include "constants/script_commands.h"
 #include "constants/region_map_sections.h"
@@ -92,21 +92,21 @@ TEST("PokemonCenterNews: The special writes the news for the map's county and su
     EXPECT_EQ(StringCompare(gStringVar4, sExpect), 0);
 }
 
-// A city NPC bound by hand as a subplot hinter says the planner's hint for its (slot, beat, selector).
+// A city NPC bound by hand as a chapter hinter says the planner's hint for its (slot, beat, selector).
 static void ExpectHinterSpeaksIn(u32 county, u32 mapGroup, u32 mapNum, const u8 *script, u32 plannedIndex, u32 x, u32 y)
 {
     static EWRAM_DATA u8 sExpect[300];
     struct HinterPlacement out[MAX_COUNTY_HINTERS];
-    const struct SubplotDesc *desc;
+    const struct ChapterDesc *desc;
     const u8 *text;
     u32 count;
 
     Test_LoadMapAt(mapGroup, mapNum, x, y);
     count = PlanCountyHinters(county, out, ARRAY_COUNT(out));
     ASSUME(count > plannedIndex);
-    desc = GetCountySubplot(county, out[plannedIndex].slot);
+    desc = GetCountyChapter(county, out[plannedIndex].slot);
     ASSUME(desc != NULL);
-    text = GetCountySlotHint(county, out[plannedIndex].slot, SUBPLOT_CLOSE, out[plannedIndex].selector);
+    text = GetCountySlotHint(county, out[plannedIndex].slot, CHAPTER_CLOSE, out[plannedIndex].selector);
     ASSUME(text != NULL);
     ExpandHintTemplate(sExpect, text, county, &desc->stages[out[plannedIndex].beat].anchor);
     BreakStringForFieldMessage(sExpect);

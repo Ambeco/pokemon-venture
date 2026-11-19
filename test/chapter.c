@@ -1,0 +1,860 @@
+#include "global.h"
+#include "test/test.h"
+#include "constants/flags.h"
+#include "constants/items.h"
+#include "constants/region_map_sections.h"
+#include "constants/vars.h"
+#include "constants/characters.h"
+#include "event_data.h"
+#include "plot_stage.h"
+#include "region_county.h"
+#include "region_plot.h"
+#include "region_unlock.h"
+#include "scene.h"
+#include "region_city.h"
+#include "chapter.h"
+#include "string_util.h"
+
+#define LILYCOVE COUNTY_ID(4, 0)
+#define RUSTBORO COUNTY_ID(0, 1)
+#define MOSSDEEP COUNTY_ID(5, 1)
+#define LITTLEROOT COUNTY_ID(1, 3)
+#define OLDALE COUNTY_ID(1, 2)
+#define PETALBURG COUNTY_ID(0, 2)
+
+static const u8 sTextA[] = _("a");
+static const u8 sTextB[] = _("b");
+static const u8 sTextC[] = _("c");
+static const u8 sTextD[] = _("d");
+
+static const u8 *const sListA[] = {sTextA};
+static const u8 *const sListB[] = {sTextB, sTextC};
+static const u8 *const sListC[] = {sTextC};
+static const u8 *const sListD[] = {sTextD};
+static const u8 *const sListCD[] = {sTextC, sTextD};
+
+// Devon Goods shaped: the order of the predicates, not set-ness, defines the stage.
+static const struct ChapterStage sDevonStages[] =
+{
+    {},
+    {.done = {STORY_PRED_FLAG, FLAG_DEVON_GOODS_STOLEN, 0}},
+    {.done = {STORY_PRED_FLAG, FLAG_RECOVERED_DEVON_GOODS, 0}},
+    {.done = {STORY_PRED_FLAG, FLAG_RETURNED_DEVON_GOODS, 0}},
+};
+
+static const struct ChapterHint sDevonHints[] =
+{
+    {0, 0, TEXT_LIST(sListA)},
+    {1, 1, TEXT_LIST(sListB)},
+    {2, 2, TEXT_LIST(sListC)},
+    {3, 3, TEXT_LIST(sListD)},
+};
+
+static const struct ChapterDesc sDevonAdapter =
+{
+    .backend = CHAPTER_ADAPTER,
+    .numStages = ARRAY_COUNT(sDevonStages),
+    .numHints = ARRAY_COUNT(sDevonHints),
+    .stages = sDevonStages,
+    .hints = sDevonHints,
+};
+
+// Ranges that end at the pseudo-stages; stage 2 and AFTER have empty lists, so they say generic text.
+static const struct ChapterHint sFullHints[] =
+{
+    {CHAPTER_STAGE_BEFORE, 0, TEXT_LIST(sListB)},
+    {1, 1, TEXT_LIST(sListA), TEXT_LIST(sListCD)},
+    {2, CHAPTER_STAGE_AFTER},
+};
+
+static const struct ChapterStage sFullStages[] =
+{
+    {},
+    {
+        .numHinters = 2,
+        .hinterRoles = 0x4,
+    },
+    {},
+};
+
+static const struct ChapterActor sActors[] =
+{
+    {0, 1, 0x2, 7},
+    {1, 2, 0, 8},
+    {2, 2, 0x1, 9},
+};
+
+static const struct ChapterDesc sFullDesc =
+{
+    .backend = CHAPTER_ADAPTER,
+    .numStages = ARRAY_COUNT(sFullStages),
+    .numActors = ARRAY_COUNT(sActors),
+    .numHints = ARRAY_COUNT(sFullHints),
+    .stages = sFullStages,
+    .hints = sFullHints,
+    .actors = sActors,
+};
+
+TEST("Chapter: Mossdeep hosts one chapter in slot 0, Rustboro, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
+{
+    u32 county, slot;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
+        {
+            if ((county == MOSSDEEP && slot == 0)
+             || ((county == LITTLEROOT || county == LILYCOVE || county == RUSTBORO) && slot <= 1) || (county == OLDALE && slot == 0))
+                EXPECT(GetCountyChapter(county, slot) != NULL);
+            else
+                EXPECT(GetCountyChapter(county, slot) == NULL);
+        }
+    }
+}
+
+TEST("Chapter: Slot vars lie in the county's own slice after its chain var")
+{
+    u32 county, slot;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        u32 start = COUNTY_VARS_START + GetCountyVarSlice(county) * VARS_PER_COUNTY;
+
+        if (GetCountyVarSlice(county) >= COUNTY_VAR_SLICES_FREE)
+            continue;
+        for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
+        {
+            EXPECT_EQ(GetCountySlotVar(county, slot), start + 1 + slot);
+            EXPECT(GetCountySlotVar(county, slot) < start + VARS_PER_COUNTY);
+        }
+    }
+    EXPECT(GetCountyVarSlice(LILYCOVE) < COUNTY_VAR_SLICES_FREE);
+}
+
+TEST("Chapter: County var slices are a permutation, and the tutorial counties' slices are free")
+{
+    bool8 used[NUM_COUNTIES] = {FALSE};
+    u32 county;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        ASSUME(GetCountyVarSlice(county) < NUM_COUNTIES);
+        EXPECT(!used[GetCountyVarSlice(county)]);
+        used[GetCountyVarSlice(county)] = TRUE;
+    }
+    EXPECT_EQ(GetCountyVarSlice(LITTLEROOT), COUNTY_VAR_SLICE_LITTLEROOT);
+    EXPECT_EQ(GetCountyVarSlice(OLDALE), COUNTY_VAR_SLICE_OLDALE);
+    EXPECT(COUNTY_VAR_SLICE_LITTLEROOT < COUNTY_VAR_SLICES_FREE);
+    EXPECT(COUNTY_VAR_SLICE_OLDALE < COUNTY_VAR_SLICES_FREE);
+    EXPECT_EQ(GetCountySlotVar(LITTLEROOT, 1), VAR_SAVE_BIRCH_BEAT);
+}
+
+TEST("Chapter: A stored chapter starts at stage 0 and keeps the stage set through its slot")
+{
+    EXPECT_EQ(GetCountySlotStage(LILYCOVE, 0), 0);
+    SetCountySlotStage(LILYCOVE, 0, 1);
+    EXPECT_EQ(GetCountySlotStage(LILYCOVE, 0), 1);
+    EXPECT_EQ(VarGet(GetCountySlotVar(LILYCOVE, 0)), 1);
+}
+
+TEST("Chapter: Setting one county's slot leaves other slices untouched")
+{
+    u32 var;
+
+    SetCountySlotStage(LILYCOVE, 0, 1);
+    for (var = COUNTY_VARS_START; var < COUNTY_VARS_START + COUNTY_VAR_SLICES_FREE * VARS_PER_COUNTY; var++)
+    {
+        if (var != GetCountySlotVar(LILYCOVE, 0))
+            EXPECT_EQ(VarGet(var), 0);
+    }
+}
+
+TEST("Chapter: The talk query follows the stage and the stage texts differ")
+{
+    const u8 *far0 = GetCountySlotHint(LILYCOVE, 0, CHAPTER_FAR, 0);
+    const u8 *close0 = GetCountySlotHint(LILYCOVE, 0, CHAPTER_CLOSE, 0);
+
+    SetCountySlotStage(LILYCOVE, 0, 1);
+    EXPECT(far0 != NULL && close0 != NULL);
+    EXPECT(GetCountySlotHint(LILYCOVE, 0, CHAPTER_FAR, 0) != far0);
+    EXPECT(GetCountySlotHint(LILYCOVE, 0, CHAPTER_CLOSE, 0) != close0);
+}
+
+TEST("Chapter: The query returns the range's list for each distance and stage")
+{
+    EXPECT(GetChapterHint(&sFullDesc, 0, CHAPTER_FAR, 0) == sTextB);
+    EXPECT(GetChapterHint(&sFullDesc, 1, CHAPTER_FAR, 0) == sTextA);
+    EXPECT(GetChapterHint(&sFullDesc, 0, CHAPTER_CLOSE, 0) == NULL);
+    EXPECT(GetChapterHint(&sFullDesc, 1, CHAPTER_CLOSE, 0) == sTextC);
+    EXPECT(GetChapterHint(&sFullDesc, 1, CHAPTER_CLOSE, 1) == sTextD);
+}
+
+TEST("Chapter: A range may end at a pseudo-stage, which the query accepts")
+{
+    EXPECT(FindChapterHint(&sFullDesc, CHAPTER_STAGE_BEFORE) == &sFullHints[0]);
+    EXPECT(FindChapterHint(&sFullDesc, 0) == &sFullHints[0]);
+    EXPECT(FindChapterHint(&sFullDesc, 1) == &sFullHints[1]);
+    EXPECT(FindChapterHint(&sFullDesc, 2) == &sFullHints[2]);
+    EXPECT(FindChapterHint(&sFullDesc, CHAPTER_STAGE_AFTER) == &sFullHints[2]);
+    EXPECT(GetChapterHint(&sFullDesc, CHAPTER_STAGE_BEFORE, CHAPTER_FAR, 0) == sTextB);
+    EXPECT(GetChapterHint(&sFullDesc, CHAPTER_STAGE_AFTER, CHAPTER_FAR, 0) == NULL);
+}
+
+TEST("Chapter: A stage no range covers has no hint")
+{
+    static const struct ChapterHint sGap[] = {{1, 1, TEXT_LIST(sListA)}};
+    static const struct ChapterDesc sGapDesc = {.backend = CHAPTER_ADAPTER, .numStages = 3, .numHints = 1, .hints = sGap};
+
+    EXPECT(FindChapterHint(&sGapDesc, 0) == NULL);
+    EXPECT(FindChapterHint(&sGapDesc, CHAPTER_STAGE_BEFORE) == NULL);
+    EXPECT(GetChapterHint(&sGapDesc, 2, CHAPTER_FAR, 0) == NULL);
+    EXPECT(GetChapterHint(&sGapDesc, 1, CHAPTER_FAR, 0) == sTextA);
+}
+
+TEST("Chapter: A list entry is picked by selector, stably")
+{
+    EXPECT(GetChapterHint(&sFullDesc, 0, CHAPTER_FAR, 0) == sTextB);
+    EXPECT(GetChapterHint(&sFullDesc, 0, CHAPTER_FAR, 1) == sTextC);
+    EXPECT(GetChapterHint(&sFullDesc, 0, CHAPTER_FAR, 2) == sTextB);
+    EXPECT(GetChapterHint(&sFullDesc, 0, CHAPTER_FAR, 1) == GetChapterHint(&sFullDesc, 0, CHAPTER_FAR, 1));
+}
+
+TEST("Chapter: Empty lists give NULL so the NPC says generic text")
+{
+    EXPECT(GetChapterHint(&sFullDesc, 2, CHAPTER_FAR, 5) == NULL);
+    EXPECT(GetChapterHint(&sFullDesc, 2, CHAPTER_CLOSE, 5) == NULL);
+}
+
+TEST("Chapter: The county query uses the current stage")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(LILYCOVE, 0);
+
+    EXPECT(GetCountySlotHint(LILYCOVE, 0, CHAPTER_CLOSE, 0) == GetChapterHint(desc, 0, CHAPTER_CLOSE, 0));
+    SetCountySlotStage(LILYCOVE, 0, 1);
+    EXPECT(GetCountySlotHint(LILYCOVE, 0, CHAPTER_CLOSE, 0) == GetChapterHint(desc, 1, CHAPTER_CLOSE, 0));
+    EXPECT(GetChapterHint(desc, 0, CHAPTER_CLOSE, 0) != GetChapterHint(desc, 1, CHAPTER_CLOSE, 0));
+}
+
+TEST("Chapter: Each ported chapter's hint ranges cover every stage once and have both lists")
+{
+    u32 county, slot, stage, i;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
+        {
+            const struct ChapterDesc *desc = GetCountyChapter(county, slot);
+
+            if (desc == NULL)
+                continue;
+            for (stage = 0; stage < desc->numStages; stage++)
+            {
+                const struct ChapterHint *hint = FindChapterHint(desc, stage);
+                u32 covering = 0;
+
+                for (i = 0; i < desc->numHints; i++)
+                    covering += DoesChapterHintCover(&desc->hints[i], stage);
+                EXPECT_EQ(covering, 1);
+                ASSUME(hint != NULL);
+                EXPECT(hint->far.count > 0);
+                EXPECT(hint->close.count > 0);
+            }
+        }
+    }
+}
+
+TEST("Chapter: A chapter that produces a McGuffin gives a reward")
+{
+    u32 numHosts, i;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    for (i = 0; i < numHosts; i++)
+    {
+        if (hosts[i].desc->producedKey.type != CHAPTER_KEY_NONE)
+            EXPECT(hosts[i].desc->givesReward);
+    }
+}
+
+TEST("Chapter: Hinter counts come from the stage")
+{
+    EXPECT_EQ(sFullDesc.stages[1].numHinters, 2);
+    EXPECT_EQ(GetCountyChapter(LILYCOVE, 0)->stages[0].numHinters, 1);
+}
+
+TEST("Chapter: Actors are listed for the stages they cover")
+{
+    const struct ChapterActor *out[2];
+
+    EXPECT_EQ(GetChapterActors(&sFullDesc, 0, out, 2), 1);
+    EXPECT_EQ(out[0]->gfxId, 7);
+    EXPECT_EQ(GetChapterActors(&sFullDesc, 1, out, 2), 2);
+    EXPECT_EQ(out[0]->gfxId, 7);
+    EXPECT_EQ(out[1]->gfxId, 8);
+    EXPECT_EQ(GetChapterActors(&sFullDesc, 2, out, 1), 2); // total, even past maxOut
+    EXPECT_EQ(out[0]->gfxId, 8);
+    EXPECT_EQ(GetChapterActors(GetCountyChapter(LILYCOVE, 0), 0, out, 2), 0);
+}
+
+TEST("Chapter: An adapter chapter's stage is the highest true predicate")
+{
+    EXPECT_EQ(GetChapterStage(0, 0, &sDevonAdapter), 0);
+    FlagSet(FLAG_DEVON_GOODS_STOLEN);
+    EXPECT_EQ(GetChapterStage(0, 0, &sDevonAdapter), 1);
+    FlagSet(FLAG_RECOVERED_DEVON_GOODS);
+    FlagClear(FLAG_DEVON_GOODS_STOLEN); // the game clears STOLEN on recovery
+    EXPECT_EQ(GetChapterStage(0, 0, &sDevonAdapter), 2);
+    FlagSet(FLAG_RETURNED_DEVON_GOODS);
+    EXPECT_EQ(GetChapterStage(0, 0, &sDevonAdapter), 3);
+}
+
+TEST("Chapter: An adapter chapter skipped ahead reports the later stage")
+{
+    FlagSet(FLAG_RETURNED_DEVON_GOODS);
+    EXPECT_EQ(GetChapterStage(0, 0, &sDevonAdapter), 3);
+}
+
+TEST("Chapter: The hint query treats adapter and stored chapters alike")
+{
+    FlagSet(FLAG_RECOVERED_DEVON_GOODS);
+    EXPECT(GetChapterHint(&sDevonAdapter, GetChapterStage(0, 0, &sDevonAdapter), CHAPTER_FAR, 0) == sTextC);
+    EXPECT(GetChapterHint(&sDevonAdapter, 3, CHAPTER_FAR, 0) == sTextD);
+}
+
+TEST("Chapter: A county is found from its city's MAPSEC")
+{
+    EXPECT_EQ(GetCountyFromCityMapSec(MAPSEC_LILYCOVE_CITY), LILYCOVE);
+}
+
+TEST("Chapter: Ported chapters anchor every stage to a real place")
+{
+    u32 county, slot, stage;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
+        {
+            const struct ChapterDesc *desc = GetCountyChapter(county, slot);
+
+            if (desc == NULL)
+                continue;
+            for (stage = 0; stage < desc->numStages; stage++)
+            {
+                const struct BeatAnchor *anchor = &desc->stages[stage].anchor;
+
+                EXPECT(anchor->kind <= BEAT_ANCHOR_DOOR);
+                EXPECT(anchor->locationKind == BEAT_LOCATION_NONE || anchor->locationKind < NUM_LOCATION_KINDS);
+                EXPECT(anchor->routeId == ROUTE_ID_NONE || anchor->routeId < NUM_COUNTIES + MAX_SPECIAL_LOCATIONS_PER_COUNTY);
+                EXPECT(anchor->role != 0 || anchor->locationKind != BEAT_LOCATION_NONE || anchor->routeId != ROUTE_ID_NONE);
+            }
+        }
+    }
+}
+
+TEST("Chapter: The Lilycove Museum beat is the curator in the museum")
+{
+    const struct BeatAnchor *anchor = &GetCountyChapter(LILYCOVE, 0)->stages[0].anchor;
+
+    EXPECT_EQ(anchor->kind, BEAT_ANCHOR_NPC);
+    EXPECT_EQ(anchor->locationKind, TOWN_LOCATION_MUSEUM);
+}
+
+TEST("Chapter: A hinter's distance follows the anchor's city")
+{
+    const struct BeatAnchor *anchor = &GetCountyChapter(LILYCOVE, 0)->stages[0].anchor;
+    u32 county;
+
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        if (county == LILYCOVE)
+            EXPECT_EQ(GetBeatDistance(LILYCOVE, anchor, county), CHAPTER_CLOSE);
+        else
+            EXPECT_EQ(GetBeatDistance(LILYCOVE, anchor, county), CHAPTER_FAR);
+    }
+}
+
+TEST("Chapter: The anchor reference names the building, location, road or city")
+{
+    u8 buf[64];
+    struct BeatAnchor door = {BEAT_ANCHOR_DOOR, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_POKEMON_CENTER};
+    struct BeatAnchor house = {BEAT_ANCHOR_DOOR, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE};
+    struct BeatAnchor museum = GetCountyChapter(LILYCOVE, 0)->stages[0].anchor;
+    struct BeatAnchor road = {BEAT_ANCHOR_ROUTE_ROUTE, LILYCOVE, COUNTY_ID(4, 1), BEAT_LOCATION_NONE, 0};
+    struct BeatAnchor outdoors = {BEAT_ANCHOR_ITEM, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0};
+
+    WriteBeatAnchorReference(buf, LILYCOVE, &door);
+    EXPECT_EQ(StringCompare(buf, COMPOUND_STRING("near the POKéMON CENTER")), 0);
+    WriteBeatAnchorReference(buf, LILYCOVE, &house);
+    EXPECT_EQ(StringCompare(buf, COMPOUND_STRING("near the house")), 0);
+    EXPECT_EQ(WriteBeatAnchorReference(buf, LILYCOVE, &museum) - buf, StringLength(COMPOUND_STRING("near the MUSEUM")));
+    EXPECT_EQ(StringCompare(buf, COMPOUND_STRING("near the MUSEUM")), 0);
+    WriteBeatAnchorReference(buf, LILYCOVE, &road);
+    EXPECT_EQ(StringCompareN(buf, COMPOUND_STRING("near the road to "), StringLength(COMPOUND_STRING("near the road to "))), 0);
+    EXPECT_EQ(StringCompare(buf + StringLength(COMPOUND_STRING("near the road to ")), GetCountyCityName(LILYCOVE)), 0);
+    WriteBeatAnchorReference(buf, LILYCOVE, &outdoors);
+    EXPECT_EQ(buf[0], COMPOUND_STRING("in ")[0]);
+}
+
+TEST("Chapter: A hint template expands {HINT_ANCHOR} to the anchor reference and copies the rest")
+{
+    u8 out[96];
+    const struct BeatAnchor *anchor = &GetCountyChapter(LILYCOVE, 0)->stages[0].anchor;
+    static const u8 sTemplate[] = _("Go {HINT_ANCHOR}, {PLAYER}!");
+
+    ExpandHintTemplate(out, sTemplate, LILYCOVE, anchor);
+    EXPECT_EQ(StringCompare(out, COMPOUND_STRING("Go near the MUSEUM, {PLAYER}!")), 0);
+}
+
+TEST("Chapter: A hint template expands {HINT_CITY} to the host county's city name")
+{
+    u8 out[96];
+    u8 expect[96];
+    static const u8 sTemplate[] = _("A man in {HINT_CITY} waits.");
+
+    ExpandHintTemplate(out, sTemplate, RUSTBORO, &GetCountyChapter(RUSTBORO, 0)->stages[0].anchor);
+    StringCopy(StringCopy(StringCopy(expect, COMPOUND_STRING("A man in ")), GetCountyCityName(RUSTBORO)), COMPOUND_STRING(" waits."));
+    EXPECT_EQ(StringCompare(out, expect), 0);
+}
+
+TEST("Chapter: The Lilycove stage-0 close hint about the unopened hall names the museum through the template")
+{
+    u8 out[96];
+    const struct ChapterDesc *desc = GetCountyChapter(LILYCOVE, 0);
+    const u8 *text = GetChapterHint(desc, 0, CHAPTER_CLOSE, 1);
+
+    ASSUME(text != NULL);
+    ExpandHintTemplate(out, text, LILYCOVE, &desc->stages[1].anchor);
+    EXPECT(StringLength(out) > StringLength(text) - 4);
+    EXPECT(StringCompareN(out, COMPOUND_STRING("There's talk of a new exhibit hall\nnear the MUSEUM."), 40) == 0);
+}
+
+// A gym-4-gated chapter with a parameterized hint, a produced host-pool key and a two-building cutscene.
+static const struct ChapterStage sGatedStages[] =
+{
+    {.hintCount = CHAPTER_COUNT_BADGES_SHORT,
+     .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}, .extraRoles = BUILDING_HOUSE},
+    {.anchor = {BEAT_ANCHOR_DOOR, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_MART}},
+    {},
+};
+
+static const struct ChapterDesc sGatedDesc =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sGatedStages),
+    .requiredRoles = BUILDING_POKEMON_CENTER,
+    .minBadges = 4,
+    .producedKeyStage = 2,
+    .producedKey = {CHAPTER_KEY_HOST_POOL, 1, 0},
+    .stages = sGatedStages,
+};
+
+// Stages with no anchor role, so any city with a Pokémon Center could host them.
+static const struct ChapterStage sPlainStages[] =
+{
+    {},
+    {},
+};
+
+static const struct ChapterDesc sConsumerDesc =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sPlainStages),
+    .requiredKeys = {{CHAPTER_KEY_HOST_POOL, 1, 0}},
+    .stages = sPlainStages,
+};
+
+static const struct ChapterDesc sCrossConsumerDesc =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sPlainStages),
+    .requiredKeys = {{CHAPTER_KEY_ITEM, PLOT_KIND_GYM, 4}},
+    .stages = sPlainStages,
+};
+
+static const struct ChapterDesc sItemProducerDesc =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sPlainStages),
+    .producedKeyStage = 1,
+    .producedKey = {CHAPTER_KEY_ITEM, PLOT_KIND_GYM, 4},
+    .stages = sPlainStages,
+};
+
+static void SetBadges(u32 mask)
+{
+    u32 i;
+
+    for (i = 0; i < NUM_BADGES; i++)
+    {
+        if (mask & (1u << i))
+            FlagSet(FLAG_BADGE01_GET + i);
+        else
+            FlagClear(FLAG_BADGE01_GET + i);
+    }
+}
+
+TEST("Chapter: Rustboro's Cutter chapter is stored, role-anchored and needs only a house")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(RUSTBORO, 0);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT_EQ(desc->stages[0].anchor.role, BUILDING_HOUSE);
+    EXPECT_EQ(GetChapterNeededRoles(desc), BUILDING_HOUSE);
+    EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
+}
+
+TEST("Chapter: The Cutter chapter keeps its stage in Rustboro's slice and not Lilycove's")
+{
+    EXPECT_EQ(GetCountySlotStage(RUSTBORO, 0), 0);
+    SetCountySlotStage(RUSTBORO, 0, 1);
+    EXPECT_EQ(GetCountySlotStage(RUSTBORO, 0), 1);
+    EXPECT_EQ(VarGet(GetCountySlotVar(RUSTBORO, 0)), 1);
+    EXPECT_EQ(GetCountySlotStage(LILYCOVE, 0), 0);
+}
+
+TEST("Chapter: The Cutter hints follow the stage and expand the house reference")
+{
+    u8 out[96];
+    const struct ChapterDesc *desc = GetCountyChapter(RUSTBORO, 0);
+    const u8 *before = GetChapterHint(desc, 0, CHAPTER_CLOSE, 1);
+
+    ASSUME(before != NULL);
+    ExpandHintTemplate(out, before, RUSTBORO, &desc->stages[1].anchor);
+    EXPECT_EQ(StringCompareN(out, COMPOUND_STRING("People say the man near the house"), 33), 0);
+    EXPECT(GetCountySlotHint(RUSTBORO, 0, CHAPTER_FAR, 0) == desc->hints[0].far.texts[0]);
+    SetCountySlotStage(RUSTBORO, 0, 1);
+    EXPECT(GetCountySlotHint(RUSTBORO, 0, CHAPTER_FAR, 0) == desc->hints[1].far.texts[0]);
+}
+
+TEST("Chapter: Every Emerald host passes the placement check")
+{
+    u32 numHosts, i, j, numOthers;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+    struct ChapterHost others[8];
+
+    EXPECT_EQ(numHosts, 8);
+    for (i = 0; i < numHosts; i++)
+    {
+        for (j = 0, numOthers = 0; j < numHosts; j++)
+        {
+            if (j != i)
+                others[numOthers++] = hosts[j];
+        }
+        EXPECT_EQ(CheckChapterPlacement(hosts[i].desc, hosts[i].county, hosts[i].slot, others, numOthers), CHAPTER_PLACEMENT_OK);
+    }
+}
+
+TEST("Chapter: Rustboro's fossil revival is stored in slot 1, anchored on the service role, and its choice is a flag")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(RUSTBORO, 1);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 3);
+    EXPECT_EQ(GetChapterNeededRoles(desc), BUILDING_SERVICE);
+    EXPECT_EQ(GetCountySlotStage(RUSTBORO, 1), 0);
+    SetCountySlotStage(RUSTBORO, 1, 2);
+    EXPECT_EQ(GetCountySlotStage(RUSTBORO, 1), 2);
+    EXPECT_EQ(GetCountySlotStage(RUSTBORO, 0), 0);
+    EXPECT(GetCountySlotHint(RUSTBORO, 1, CHAPTER_FAR, 0) == desc->hints[2].far.texts[0]);
+    FlagSet(FLAG_FOSSIL_IS_ANORITH);
+    EXPECT(FlagGet(FLAG_FOSSIL_IS_ANORITH));
+}
+
+TEST("Chapter: Lilycove's Pokeblock Case chapter is stored in slot 1, anchored on the contest hall, and its hints follow the stage")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(LILYCOVE, 1);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT_EQ(GetChapterNeededRoles(desc), BUILDING_CONTEST_HALL);
+    EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
+    EXPECT_EQ(GetCountySlotStage(LILYCOVE, 1), 0);
+    EXPECT(GetCountySlotHint(LILYCOVE, 1, CHAPTER_FAR, 0) == desc->hints[0].far.texts[0]);
+    SetCountySlotStage(LILYCOVE, 1, 1);
+    EXPECT_EQ(GetCountySlotStage(LILYCOVE, 0), 0);
+    EXPECT(GetCountySlotHint(LILYCOVE, 1, CHAPTER_FAR, 0) == desc->hints[1].far.texts[0]);
+}
+
+TEST("Chapter: Mossdeep's Super Rod chapter is stored, role-anchored, and its scene writes the slot var")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(MOSSDEEP, 0);
+    const struct Scene *scene = GetScene(SCENE_MOSSDEEP_SUPER_ROD);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT_EQ(GetChapterNeededRoles(desc), BUILDING_HOUSE);
+    EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
+    EXPECT_EQ(scene->stageVar, GetCountySlotVar(MOSSDEEP, 0));
+}
+
+// The stage constants scripts use are the descriptor's stage indices.
+static bool32 SaveBirchStageNamesMatch(void)
+{
+    return SAVE_BIRCH_TWIN_GUARDS == 0 && SAVE_BIRCH_SEE_RIVAL == SAVE_BIRCH_NUM_STAGES - 1
+        && SAVE_BIRCH_BIRCH_IN_GRASS == SAVE_BIRCH_TWIN_ASKS + 1 && SAVE_BIRCH_AWAIT_BAG == SAVE_BIRCH_BIRCH_IN_GRASS + 1
+        && SAVE_BIRCH_STARTER_TAKEN == SAVE_BIRCH_AWAIT_BAG + 1 && SAVE_BIRCH_SEE_RIVAL == SAVE_BIRCH_STARTER_TAKEN + 1;
+}
+
+TEST("Chapter: Save Birch is stored in Littleroot's slot 1 and its scenes run on the slot var")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(LITTLEROOT, 1);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, SAVE_BIRCH_NUM_STAGES);
+    EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
+    EXPECT_EQ(GetScene(SCENE_ROUTE101_RESCUE)->stageVar, GetCountySlotVar(LITTLEROOT, 1));
+    EXPECT_EQ(GetScene(SCENE_LITTLEROOT_NEED_POKEMON)->stageVar, GetCountySlotVar(LITTLEROOT, 1));
+    EXPECT(SaveBirchStageNamesMatch());
+}
+
+TEST("Chapter: Moving in is stored in Littleroot's slot 0 and its scenes run on the slot var")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(LITTLEROOT, 0);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, MOVING_IN_NUM_STAGES);
+    EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
+    EXPECT_EQ(GetCountySlotVar(LITTLEROOT, 0), VAR_MOVING_IN_BEAT);
+    EXPECT_EQ(GetScene(SCENE_LITTLEROOT_ARRIVE_MALE)->stageVar, VAR_MOVING_IN_BEAT);
+    EXPECT_EQ(GetScene(SCENE_LITTLEROOT_ARRIVE_FEMALE)->stageVar, VAR_MOVING_IN_BEAT);
+    EXPECT_EQ(MOVING_IN_TRUCK_MALE, 1);
+    EXPECT_EQ(MOVING_IN_TRUCK_FEMALE, 2);
+    EXPECT_EQ(MOVING_IN_MEET_RIVAL, MOVING_IN_NUM_STAGES - 1);
+}
+
+TEST("Chapter: Rival and Pokedex is stored in Oldale's slot 0 and the Route 103 rival scenes run on the slot var")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(OLDALE, 0);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, RIVAL_DEX_NUM_STAGES);
+    EXPECT_EQ(GetCountySlotVar(OLDALE, 0), VAR_RIVAL_DEX_BEAT);
+    EXPECT_EQ(GetScene(SCENE_ROUTE103_RIVAL_MAY)->stageVar, VAR_RIVAL_DEX_BEAT);
+    EXPECT_EQ(GetScene(SCENE_ROUTE103_RIVAL_BRENDAN)->stageVar, VAR_RIVAL_DEX_BEAT);
+    EXPECT_EQ(RIVAL_DEX_SHOES_GIVEN, RIVAL_DEX_NUM_STAGES - 1);
+    EXPECT_EQ(RIVAL_DEX_RIVAL_AT_LAB, RIVAL_DEX_RIVAL_IN_OLDALE + 1);
+    EXPECT_EQ(RIVAL_DEX_POKEDEX_GIVEN, RIVAL_DEX_RIVAL_AT_LAB + 1);
+}
+
+TEST("Chapter: The first chapter of the chain is available from the start")
+{
+    EXPECT(IsCountySlotAvailable(LITTLEROOT, 0));
+}
+
+TEST("Chapter: With no declared key, a chapter waits for the previous slot of its county to complete")
+{
+    EXPECT(!IsCountySlotAvailable(LITTLEROOT, 1));
+    SetCountySlotStage(LITTLEROOT, 0, MOVING_IN_NUM_STAGES - 2);
+    EXPECT(!IsCountySlotAvailable(LITTLEROOT, 1));
+    SetCountySlotStage(LITTLEROOT, 0, MOVING_IN_NUM_STAGES - 1);
+    EXPECT(IsCountySlotAvailable(LITTLEROOT, 1));
+}
+
+TEST("Chapter: A county's first chapter waits for the main-story-index to reach the county")
+{
+    u32 numHosts;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    EXPECT(!IsChainPredecessorComplete(hosts, numHosts, OLDALE, 0, 3));
+    EXPECT(IsChainPredecessorComplete(hosts, numHosts, OLDALE, 0, 4));
+    EXPECT(IsChainPredecessorComplete(hosts, numHosts, OLDALE, 0, 7));
+    EXPECT(IsChainPredecessorComplete(hosts, numHosts, LITTLEROOT, 0, 0));
+    EXPECT(!IsCountySlotAvailable(OLDALE, 0));
+}
+
+TEST("Chapter: Placement needs every role of the descriptor, its anchors and its cutscene buildings")
+{
+    struct ChapterStage stages[] = {{.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}, .extraRoles = BUILDING_HOUSE}};
+    struct ChapterDesc desc = {.backend = CHAPTER_STORED, .numStages = 1, .requiredRoles = BUILDING_POKEMON_CENTER, .stages = stages};
+
+    EXPECT_EQ(GetChapterNeededRoles(&desc), BUILDING_POKEMON_CENTER | BUILDING_GYM | BUILDING_HOUSE);
+    EXPECT_EQ(CheckChapterPlacement(&desc, RUSTBORO, 0, NULL, 0), CHAPTER_PLACEMENT_OK);
+    EXPECT_EQ(CheckChapterPlacement(&desc, LILYCOVE, 0, NULL, 0), CHAPTER_PLACEMENT_MISSING_ROLE);
+    EXPECT_EQ(CheckChapterPlacement(&desc, COUNTY_ID(0, 0), 0, NULL, 0), CHAPTER_PLACEMENT_NO_CITY);
+}
+
+TEST("Chapter: A chapter giving a main-plot get must come after the gym its badges wait for")
+{
+    struct ChapterDesc desc = {.backend = CHAPTER_STORED, .numStages = 1, .stages = sGatedStages, .producesMainGet = TRUE,
+                               .mainGet = {PLOT_KIND_GYM, 1}, .minBadges = 4};
+
+    EXPECT_EQ(CheckChapterPlacement(&desc, RUSTBORO, 0, NULL, 0), CHAPTER_PLACEMENT_BEFORE_BADGES);
+    desc.mainGet.ordinal = 8;
+    EXPECT_EQ(CheckChapterPlacement(&desc, RUSTBORO, 0, NULL, 0), CHAPTER_PLACEMENT_OK);
+    desc.minBadges = 0;
+    desc.mainGet.ordinal = 1;
+    EXPECT_EQ(CheckChapterPlacement(&desc, RUSTBORO, 0, NULL, 0), CHAPTER_PLACEMENT_OK);
+}
+
+TEST("Chapter: A host-pool key resolves against the host, so a moved chapter moves its key")
+{
+    u32 inRustboro = ResolveChapterKey(&sGatedDesc.producedKey, RUSTBORO);
+    u32 inLilycove = ResolveChapterKey(&sGatedDesc.producedKey, LILYCOVE);
+
+    EXPECT_EQ(inRustboro, GetCountyMcGuffinId(RUSTBORO, 1));
+    EXPECT_EQ(inLilycove, GetCountyMcGuffinId(LILYCOVE, 1));
+    EXPECT(inRustboro != inLilycove);
+    EXPECT_EQ(ResolveChapterKey(&sCrossConsumerDesc.requiredKeys[0], RUSTBORO), GetPlotItemMcGuffinId(PLOT_KIND_GYM, 4));
+    EXPECT_EQ(ResolveChapterKey(&sCrossConsumerDesc.requiredKeys[1], RUSTBORO), MCGUFFIN_ID_NONE);
+}
+
+TEST("Chapter: A key is produced once the producer reaches its production stage, not before")
+{
+    struct ChapterHost hosts[] = {{RUSTBORO, 0, &sGatedDesc}};
+    u32 key = GetCountyMcGuffinId(RUSTBORO, 1);
+
+    EXPECT(!IsMcGuffinProducedBy(hosts, 1, key));
+    SetChapterStage(RUSTBORO, 0, &sGatedDesc, 1);
+    EXPECT(!IsMcGuffinProducedBy(hosts, 1, key));
+    SetChapterStage(RUSTBORO, 0, &sGatedDesc, 2);
+    EXPECT(IsMcGuffinProducedBy(hosts, 1, key));
+    EXPECT(!IsMcGuffinProducedBy(hosts, 1, GetCountyMcGuffinId(LILYCOVE, 1)));
+}
+
+TEST("Chapter: A consumer waits for a producer in another host")
+{
+    struct ChapterHost hosts[] = {{PETALBURG, 1, &sItemProducerDesc}, {RUSTBORO, 1, &sCrossConsumerDesc}};
+
+    EXPECT(!IsChapterAvailable(&sCrossConsumerDesc, RUSTBORO, hosts, 2));
+    SetChapterStage(PETALBURG, 1, &sItemProducerDesc, 1);
+    EXPECT(IsChapterAvailable(&sCrossConsumerDesc, RUSTBORO, hosts, 2));
+}
+
+TEST("Chapter: A key consumed must have a producer in an earlier county, or an earlier slot")
+{
+    struct ChapterHost producer[] = {{RUSTBORO, 0, &sItemProducerDesc}};
+
+    EXPECT_EQ(CheckChapterPlacement(&sCrossConsumerDesc, LILYCOVE, 0, producer, 1), CHAPTER_PLACEMENT_OK);
+    EXPECT_EQ(CheckChapterPlacement(&sCrossConsumerDesc, RUSTBORO, 1, producer, 1), CHAPTER_PLACEMENT_OK);
+    EXPECT_EQ(CheckChapterPlacement(&sCrossConsumerDesc, RUSTBORO, 0, producer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+    EXPECT_EQ(CheckChapterPlacement(&sCrossConsumerDesc, PETALBURG, 0, NULL, 0), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+    producer[0].county = LILYCOVE;
+    EXPECT_EQ(CheckChapterPlacement(&sCrossConsumerDesc, RUSTBORO, 0, producer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+}
+
+TEST("Chapter: A host-pool key consumed in the same host needs the producer's slot to be earlier")
+{
+    struct ChapterHost producer[] = {{RUSTBORO, 0, &sGatedDesc}};
+
+    EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, RUSTBORO, 1, producer, 1), CHAPTER_PLACEMENT_OK);
+    EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, RUSTBORO, 0, producer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+    EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, LILYCOVE, 0, producer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+}
+
+TEST("Chapter: Availability counts badges held in any order")
+{
+    EXPECT(!IsChapterAvailable(&sGatedDesc, RUSTBORO, NULL, 0));
+    SetBadges(0x12);
+    EXPECT_EQ(GetBadgeCount(), 2);
+    EXPECT(!IsChapterAvailable(&sGatedDesc, RUSTBORO, NULL, 0));
+    SetBadges(0x4B);
+    EXPECT_EQ(GetBadgeCount(), 4);
+    EXPECT(IsChapterAvailable(&sGatedDesc, RUSTBORO, NULL, 0));
+}
+
+TEST("Chapter: A hint's count is the badges still missing")
+{
+    SetBadges(0x12);
+    EXPECT_EQ(GetChapterHintCount(&sGatedDesc, 0, GetBadgeCount()), 2);
+    EXPECT_EQ(GetChapterHintCount(&sGatedDesc, 0, 6), 0);
+    EXPECT_EQ(GetChapterHintCount(&sGatedDesc, 1, 0), 0);
+}
+
+TEST("Chapter: Buffering a hint count puts the number in STR_VAR_1 and leaves it alone for uncounted stages")
+{
+    SetBadges(0x12);
+    gStringVar1[0] = EOS;
+    BufferChapterHintCount(&sGatedDesc, 1);
+    EXPECT_EQ(gStringVar1[0], EOS);
+    BufferChapterHintCount(&sGatedDesc, 0);
+    EXPECT_EQ(StringCompare(gStringVar1, COMPOUND_STRING("2")), 0);
+}
+
+TEST("Chapter: Derived stages come from the badge count with no stored counter")
+{
+    static const struct ChapterStage sStages[] =
+    {
+        {},
+        {.done = {STORY_PRED_BADGES_GE, 1, 0}},
+        {.done = {STORY_PRED_BADGES_GE, 4, 0}},
+    };
+    static const struct ChapterDesc sDesc = {.backend = CHAPTER_ADAPTER, .numStages = 3, .stages = sStages};
+
+    EXPECT_EQ(GetChapterStage(0, 0, &sDesc), 0);
+    SetBadges(0x20);
+    EXPECT_EQ(GetChapterStage(0, 0, &sDesc), 1);
+    SetBadges(0xF0);
+    EXPECT_EQ(GetChapterStage(0, 0, &sDesc), 2);
+}
+
+TEST("Chapter: Two stages of one chapter anchor different buildings")
+{
+    EXPECT_EQ(sGatedDesc.stages[0].anchor.role, BUILDING_GYM);
+    EXPECT_EQ(sGatedDesc.stages[1].anchor.role, BUILDING_MART);
+    EXPECT_EQ(sGatedDesc.stages[1].anchor.kind, BEAT_ANCHOR_DOOR);
+}
+
+TEST("Chapter: A hint template expands {HINT_PLACE} to the anchor's building or location name")
+{
+    u8 out[96];
+    static const u8 sTemplate[] = _("the {HINT_PLACE} in {HINT_CITY}");
+    static const struct BeatAnchor mart = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_MART};
+    static const struct BeatAnchor cave = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, ROUTE_LOCATION_CAVE, 0};
+    static const struct BeatAnchor outdoors = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0};
+    u8 expect[96];
+
+    ExpandHintTemplate(out, sTemplate, RUSTBORO, &mart);
+    StringCopy(StringCopy(expect, COMPOUND_STRING("the MART in ")), GetCountyCityName(RUSTBORO));
+    EXPECT_EQ(StringCompare(out, expect), 0);
+    ExpandHintTemplate(out, sTemplate, RUSTBORO, &cave);
+    EXPECT_EQ(StringCompareN(out, COMPOUND_STRING("the cave in "), 12), 0);
+    ExpandHintTemplate(out, sTemplate, RUSTBORO, &outdoors);
+    EXPECT_EQ(StringCompareN(out, COMPOUND_STRING("the spot in "), 12), 0);
+}
+
+TEST("Chapter: A pseudo-stage hint reads its anchor and count from the nearest real stage")
+{
+    EXPECT_EQ(ResolveHintStage(&sGatedDesc, CHAPTER_STAGE_BEFORE), 0);
+    EXPECT_EQ(ResolveHintStage(&sGatedDesc, CHAPTER_STAGE_AFTER), ARRAY_COUNT(sGatedStages) - 1);
+    EXPECT_EQ(ResolveHintStage(&sGatedDesc, 1), 1);
+    EXPECT_EQ(GetChapterHintCount(&sGatedDesc, CHAPTER_STAGE_BEFORE, 0), 4);
+    EXPECT_EQ(GetChapterHintCount(&sGatedDesc, CHAPTER_STAGE_AFTER, 0), 0);
+    SetBadges(0x12);
+    BufferChapterHintCount(&sGatedDesc, CHAPTER_STAGE_BEFORE);
+    EXPECT_EQ(StringCompare(gStringVar1, COMPOUND_STRING("2")), 0);
+}
+
+static const struct ChapterActor sPseudoActors[] =
+{
+    {CHAPTER_STAGE_BEFORE, 0, 0x1, 1},
+    {1, CHAPTER_STAGE_AFTER, 0x2, 2},
+    {CHAPTER_STAGE_BEFORE, CHAPTER_STAGE_AFTER, 0, 3},
+};
+
+static const struct ChapterDesc sPseudoActorDesc =
+{
+    .backend = CHAPTER_ADAPTER,
+    .numStages = 3,
+    .numActors = ARRAY_COUNT(sPseudoActors),
+    .actors = sPseudoActors,
+};
+
+TEST("Chapter: Actors with ranges ending at a pseudo-stage are listed for it")
+{
+    const struct ChapterActor *out[3];
+
+    EXPECT_EQ(GetChapterActors(&sPseudoActorDesc, CHAPTER_STAGE_BEFORE, out, 3), 2);
+    EXPECT_EQ(out[0]->gfxId, 1);
+    EXPECT_EQ(out[1]->gfxId, 3);
+    EXPECT_EQ(GetChapterActors(&sPseudoActorDesc, CHAPTER_STAGE_AFTER, out, 3), 2);
+    EXPECT_EQ(out[0]->gfxId, 2);
+    EXPECT_EQ(GetChapterActors(&sPseudoActorDesc, 0, out, 3), 2);
+    EXPECT_EQ(GetChapterActors(&sPseudoActorDesc, 1, out, 3), 2);
+}

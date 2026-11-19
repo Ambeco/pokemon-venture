@@ -3,7 +3,7 @@
 
 // One bit per randomization in SaveBlock2's randomizations mask (remaining_work.md milestones).
 #define RANDOMIZE_NPC_TEXT      (1 << 0)
-#define RANDOMIZE_SUBPLOTS      (1 << 1)
+#define RANDOMIZE_CHAPTERS      (1 << 1)
 #define RANDOMIZE_ARC_CUTSCENES (1 << 2)
 #define RANDOMIZE_TYPES         (1 << 3)
 #define RANDOMIZE_ENCOUNTERS    (1 << 4)

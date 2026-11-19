@@ -4,7 +4,7 @@ LittlerootTown_MapScripts::
 	map_script MAP_SCRIPT_ON_WARP_INTO_MAP_TABLE, LittlerootTown_OnWarp
 	.byte 0
 
-	@ State descriptions for VAR_LITTLEROOT_TOWN_STATE (0-2 were the start of the Save Birch subplot: VAR_SAVE_BIRCH_BEAT)
+	@ State descriptions for VAR_LITTLEROOT_TOWN_STATE (0-2 were the start of the Save Birch chapter: VAR_SAVE_BIRCH_BEAT)
 	@ 3: Received Pokedex
 	@ 4: Received Running Shoes
 

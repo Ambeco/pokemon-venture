@@ -36,7 +36,7 @@ TEST("SetRandomized turns one randomization off without touching others")
 TEST("Each randomization bit is distinct and within RANDOMIZE_ALL")
 {
     static const u32 features[] = {
-        RANDOMIZE_NPC_TEXT, RANDOMIZE_SUBPLOTS, RANDOMIZE_ARC_CUTSCENES, RANDOMIZE_TYPES,
+        RANDOMIZE_NPC_TEXT, RANDOMIZE_CHAPTERS, RANDOMIZE_ARC_CUTSCENES, RANDOMIZE_TYPES,
         RANDOMIZE_ENCOUNTERS, RANDOMIZE_MOVES, RANDOMIZE_TRAINERS,
     };
     u32 i, seen = 0;

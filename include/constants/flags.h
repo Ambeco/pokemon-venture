@@ -52,7 +52,7 @@
 #else
 
 #define FLAG_SCENE_NO_WILD           0x20 // Set while a scene stage needs no wild encounters or overworld spawns (the Route 101 rescue); WE_FLAG_NO_ENCOUNTER and WE_OWE_FLAG_DISABLED
-#define FLAG_FOSSIL_IS_ANORITH 0x21 // Rustboro fossil subplot: the fossil being revived is the Claw Fossil (else the Root Fossil)
+#define FLAG_FOSSIL_IS_ANORITH 0x21 // Rustboro fossil chapter: the fossil being revived is the Claw Fossil (else the Root Fossil)
 #define FLAG_UNUSED_0x022    0x22 // Unused Flag
 #define FLAG_UNUSED_0x023    0x23 // Unused Flag
 #define FLAG_UNUSED_0x024    0x24 // Unused Flag
