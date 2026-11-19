@@ -15,7 +15,6 @@ These are where a `BuildingRole` is not obvious from the layout alone.
 - FallarborTown -> FallarborTown_BattleTentLobby (layout LAYOUT_BATTLE_TENT_LOBBY, x3): FLAG_MET_SCOTT_IN_FALLARBOR, VAR_FRONTIER_BATTLE_MODE, VAR_FRONTIER_FACILITY
 - SlateportCity -> SlateportCity_BattleTentLobby (layout LAYOUT_BATTLE_TENT_LOBBY, x3): VAR_FRONTIER_BATTLE_MODE, VAR_FRONTIER_FACILITY
 - VerdanturfTown -> VerdanturfTown_BattleTentLobby (layout LAYOUT_BATTLE_TENT_LOBBY, x3): FLAG_MET_SCOTT_IN_VERDANTURF, VAR_FRONTIER_BATTLE_MODE, VAR_FRONTIER_FACILITY
-- FortreeCity -> FortreeCity_House1 (layout LAYOUT_FORTREE_CITY_HOUSE1, x3): FLAG_FORTREE_NPC_TRADE_COMPLETED
 - FortreeCity -> FortreeCity_House2 (layout LAYOUT_FORTREE_CITY_HOUSE2, x2): FLAG_MET_HIDDEN_POWER_GIVER
 - FortreeCity -> FortreeCity_House4 (layout LAYOUT_FORTREE_CITY_HOUSE2, x2): FLAG_WINGULL_SENT_ON_ERRAND
 - LilycoveCity -> LilycoveCity_Harbor (layout LAYOUT_HARBOR, x2): FLAG_SHOWN_AURORA_TICKET, FLAG_SHOWN_EON_TICKET, FLAG_SHOWN_MYSTIC_TICKET, FLAG_SHOWN_OLD_SEA_MAP, VAR_SS_TIDAL_STATE
@@ -24,7 +23,6 @@ These are where a `BuildingRole` is not obvious from the layout alone.
 - MossdeepCity -> MossdeepCity_House2 (layout LAYOUT_HOUSE1, x9): FLAG_WINGULL_DELIVERED_MAIL
 - MauvilleCity -> MauvilleCity_House1 (layout LAYOUT_HOUSE2, x12): FLAG_RECEIVED_HM_ROCK_SMASH, ITEM_HM_ROCK_SMASH
 - PetalburgCity -> PetalburgCity_WallysHouse (layout LAYOUT_HOUSE2, x12): FLAG_RECEIVED_HM_SURF, FLAG_THANKED_FOR_PLAYING_WITH_WALLY, ITEM_HM_SURF, VAR_PETALBURG_CITY_STATE
-- PacifidlogTown -> PacifidlogTown_House3 (layout LAYOUT_PACIFIDLOG_TOWN_HOUSE1, x3): FLAG_PACIFIDLOG_NPC_TRADE_COMPLETED
 - PacifidlogTown -> PacifidlogTown_House2 (layout LAYOUT_PACIFIDLOG_TOWN_HOUSE2, x2): FLAG_MET_FANCLUB_YOUNGER_BROTHER
 - EverGrandeCity -> EverGrandeCity_PokemonCenter_1F (layout LAYOUT_POKEMON_CENTER_1F, x15): FLAG_MET_SCOTT_IN_EVERGRANDE
 
@@ -35,9 +33,9 @@ These are where a `BuildingRole` is not obvious from the layout alone.
 - LAYOUT_HOUSE2: 12 maps; 10 city buildings, 2 with persistent state
 - LAYOUT_HOUSE1: 9 maps; 8 city buildings, 2 with persistent state
 - LAYOUT_BATTLE_TENT_LOBBY: 3 maps; 3 city buildings, 3 with persistent state
-- LAYOUT_FORTREE_CITY_HOUSE1: 3 maps; 3 city buildings, 1 with persistent state
+- LAYOUT_FORTREE_CITY_HOUSE1: 3 maps; 3 city buildings, 0 with persistent state
 - LAYOUT_HOUSE_WITH_BED: 3 maps; 3 city buildings, 0 with persistent state
-- LAYOUT_PACIFIDLOG_TOWN_HOUSE1: 3 maps; 3 city buildings, 1 with persistent state
+- LAYOUT_PACIFIDLOG_TOWN_HOUSE1: 3 maps; 3 city buildings, 0 with persistent state
 - LAYOUT_SOOTOPOLIS_CITY_HOUSE1: 3 maps; 3 city buildings, 0 with persistent state
 - LAYOUT_HOUSE3: 3 maps; 2 city buildings, 0 with persistent state
 - LAYOUT_FORTREE_CITY_HOUSE2: 2 maps; 2 city buildings, 2 with persistent state
@@ -83,7 +81,7 @@ These are where a `BuildingRole` is not obvious from the layout alone.
 | entry | maps | layout reuse | persistent state | other |
 |---|---|---|---|---|
 | FortreeCity_PokemonCenter_1F (+3 inner) | 4 | x15 |  | hide:FLAG_HIDE_POKEMON_CENTER_2F_MYSTERY_GIFT_MAN, hide:FLAG_HIDE_UNION_ROOM_PLAYER_1, hide:FLAG_HIDE_UNION_ROOM_PLAYER_2, hide:FLAG_HIDE_UNION_ROOM_PLAYER_3, hide:FLAG_HIDE_UNION_ROOM_PLAYER_4, hide: |
-| FortreeCity_House1 | 1 | x3 | FLAG_FORTREE_NPC_TRADE_COMPLETED |  |
+| FortreeCity_House1 | 1 | x3 |  |  |
 | FortreeCity_Gym | 1 | unique | FLAG_BADGE06_GET, FLAG_DEFEATED_FORTREE_GYM, FLAG_ENABLE_WINONA_MATCH_CALL, FLAG_SCOTT_CALL_FORTREE_GYM, VAR_SCOTT_FORTREE_CALL_STEP_COUNTER | battle:TRAINER_ASHLEY, battle:TRAINER_DARIUS, battle:TRAINER_EDWARDO, battle:TRAINER_FLINT, battle:TRAINER_HUMBERTO, battle:TRAINER_JARED, battle:TRAINER_WINONA_1 |
 | FortreeCity_Mart | 1 | x13 |  |  |
 | FortreeCity_House2 | 1 | x2 | FLAG_MET_HIDDEN_POWER_GIVER |  |
@@ -171,7 +169,7 @@ These are where a `BuildingRole` is not obvious from the layout alone.
 | PacifidlogTown_PokemonCenter_1F (+3 inner) | 4 | x15 |  | hide:FLAG_HIDE_POKEMON_CENTER_2F_MYSTERY_GIFT_MAN, hide:FLAG_HIDE_UNION_ROOM_PLAYER_1, hide:FLAG_HIDE_UNION_ROOM_PLAYER_2, hide:FLAG_HIDE_UNION_ROOM_PLAYER_3, hide:FLAG_HIDE_UNION_ROOM_PLAYER_4, hide: |
 | PacifidlogTown_House1 | 1 | x3 |  |  |
 | PacifidlogTown_House2 | 1 | x2 | FLAG_MET_FANCLUB_YOUNGER_BROTHER |  |
-| PacifidlogTown_House3 | 1 | x3 | FLAG_PACIFIDLOG_NPC_TRADE_COMPLETED |  |
+| PacifidlogTown_House3 | 1 | x3 |  |  |
 | PacifidlogTown_House4 | 1 | x2 |  |  |
 | PacifidlogTown_House5 | 1 | x3 |  |  |
 
@@ -196,7 +194,7 @@ These are where a `BuildingRole` is not obvious from the layout alone.
 | RustboroCity_PokemonCenter_1F (+3 inner) | 4 | x15 |  | hide:FLAG_HIDE_POKEMON_CENTER_2F_MYSTERY_GIFT_MAN, hide:FLAG_HIDE_UNION_ROOM_PLAYER_1, hide:FLAG_HIDE_UNION_ROOM_PLAYER_2, hide:FLAG_HIDE_UNION_ROOM_PLAYER_3, hide:FLAG_HIDE_UNION_ROOM_PLAYER_4, hide: |
 | RustboroCity_PokemonSchool | 1 | unique | FLAG_MET_SCOTT_AFTER_OBTAINING_STONE_BADGE, FLAG_MET_SCOTT_RUSTBORO |  |
 | RustboroCity_DevonCorp_1F (+2 inner) | 3 | unique | FLAG_FOSSIL_IS_ANORITH, FLAG_RECEIVED_EXP_SHARE, FLAG_RECEIVED_POKENAV, FLAG_RECEIVED_REVIVED_FOSSIL_MON, FLAG_SYS_POKENAV_GET, ITEM_EXP_SHARE, ITEM_LETTER, SPECIES_ANORITH, SPECIES_LILEEP, VAR_BRINEY_LOCATION, VAR_DEVON_CORP_3F_STATE, VAR_RUSTBORO_CITY_STATE | hide:FLAG_HIDE_BRINEYS_HOUSE_MR_BRINEY, hide:FLAG_HIDE_BRINEYS_HOUSE_PEEKO, hide:FLAG_HIDE_ROUTE_116_WANDAS_BOYFRIEND, hide:FLAG_HIDE_RUSTBORO_CITY_POKEMON_SCHOOL_SCOTT, hide:FLAG_HIDE_RUSTBORO_CITY_R |
-| RustboroCity_House1 | 1 | unique | FLAG_RUSTBORO_NPC_TRADE_COMPLETED |  |
+| RustboroCity_House1 | 1 | unique |  |  |
 | RustboroCity_CuttersHouse | 1 | unique | FLAG_RECEIVED_HM_CUT, ITEM_HM_CUT |  |
 | RustboroCity_House2 | 1 | x2 |  |  |
 | RustboroCity_Flat2_1F (+2 inner) | 3 | unique |  |  |

@@ -165,7 +165,7 @@ def main():
         eff = {e for e in b["effects"] if e[0] in ("flag", "var", "item", "mon") and e[1] not in common}
         if args.all_items:
             return eff
-        eff = {e for e in eff if e[0] != "item" or e[1] in keys}
+        eff = {e for e in eff if (e[0] != "item" or e[1] in keys) and "NPC_TRADE" not in e[1]}  # trades get a separate system
         if not any(e[0] == "item" for e in eff):  # gift bookkeeping flags of ignored items
             eff = {e for e in eff if not e[1].startswith(("FLAG_RECEIVED_", "FLAG_GOT_"))}
         return eff
