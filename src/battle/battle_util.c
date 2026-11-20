@@ -2919,6 +2919,27 @@ static bool32 TryDancer(void)
     return FALSE;
 }
 
+// Rolls are 0..max inclusive; before Gen 4 the odds are thirds of a percent, hence the 300-wide roll.
+u32 GetEffectSporeRollMax(u32 triggerChanceConfig)
+{
+    return triggerChanceConfig >= GEN_4 ? 99 : 299;
+}
+
+enum EffectSporeOutcome GetEffectSporeOutcome(u32 roll, u32 triggerChanceConfig)
+{
+    u32 poison = triggerChanceConfig >= GEN_5 ? 9 : 10;
+    u32 paralysis = poison + 10;
+    u32 sleep = 30;
+
+    if (roll < poison)
+        return EFFECT_SPORE_POISON;
+    if (roll < paralysis)
+        return EFFECT_SPORE_PARALYSIS;
+    if (roll < sleep)
+        return EFFECT_SPORE_SLEEP;
+    return EFFECT_SPORE_NOTHING;
+}
+
 u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum Ability ability, enum Move move, bool32 shouldAbilityTrigger)
 {
     u32 effect = 0;
@@ -4033,36 +4054,29 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
              && !CanBattlerAvoidContactEffects(gBattlerAttacker, gBattlerTarget, abilityAtk, holdEffectAtk, move)
              && IsAffectedByPowderMove(gBattlerAttacker, abilityAtk, holdEffectAtk))
             {
-                u32 poison, paralysis, sleep;
+                u32 triggerChanceConfig = GetConfig(B_ABILITY_TRIGGER_CHANCE);
 
-                if (GetConfig(B_ABILITY_TRIGGER_CHANCE) >= GEN_5)
+                switch (GetEffectSporeOutcome(RandomUniform(RNG_EFFECT_SPORE, 0, GetEffectSporeRollMax(triggerChanceConfig)), triggerChanceConfig))
                 {
-                    poison = 9;
-                    paralysis = 19;
-                }
-                else
-                {
-                    poison = 10;
-                    paralysis = 20;
-                }
-                sleep = 30;
-
-                i = RandomUniform(RNG_EFFECT_SPORE, 0, GetConfig(B_ABILITY_TRIGGER_CHANCE) >= GEN_4 ? 99 : 299);
-                if (i < poison)
+                case EFFECT_SPORE_POISON:
                     goto POISON_POINT;
-                if (i < paralysis)
+                case EFFECT_SPORE_PARALYSIS:
                     goto STATIC;
-                // Sleep
-                if (i < sleep && CanBeSlept(gBattlerTarget, gBattlerAttacker, abilityAtk, NOT_BLOCKED_BY_SLEEP_CLAUSE))
-                {
-                    if (IsSleepClauseEnabled())
-                        gBattleStruct->battlerState[gBattlerAttacker].sleepClauseEffectExempt = TRUE;
-                    gEffectBattler = gBattlerAttacker;
-                    gBattleScripting.battler = gBattlerTarget;
-                    gBattleScripting.moveEffect = MOVE_EFFECT_SLEEP;
-                    PREPARE_ABILITY_BUFFER(gBattleTextBuff1, gLastUsedAbility);
-                    BattleScriptCall(BattleScript_AbilityStatusEffect);
-                    effect++;
+                case EFFECT_SPORE_SLEEP:
+                    if (CanBeSlept(gBattlerTarget, gBattlerAttacker, abilityAtk, NOT_BLOCKED_BY_SLEEP_CLAUSE))
+                    {
+                        if (IsSleepClauseEnabled())
+                            gBattleStruct->battlerState[gBattlerAttacker].sleepClauseEffectExempt = TRUE;
+                        gEffectBattler = gBattlerAttacker;
+                        gBattleScripting.battler = gBattlerTarget;
+                        gBattleScripting.moveEffect = MOVE_EFFECT_SLEEP;
+                        PREPARE_ABILITY_BUFFER(gBattleTextBuff1, gLastUsedAbility);
+                        BattleScriptCall(BattleScript_AbilityStatusEffect);
+                        effect++;
+                    }
+                    break;
+                default:
+                    break;
                 }
             }
         }

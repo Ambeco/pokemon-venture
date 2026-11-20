@@ -1148,6 +1148,10 @@ enum { TURN_CLOSED, TURN_OPEN, TURN_CLOSING };
 #define SEND_OUT(battler, partyIndex) SendOut(__LINE__, battler, partyIndex)
 #define USE_ITEM(battler, ...) UseItem(__LINE__, battler, (struct ItemContext) { R_APPEND_TRUE(__VA_ARGS__) })
 #define WITH_RNG(tag, value) rng: ((struct RiggedRNG) { tag, value })
+// WITH_RNG values for RNG_EFFECT_SPORE inside each status band in every generation.
+#define EFFECT_SPORE_POISON_ROLL    4
+#define EFFECT_SPORE_PARALYSIS_ROLL 14
+#define EFFECT_SPORE_SLEEP_ROLL     24
 #define TIE_BREAK_SCORE(rngTag, scoreTieRes, value) TieBreakScore(__LINE__, rngTag, scoreTieRes, value)
 #define TIE_BREAK_TARGET(targetTieRes, value) TieBreakTarget(__LINE__, targetTieRes, value)
 

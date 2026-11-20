@@ -208,6 +208,17 @@ bool32 CanMoveBeBlockedByTarget(struct DamageContext *ctx, s32 movePriority);
 bool32 CanAbilityAbsorbMove(struct DamageContext *ctx);
 bool32 TryFieldEffects(enum FieldEffectCases caseId);
 u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum Ability ability, enum Move move, bool32 shouldAbilityTrigger);
+
+enum EffectSporeOutcome
+{
+    EFFECT_SPORE_NOTHING,
+    EFFECT_SPORE_POISON,
+    EFFECT_SPORE_PARALYSIS,
+    EFFECT_SPORE_SLEEP,
+};
+
+u32 GetEffectSporeRollMax(u32 triggerChanceConfig);
+enum EffectSporeOutcome GetEffectSporeOutcome(u32 roll, u32 triggerChanceConfig);
 bool32 TryPrimalReversion(enum BattlerId battler);
 bool32 IsNeutralizingGasOnField(void);
 bool32 IsMoldBreakerTypeAbility(enum BattlerId battler, enum Ability ability);
