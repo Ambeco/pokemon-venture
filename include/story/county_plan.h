@@ -13,10 +13,10 @@
  * PlanCountyChain plans each hosted subplot in declaration order with PlanSubplotBound, handing each the capacity the
  * earlier ones left minus what later subplots' bound entries need. An entry whose chapter supplies a get
  * (GetChapterSuppliedSlot) is bound to the slot of that get; a get outside the county's block or in a slot with no
- * room asserts and fails the plan (SUBPLOT_PLAN_BOUND_ELSEWHERE). It merges the placed entries by main-story slot (declaration order within a slot). Each entry
- * keeps the host table's chapter slot, so no stored state moves. Only required entries go on the chain; optional
- * ones are off-chain: they run beside it on their own slot var and never hold a main-story slot (design_scenes.md,
- * "Interleaving subplots").
+ * room asserts and fails the plan (SUBPLOT_PLAN_BOUND_ELSEWHERE). It merges the placed entries by main-story slot
+ * (declaration order within a slot). Each entry keeps the host table's chapter slot, so no stored state moves. Only
+ * required entries go on the chain; optional ones are off-chain: they run beside it on their own slot var and never
+ * hold a main-story slot (design_scenes.md, "Interleaving subplots").
  */
 
 #include "global.h"
