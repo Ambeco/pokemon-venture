@@ -155,6 +155,7 @@ struct ChapterDesc
     struct ChapterKeyRef requiredKeys[CHAPTER_MAX_REQUIRED_KEYS];
     bool8 producesMainGet; // completion is a get of a main-plot list: mainGet names it, and the news points at this chapter
     struct PlotKeyRef mainGet;
+    u8 mainHm; // enum PlotHm: the HM the chapter hands out (a get of its gym's list, not a McGuffin); PLOT_HM_NONE for none
     const struct ChapterStage *stages;
     const struct ChapterHint *hints;
     const struct ChapterActor *actors;
@@ -174,6 +175,9 @@ struct SubplotHost;
 
 // Where Emerald groups its ported chapters into subplots (subplot.h).
 const struct SubplotHost *GetSubplotHosts(u32 *numSubplots);
+
+// The vanilla slot of the main-plot get the chapter supplies (mainGet, else its HM); FALSE when it supplies none.
+bool32 GetChapterSuppliedSlot(const struct ChapterDesc *desc, struct PlotSlot *out);
 
 // NULL when the county hosts nothing in the slot.
 const struct ChapterDesc *GetCountyChapter(u32 countyId, u32 slot);

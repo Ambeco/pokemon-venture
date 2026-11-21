@@ -177,3 +177,87 @@ TEST("Subplot: An empty subplot with no minimums plans to nothing")
     EXPECT_EQ(GetSubplotPlacedCount(&subplot, &plan), 0);
     EXPECT_EQ(BuildSubplotChain(&subplot, &plan, 0, chain), 0);
 }
+
+TEST("Subplot: A bound entry goes to its slot though an earlier slot has room")
+{
+    static const struct SubplotEntry entries[] = {REQ(sOneStage)};
+    static const struct SubplotDesc subplot = SUBPLOT(entries);
+    static const u8 bound[] = {2};
+    struct SubplotPlan plan = PlanSubplotBound(&subplot, sRules, bound);
+
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_OK);
+    EXPECT_EQ(plan.mainSlot[0], 2);
+    EXPECT_EQ(plan.count[0], 0);
+}
+
+TEST("Subplot: An unbound entry before a bound one stays at or before the bound slot, and leaves room in it")
+{
+    static const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS] = {{0, 1}, {0, 0}, {0, 1}, {0, 0}};
+    static const struct SubplotEntry entries[] = {REQ(sOneStage), OPT(sOneStage), REQ(sOneStage)};
+    static const struct SubplotDesc subplot = SUBPLOT(entries);
+    static const u8 bound[] = {SUBPLOT_UNBOUND, SUBPLOT_UNBOUND, 2};
+    struct SubplotPlan plan = PlanSubplotBound(&subplot, rules, bound);
+
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_OK);
+    EXPECT_EQ(plan.mainSlot[0], 0);
+    EXPECT_EQ(plan.mainSlot[1], SUBPLOT_DROPPED);
+    EXPECT_EQ(plan.mainSlot[2], 2);
+}
+
+TEST("Subplot: Unbound entries do not take the room a later bound entry needs in the same slot")
+{
+    static const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS] = {{0, 0}, {0, 0}, {1, 2}, {0, 0}};
+    static const struct SubplotEntry entries[] = {REQ(sOneStage), REQ(sOneStage), REQ(sOneStage)};
+    static const struct SubplotDesc subplot = SUBPLOT(entries);
+    static const u8 bound[] = {SUBPLOT_UNBOUND, SUBPLOT_UNBOUND, 2};
+    struct SubplotPlan plan = PlanSubplotBound(&subplot, rules, bound);
+
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_NO_ROOM);
+    EXPECT_EQ(plan.problemIndex, 1);
+}
+
+TEST("Subplot: A bound entry before the cursor is out of order")
+{
+    static const struct SubplotEntry entries[] = {REQ(sOneStage), REQ(sOneStage)};
+    static const struct SubplotDesc subplot = SUBPLOT(entries);
+    static const u8 bound[] = {2, 0};
+    struct SubplotPlan plan = PlanSubplotBound(&subplot, sRules, bound);
+
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_BOUND_OUT_OF_ORDER);
+    EXPECT_EQ(plan.problemIndex, 1);
+}
+
+TEST("Subplot: A bound entry in a slot with no room, or past the last slot, is a problem")
+{
+    static const struct SubplotEntry entries[] = {REQ(sOneStage)};
+    static const struct SubplotDesc subplot = SUBPLOT(entries);
+    static const u8 callbackSlot[] = {1};
+    static const u8 pastLast[] = {COUNTY_MAIN_SLOTS};
+    struct SubplotPlan plan = PlanSubplotBound(&subplot, sRules, callbackSlot);
+
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_NO_ROOM);
+    plan = PlanSubplotBound(&subplot, sRules, pastLast);
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_BOUND_OUT_OF_ORDER);
+}
+
+TEST("Subplot: Binding to a slot that fills a minimum is not starved by an earlier unbound entry")
+{
+    static const struct SubplotEntry entries[] = {REQ(sOneStage), REQ(sOneStage)};
+    static const struct SubplotDesc subplot = SUBPLOT(entries);
+    static const u8 bound[] = {SUBPLOT_UNBOUND, 2};
+    struct SubplotPlan plan = PlanSubplotBound(&subplot, sRules, bound);
+
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_OK);
+    EXPECT_EQ(plan.mainSlot[0], 0);
+    EXPECT_EQ(plan.mainSlot[1], 2);
+}
+
+TEST("Subplot: Bindings of optional entries are ignored")
+{
+    static const struct SubplotEntry entries[] = {OPT(sOneStage)};
+    static const struct SubplotDesc subplot = SUBPLOT(entries);
+    static const u8 bound[] = {1};
+    struct SubplotPlan plan = PlanSubplotBound(&subplot, sRules, bound);
+
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_SLOT_UNDERFILLED);
+}

@@ -54,7 +54,8 @@
 - Once the descriptor and McGuffin abstraction exist, also abstract Kanto's chapters and McGuffins (`data/maps/*_Frlg` scripts, `src/data/trainers_frlg.*`; notes.md) and add them to the chapter and McGuffin lists.
 - County chain (design_chapters.md, "County chain"; `county_chain.h` is unused by game code yet):
   - `PlanEmeraldCountyChain` plans the chain from the subplots, but nothing stores or advances it: read and write the stored position for Emerald counties once their legacy vars are retired.
-  - The planner puts a required entry in the first slot with room, not in the slot of the get it supplies (Emerald's ported counties come out right by luck of their lists): bind an entry to the slot of its `mainGet`, or of its HM, and add gym chapters (gym badges open no capacity yet).
+  - Add gym chapters (gym badges open no capacity yet).
+  - A chapter that supplies a get (`mainGet`, `mainHm`) but whose get is in another county's block or a slot without room asserts (`SUBPLOT_PLAN_BOUND_ELSEWHERE`); untested, since an `assertf` makes a test invalid. The tutorial chapters (Moving in, Save Birch, Rival and Pokédex) still declare no get, so they are first-fit.
   - Advance the global main-story-index when `DidChainJustFinishMainSlot` fires (no stored index exists until Milestone 3; `GetMainStoryIndex` is computed by the adapter).
 - Scene runner (design_scenes.md, "Scene runner"; `src/story/scene.c`, first conversion is Littleroot's "need a Pokémon" girl):
   - Check the wild form of `battle` in a real game or `make e2e` (no ported scene uses it yet, and the headless tests cannot run battles); the trainer form and `ask_choice` are covered by `test/e2e/tests/route103_rival.json`.

@@ -7,7 +7,8 @@
  * plan into county-chain entries (county_chain.h) with BuildSubplotChain.
  *
  * Each main-story slot has a rule: at most `max` chapters (0 for a callback hosted elsewhere) and at least `min`
- * (a slot that supplies gets needs one). Entries are placed in order into the first slot that has room. A required
+ * (a slot that supplies gets needs one). An entry bound to a slot (PlanSubplotBound) goes there; the others are placed
+ * in order into the first slot that has room. A required
  * entry that does not fit spills into the next slot with capacity; an optional one is dropped. Optional entries
  * are also dropped when placing them would leave the later slots' minimums to chance, since only required entries
  * after one are guaranteed to be placed. The plan fails, naming the problem, when a required entry has no slot
@@ -26,6 +27,7 @@
 
 #define SUBPLOT_MAX_ENTRIES 8
 #define SUBPLOT_DROPPED 0xFF
+#define SUBPLOT_UNBOUND 0xFF
 
 struct ChapterDesc;
 
@@ -59,6 +61,8 @@ enum SubplotPlanProblem
     SUBPLOT_PLAN_OK,
     SUBPLOT_PLAN_NO_ROOM,          // a required entry found no slot with capacity left: `problemIndex` is the entry
     SUBPLOT_PLAN_SLOT_UNDERFILLED, // a slot ended below its minimum: `problemIndex` is the main-story slot
+    SUBPLOT_PLAN_BOUND_OUT_OF_ORDER, // a bound entry's slot is before an earlier entry's (or past the last): `problemIndex` is the entry
+    SUBPLOT_PLAN_BOUND_ELSEWHERE,    // set by PlanCountyChain: the entry's get is not in this county's block or slot rules: `problemIndex` is the entry
 };
 
 struct SubplotPlan
@@ -72,6 +76,11 @@ struct SubplotPlan
 // Places the subplot's entries into the main-story slots under `rules`. On a problem every entry is still
 // reported as far as it was placed, so a test can show where the plan broke.
 struct SubplotPlan PlanSubplot(const struct SubplotDesc *subplot, const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS]);
+
+// PlanSubplot with `boundSlots[i]` (SUBPLOT_UNBOUND for none; NULL for all unbound) forcing required entry i into
+// that slot, the one holding the get the chapter supplies. Unbound entries keep to first-fit but leave room for
+// later bound ones in their slot and never pass the next bound slot. Bindings of optional entries are ignored.
+struct SubplotPlan PlanSubplotBound(const struct SubplotDesc *subplot, const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS], const u8 *boundSlots);
 
 // The chapter before `desc` in its subplot of `county`, which must be done before `desc` starts; NULL when `desc` is
 // first in its subplot or in none. Chapters of different subplots are unordered relative to each other.

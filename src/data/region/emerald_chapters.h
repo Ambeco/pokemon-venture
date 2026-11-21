@@ -152,6 +152,7 @@ static const struct ChapterDesc sRustboroCutterChapter =
     .stages = sRustboroCutterStages,
     .numHints = ARRAY_COUNT(sRustboroCutterHints),
     .hints = sRustboroCutterHints,
+    .mainHm = PLOT_HM_CUT,
 };
 
 static const struct ChapterDesc sLilycoveMuseumChapter =
@@ -232,6 +233,7 @@ static const struct ChapterDesc sMauvilleRockSmashChapter =
     .stages = sMauvilleRockSmashStages,
     .numHints = ARRAY_COUNT(sMauvilleRockSmashHints),
     .hints = sMauvilleRockSmashHints,
+    .mainHm = PLOT_HM_ROCK_SMASH,
 };
 
 enum MauvilleCoinCaseStage

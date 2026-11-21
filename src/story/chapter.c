@@ -352,6 +352,17 @@ bool32 DoesChapterProduce(const struct ChapterDesc *desc, u32 kind, u32 ordinal)
     return desc->producesMainGet && desc->mainGet.kind == kind && desc->mainGet.ordinal == ordinal;
 }
 
+bool32 GetChapterSuppliedSlot(const struct ChapterDesc *desc, struct PlotSlot *out)
+{
+    if (desc->producesMainGet)
+        *out = GetVanillaPlotSlot(desc->mainGet.kind, desc->mainGet.ordinal);
+    else if (desc->mainHm != PLOT_HM_NONE)
+        *out = GetVanillaHmSlot(desc->mainHm);
+    else
+        return FALSE;
+    return TRUE;
+}
+
 u32 GetChapterActors(const struct ChapterDesc *desc, u32 stage, const struct ChapterActor **out, u32 maxOut)
 {
     u32 i, total = 0;
