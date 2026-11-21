@@ -1,5 +1,8 @@
 #include "global.h"
+#include "constants/flags.h"
 #include "constants/vars.h"
+#include "event_data.h"
+#include "chapter.h"
 #include "test/test.h"
 
 // Every persistent var in the minigame, engine and legacy blocks must be listed here with its block.
@@ -18,6 +21,8 @@ STATIC_ASSERT(COUNTY_VARS_COUNT + RESERVED_VARS_COUNT + MINIGAME_VARS_COUNT + EN
 STATIC_ASSERT(LEGACY_VARS_START > COUNTY_VARS_START, legacyBlockStartsBeforeCountyBlock);
 STATIC_ASSERT(LEGACY_VARS_START <= COUNTY_VARS_END, legacyBlockDoesNotReachCountyBlock);
 STATIC_ASSERT(LEGACY_VARS_END <= RESERVED_VARS_END, legacyBlockPastReserve);
+// Slateport is county 20: porting its chapters needs its slice clear of legacy vars.
+STATIC_ASSERT(COUNTY_VAR_SLICES_FREE >= 21, tooFewFreeCountySlices);
 
 // Pairs and structs that are read as one unit must stay adjacent and in order.
 STATIC_ASSERT(VAR_FANCLUB_LOSE_FAN_TIMER == VAR_FANCLUB_FAN_COUNTER + 1, fanClubPairSplit);
@@ -52,7 +57,6 @@ static const struct VarEntry sVars[] =
     V(MINIGAME, VAR_FRONTIER_GAMBLER_STATE),
     V(MINIGAME, VAR_FRONTIER_BATTLE_MODE),
     V(MINIGAME, VAR_FRONTIER_FACILITY),
-    V(MINIGAME, VAR_HAS_ENTERED_BATTLE_FRONTIER),
     V(MINIGAME, VAR_TRAINER_HILL_IS_ACTIVE),
     V(MINIGAME, VAR_BRAVO_TRAINER_BATTLE_TOWER_ON),
     V(MINIGAME, VAR_TRICK_HOUSE_LEVEL),
@@ -67,8 +71,6 @@ static const struct VarEntry sVars[] =
     V(MINIGAME, VAR_TRICK_HOUSE_PUZZLE_6_STATE),
     V(MINIGAME, VAR_TRICK_HOUSE_PUZZLE_7_STATE),
     V(MINIGAME, VAR_TRICK_HOUSE_PUZZLE_8_STATE),
-    V(MINIGAME, VAR_TRICK_HOUSE_ENTER_FROM_CORRIDOR),
-    V(MINIGAME, VAR_TRICK_HOUSE_PRIZE_PICKUP),
     V(MINIGAME, VAR_CONTEST_HALL_STATE),
     V(MINIGAME, VAR_CONTEST_TYPE),
     V(MINIGAME, VAR_CONTEST_PRIZE_PICKUP),
@@ -100,7 +102,6 @@ static const struct VarEntry sVars[] =
     V(MINIGAME, VAR_MIRAGE_RND_L),
     V(MINIGAME, VAR_MIRAGE_TOWER_STATE),
     V(MINIGAME, VAR_ASH_GATHER_COUNT),
-    V(MINIGAME, VAR_JAGGED_PASS_ASH_WEATHER),
     V(MINIGAME, VAR_GLASS_WORKSHOP_STATE),
     V(MINIGAME, VAR_FOSSIL_MANIAC_STATE),
     V(MINIGAME, VAR_PACIFIDLOG_TM_RECEIVED_DAY),
@@ -117,7 +118,6 @@ static const struct VarEntry sVars[] =
     V(ENGINE, VAR_DAYS),
     V(ENGINE, VAR_NATIONAL_DEX),
     V(ENGINE, VAR_STARTER_MON),
-    V(ENGINE, VAR_ROAMER_POKEMON),
     V(ENGINE, VAR_DAILY_SLOTS),
     V(ENGINE, VAR_DAILY_WILDS),
     V(ENGINE, VAR_DAILY_BLENDER),
@@ -133,9 +133,6 @@ static const struct VarEntry sVars[] =
     V(ENGINE, VAR_SECRET_BASE_LAST_ITEM_USED),
     V(ENGINE, VAR_SECRET_BASE_LOW_TV_FLAGS),
     V(ENGINE, VAR_SECRET_BASE_HIGH_TV_FLAGS),
-    V(ENGINE, VAR_SECRET_BASE_IS_NOT_LOCAL),
-    V(ENGINE, VAR_RESET_RTC_ENABLE),
-    V(ENGINE, VAR_ENIGMA_BERRY_AVAILABLE),
     V(ENGINE, VAR_PC_BOX_TO_SEND_MON),
     V(ENGINE, VAR_ABNORMAL_WEATHER_LOCATION),
     V(ENGINE, VAR_ABNORMAL_WEATHER_STEP_COUNTER),
@@ -151,7 +148,6 @@ static const struct VarEntry sVars[] =
     V(ENGINE, VAR_CABLE_CLUB_STATE),
     V(ENGINE, VAR_CABLE_CLUB_TUTORIAL_STATE),
     // legacy
-    V(LEGACY, VAR_DISTRIBUTE_EON_TICKET),
     V(LEGACY, VAR_BIRCH_STATE),
     V(LEGACY, VAR_OLDALE_TOWN_STATE),
     V(LEGACY, VAR_LAVARIDGE_TOWN_STATE),
@@ -173,7 +169,6 @@ static const struct VarEntry sVars[] =
     V(LEGACY, VAR_LITTLEROOT_RIVAL_STATE),
     V(LEGACY, VAR_BOARD_BRINEY_BOAT_STATE),
     V(LEGACY, VAR_DEVON_CORP_3F_STATE),
-    V(LEGACY, VAR_BRINEY_HOUSE_STATE),
     V(LEGACY, VAR_MAUVILLE_GYM_STATE),
     V(LEGACY, VAR_BRINEY_LOCATION),
     V(LEGACY, VAR_PETALBURG_WOODS_STATE),
@@ -184,7 +179,6 @@ static const struct VarEntry sVars[] =
     V(LEGACY, VAR_SLATEPORT_HARBOR_STATE),
     V(LEGACY, VAR_SEAFLOOR_CAVERN_STATE),
     V(LEGACY, VAR_SLATEPORT_MUSEUM_1F_STATE),
-    V(LEGACY, VAR_TRICK_HOUSE_PUZZLE_7_STATE_2),
     V(LEGACY, VAR_MT_PYRE_STATE),
     V(LEGACY, VAR_NEW_MAUVILLE_STATE),
     V(LEGACY, VAR_METEOR_FALLS_STATE),
@@ -196,17 +190,8 @@ static const struct VarEntry sVars[] =
     V(LEGACY, VAR_SKY_PILLAR_STATE),
     V(LEGACY, VAR_SCOTT_STATE),
     V(LEGACY, VAR_SLATEPORT_OUTSIDE_MUSEUM_STATE),
-    V(LEGACY, VAR_SS_TIDAL_SCOTT_STATE),
     V(LEGACY, VAR_SKY_PILLAR_RAYQUAZA_CRY_DONE),
     V(LEGACY, VAR_SOOTOPOLIS_WALLACE_STATE),
-    V(LEGACY, VAR_HAS_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT),
-    V(LEGACY, VAR_GIFT_UNUSED_1),
-    V(LEGACY, VAR_GIFT_UNUSED_2),
-    V(LEGACY, VAR_GIFT_UNUSED_3),
-    V(LEGACY, VAR_GIFT_UNUSED_4),
-    V(LEGACY, VAR_GIFT_UNUSED_5),
-    V(LEGACY, VAR_GIFT_UNUSED_6),
-    V(LEGACY, VAR_GIFT_UNUSED_7),
 };
 
 static bool32 IsInBlock(u32 block, u32 id)
@@ -291,4 +276,39 @@ TEST("Persistent vars: expansion config vars are unset or outside the persistent
     u32 i;
     for (i = 0; i < ARRAY_COUNT(configVars); i++)
         EXPECT(configVars[i] == 0 || configVars[i] < PERSISTENT_VARS_START || configVars[i] > VARS_END);
+}
+
+// Vars that only ever held two states were moved to flags.
+TEST("Persistent vars: the flags that replaced two-state vars are distinct and saved")
+{
+    static const u16 flags[] =
+    {
+        FLAG_ENIGMA_BERRY_AVAILABLE,
+        FLAG_SECRET_BASE_IS_NOT_LOCAL,
+        FLAG_JAGGED_PASS_ASH_WEATHER,
+        FLAG_TRICK_HOUSE_ENTER_FROM_CORRIDOR,
+        FLAG_TRICK_HOUSE_PRIZE_PICKUP,
+        FLAG_BRINEY_HOUSE_PEEKO_POS,
+        FLAG_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT,
+        FLAG_HAS_ENTERED_BATTLE_FRONTIER,
+        FLAG_ROAMER_IS_LATIOS,
+    };
+    u32 i, j;
+    for (i = 0; i < ARRAY_COUNT(flags); i++)
+    {
+        EXPECT_GE(flags[i], FLAG_SCENE_NO_WILD);
+        EXPECT_LT(flags[i], FLAGS_COUNT);
+        for (j = i + 1; j < ARRAY_COUNT(flags); j++)
+            EXPECT_NE(flags[i], flags[j]);
+    }
+}
+
+TEST("Reset RTC: enabling and disabling round-trips through the flag")
+{
+    DisableResetRTC();
+    EXPECT(!CanResetRTC());
+    EnableResetRTC();
+    EXPECT(CanResetRTC());
+    DisableResetRTC();
+    EXPECT(!CanResetRTC());
 }

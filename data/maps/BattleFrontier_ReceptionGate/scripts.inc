@@ -3,17 +3,24 @@ BattleFrontier_ReceptionGate_MapScripts::
 	map_script MAP_SCRIPT_ON_TRANSITION, BattleFrontier_ReceptionGate_OnTransition
 	.byte 0
 
+@ VAR_TEMP_0 is 1 once the greeter has met the player (map_script_2 cannot test a flag)
 BattleFrontier_ReceptionGate_OnTransition:
 	setflag FLAG_LANDMARK_BATTLE_FRONTIER
+	call_if_set FLAG_HAS_ENTERED_BATTLE_FRONTIER, BattleFrontier_ReceptionGate_EventScript_AlreadyEntered
 	end
 
+BattleFrontier_ReceptionGate_EventScript_AlreadyEntered::
+	setvar VAR_TEMP_0, 1
+	return
+
 BattleFrontier_ReceptionGate_OnFrame:
-	map_script_2 VAR_HAS_ENTERED_BATTLE_FRONTIER, 0, BattleFrontier_ReceptionGate_EventScript_FirstTimeEntering
+	map_script_2 VAR_TEMP_0, 0, BattleFrontier_ReceptionGate_EventScript_FirstTimeEntering
 	.2byte 0
 
 BattleFrontier_ReceptionGate_EventScript_FirstTimeEntering::
 	lockall
-	setvar VAR_HAS_ENTERED_BATTLE_FRONTIER, 1
+	setflag FLAG_HAS_ENTERED_BATTLE_FRONTIER
+	setvar VAR_TEMP_0, 1
 	playse SE_PIN
 	applymovement LOCALID_FRONTIER_RECEPTION_GREETER, Common_Movement_ExclamationMark
 	waitmovement 0

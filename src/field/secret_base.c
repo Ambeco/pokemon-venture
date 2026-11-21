@@ -1810,25 +1810,25 @@ void InitSecretBaseVars(void)
     VarSet(VAR_SECRET_BASE_LOW_TV_FLAGS, 0);
     VarSet(VAR_SECRET_BASE_HIGH_TV_FLAGS, 0);
     if (VarGet(VAR_CURRENT_SECRET_BASE) != 0)
-        VarSet(VAR_SECRET_BASE_IS_NOT_LOCAL, TRUE);
+        FlagSet(FLAG_SECRET_BASE_IS_NOT_LOCAL);
     else
-        VarSet(VAR_SECRET_BASE_IS_NOT_LOCAL, FALSE);
+        FlagClear(FLAG_SECRET_BASE_IS_NOT_LOCAL);
 
     sInFriendSecretBase = FALSE;
 }
 
 void CheckLeftFriendsSecretBase(void)
 {
-    if (VarGet(VAR_SECRET_BASE_IS_NOT_LOCAL) && sInFriendSecretBase == TRUE && !CurMapIsSecretBase())
+    if (FlagGet(FLAG_SECRET_BASE_IS_NOT_LOCAL) && sInFriendSecretBase == TRUE && !CurMapIsSecretBase())
     {
-        VarSet(VAR_SECRET_BASE_IS_NOT_LOCAL, FALSE);
+        FlagClear(FLAG_SECRET_BASE_IS_NOT_LOCAL);
         sInFriendSecretBase = FALSE;
         TryPutSecretBaseSecretsOnAir();
         VarSet(VAR_SECRET_BASE_STEP_COUNTER, 0);
         VarSet(VAR_SECRET_BASE_LAST_ITEM_USED, 0);
         VarSet(VAR_SECRET_BASE_LOW_TV_FLAGS, 0);
         VarSet(VAR_SECRET_BASE_HIGH_TV_FLAGS, 0);
-        VarSet(VAR_SECRET_BASE_IS_NOT_LOCAL, FALSE);
+        FlagClear(FLAG_SECRET_BASE_IS_NOT_LOCAL);
     }
 }
 

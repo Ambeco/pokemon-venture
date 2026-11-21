@@ -470,7 +470,7 @@ PlayersHouse_1F_EventScript_GetSSTicketAndSeeLatiTV::
 	multichoice 22, 8, MULTI_TV_LATI, TRUE
 	copyvar VAR_0x8004, VAR_RESULT
 	special InitRoamer
-	copyvar VAR_ROAMER_POKEMON, VAR_RESULT
+	call_if_ne VAR_RESULT, 0, PlayersHouse_1F_EventScript_SetRoamerIsLatios
 	msgbox PlayersHouse_1F_Text_StillUnknownPokemon, MSGBOX_DEFAULT
 	closemessage
 	setvar VAR_LITTLEROOT_HOUSES_STATE_MAY, 4
@@ -671,3 +671,7 @@ PlayersHouse_1F_Movement_PlayerApproachTVForLatiFemale:
 EventScript_RunningShoesManual::
 	msgbox PlayersHouse_1F_Text_RunningShoesManual, MSGBOX_SIGN
 	end
+
+PlayersHouse_1F_EventScript_SetRoamerIsLatios::
+	setflag FLAG_ROAMER_IS_LATIOS
+	return

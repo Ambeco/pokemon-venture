@@ -53,15 +53,15 @@
 
 #define FLAG_SCENE_NO_WILD           0x20 // Set while a scene stage needs no wild encounters or overworld spawns (the Route 101 rescue); WE_FLAG_NO_ENCOUNTER and WE_OWE_FLAG_DISABLED
 #define FLAG_FOSSIL_IS_ANORITH 0x21 // Rustboro fossil chapter: the fossil being revived is the Claw Fossil (else the Root Fossil)
-#define FLAG_UNUSED_0x022    0x22 // Unused Flag
-#define FLAG_UNUSED_0x023    0x23 // Unused Flag
-#define FLAG_UNUSED_0x024    0x24 // Unused Flag
-#define FLAG_UNUSED_0x025    0x25 // Unused Flag
-#define FLAG_UNUSED_0x026    0x26 // Unused Flag
-#define FLAG_UNUSED_0x027    0x27 // Unused Flag
-#define FLAG_UNUSED_0x028    0x28 // Unused Flag
-#define FLAG_UNUSED_0x029    0x29 // Unused Flag
-#define FLAG_UNUSED_0x02A    0x2A // Unused Flag
+#define FLAG_ENIGMA_BERRY_AVAILABLE 0x22 // Mystery Event delivered an Enigma Berry; the Petalburg gym gives it once
+#define FLAG_SECRET_BASE_IS_NOT_LOCAL 0x23 // Set while in another player's secret base
+#define FLAG_JAGGED_PASS_ASH_WEATHER 0x24 // Set at Mt. Chimney, cleared on Route 112 and in the Magma Hideout: Jagged Pass has ash weather
+#define FLAG_TRICK_HOUSE_ENTER_FROM_CORRIDOR 0x25 // Set by the corridor, read by the entrance on arrival
+#define FLAG_TRICK_HOUSE_PRIZE_PICKUP 0x26 // A Trick House puzzle was solved and the prize is waiting
+#define FLAG_BRINEY_HOUSE_PEEKO_POS 0x27 // Mr. Briney is home again after the Rusturf tunnel, so Peeko is moved
+#define FLAG_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT 0x28 // The entrance grunt gives the short speech from now on
+#define FLAG_HAS_ENTERED_BATTLE_FRONTIER 0x29 // The reception greeter has welcomed the player
+#define FLAG_ROAMER_IS_LATIOS 0x2A // The Lati roamer is Latios (else Latias); Southern Island holds the other one
 #define FLAG_UNUSED_0x02B    0x2B // Unused Flag
 #define FLAG_UNUSED_0x02C    0x2C // Unused Flag
 #define FLAG_UNUSED_0x02D    0x2D // Unused Flag

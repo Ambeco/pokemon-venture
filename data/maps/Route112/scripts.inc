@@ -4,7 +4,7 @@ Route112_MapScripts::
 
 Route112_OnTransition:
 	clearflag FLAG_FORCE_MIRAGE_TOWER_VISIBLE
-	setvar VAR_JAGGED_PASS_ASH_WEATHER, 0
+	clearflag FLAG_JAGGED_PASS_ASH_WEATHER
 	end
 
 Route112_EventScript_MagmaGrunts::

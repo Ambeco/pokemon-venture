@@ -58,7 +58,7 @@ Route110_TrickHouseEnd_EventScript_TrickMaster::
 Route110_TrickHouseEnd_EventScript_CompletedPuzzle1::
 	msgbox Route110_TrickHouseEnd_Text_AllNightToPlantTrees, MSGBOX_DEFAULT
 	msgbox Route110_TrickHouseEnd_Text_YouHaveEarnedThisReward, MSGBOX_DEFAULT
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 0
+	clearflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	giveitem ITEM_RARE_CANDY
 	call_if_eq VAR_RESULT, FALSE, Route110_TrickHouseEnd_EventScript_BagFull
 	msgbox Route110_TrickHouseEnd_Text_MakeNewTricksToStumpYou, MSGBOX_DEFAULT
@@ -70,7 +70,7 @@ Route110_TrickHouseEnd_EventScript_CompletedPuzzle1::
 Route110_TrickHouseEnd_EventScript_CompletedPuzzle2::
 	msgbox Route110_TrickHouseEnd_Text_AllNightToMakeMaze, MSGBOX_DEFAULT
 	msgbox Route110_TrickHouseEnd_Text_YouHaveEarnedThisReward, MSGBOX_DEFAULT
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 0
+	clearflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	giveitem ITEM_TIMER_BALL
 	call_if_eq VAR_RESULT, FALSE, Route110_TrickHouseEnd_EventScript_BagFull
 	msgbox Route110_TrickHouseEnd_Text_MakeNewTricksToStumpYou, MSGBOX_DEFAULT
@@ -82,7 +82,7 @@ Route110_TrickHouseEnd_EventScript_CompletedPuzzle2::
 Route110_TrickHouseEnd_EventScript_CompletedPuzzle3::
 	msgbox Route110_TrickHouseEnd_Text_AllNightToPreparePanels, MSGBOX_DEFAULT
 	msgbox Route110_TrickHouseEnd_Text_YouHaveEarnedThisReward, MSGBOX_DEFAULT
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 0
+	clearflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	giveitem ITEM_HARD_STONE
 	call_if_eq VAR_RESULT, FALSE, Route110_TrickHouseEnd_EventScript_BagFull
 	msgbox Route110_TrickHouseEnd_Text_MakeNewTricksToStumpYou, MSGBOX_DEFAULT
@@ -94,7 +94,7 @@ Route110_TrickHouseEnd_EventScript_CompletedPuzzle3::
 Route110_TrickHouseEnd_EventScript_CompletedPuzzle4::
 	msgbox Route110_TrickHouseEnd_Text_AllNightToShoveBoulders, MSGBOX_DEFAULT
 	msgbox Route110_TrickHouseEnd_Text_YouHaveEarnedThisReward, MSGBOX_DEFAULT
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 0
+	clearflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	giveitem ITEM_SMOKE_BALL
 	call_if_eq VAR_RESULT, FALSE, Route110_TrickHouseEnd_EventScript_BagFull
 	msgbox Route110_TrickHouseEnd_Text_MakeNewTricksToStumpYou, MSGBOX_DEFAULT
@@ -106,7 +106,7 @@ Route110_TrickHouseEnd_EventScript_CompletedPuzzle4::
 Route110_TrickHouseEnd_EventScript_CompletedPuzzle5::
 	msgbox Route110_TrickHouseEnd_Text_AllNightToMakeMechadolls, MSGBOX_DEFAULT
 	msgbox Route110_TrickHouseEnd_Text_YouHaveEarnedThisReward, MSGBOX_DEFAULT
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 0
+	clearflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	giveitem ITEM_TM_TAUNT
 	call_if_eq VAR_RESULT, FALSE, Route110_TrickHouseEnd_EventScript_BagFull
 	msgbox Route110_TrickHouseEnd_Text_MakeNewTricksToStumpYou, MSGBOX_DEFAULT
@@ -118,7 +118,7 @@ Route110_TrickHouseEnd_EventScript_CompletedPuzzle5::
 Route110_TrickHouseEnd_EventScript_CompletedPuzzle6::
 	msgbox Route110_TrickHouseEnd_Text_AllNightToInstallDoors, MSGBOX_DEFAULT
 	msgbox Route110_TrickHouseEnd_Text_YouHaveEarnedThisReward, MSGBOX_DEFAULT
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 0
+	clearflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	giveitem ITEM_MAGNET
 	call_if_eq VAR_RESULT, FALSE, Route110_TrickHouseEnd_EventScript_BagFull
 	msgbox Route110_TrickHouseEnd_Text_MakeNewTricksToStumpYou, MSGBOX_DEFAULT
@@ -130,7 +130,7 @@ Route110_TrickHouseEnd_EventScript_CompletedPuzzle6::
 Route110_TrickHouseEnd_EventScript_CompletedPuzzle7::
 	msgbox Route110_TrickHouseEnd_Text_AllNightSettingUpArrows, MSGBOX_DEFAULT
 	msgbox Route110_TrickHouseEnd_Text_YouHaveEarnedThisReward, MSGBOX_DEFAULT
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 0
+	clearflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	giveitem ITEM_PP_MAX
 	call_if_eq VAR_RESULT, FALSE, Route110_TrickHouseEnd_EventScript_BagFull
 	msgbox Route110_TrickHouseEnd_Text_MakeNewTricksToStumpYou, MSGBOX_DEFAULT
@@ -153,7 +153,7 @@ Route110_TrickHouseEnd_EventScript_CompletedPuzzle8::
 	waitmovement 0
 	delay 30
 	msgbox Route110_TrickHouseEnd_Text_DefeatedMePreferWhichTent, MSGBOX_DEFAULT
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 0
+	clearflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	call Route110_TrickHouseEnd_EventScript_ChooseTent
 	call_if_eq VAR_RESULT, FALSE, Route110_TrickHouseEnd_EventScript_NoRoomForTent
 	msgbox Route110_TrickHouseEnd_Text_LeavingOnJourney, MSGBOX_DEFAULT
@@ -189,13 +189,13 @@ Route110_TrickHouseEnd_EventScript_TrickMasterExit::
 Route110_TrickHouseEnd_EventScript_BagFull::
 	call Common_EventScript_BagIsFull
 	msgbox Route110_TrickHouseEnd_Text_NoRoomForThis, MSGBOX_DEFAULT
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 1
+	setflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	return
 
 Route110_TrickHouseEnd_EventScript_NoRoomForTent::
 	call Common_EventScript_NoRoomForDecor
 	msgbox Route110_TrickHouseEnd_Text_NoRoomInPC, MSGBOX_DEFAULT
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 1
+	setflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	return
 
 Route110_TrickHouseEnd_EventScript_TrickMasterFaceAwaySouth::

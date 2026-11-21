@@ -1,9 +1,19 @@
 SSTidalCorridor_MapScripts::
+	map_script MAP_SCRIPT_ON_TRANSITION, SSTidalCorridor_OnTransition
 	map_script MAP_SCRIPT_ON_FRAME_TABLE, SSTidalCorridor_OnFrame
 	.byte 0
 
+@ VAR_TEMP_0 is 1 once Scott's scene is done (map_script_2 cannot test a flag)
+SSTidalCorridor_OnTransition:
+	goto_if_set FLAG_MET_SCOTT_ON_SS_TIDAL, SSTidalCorridor_EventScript_ScottSceneDone
+	end
+
+SSTidalCorridor_EventScript_ScottSceneDone::
+	setvar VAR_TEMP_0, 1
+	end
+
 SSTidalCorridor_OnFrame:
-	map_script_2 VAR_SS_TIDAL_SCOTT_STATE, 0, SSTidalCorridor_EventScript_ScottScene
+	map_script_2 VAR_TEMP_0, 0, SSTidalCorridor_EventScript_ScottScene
 	map_script_2 VAR_SS_TIDAL_STATE, SS_TIDAL_BOARD_SLATEPORT, SSTidalCorridor_EventScript_DepartSlateportForLilycove
 	map_script_2 VAR_SS_TIDAL_STATE, SS_TIDAL_BOARD_LILYCOVE, SSTidalCorridor_EventScript_DepartLilycoveForSlateport
 	map_script_2 VAR_SS_TIDAL_STATE, SS_TIDAL_EXIT_CURRENTS_RIGHT, SSTidalCorridor_EventScript_HalfwayToLilycove
@@ -201,7 +211,7 @@ SSTidalCorridor_EventScript_ScottScene::
 	waitmovement 0
 	delay 30
 	setflag FLAG_MET_SCOTT_ON_SS_TIDAL
-	setvar VAR_SS_TIDAL_SCOTT_STATE, 1
+	setvar VAR_TEMP_0, 1
 	releaseall
 	end
 

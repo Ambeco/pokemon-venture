@@ -9,7 +9,7 @@ SeafloorCavern_Entrance_OnResume:
 
 SeafloorCavern_Entrance_EventScript_Grunt::
 	lockall
-	goto_if_eq VAR_HAS_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT, 1, SeafloorCavern_Entrance_EventScript_GruntSpeechShort
+	goto_if_set FLAG_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT, SeafloorCavern_Entrance_EventScript_GruntSpeechShort
 	waitse
 	playse SE_PIN
 	applymovement LOCALID_SEAFLOOR_CAVERN_ENTRANCE_GRUNT, Common_Movement_ExclamationMark
@@ -21,7 +21,7 @@ SeafloorCavern_Entrance_EventScript_Grunt::
 	call_if_eq VAR_FACING, DIR_EAST, SeafloorCavern_Entrance_EventScript_GruntFacePlayerEast
 	call_if_eq VAR_FACING, DIR_NORTH, SeafloorCavern_Entrance_EventScript_GruntFacePlayerNorth
 	delay 30
-	setvar VAR_HAS_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT, 1
+	setflag FLAG_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT
 	copyobjectxytoperm LOCALID_SEAFLOOR_CAVERN_ENTRANCE_GRUNT
 	msgbox SeafloorCavern_Entrance_Text_HearMagmaNearMossdeep, MSGBOX_DEFAULT
 	closemessage

@@ -19,7 +19,7 @@ JaggedPass_EventScript_SetReadyToOpenHideout::
 	return
 
 JaggedPass_OnTransition:
-	call_if_eq VAR_JAGGED_PASS_ASH_WEATHER, 1, JaggedPass_EventScript_SetWeatherAsh
+	call_if_set FLAG_JAGGED_PASS_ASH_WEATHER, JaggedPass_EventScript_SetWeatherAsh
 	end
 
 JaggedPass_EventScript_SetWeatherAsh::

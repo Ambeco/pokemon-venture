@@ -15,8 +15,8 @@ Route110_TrickHouseEntrance_MapScripts::
 
 Route110_TrickHouseEntrance_OnTransition:
 	setflag FLAG_LANDMARK_TRICK_HOUSE
-	goto_if_eq VAR_TRICK_HOUSE_ENTER_FROM_CORRIDOR, 1, Route110_TrickHouseEntrance_EventScript_EnterFromCorridor
-	goto_if_eq VAR_TRICK_HOUSE_PRIZE_PICKUP, 1, Route110_TrickHouseEntrance_EventScript_SetReadyToGiveReward
+	goto_if_set FLAG_TRICK_HOUSE_ENTER_FROM_CORRIDOR, Route110_TrickHouseEntrance_EventScript_EnterFromCorridor
+	goto_if_set FLAG_TRICK_HOUSE_PRIZE_PICKUP, Route110_TrickHouseEntrance_EventScript_SetReadyToGiveReward
 	goto_if_eq VAR_TRICK_HOUSE_FOUND_TRICK_MASTER, 1, Route110_TrickHouseEntrance_EventScript_MoveTrickMasterToDoor
 	call_if_eq VAR_TRICK_HOUSE_ENTRANCE_STATE, 5, Route110_TrickHouseEntrance_EventScript_CheckReadyForNextPuzzle
 	call_if_eq VAR_TRICK_HOUSE_ENTRANCE_STATE, 3, Route110_TrickHouseEntrance_EventScript_CheckReadyForNextPuzzle
@@ -39,7 +39,7 @@ Route110_TrickHouseEntrance_EventScript_ReadyToGiveTentReward::
 	end
 
 Route110_TrickHouseEntrance_EventScript_EnterFromCorridor::
-	setvar VAR_TRICK_HOUSE_ENTER_FROM_CORRIDOR, 0
+	clearflag FLAG_TRICK_HOUSE_ENTER_FROM_CORRIDOR
 	setvar VAR_TRICK_HOUSE_ENTRANCE_STATE, 5
 	setvar VAR_TRICK_HOUSE_BEING_WATCHED_STATE, 1
 	end
@@ -392,7 +392,7 @@ Route110_TrickHouseEntrance_EventScript_GivePuzzle7Reward::
 	end
 
 Route110_TrickHouseEntrance_EventScript_GotReward::
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 0
+	clearflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	setvar VAR_TRICK_HOUSE_ENTRANCE_STATE, 3
 	applymovement LOCALID_TRICK_MASTER, Common_Movement_WalkInPlaceFasterUp
 	waitmovement 0
@@ -435,7 +435,7 @@ Route110_TrickHouseEntrance_EventScript_ReceivedTent::
 	applymovement LOCALID_TRICK_MASTER, Route110_TrickHouse_Movement_TrickMasterJumpAway
 	waitmovement 0
 	removeobject LOCALID_TRICK_MASTER
-	setvar VAR_TRICK_HOUSE_PRIZE_PICKUP, 0
+	clearflag FLAG_TRICK_HOUSE_PRIZE_PICKUP
 	setvar VAR_TRICK_HOUSE_ENTRANCE_STATE, 5
 	releaseall
 	end
