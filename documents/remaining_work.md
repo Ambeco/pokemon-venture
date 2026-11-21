@@ -53,7 +53,8 @@
   - Check the blocking/reported-only classification in `src/data/region/emerald_plot_gets.h` (Emerald.md, "Step predicates"); it errs toward reported-only where unsure.
 - Once the descriptor and McGuffin abstraction exist, also abstract Kanto's chapters and McGuffins (`data/maps/*_Frlg` scripts, `src/data/trainers_frlg.*`; notes.md) and add them to the chapter and McGuffin lists.
 - County chain (design_chapters.md, "County chain"; `county_chain.h` is unused by game code yet):
-  - Build real chains (County planning), and read the stored position for Emerald counties once their legacy vars are retired.
+  - `PlanEmeraldCountyChain` plans the chain from the subplots, but nothing stores or advances it: read and write the stored position for Emerald counties once their legacy vars are retired.
+  - The planner puts a required entry in the first slot with room, not in the slot of the get it supplies (Emerald's ported counties come out right by luck of their lists): bind an entry to the slot of its `mainGet`, or of its HM, and add gym chapters (gym badges open no capacity yet).
   - Advance the global main-story-index when `DidChainJustFinishMainSlot` fires (no stored index exists until Milestone 3; `GetMainStoryIndex` is computed by the adapter).
 - Scene runner (design_scenes.md, "Scene runner"; `src/story/scene.c`, first conversion is Littleroot's "need a Pokémon" girl):
   - Check the wild form of `battle` in a real game or `make e2e` (no ported scene uses it yet, and the headless tests cannot run battles); the trainer form and `ask_choice` are covered by `test/e2e/tests/route103_rival.json`.
@@ -64,6 +65,7 @@
   - Add building features (chair, TV, center-stage) and transient-actor placement with its test.
   - Convert the rest of the Route 101 tutorial (stage 5) and the other two ported chapters' scripts.
   - Replace the Super Rod fisherman's talk script with a "talk" trigger once it exists (his script still checks the stage and calls the scene).
+- Scene arbitration (design_scenes.md, "Interleaving subplots"): when two subplots' scenes qualify for one trigger, run the chain entry before an off-chain one, then the lower chapter slot; nothing implements this yet.
 - Actor placement: enforce the per-screen and per-map object budgets in the layout step (check the engine's spawn margin and the player and follower overhead first).
 - County planning (design_chapters.md, "County planning and chapter placement"): the descriptor needs an attachment field (location, unique building or main beat) beside generic chapters; slot 0 as a county chain (stage position resolved to chapter and stage by cumulative stage counts); declarative triggers on anchors with a proximity radius; the fallback hint-then-give chapter; the unique-building and generic-chapter stride deals; the trigger list there is incomplete.
 - Hinter follow-ups (`city_hinters.h`): place hinters for Mossdeep's Super Rod chapter (`numHinters` is 0: Mossdeep binds no NPCs yet); bind hinters to NPCs for generated maps at map load (Emerald's Lilycove and Rustboro bind theirs by hand); give main-beat hints detail for non-gym kinds (`WriteMainBeatHint` names gym leader, type and HM, but only the first item's kind otherwise) and bind them with `ShowMainBeatHint` for generated maps; decide who places far hinters for chapters hosted in other counties.
@@ -215,6 +217,5 @@
 - Randomized starters (design_pokemon.md, "Randomized starters"): build the four tables and the bonus list, the stride roll and its saved stride (for the rivals), and the rolling bag.
 - New Game configuration menu and Nuzlocke mode (design_dev.md, "New Game configuration and Nuzlocke mode").
 - Pokédex habitat view and region-tile species view (design_pokemon.md, "Pokédex habitat view").
-- Use the subplot type (`include/story/subplot.h`): define Emerald's subplots over the ported chapters, feed `BuildSubplotChain` the county's real slot rules, and make the county planner (not only tests) call it; `design_scenes.md` still needs the interleave rule between subplots.
 - Building classification for chapters: three kinds, city-locations with actors (unique maps), generic-fill buildings with generic-fill NPCs (immutable, per chapter not per stage; a city asks a chapter for actors and for a count of them), and generic-fill buildings with actors. A later chapter refers back to an earlier chapter's building by (`chapter_id`, building index); the id is enough because each run uses a subset of chapters and never reuses one, and re-run `tools/building_audit.py` with only mutations (reads ignored), key items only, and TMs only for Secret Power (TM43).
 - Gym-type chapters: a gym type (Psychic for Mossdeep, Rock for Rustboro) may carry its own chapter so leaders meet the player beforehand, as in Pokémon X/Y.

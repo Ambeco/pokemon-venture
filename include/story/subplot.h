@@ -13,6 +13,10 @@
  * after one are guaranteed to be placed. The plan fails, naming the problem, when a required entry has no slot
  * left or a slot ends below its minimum.
  *
+ * Only placed entries are on the county chain; a dropped (optional) entry still runs, beside the chain, on its own
+ * chapter-slot var. Order between chapters comes only from the subplot: each entry waits for the one before it, and
+ * chapters of different subplots never wait for each other (design_scenes.md, "Interleaving subplots").
+ *
  * The functions are pure. A chapter's chain length is its stage count, so a subplot's chain is as long as the
  * stages of its placed chapters.
  */
@@ -35,6 +39,13 @@ struct SubplotDesc
 {
     u8 numEntries; // at most SUBPLOT_MAX_ENTRIES
     const struct SubplotEntry *entries;
+};
+
+// A subplot as hosted by a county; a chapter belongs to at most one subplot of its county.
+struct SubplotHost
+{
+    u8 county;
+    const struct SubplotDesc *subplot;
 };
 
 struct SubplotSlotRule
@@ -61,6 +72,10 @@ struct SubplotPlan
 // Places the subplot's entries into the main-story slots under `rules`. On a problem every entry is still
 // reported as far as it was placed, so a test can show where the plan broke.
 struct SubplotPlan PlanSubplot(const struct SubplotDesc *subplot, const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS]);
+
+// The chapter before `desc` in its subplot of `county`, which must be done before `desc` starts; NULL when `desc` is
+// first in its subplot or in none. Chapters of different subplots are unordered relative to each other.
+const struct ChapterDesc *GetSubplotPredecessor(const struct SubplotHost *hosts, u32 numHosts, u32 county, const struct ChapterDesc *desc);
 
 // Entries the plan placed, in order; the chain length in chapters.
 u32 GetSubplotPlacedCount(const struct SubplotDesc *subplot, const struct SubplotPlan *plan);

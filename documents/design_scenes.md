@@ -64,6 +64,13 @@ A scene is a `struct Scene` (`include/story/scene.h`): a list of actor local ids
 - A door has two trigger positions, "on the door" and "in front of the door", so a scene can let the player follow an NPC through: the NPC leaves from the door tile while the player waits in front. A door on the top or a side edge of a map has no "on door" tile, so a scene that needs one may not use such a door (checked when the scene is placed, since mapgen knows each door's position).
 - An actor that approaches from off-screen, from behind or in front of the player, is placed by a search outward from its end tile: a breadth-first search over walkable tiles finds the nearest tile beyond the screen edge on the required side, and the actor is placed there and walks in. If the search needs more than about 10 steps, it restarts and lets the path cross other NPCs and objects (HM locks, other NPCs). If that also fails, the actor teleports next to the player with a teleport animation.
 
+### Interleaving subplots
+
+- Order comes only from a subplot: a chapter waits for the entry before it in its subplot (that entry at its last stage) and for the main story to reach its county, and never for a chapter of another subplot. Chapters that are independent errands (Mauville's Rock Smash, Coin Case and Rydel's Cycles) are separate subplots, so the player may do them in any order, or leave them for later.
+- A key is still the way to wait on something else: the Coin Case waits for Slateport's Harbor Mail through a produced key, not through order, so it also works across counties.
+- The county chain (stored position, var 0) holds only the required entries of the county's subplots, merged by main-story slot and, within a slot, in subplot declaration order. Optional entries run beside the chain on their own chapter-slot var, so an unfinished optional chapter never holds a main-story slot. A chapter keeps its chapter slot whether or not it is on the chain, so no stored state moves.
+- Scenes of different subplots may be triggerable at the same moment (two chapters anchored to one building). The scene runner runs at most one scene per trigger; when two qualify, the chain entry wins over an off-chain one, then the lower chapter slot, and the other fires on the next trigger.
+
 ## Alternatives considered
 
 ### Compile a whole scene to one movement/script bytecode buffer

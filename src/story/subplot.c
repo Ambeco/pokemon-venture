@@ -28,12 +28,13 @@ struct SubplotPlan PlanSubplot(const struct SubplotDesc *subplot, const struct S
     struct SubplotPlan plan = {.problem = SUBPLOT_PLAN_OK};
     u32 i, s, slot = 0;
 
+    memset(plan.mainSlot, SUBPLOT_DROPPED, sizeof(plan.mainSlot));
     assertf(subplot->numEntries <= SUBPLOT_MAX_ENTRIES, "subplot has %d entries, over the SUBPLOT_MAX_ENTRIES of %d; did you mean to split it into two subplots?", subplot->numEntries, SUBPLOT_MAX_ENTRIES)
     {
         plan.problem = SUBPLOT_PLAN_NO_ROOM;
+        plan.problemIndex = SUBPLOT_MAX_ENTRIES;
         return plan;
     }
-    memset(plan.mainSlot, SUBPLOT_DROPPED, sizeof(plan.mainSlot));
     for (i = 0; i < subplot->numEntries; i++)
     {
         bool32 optional = subplot->entries[i].optional;
@@ -78,6 +79,23 @@ struct SubplotPlan PlanSubplot(const struct SubplotDesc *subplot, const struct S
         }
     }
     return plan;
+}
+
+const struct ChapterDesc *GetSubplotPredecessor(const struct SubplotHost *hosts, u32 numHosts, u32 county, const struct ChapterDesc *desc)
+{
+    u32 h, i;
+
+    for (h = 0; h < numHosts; h++)
+    {
+        if (hosts[h].county != county)
+            continue;
+        for (i = 0; i < hosts[h].subplot->numEntries; i++)
+        {
+            if (hosts[h].subplot->entries[i].chapter == desc)
+                return i == 0 ? NULL : hosts[h].subplot->entries[i - 1].chapter;
+        }
+    }
+    return NULL;
 }
 
 u32 GetSubplotPlacedCount(const struct SubplotDesc *subplot, const struct SubplotPlan *plan)

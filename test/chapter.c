@@ -13,6 +13,7 @@
 #include "scene.h"
 #include "region_city.h"
 #include "chapter.h"
+#include "subplot.h"
 #include "string_util.h"
 
 #define LILYCOVE COUNTY_ID(4, 0)
@@ -744,6 +745,40 @@ TEST("Chapter: With no declared key, a chapter waits for the previous slot of it
     EXPECT(!IsCountySlotAvailable(LITTLEROOT, 1));
     SetCountySlotStage(LITTLEROOT, 0, MOVING_IN_NUM_STAGES - 1);
     EXPECT(IsCountySlotAvailable(LITTLEROOT, 1));
+}
+
+TEST("Chapter: Rydel's Cycles does not wait for Rock Smash or the Coin Case, only for Mauville to be reached")
+{
+    u32 numHosts;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    EXPECT(!IsChainPredecessorComplete(hosts, numHosts, MAUVILLE, 2, 4 * 7 - 1));
+    EXPECT(IsChainPredecessorComplete(hosts, numHosts, MAUVILLE, 2, 4 * 7));
+    EXPECT(IsChainPredecessorComplete(hosts, numHosts, MAUVILLE, 1, 4 * 7));
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 0), 0);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 1), 0);
+}
+
+TEST("Chapter: The Coin Case still waits for Harbor Mail through its key though it has no subplot predecessor")
+{
+    u32 numHosts;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    EXPECT(IsChainPredecessorComplete(hosts, numHosts, MAUVILLE, 1, 4 * 7));
+    EXPECT(!IsChapterAvailable(GetCountyChapter(MAUVILLE, 1), MAUVILLE, hosts, numHosts));
+}
+
+TEST("Chapter: Chapters of different subplots in one county are unordered, those of one subplot are ordered")
+{
+    u32 numSubplots;
+    const struct SubplotHost *subplots = GetSubplotHosts(&numSubplots);
+
+    EXPECT(GetSubplotPredecessor(subplots, numSubplots, LITTLEROOT, GetCountyChapter(LITTLEROOT, 1)) == GetCountyChapter(LITTLEROOT, 0));
+    EXPECT(GetSubplotPredecessor(subplots, numSubplots, LITTLEROOT, GetCountyChapter(LITTLEROOT, 0)) == NULL);
+    EXPECT(GetSubplotPredecessor(subplots, numSubplots, MAUVILLE, GetCountyChapter(MAUVILLE, 1)) == NULL);
+    EXPECT(GetSubplotPredecessor(subplots, numSubplots, MAUVILLE, GetCountyChapter(MAUVILLE, 2)) == NULL);
+    EXPECT(GetSubplotPredecessor(subplots, numSubplots, RUSTBORO, GetCountyChapter(RUSTBORO, 1)) == NULL);
+    EXPECT(GetSubplotPredecessor(subplots, numSubplots, LILYCOVE, GetCountyChapter(LILYCOVE, 1)) == NULL);
 }
 
 TEST("Chapter: A county's first chapter waits for the main-story-index to reach the county")

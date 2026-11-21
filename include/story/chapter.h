@@ -170,6 +170,11 @@ struct ChapterHost
 // Where Emerald hosts its ported chapters.
 const struct ChapterHost *GetChapterHosts(u32 *numHosts);
 
+struct SubplotHost;
+
+// Where Emerald groups its ported chapters into subplots (subplot.h).
+const struct SubplotHost *GetSubplotHosts(u32 *numSubplots);
+
 // NULL when the county hosts nothing in the slot.
 const struct ChapterDesc *GetCountyChapter(u32 countyId, u32 slot);
 
@@ -261,9 +266,9 @@ enum ChapterPlacementProblem
 u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 slot, const struct ChapterHost *hosts, u32 numHosts);
 
 // TRUE iff the chain before (county, slot) is done: the main-story-index has reached the county's slots
-// (4x + s, x its story index), so every earlier county is finished, and the previous slot's chapter in the
-// same county reached its last stage (or there is none). A chapter with no declared key is unlocked by this
-// (design_chapters.md, "County chain").
+// (4x + s, x its story index), so every earlier county is finished, and the chapter before it in its subplot
+// reached its last stage (or it is first in its subplot, or in none). Chapters of other subplots never matter.
+// A chapter with no declared key is unlocked by this (design_chapters.md, "County chain").
 bool32 IsChainPredecessorComplete(const struct ChapterHost *hosts, u32 numHosts, u32 county, u32 slot, u32 mainStoryIndex);
 
 // IsChapterAvailable plus IsChainPredecessorComplete over Emerald's hosts, for the chapter in (county, slot).

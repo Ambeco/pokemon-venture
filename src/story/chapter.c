@@ -8,6 +8,7 @@
 #include "region_city.h"
 #include "county_chain.h"
 #include "plot_stage.h"
+#include "subplot.h"
 #include "region_county.h"
 #include "region_tile.h"
 #include "string_util.h"
@@ -197,6 +198,13 @@ static const u8 *const sMauvilleBike1Far[] = {gText_Mauville_Bike1FarCurrent, gT
 static const u8 *const sMauvilleBike1Close[] = {gText_Mauville_Bike1CloseCurrent, gText_Mauville_Bike0CloseAfter};
 
 #include "data/region/emerald_chapters.h"
+#include "data/region/emerald_subplots.h"
+
+const struct SubplotHost *GetSubplotHosts(u32 *numSubplots)
+{
+    *numSubplots = ARRAY_COUNT(sEmeraldSubplotHosts);
+    return sEmeraldSubplotHosts;
+}
 
 const struct ChapterHost *GetChapterHosts(u32 *numHosts)
 {
@@ -480,28 +488,47 @@ bool32 IsChapterAvailable(const struct ChapterDesc *desc, u32 hostCounty, const 
     return TRUE;
 }
 
-// The hosted chapter in the highest slot of `county` below `belowSlot`; NULL if none.
-static const struct ChapterHost *FindPreviousHostInCounty(const struct ChapterHost *hosts, u32 numHosts, u32 county, u32 belowSlot)
+static const struct ChapterHost *FindHostBySlot(const struct ChapterHost *hosts, u32 numHosts, u32 county, u32 slot)
 {
-    const struct ChapterHost *best = NULL;
     u32 i;
 
     for (i = 0; i < numHosts; i++)
     {
-        if (hosts[i].county == county && hosts[i].slot < belowSlot && (best == NULL || hosts[i].slot > best->slot))
-            best = &hosts[i];
+        if (hosts[i].county == county && hosts[i].slot == slot)
+            return &hosts[i];
     }
-    return best;
+    return NULL;
+}
+
+static const struct ChapterHost *FindHostByDesc(const struct ChapterHost *hosts, u32 numHosts, u32 county, const struct ChapterDesc *desc)
+{
+    u32 i;
+
+    for (i = 0; i < numHosts; i++)
+    {
+        if (hosts[i].county == county && hosts[i].desc == desc)
+            return &hosts[i];
+    }
+    return NULL;
 }
 
 bool32 IsChainPredecessorComplete(const struct ChapterHost *hosts, u32 numHosts, u32 county, u32 slot, u32 mainStoryIndex)
 {
+    u32 numSubplots;
+    const struct SubplotHost *subplots = GetSubplotHosts(&numSubplots);
+    const struct ChapterHost *self = FindHostBySlot(hosts, numHosts, county, slot);
     const struct ChapterHost *prev;
+    const struct ChapterDesc *prevDesc;
 
     // Earlier counties are done once the main story has reached this county's slots (4x + s).
     if (mainStoryIndex / COUNTY_MAIN_SLOTS < GetCountyHeader(county)->storyIdx)
         return FALSE;
-    prev = FindPreviousHostInCounty(hosts, numHosts, county, slot);
+    if (self == NULL)
+        return TRUE;
+    prevDesc = GetSubplotPredecessor(subplots, numSubplots, county, self->desc);
+    if (prevDesc == NULL)
+        return TRUE;
+    prev = FindHostByDesc(hosts, numHosts, county, prevDesc);
     return prev == NULL || GetChapterStage(prev->county, prev->slot, prev->desc) >= (u32)prev->desc->numStages - 1;
 }
 
