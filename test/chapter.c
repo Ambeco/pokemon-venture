@@ -947,3 +947,98 @@ TEST("Chapter: Actors with ranges ending at a pseudo-stage are listed for it")
     EXPECT_EQ(GetChapterActors(&sPseudoActorDesc, 0, out, 3), 2);
     EXPECT_EQ(GetChapterActors(&sPseudoActorDesc, 1, out, 3), 2);
 }
+
+// Script specials are not in a header; the scripts reach them through the special table.
+extern void SetCurrentChapterStage(void);
+extern void GetCurrentChapterStage(void);
+
+TEST("Chapter: A shop-item key keeps the high byte of the item id, and different items get different keys")
+{
+    static const struct ChapterKeyRef big = SHOP_ITEM_KEY(0x1234);
+    static const struct ChapterKeyRef mail = SHOP_ITEM_KEY(ITEM_HARBOR_MAIL);
+    static const struct ChapterKeyRef other = SHOP_ITEM_KEY(ITEM_HARBOR_MAIL + 1);
+
+    EXPECT_EQ(big.a, 0x34);
+    EXPECT_EQ(big.b, 0x12);
+    EXPECT_EQ(ResolveChapterKey(&big, MAUVILLE), GetShopItemMcGuffinId(0x1234));
+    EXPECT_EQ(ResolveChapterKey(&mail, MAUVILLE), ResolveChapterKey(&mail, SLATEPORT));
+    EXPECT(ResolveChapterKey(&mail, MAUVILLE) != ResolveChapterKey(&other, MAUVILLE));
+}
+
+TEST("Chapter: A shop-item key lies in the cross-county id range")
+{
+    EXPECT_GE(GetShopItemMcGuffinId(ITEM_HARBOR_MAIL), NUM_COUNTY_MCGUFFIN_IDS);
+}
+
+TEST("Chapter: Harbor Mail counts as produced only once the Slateport Mart chapter reaches its bought stage")
+{
+    u32 numHosts;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+    u32 key = GetShopItemMcGuffinId(ITEM_HARBOR_MAIL);
+
+    EXPECT(!IsMcGuffinProducedBy(hosts, numHosts, key));
+    SetCountySlotStage(SLATEPORT, 0, 1);
+    EXPECT(IsMcGuffinProducedBy(hosts, numHosts, key));
+}
+
+TEST("Chapter: The Coin Case chapter's placement needs the Mart chapter among the hosts as the key's producer")
+{
+    u32 numHosts, i, numOthers = 0;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+    struct ChapterHost others[13];
+
+    for (i = 0; i < numHosts; i++)
+    {
+        if (!(hosts[i].county == MAUVILLE && hosts[i].slot == 1))
+            others[numOthers++] = hosts[i];
+    }
+    EXPECT_EQ(CheckChapterPlacement(GetCountyChapter(MAUVILLE, 1), MAUVILLE, 1, others, numOthers), CHAPTER_PLACEMENT_OK);
+    for (i = 0, numOthers = 0; i < numHosts; i++)
+    {
+        if (hosts[i].county != SLATEPORT && !(hosts[i].county == MAUVILLE && hosts[i].slot == 1))
+            others[numOthers++] = hosts[i];
+    }
+    EXPECT_EQ(CheckChapterPlacement(GetCountyChapter(MAUVILLE, 1), MAUVILLE, 1, others, numOthers), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+}
+
+TEST("Chapter: Slateport's Mart hints follow the stage, and its far and close lists differ")
+{
+    const u8 *before = GetCountySlotHint(SLATEPORT, 0, CHAPTER_FAR, 0);
+    const u8 *beforeClose = GetCountySlotHint(SLATEPORT, 0, CHAPTER_CLOSE, 0);
+    const u8 *after;
+
+    EXPECT(before != NULL && beforeClose != NULL && before != beforeClose);
+    SetCountySlotStage(SLATEPORT, 0, 1);
+    after = GetCountySlotHint(SLATEPORT, 0, CHAPTER_FAR, 0);
+    EXPECT(after != NULL && after != before);
+}
+
+TEST("Chapter: Rydel's hints follow the stage")
+{
+    const u8 *before = GetCountySlotHint(MAUVILLE, 2, CHAPTER_CLOSE, 0);
+    const u8 *after;
+
+    EXPECT(before != NULL);
+    SetCountySlotStage(MAUVILLE, 2, 1);
+    after = GetCountySlotHint(MAUVILLE, 2, CHAPTER_CLOSE, 0);
+    EXPECT(after != NULL && after != before);
+}
+
+TEST("Chapter: The script specials read and write the stage of the current map's county")
+{
+    gMapHeader.regionMapSectionId = MAPSEC_SLATEPORT_CITY;
+    gSpecialVar_0x8004 = 0;
+    gSpecialVar_0x8005 = 1;
+    SetCurrentChapterStage();
+    EXPECT_EQ(GetCountySlotStage(SLATEPORT, 0), 1);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 0), 0);
+    GetCurrentChapterStage();
+    EXPECT_EQ(gSpecialVar_Result, 1);
+
+    gMapHeader.regionMapSectionId = MAPSEC_MAUVILLE_CITY;
+    gSpecialVar_0x8004 = 2;
+    gSpecialVar_0x8005 = 1;
+    SetCurrentChapterStage();
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 2), 1);
+    EXPECT_EQ(GetCountySlotStage(SLATEPORT, 0), 1);
+}

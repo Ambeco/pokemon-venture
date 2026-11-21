@@ -1,0 +1,116 @@
+[
+  {
+    "name": "Mauville Rydel: talking to Rydel greets the player",
+    "snapshot": "mauville_bike_shop_below_rydel",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Well, well, what have we here?\nA most energetic customer!\\pMe? You may call me RYDEL.\nI’m the owner of this cycle shop."
+      }
+    ]
+  },
+  {
+    "name": "Mauville Rydel: answering no to the far-away question declines the bike",
+    "snapshot": "mauville_bike_shop_below_rydel",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "DOWN"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "RYDEL: Is that right?\\pThen, I guess you have no need for\nany of my BIKES."
+      }
+    ]
+  },
+  {
+    "name": "Mauville Rydel: answering yes starts the bike choice",
+    "snapshot": "mauville_bike_shop_below_rydel",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "RYDEL: Hm, hm… … … … …\\pYou’re saying that you came all this\nway from LITTLEROOT?\\pMy goodness!\nThat’s ridiculously far!\\pIf you had one of my BIKES, you could\ngo anywhere easily while feeling the\\lgentle caress of the wind!\\pI’ll tell you what!\nI’ll give you a BIKE!\\pOh, wait a second!\\pI forgot to tell you that there are\ntwo kinds of BIKES!\\pThey are the MACH BIKE and\nthe ACRO BIKE!\\pThe MACH BIKE is for cyclists who want\nto feel the wind with their bodies!\\pAnd an ACRO BIKE is for those who\nprefer technical rides!\\pI’m a real sweetheart, so you can\nhave whichever one you like!\\pWhich one will you choose?"
+      }
+    ]
+  }
+]

@@ -2,6 +2,8 @@
 #include "test/test.h"
 #include "chapter.h"
 #include "county_chain.h"
+#include "region_county.h"
+#include "event_data.h"
 #include "subplot.h"
 
 static const struct ChapterDesc sOneStage = {.numStages = 1};
@@ -119,4 +121,59 @@ TEST("Subplot: The chain has an entry per placed chapter with its stage count, a
     EXPECT_EQ(position.entry, 1);
     EXPECT_EQ(position.stage, 1);
     EXPECT(IsChainMainSlotDone(chain, n, 1, 0));
+}
+
+TEST("Subplot: Mauville's three ported chapters plan into the slots with their real stage counts")
+{
+    struct SubplotEntry entries[3];
+    struct SubplotDesc subplot = {ARRAY_COUNT(entries), entries};
+    struct CountyChainEntry chain[SUBPLOT_MAX_ENTRIES];
+    struct SubplotPlan plan;
+    u32 i, n, stages = 0;
+
+    for (i = 0; i < 3; i++)
+    {
+        entries[i].chapter = GetCountyChapter(COUNTY_ID(2, 1), i);
+        entries[i].optional = i == 2;
+        ASSUME(entries[i].chapter != NULL);
+        stages += entries[i].chapter->numStages;
+    }
+    plan = PlanSubplot(&subplot, sRules);
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_OK);
+    n = BuildSubplotChain(&subplot, &plan, 0, chain);
+    EXPECT_EQ(n, GetSubplotPlacedCount(&subplot, &plan));
+    EXPECT(GetChainLength(chain, n) <= stages);
+    for (i = 0; i < n; i++)
+        EXPECT(chain[i].chapterSlot < CHAPTERS_PER_COUNTY);
+}
+
+TEST("Subplot: A full subplot of seven optional entries and a required last one keeps the last in slot 2")
+{
+    struct SubplotEntry entries[SUBPLOT_MAX_ENTRIES];
+    struct SubplotDesc subplot = {SUBPLOT_MAX_ENTRIES, entries};
+    struct SubplotPlan plan;
+    u32 i;
+
+    for (i = 0; i < SUBPLOT_MAX_ENTRIES; i++)
+    {
+        entries[i].chapter = &sOneStage;
+        entries[i].optional = i != SUBPLOT_MAX_ENTRIES - 1;
+    }
+    plan = PlanSubplot(&subplot, sRules);
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_OK);
+    EXPECT_LE(plan.count[0], 2);
+    EXPECT_LE(plan.count[2], 2);
+    EXPECT_EQ(plan.mainSlot[SUBPLOT_MAX_ENTRIES - 1], 2);
+}
+
+TEST("Subplot: An empty subplot with no minimums plans to nothing")
+{
+    static const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS] = {{0, 2}, {0, 0}, {0, 2}, {0, 0}};
+    struct SubplotDesc subplot = {0, NULL};
+    struct SubplotPlan plan = PlanSubplot(&subplot, rules);
+    struct CountyChainEntry chain[1];
+
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_OK);
+    EXPECT_EQ(GetSubplotPlacedCount(&subplot, &plan), 0);
+    EXPECT_EQ(BuildSubplotChain(&subplot, &plan, 0, chain), 0);
 }
