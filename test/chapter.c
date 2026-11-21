@@ -20,6 +20,7 @@
 #define MOSSDEEP COUNTY_ID(5, 1)
 #define DEWFORD COUNTY_ID(0, 3)
 #define MAUVILLE COUNTY_ID(2, 1)
+#define SLATEPORT COUNTY_ID(2, 3)
 #define LITTLEROOT COUNTY_ID(1, 3)
 #define OLDALE COUNTY_ID(1, 2)
 #define PETALBURG COUNTY_ID(0, 2)
@@ -97,7 +98,7 @@ static const struct ChapterDesc sFullDesc =
     .actors = sActors,
 };
 
-TEST("Chapter: Mossdeep and Dewford host one chapter in slot 0, Mauville in slots 0 and 1, Rustboro, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
+TEST("Chapter: Mossdeep, Dewford and Slateport host one chapter in slot 0, Mauville in slots 0 to 2, Rustboro, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
 {
     u32 county, slot;
 
@@ -105,8 +106,8 @@ TEST("Chapter: Mossdeep and Dewford host one chapter in slot 0, Mauville in slot
     {
         for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
         {
-            if (((county == MOSSDEEP || county == DEWFORD) && slot == 0)
-             || (county == MAUVILLE && slot <= 1)
+            if (((county == MOSSDEEP || county == DEWFORD || county == SLATEPORT) && slot == 0)
+             || (county == MAUVILLE && slot <= 2)
              || ((county == LITTLEROOT || county == LILYCOVE || county == RUSTBORO) && slot <= 1) || (county == OLDALE && slot == 0))
                 EXPECT(GetCountyChapter(county, slot) != NULL);
             else
@@ -536,9 +537,9 @@ TEST("Chapter: Every Emerald host passes the placement check")
 {
     u32 numHosts, i, j, numOthers;
     const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
-    struct ChapterHost others[11];
+    struct ChapterHost others[13];
 
-    EXPECT_EQ(numHosts, 11);
+    EXPECT_EQ(numHosts, 13);
     for (i = 0; i < numHosts; i++)
     {
         for (j = 0, numOthers = 0; j < numHosts; j++)
@@ -638,6 +639,45 @@ TEST("Chapter: Mauville's Coin Case chapter is slot 1, house-anchored, reports t
     SetCountySlotStage(MAUVILLE, 1, 1);
     EXPECT_EQ(GetCountySlotStage(MAUVILLE, 1), 1);
     EXPECT_EQ(GetCountySlotStage(MAUVILLE, 0), 0);
+}
+
+TEST("Chapter: Harbor Mail is a shop-item key produced by Slateport's Mart chapter and required by the Coin Case trade")
+{
+    const struct ChapterDesc *mail = GetCountyChapter(SLATEPORT, 0);
+    const struct ChapterDesc *coinCase = GetCountyChapter(MAUVILLE, 1);
+
+    ASSUME(mail != NULL);
+    EXPECT_EQ(mail->producedKey.type, CHAPTER_KEY_SHOP_ITEM);
+    EXPECT_EQ(GetChapterNeededRoles(mail), BUILDING_MART);
+    EXPECT_EQ(coinCase->requiredKeys[0].type, CHAPTER_KEY_SHOP_ITEM);
+    EXPECT_EQ(ResolveChapterKey(&coinCase->requiredKeys[0], MAUVILLE), ResolveChapterKey(&mail->producedKey, SLATEPORT));
+    EXPECT(ResolveChapterKey(&mail->producedKey, SLATEPORT) != GetPlotItemMcGuffinId(PLOT_KIND_UTILITY, PLOT_UTILITY_COIN_CASE));
+}
+
+TEST("Chapter: The Coin Case chapter is unavailable until Slateport's Mart chapter reaches its bought stage")
+{
+    u32 numHosts;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    EXPECT(!IsChapterAvailable(GetCountyChapter(MAUVILLE, 1), MAUVILLE, hosts, numHosts));
+    SetCountySlotStage(SLATEPORT, 0, 1);
+    EXPECT(IsChapterAvailable(GetCountyChapter(MAUVILLE, 1), MAUVILLE, hosts, numHosts));
+}
+
+TEST("Chapter: Mauville's Rydel chapter is slot 2, house-anchored, reports the Bicycle plot get and keeps its stage apart from slots 0 and 1")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(MAUVILLE, 2);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT_EQ(GetChapterNeededRoles(desc), BUILDING_HOUSE);
+    EXPECT(desc->producesMainGet);
+    EXPECT_EQ(desc->mainGet.ordinal, PLOT_UTILITY_BICYCLE);
+    SetCountySlotStage(MAUVILLE, 2, 1);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 2), 1);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 0), 0);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 1), 0);
 }
 
 // The stage constants scripts use are the descriptor's stage indices.

@@ -84,3 +84,9 @@ u32 GetPlotItemMcGuffinId(u32 kind, u32 ordinal)
     return NUM_COUNTY_MCGUFFIN_IDS
         + IdentityHash(GetPlayerIdentitySeed(), REGION_SALT_MCGUFFIN_CROSS, kind << 8 | ordinal) % NUM_CROSS_MCGUFFIN_IDS;
 }
+
+u32 GetShopItemMcGuffinId(u32 itemId)
+{
+    return NUM_COUNTY_MCGUFFIN_IDS
+        + IdentityHash(GetPlayerIdentitySeed(), REGION_SALT_MCGUFFIN_CROSS, 0x10000 | itemId) % NUM_CROSS_MCGUFFIN_IDS;
+}

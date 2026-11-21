@@ -106,7 +106,10 @@ enum ChapterKeyType
     CHAPTER_KEY_NONE,
     CHAPTER_KEY_HOST_POOL, // a = index into the host county's McGuffin pool (GetCountyMcGuffinId)
     CHAPTER_KEY_ITEM,      // a = enum PlotKind, b = ordinal; a planner item that other hosts may consume
+    CHAPTER_KEY_SHOP_ITEM, // a | b << 8 = item id; a Mart item (SHOP_ITEM_KEY), produced by the chapter whose stage is buying it
 };
+
+#define SHOP_ITEM_KEY(item) {CHAPTER_KEY_SHOP_ITEM, (item) & 0xFF, (item) >> 8}
 
 struct ChapterKeyRef
 {

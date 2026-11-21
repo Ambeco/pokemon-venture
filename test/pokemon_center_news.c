@@ -30,6 +30,8 @@ extern const u8 RustboroCity_EventScript_Twin[];
 extern const u8 RustboroCity_CuttersHouse_EventScript_Cutter[];
 extern const u8 MauvilleCity_House1_EventScript_RockSmashDude[];
 extern const u8 MauvilleCity_House2_EventScript_AcceptTrade[];
+extern const u8 MauvilleCity_BikeShop_EventScript_YesFar[];
+extern const u8 SlateportCity_Mart_EventScript_Clerk[];
 
 // Talks to the NPC bound to `script` and runs frames until its message has printed.
 static void TalkTo(const u8 *script)
@@ -172,4 +174,14 @@ TEST("PokemonCenterNews: The Rock Smash dude's script sets slot 0 to stage 1 whe
 TEST("PokemonCenterNews: The Coin Case trade sets slot 1 to stage 1 when it gives the case")
 {
     EXPECT(ScriptSetsSlotToStage1(MauvilleCity_House2_EventScript_AcceptTrade, 1));
+}
+
+TEST("PokemonCenterNews: Rydel's script sets slot 2 to stage 1 when the player accepts a bike")
+{
+    EXPECT(ScriptSetsSlotToStage1(MauvilleCity_BikeShop_EventScript_YesFar, 2));
+}
+
+TEST("PokemonCenterNews: Slateport's clerk script sets slot 0 to stage 1 once Harbor Mail is held after the shop")
+{
+    EXPECT(ScriptSetsSlotToStage1(SlateportCity_Mart_EventScript_Clerk, 0));
 }

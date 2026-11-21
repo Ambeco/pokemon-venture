@@ -95,4 +95,7 @@ u32 GetCountyMcGuffinId(u32 countyId, u32 index);
 // Id of a planner item used across counties, hashed from the item; always in the cross pool.
 u32 GetPlotItemMcGuffinId(u32 kind, u32 ordinal);
 
+// McGuffin id of a Mart item used as a key; shares the cross-county pool, kept apart from plot items by bit 16.
+u32 GetShopItemMcGuffinId(u32 itemId);
+
 #endif // GUARD_REGION_UNLOCK_H

@@ -7,6 +7,12 @@ SlateportCity_Mart_EventScript_Clerk::
 	message gText_HowMayIServeYou
 	waitmessage
 	pokemart SlateportCity_Mart_Pokemart
+	checkitem ITEM_HARBOR_MAIL
+	goto_if_eq VAR_RESULT, FALSE, SlateportCity_Mart_EventScript_ClerkDone
+	setvar VAR_0x8004, 0
+	setvar VAR_0x8005, 1
+	special SetCurrentChapterStage
+SlateportCity_Mart_EventScript_ClerkDone::
 	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
 	release
 	end

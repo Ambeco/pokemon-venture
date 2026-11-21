@@ -35,6 +35,9 @@ MauvilleCity_BikeShop_EventScript_NotFar::
 
 MauvilleCity_BikeShop_EventScript_YesFar::
 	setflag FLAG_RECEIVED_BIKE
+	setvar VAR_0x8004, 2
+	setvar VAR_0x8005, 1
+	special SetCurrentChapterStage
 	goto MauvilleCity_BikeShop_EventScript_ChooseBike
 	end
 

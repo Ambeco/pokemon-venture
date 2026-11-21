@@ -66,6 +66,22 @@ static const u8 gText_Mauville_Case1FarCurrent[] = _("Somebody in {HINT_CITY} ca
 static const u8 gText_Mauville_Case1CloseBefore[] = _("People say the woman {HINT_ANCHOR} swaps a COIN CASE for HARBOR MAIL.");
 static const u8 gText_Mauville_Case1CloseCurrent[] = _("The woman {HINT_ANCHOR} already traded away her COIN CASE.");
 
+static const u8 gText_Slateport_Mail0FarCurrent[] = _("I heard the MART in {HINT_CITY} sells HARBOR MAIL, and nowhere else does.");
+static const u8 gText_Slateport_Mail0FarAfter[] = _("Somebody bought HARBOR MAIL at the MART in {HINT_CITY}, I heard.");
+static const u8 gText_Slateport_Mail0CloseCurrent[] = _("The clerk {HINT_ANCHOR} says HARBOR MAIL is on the shelf. It's a local specialty.");
+static const u8 gText_Slateport_Mail0CloseAfter[] = _("The clerk {HINT_ANCHOR} sold a TRAINER a HARBOR MAIL.");
+static const u8 gText_Slateport_Mail1FarCurrent[] = _("Somebody in {HINT_CITY} bought HARBOR MAIL, I heard. What for?");
+static const u8 gText_Slateport_Mail1CloseBefore[] = _("People say the MART {HINT_ANCHOR} stocks HARBOR MAIL.");
+static const u8 gText_Slateport_Mail1CloseCurrent[] = _("The clerk {HINT_ANCHOR} is proud that HARBOR MAIL sold out once.");
+
+static const u8 gText_Mauville_Bike0FarCurrent[] = _("I heard a bike shop owner in {HINT_CITY} gives a free BICYCLE to TRAINERS who came a long way.");
+static const u8 gText_Mauville_Bike0FarAfter[] = _("The bike shop owner in {HINT_CITY} gave someone a BICYCLE, I heard.");
+static const u8 gText_Mauville_Bike0CloseCurrent[] = _("The owner {HINT_ANCHOR} is looking for someone with dirty RUNNING SHOES.");
+static const u8 gText_Mauville_Bike0CloseAfter[] = _("The owner {HINT_ANCHOR} gave a TRAINER a BICYCLE. He'll swap it any time.");
+static const u8 gText_Mauville_Bike1FarCurrent[] = _("Somebody in {HINT_CITY} rides a BICYCLE from a shop there, I heard.");
+static const u8 gText_Mauville_Bike1CloseBefore[] = _("People say the owner {HINT_ANCHOR} hands out a BICYCLE for free.");
+static const u8 gText_Mauville_Bike1CloseCurrent[] = _("The owner {HINT_ANCHOR} will swap your BICYCLE for the other kind if you ask.");
+
 static const u8 gText_Littleroot_Birch0FarCurrent[] = _("PROF. BIRCH of {HINT_CITY} spends all day in the tall grass studying wild POKéMON, I heard.");
 static const u8 gText_Littleroot_Birch0FarAfter[] = _("PROF. BIRCH of {HINT_CITY} was jumped by a wild POKéMON, but a TRAINER saved him, I heard.");
 static const u8 gText_Littleroot_Birch0CloseCurrent[] = _("PROF. BIRCH is out studying wild POKéMON again. I hope he's careful.");
@@ -169,6 +185,16 @@ static const u8 *const sMauvilleCase0Far[] = {gText_Mauville_Case0FarCurrent};
 static const u8 *const sMauvilleCase0Close[] = {gText_Mauville_Case0CloseCurrent, gText_Mauville_Case1CloseBefore};
 static const u8 *const sMauvilleCase1Far[] = {gText_Mauville_Case1FarCurrent, gText_Mauville_Case0FarAfter};
 static const u8 *const sMauvilleCase1Close[] = {gText_Mauville_Case1CloseCurrent, gText_Mauville_Case0CloseAfter};
+
+static const u8 *const sSlateportMail0Far[] = {gText_Slateport_Mail0FarCurrent};
+static const u8 *const sSlateportMail0Close[] = {gText_Slateport_Mail0CloseCurrent, gText_Slateport_Mail1CloseBefore};
+static const u8 *const sSlateportMail1Far[] = {gText_Slateport_Mail1FarCurrent, gText_Slateport_Mail0FarAfter};
+static const u8 *const sSlateportMail1Close[] = {gText_Slateport_Mail1CloseCurrent, gText_Slateport_Mail0CloseAfter};
+
+static const u8 *const sMauvilleBike0Far[] = {gText_Mauville_Bike0FarCurrent};
+static const u8 *const sMauvilleBike0Close[] = {gText_Mauville_Bike0CloseCurrent, gText_Mauville_Bike1CloseBefore};
+static const u8 *const sMauvilleBike1Far[] = {gText_Mauville_Bike1FarCurrent, gText_Mauville_Bike0FarAfter};
+static const u8 *const sMauvilleBike1Close[] = {gText_Mauville_Bike1CloseCurrent, gText_Mauville_Bike0CloseAfter};
 
 #include "data/region/emerald_chapters.h"
 
@@ -363,6 +389,8 @@ u32 ResolveChapterKey(const struct ChapterKeyRef *ref, u32 hostCounty)
         return GetCountyMcGuffinId(hostCounty, ref->a);
     case CHAPTER_KEY_ITEM:
         return GetPlotItemMcGuffinId(ref->a, ref->b);
+    case CHAPTER_KEY_SHOP_ITEM:
+        return GetShopItemMcGuffinId(ref->a | ref->b << 8);
     }
     assertf(FALSE, "unknown ChapterKeyType %d; did you mean to add a case to ResolveChapterKey?", ref->type)
     {

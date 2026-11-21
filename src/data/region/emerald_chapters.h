@@ -240,10 +240,9 @@ enum MauvilleCoinCaseStage
     MAUVILLE_COIN_CASE_TRADED,
 };
 
-// The woman is an immobile NPC of the generic house role; she trades the Coin Case for Harbor Mail, an item sold in
-// Slateport's Mart. The chapter declares no required key: nothing models a shop item as a key yet. The script still
-// sets FLAG_RECEIVED_COIN_CASE (a reported-only plot get read by the adapter, and by the Game Corner's own checks).
-// No hinters are placed yet (numHinters 0).
+// The woman is an immobile NPC of the generic house role; she trades the Coin Case for Harbor Mail, a shop-item key
+// produced by Slateport's Mart chapter. The script still sets FLAG_RECEIVED_COIN_CASE (a reported-only plot get read
+// by the adapter, and by the Game Corner's own checks). No hinters are placed yet (numHinters 0).
 static const struct ChapterStage sMauvilleCoinCaseStages[] =
 {
     [0 ... MAUVILLE_COIN_CASE_TRADED] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE}},
@@ -262,8 +261,74 @@ static const struct ChapterDesc sMauvilleCoinCaseChapter =
     .stages = sMauvilleCoinCaseStages,
     .numHints = ARRAY_COUNT(sMauvilleCoinCaseHints),
     .hints = sMauvilleCoinCaseHints,
+    .requiredKeys = {SHOP_ITEM_KEY(ITEM_HARBOR_MAIL)},
     .producesMainGet = TRUE,
     .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_COIN_CASE},
+};
+
+enum SlateportHarborMailStage
+{
+    SLATEPORT_HARBOR_MAIL_NOT_BOUGHT,
+    SLATEPORT_HARBOR_MAIL_BOUGHT,
+};
+
+// A shop-item chapter: the clerk is an immobile NPC of the Mart role, and Harbor Mail is a Mart item, so no scene
+// advances the stage. The clerk's script checks the bag after the shop closes and sets the stage once the player holds
+// the mail. The stage is the key: the Coin Case trade requires it (SHOP_ITEM_KEY). Any other Mart could sell the item.
+static const struct ChapterStage sSlateportHarborMailStages[] =
+{
+    [0 ... SLATEPORT_HARBOR_MAIL_BOUGHT] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_MART}},
+};
+
+static const struct ChapterHint sSlateportHarborMailHints[] =
+{
+    {0, 0, TEXT_LIST(sSlateportMail0Far), TEXT_LIST(sSlateportMail0Close)},
+    {1, 1, TEXT_LIST(sSlateportMail1Far), TEXT_LIST(sSlateportMail1Close)},
+};
+
+static const struct ChapterDesc sSlateportHarborMailChapter =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sSlateportHarborMailStages),
+    .stages = sSlateportHarborMailStages,
+    .numHints = ARRAY_COUNT(sSlateportHarborMailHints),
+    .hints = sSlateportHarborMailHints,
+    .producedKeyStage = SLATEPORT_HARBOR_MAIL_BOUGHT,
+    .producedKey = SHOP_ITEM_KEY(ITEM_HARBOR_MAIL),
+    .givesReward = TRUE,
+};
+
+enum MauvilleBikeStage
+{
+    MAUVILLE_BIKE_NOT_GIVEN,
+    MAUVILLE_BIKE_GIVEN,
+};
+
+// Rydel is an immobile NPC of the generic house role. Declining ("not far") is a side branch that leaves the stage
+// alone (FLAG_DECLINED_BIKE changes only his greeting), and later swaps of Mach for Acro Bike are a repeatable service
+// that stays in the script, so two stages suffice. The Bicycle is a reported-only plot get read through
+// FLAG_RECEIVED_BIKE, which the script still sets; the Running Shoes check is a plot-adapter get, not a key here.
+// No hinters are placed yet (numHinters 0).
+static const struct ChapterStage sMauvilleBikeStages[] =
+{
+    [0 ... MAUVILLE_BIKE_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE}},
+};
+
+static const struct ChapterHint sMauvilleBikeHints[] =
+{
+    {0, 0, TEXT_LIST(sMauvilleBike0Far), TEXT_LIST(sMauvilleBike0Close)},
+    {1, 1, TEXT_LIST(sMauvilleBike1Far), TEXT_LIST(sMauvilleBike1Close)},
+};
+
+static const struct ChapterDesc sMauvilleBikeChapter =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sMauvilleBikeStages),
+    .stages = sMauvilleBikeStages,
+    .numHints = ARRAY_COUNT(sMauvilleBikeHints),
+    .hints = sMauvilleBikeHints,
+    .producesMainGet = TRUE,
+    .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_BICYCLE},
 };
 
 // The tutorial's first arc (design_story.md, "Opening"): the twin sends the player to Route 101, where Birch is
@@ -359,4 +424,6 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(0, 3), 0, &sDewfordOldRodChapter}, // Dewford, county-story-index 4
     {COUNTY_ID(2, 1), 0, &sMauvilleRockSmashChapter}, // Mauville, county-story-index 7
     {COUNTY_ID(2, 1), 1, &sMauvilleCoinCaseChapter},
+    {COUNTY_ID(2, 1), 2, &sMauvilleBikeChapter},
+    {COUNTY_ID(2, 3), 0, &sSlateportHarborMailChapter}, // Slateport
 };
