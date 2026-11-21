@@ -174,6 +174,98 @@ static const struct ChapterDesc sMossdeepSuperRodChapter =
     .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_SUPER_ROD},
 };
 
+enum DewfordOldRodStage
+{
+    DEWFORD_OLD_ROD_NOT_GIVEN,
+    DEWFORD_OLD_ROD_GIVEN,
+};
+
+// The fisherman is an immobile NPC outdoors in Dewford (anchor role 0), and his talk runs the scene DewfordOldRod. The
+// Old Rod is a reported-only plot get, read by the adapter through FLAG_RECEIVED_OLD_ROD, which the scene still sets;
+// the chapter produces no key. No hinters are placed yet (numHinters 0): nothing binds NPCs for Dewford.
+static const struct ChapterStage sDewfordOldRodStages[] =
+{
+    [0 ... DEWFORD_OLD_ROD_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}},
+};
+
+static const struct ChapterHint sDewfordOldRodHints[] =
+{
+    {0, 0, TEXT_LIST(sDewfordStage0Far), TEXT_LIST(sDewfordStage0Close)},
+    {1, 1, TEXT_LIST(sDewfordStage1Far), TEXT_LIST(sDewfordStage1Close)},
+};
+
+static const struct ChapterDesc sDewfordOldRodChapter =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sDewfordOldRodStages),
+    .stages = sDewfordOldRodStages,
+    .numHints = ARRAY_COUNT(sDewfordOldRodHints),
+    .hints = sDewfordOldRodHints,
+    .producesMainGet = TRUE,
+    .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_OLD_ROD},
+};
+
+enum MauvilleRockSmashStage
+{
+    MAUVILLE_ROCK_SMASH_NOT_GIVEN,
+    MAUVILLE_ROCK_SMASH_GIVEN,
+};
+
+// The Rock Smash dude is an immobile NPC of the generic house role. HM Rock Smash is a gate (it opens Rusturf, Granite
+// Cave and other locks, a planner item), so the chapter produces no key; the script still sets FLAG_RECEIVED_HM_ROCK_SMASH,
+// which the main-plot adapter reads, and the flag that hides his Route 111 tip-giver. No hinters are placed yet (numHinters 0).
+static const struct ChapterStage sMauvilleRockSmashStages[] =
+{
+    [0 ... MAUVILLE_ROCK_SMASH_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE}},
+};
+
+static const struct ChapterHint sMauvilleRockSmashHints[] =
+{
+    {0, 0, TEXT_LIST(sMauvilleStage0Far), TEXT_LIST(sMauvilleStage0Close)},
+    {1, 1, TEXT_LIST(sMauvilleStage1Far), TEXT_LIST(sMauvilleStage1Close)},
+};
+
+static const struct ChapterDesc sMauvilleRockSmashChapter =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sMauvilleRockSmashStages),
+    .stages = sMauvilleRockSmashStages,
+    .numHints = ARRAY_COUNT(sMauvilleRockSmashHints),
+    .hints = sMauvilleRockSmashHints,
+};
+
+enum MauvilleCoinCaseStage
+{
+    MAUVILLE_COIN_CASE_NOT_TRADED,
+    MAUVILLE_COIN_CASE_TRADED,
+};
+
+// The woman is an immobile NPC of the generic house role; she trades the Coin Case for Harbor Mail, an item sold in
+// Slateport's Mart. The chapter declares no required key: nothing models a shop item as a key yet. The script still
+// sets FLAG_RECEIVED_COIN_CASE (a reported-only plot get read by the adapter, and by the Game Corner's own checks).
+// No hinters are placed yet (numHinters 0).
+static const struct ChapterStage sMauvilleCoinCaseStages[] =
+{
+    [0 ... MAUVILLE_COIN_CASE_TRADED] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE}},
+};
+
+static const struct ChapterHint sMauvilleCoinCaseHints[] =
+{
+    {0, 0, TEXT_LIST(sMauvilleCase0Far), TEXT_LIST(sMauvilleCase0Close)},
+    {1, 1, TEXT_LIST(sMauvilleCase1Far), TEXT_LIST(sMauvilleCase1Close)},
+};
+
+static const struct ChapterDesc sMauvilleCoinCaseChapter =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sMauvilleCoinCaseStages),
+    .stages = sMauvilleCoinCaseStages,
+    .numHints = ARRAY_COUNT(sMauvilleCoinCaseHints),
+    .hints = sMauvilleCoinCaseHints,
+    .producesMainGet = TRUE,
+    .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_COIN_CASE},
+};
+
 // The tutorial's first arc (design_story.md, "Opening"): the twin sends the player to Route 101, where Birch is
 // cornered, and his lab hands over the starter. Stages are SAVE_BIRCH_* (constants/vars.h) in VAR_SAVE_BIRCH_BEAT; its
 // scenes and scripts advance them. It produces no key (the plot adapter reads the Starter from FLAG_SYS_POKEMON_GET).
@@ -264,4 +356,7 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(4, 0), 0, &sLilycoveMuseumChapter}, // Lilycove, county-story-index 15
     {COUNTY_ID(4, 0), 1, &sLilycoveCaseChapter}, // Lilycove, county-story-index 15
     {COUNTY_ID(5, 1), 0, &sMossdeepSuperRodChapter}, // Mossdeep
+    {COUNTY_ID(0, 3), 0, &sDewfordOldRodChapter}, // Dewford, county-story-index 4
+    {COUNTY_ID(2, 1), 0, &sMauvilleRockSmashChapter}, // Mauville, county-story-index 7
+    {COUNTY_ID(2, 1), 1, &sMauvilleCoinCaseChapter},
 };

@@ -40,6 +40,32 @@ static const u8 gText_Mossdeep_Rod1FarCurrent[] = _("Somebody in {HINT_CITY} got
 static const u8 gText_Mossdeep_Rod1CloseBefore[] = _("People say the fisherman {HINT_ANCHOR} has a SUPER ROD to give away.");
 static const u8 gText_Mossdeep_Rod1CloseCurrent[] = _("The fisherman {HINT_ANCHOR} says a SUPER ROD catches POKéMON off the seafloor.");
 
+static const u8 gText_Dewford_Rod0FarCurrent[] = _("I heard a fisherman in {HINT_CITY} is handing out an OLD ROD to anyone with the itch to fish.");
+static const u8 gText_Dewford_Rod0FarAfter0[] = _("A fisherman in {HINT_CITY} gave someone an OLD ROD, I heard.");
+static const u8 gText_Dewford_Rod0FarAfter1[] = _("Did you hear? A fisherman in {HINT_CITY} gave away an OLD ROD.");
+static const u8 gText_Dewford_Rod0CloseCurrent[] = _("The fisherman {HINT_ANCHOR} says this is a renowned fishing spot. Ask him about it!");
+static const u8 gText_Dewford_Rod0CloseAfter[] = _("The fisherman {HINT_ANCHOR} gave his OLD ROD to a TRAINER.");
+static const u8 gText_Dewford_Rod1FarCurrent[] = _("Somebody in {HINT_CITY} got an OLD ROD from a fisherman, I heard.");
+static const u8 gText_Dewford_Rod1CloseBefore[] = _("People say the fisherman {HINT_ANCHOR} has an OLD ROD to give away.");
+static const u8 gText_Dewford_Rod1CloseCurrent[] = _("The fisherman {HINT_ANCHOR} asks how your fishing is going.");
+
+static const u8 gText_Mauville_Smash0FarCurrent[] = _("I heard a man in {HINT_CITY} hands HIDDEN MACHINES to anyone with strong POKéMON.");
+static const u8 gText_Mauville_Smash0FarAfter0[] = _("A man in {HINT_CITY} gave someone an HM for smashing rocks, I heard.");
+static const u8 gText_Mauville_Smash0FarAfter1[] = _("Did you hear? A man in {HINT_CITY} gave away an HM, and he's still shouting about it.");
+static const u8 gText_Mauville_Smash0CloseCurrent[] = _("The man {HINT_ANCHOR} wants to meet TRAINERS with strong POKéMON. Woohoo!");
+static const u8 gText_Mauville_Smash0CloseAfter[] = _("The man {HINT_ANCHOR} gave a TRAINER his HM. He's still celebrating.");
+static const u8 gText_Mauville_Smash1FarCurrent[] = _("Somebody in {HINT_CITY} got an HM from a very loud man, I heard.");
+static const u8 gText_Mauville_Smash1CloseBefore[] = _("People say the man {HINT_ANCHOR} has an HM to give to a strong TRAINER.");
+static const u8 gText_Mauville_Smash1CloseCurrent[] = _("The man {HINT_ANCHOR} says a smashed rock can hide a POKéMON.");
+
+static const u8 gText_Mauville_Case0FarCurrent[] = _("I heard a woman in {HINT_CITY} will trade a COIN CASE for HARBOR MAIL from a POKéMON MART.");
+static const u8 gText_Mauville_Case0FarAfter[] = _("A woman in {HINT_CITY} traded a COIN CASE for a HARBOR MAIL, I heard.");
+static const u8 gText_Mauville_Case0CloseCurrent[] = _("The woman {HINT_ANCHOR} wishes she could shop for HARBOR MAIL at a faraway MART.");
+static const u8 gText_Mauville_Case0CloseAfter[] = _("The woman {HINT_ANCHOR} got her HARBOR MAIL and gave away a COIN CASE.");
+static const u8 gText_Mauville_Case1FarCurrent[] = _("Somebody in {HINT_CITY} can play at the GAME CORNER now, thanks to a COIN CASE.");
+static const u8 gText_Mauville_Case1CloseBefore[] = _("People say the woman {HINT_ANCHOR} swaps a COIN CASE for HARBOR MAIL.");
+static const u8 gText_Mauville_Case1CloseCurrent[] = _("The woman {HINT_ANCHOR} already traded away her COIN CASE.");
+
 static const u8 gText_Littleroot_Birch0FarCurrent[] = _("PROF. BIRCH of {HINT_CITY} spends all day in the tall grass studying wild POKéMON, I heard.");
 static const u8 gText_Littleroot_Birch0FarAfter[] = _("PROF. BIRCH of {HINT_CITY} was jumped by a wild POKéMON, but a TRAINER saved him, I heard.");
 static const u8 gText_Littleroot_Birch0CloseCurrent[] = _("PROF. BIRCH is out studying wild POKéMON again. I hope he's careful.");
@@ -128,6 +154,21 @@ static const u8 *const sMossdeepStage0Far[] = {gText_Mossdeep_Rod0FarCurrent};
 static const u8 *const sMossdeepStage0Close[] = {gText_Mossdeep_Rod0CloseCurrent, gText_Mossdeep_Rod1CloseBefore};
 static const u8 *const sMossdeepStage1Far[] = {gText_Mossdeep_Rod1FarCurrent, gText_Mossdeep_Rod0FarAfter0, gText_Mossdeep_Rod0FarAfter1};
 static const u8 *const sMossdeepStage1Close[] = {gText_Mossdeep_Rod1CloseCurrent, gText_Mossdeep_Rod0CloseAfter};
+
+static const u8 *const sDewfordStage0Far[] = {gText_Dewford_Rod0FarCurrent};
+static const u8 *const sDewfordStage0Close[] = {gText_Dewford_Rod0CloseCurrent, gText_Dewford_Rod1CloseBefore};
+static const u8 *const sDewfordStage1Far[] = {gText_Dewford_Rod1FarCurrent, gText_Dewford_Rod0FarAfter0, gText_Dewford_Rod0FarAfter1};
+static const u8 *const sDewfordStage1Close[] = {gText_Dewford_Rod1CloseCurrent, gText_Dewford_Rod0CloseAfter};
+
+static const u8 *const sMauvilleStage0Far[] = {gText_Mauville_Smash0FarCurrent};
+static const u8 *const sMauvilleStage0Close[] = {gText_Mauville_Smash0CloseCurrent, gText_Mauville_Smash1CloseBefore};
+static const u8 *const sMauvilleStage1Far[] = {gText_Mauville_Smash1FarCurrent, gText_Mauville_Smash0FarAfter0, gText_Mauville_Smash0FarAfter1};
+static const u8 *const sMauvilleStage1Close[] = {gText_Mauville_Smash1CloseCurrent, gText_Mauville_Smash0CloseAfter};
+
+static const u8 *const sMauvilleCase0Far[] = {gText_Mauville_Case0FarCurrent};
+static const u8 *const sMauvilleCase0Close[] = {gText_Mauville_Case0CloseCurrent, gText_Mauville_Case1CloseBefore};
+static const u8 *const sMauvilleCase1Far[] = {gText_Mauville_Case1FarCurrent, gText_Mauville_Case0FarAfter};
+static const u8 *const sMauvilleCase1Close[] = {gText_Mauville_Case1CloseCurrent, gText_Mauville_Case0CloseAfter};
 
 #include "data/region/emerald_chapters.h"
 

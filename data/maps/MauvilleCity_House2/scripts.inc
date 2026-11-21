@@ -28,6 +28,9 @@ MauvilleCity_House2_EventScript_AcceptTrade::
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_ShowBagIsFull
 	removeitem ITEM_HARBOR_MAIL
 	setflag FLAG_RECEIVED_COIN_CASE
+	setvar VAR_0x8004, 1
+	setvar VAR_0x8005, 1
+	special SetCurrentChapterStage
 	goto MauvilleCity_House2_EventScript_ReceivedCoinCase
 	end
 

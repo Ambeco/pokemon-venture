@@ -1060,14 +1060,14 @@ TEST("Scene: a wild battle step creates the wild Pokémon and waits")
 extern const u8 MossdeepCity_House3_Text_TryDroppingRodInWater[];
 extern const u8 MossdeepCity_House3_Text_DontYouLikeToFish[];
 
-// Steps the real Super Rod scene by hand (the headless tests cannot run Std_ObtainItem): `yes` answers the
+// Steps a real give-a-rod scene by hand (the headless tests cannot run Std_ObtainItem): `yes` answers the
 // question, `received` is what the give leaves in VAR_0x8007. Returns what the give asked for in the out params, 0 if it never did.
-static void StepSuperRodScene(bool32 yes, bool32 received, u32 *givenItem, u32 *givenQuantity)
+static void StepGiveScene(u32 sceneId, bool32 yes, bool32 received, u32 *givenItem, u32 *givenQuantity)
 {
     u32 i;
 
     *givenItem = *givenQuantity = 0;
-    SceneBeginScene(GetScene(SCENE_MOSSDEEP_SUPER_ROD));
+    SceneBeginScene(GetScene(sceneId));
     for (i = 0; i < 50; i++)
     {
         SceneNextStep();
@@ -1098,7 +1098,7 @@ TEST("Scene: Mossdeep's Super Rod scene gives the rod on yes, sets the flag and 
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_SUPER_ROD);
     VarSet(GetCountySlotVar(COUNTY_ID(5, 1), 0), 0);
-    StepSuperRodScene(TRUE, TRUE, &item, &quantity);
+    StepGiveScene(SCENE_MOSSDEEP_SUPER_ROD, TRUE, TRUE, &item, &quantity);
     EXPECT_EQ(item, ITEM_SUPER_ROD);
     EXPECT_EQ(quantity, 1);
     EXPECT(FlagGet(FLAG_RECEIVED_SUPER_ROD));
@@ -1113,7 +1113,7 @@ TEST("Scene: Mossdeep's Super Rod scene with a full bag keeps the flag clear and
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_SUPER_ROD);
     VarSet(GetCountySlotVar(COUNTY_ID(5, 1), 0), 0);
-    StepSuperRodScene(TRUE, FALSE, &item, &quantity);
+    StepGiveScene(SCENE_MOSSDEEP_SUPER_ROD, TRUE, FALSE, &item, &quantity);
     EXPECT_EQ(item, ITEM_SUPER_ROD);
     EXPECT(!FlagGet(FLAG_RECEIVED_SUPER_ROD));
     EXPECT_EQ(GetCountySlotStage(COUNTY_ID(5, 1), 0), 0);
@@ -1126,9 +1126,56 @@ TEST("Scene: Mossdeep's Super Rod scene on no gives nothing and changes nothing"
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_SUPER_ROD);
     VarSet(GetCountySlotVar(COUNTY_ID(5, 1), 0), 0);
-    StepSuperRodScene(FALSE, TRUE, &item, &quantity);
+    StepGiveScene(SCENE_MOSSDEEP_SUPER_ROD, FALSE, TRUE, &item, &quantity);
     EXPECT_EQ(item, 0);
     EXPECT(!FlagGet(FLAG_RECEIVED_SUPER_ROD));
     EXPECT_EQ(GetCountySlotStage(COUNTY_ID(5, 1), 0), 0);
     EXPECT_EQ(StringCompare(gStringVar4, MossdeepCity_House3_Text_DontYouLikeToFish), 0);
+}
+
+extern const u8 DewfordTown_Text_ThrowInFishingAdvice[];
+extern const u8 DewfordTown_Text_ThatsTooBadThen[];
+
+#define DEWFORD COUNTY_ID(0, 3)
+
+TEST("Scene: Dewford's Old Rod scene gives the rod on yes, sets the flag and the chapter stage, and says the last line")
+{
+    u32 item, quantity;
+
+    LoadTestMap();
+    FlagClear(FLAG_RECEIVED_OLD_ROD);
+    VarSet(GetCountySlotVar(DEWFORD, 0), 0);
+    StepGiveScene(SCENE_DEWFORD_OLD_ROD, TRUE, TRUE, &item, &quantity);
+    EXPECT_EQ(item, ITEM_OLD_ROD);
+    EXPECT_EQ(quantity, 1);
+    EXPECT(FlagGet(FLAG_RECEIVED_OLD_ROD));
+    EXPECT_EQ(GetCountySlotStage(DEWFORD, 0), 1);
+    EXPECT_EQ(StringCompare(gStringVar4, DewfordTown_Text_ThrowInFishingAdvice), 0);
+}
+
+TEST("Scene: Dewford's Old Rod scene with a full bag keeps the flag clear and the stage at 0")
+{
+    u32 item, quantity;
+
+    LoadTestMap();
+    FlagClear(FLAG_RECEIVED_OLD_ROD);
+    VarSet(GetCountySlotVar(DEWFORD, 0), 0);
+    StepGiveScene(SCENE_DEWFORD_OLD_ROD, TRUE, FALSE, &item, &quantity);
+    EXPECT_EQ(item, ITEM_OLD_ROD);
+    EXPECT(!FlagGet(FLAG_RECEIVED_OLD_ROD));
+    EXPECT_EQ(GetCountySlotStage(DEWFORD, 0), 0);
+}
+
+TEST("Scene: Dewford's Old Rod scene on no gives nothing and changes nothing")
+{
+    u32 item, quantity;
+
+    LoadTestMap();
+    FlagClear(FLAG_RECEIVED_OLD_ROD);
+    VarSet(GetCountySlotVar(DEWFORD, 0), 0);
+    StepGiveScene(SCENE_DEWFORD_OLD_ROD, FALSE, TRUE, &item, &quantity);
+    EXPECT_EQ(item, 0);
+    EXPECT(!FlagGet(FLAG_RECEIVED_OLD_ROD));
+    EXPECT_EQ(GetCountySlotStage(DEWFORD, 0), 0);
+    EXPECT_EQ(StringCompare(gStringVar4, DewfordTown_Text_ThatsTooBadThen), 0);
 }

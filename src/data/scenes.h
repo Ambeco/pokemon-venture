@@ -340,6 +340,49 @@ static const struct Scene sceneName = \
 ROUTE103_RIVAL_SCENE(sRoute103RivalMay, Route103_Text_MayLetsBattle, Route103_Text_MayDefeated, Route103_Text_MayNotYet);
 ROUTE103_RIVAL_SCENE(sRoute103RivalBrendan, Route103_Text_BrendanLetsBattle, Route103_Text_BrendanDefeated, Route103_Text_BrendanNotYet);
 
+extern const u8 DewfordTown_Text_GettingItchToFish[];
+extern const u8 DewfordTown_Text_GiveYouOneOfMyRods[];
+extern const u8 DewfordTown_Text_ThrowInFishingAdvice[];
+extern const u8 DewfordTown_Text_ThatsTooBadThen[];
+
+// The Old Rod fisherman (Dewford's chapter, slot 0 of county (0,3)), run from his talk script. He stands outdoors, so
+// the scene names no actor or tile. FLAG_RECEIVED_OLD_ROD stays set for the main-plot adapter. A full bag ends the
+// scene at the give, before the flag and the advance.
+static const struct SceneStep sOldRodAcceptSteps[] =
+{
+    SCENE_SAY(DewfordTown_Text_GiveYouOneOfMyRods),
+    SCENE_GIVE(ITEM_OLD_ROD, 1),
+    SCENE_SET_FLAG(FLAG_RECEIVED_OLD_ROD),
+    SCENE_ADVANCE(1),
+    SCENE_SAY(DewfordTown_Text_ThrowInFishingAdvice),
+};
+
+static const struct SceneStep sOldRodDeclineSteps[] =
+{
+    SCENE_SAY(DewfordTown_Text_ThatsTooBadThen),
+};
+
+static const struct SceneBranch sOldRodAnswers[] =
+{
+    SCENE_BRANCH(NULL, sOldRodAcceptSteps),
+    SCENE_BRANCH(NULL, sOldRodDeclineSteps),
+};
+
+static const struct SceneStep sDewfordOldRodSteps[] =
+{
+    SCENE_ASK_YES_NO(DewfordTown_Text_GettingItchToFish, sOldRodAnswers),
+};
+
+static const struct Scene sDewfordOldRod =
+{
+    .name = "DewfordOldRod",
+    .actors = {LOCALID_PLAYER},
+    .numActors = 1,
+    .stageVar = SCENE_DEWFORD_OLD_ROD_BEAT_VAR,
+    .numSteps = ARRAY_COUNT(sDewfordOldRodSteps),
+    .steps = sDewfordOldRodSteps,
+};
+
 static const struct Scene *const sScenes[SCENE_COUNT] =
 {
     [SCENE_LITTLEROOT_NEED_POKEMON] = &sLittlerootNeedPokemon,
@@ -348,6 +391,7 @@ static const struct Scene *const sScenes[SCENE_COUNT] =
     [SCENE_LITTLEROOT_ARRIVE_FEMALE] = &sLittlerootArriveFemale,
     [SCENE_ROUTE101_RESCUE] = &sRoute101Rescue,
     [SCENE_MOSSDEEP_SUPER_ROD] = &sMossdeepSuperRod,
+    [SCENE_DEWFORD_OLD_ROD] = &sDewfordOldRod,
     [SCENE_ROUTE103_RIVAL_MAY] = &sRoute103RivalMay,
     [SCENE_ROUTE103_RIVAL_BRENDAN] = &sRoute103RivalBrendan,
     [SCENE_ROUTE101_BAG] = &sRoute101Bag,

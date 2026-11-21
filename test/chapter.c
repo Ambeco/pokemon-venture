@@ -18,6 +18,8 @@
 #define LILYCOVE COUNTY_ID(4, 0)
 #define RUSTBORO COUNTY_ID(0, 1)
 #define MOSSDEEP COUNTY_ID(5, 1)
+#define DEWFORD COUNTY_ID(0, 3)
+#define MAUVILLE COUNTY_ID(2, 1)
 #define LITTLEROOT COUNTY_ID(1, 3)
 #define OLDALE COUNTY_ID(1, 2)
 #define PETALBURG COUNTY_ID(0, 2)
@@ -95,7 +97,7 @@ static const struct ChapterDesc sFullDesc =
     .actors = sActors,
 };
 
-TEST("Chapter: Mossdeep hosts one chapter in slot 0, Rustboro, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
+TEST("Chapter: Mossdeep and Dewford host one chapter in slot 0, Mauville in slots 0 and 1, Rustboro, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
 {
     u32 county, slot;
 
@@ -103,7 +105,8 @@ TEST("Chapter: Mossdeep hosts one chapter in slot 0, Rustboro, Lilycove and Litt
     {
         for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
         {
-            if ((county == MOSSDEEP && slot == 0)
+            if (((county == MOSSDEEP || county == DEWFORD) && slot == 0)
+             || (county == MAUVILLE && slot <= 1)
              || ((county == LITTLEROOT || county == LILYCOVE || county == RUSTBORO) && slot <= 1) || (county == OLDALE && slot == 0))
                 EXPECT(GetCountyChapter(county, slot) != NULL);
             else
@@ -344,7 +347,9 @@ TEST("Chapter: Ported chapters anchor every stage to a real place")
                 EXPECT(anchor->kind <= BEAT_ANCHOR_DOOR);
                 EXPECT(anchor->locationKind == BEAT_LOCATION_NONE || anchor->locationKind < NUM_LOCATION_KINDS);
                 EXPECT(anchor->routeId == ROUTE_ID_NONE || anchor->routeId < NUM_COUNTIES + MAX_SPECIAL_LOCATIONS_PER_COUNTY);
-                EXPECT(anchor->role != 0 || anchor->locationKind != BEAT_LOCATION_NONE || anchor->routeId != ROUTE_ID_NONE);
+                // An immobile NPC or item may stand outdoors in the city (no role, location or route).
+                EXPECT(anchor->role != 0 || anchor->locationKind != BEAT_LOCATION_NONE || anchor->routeId != ROUTE_ID_NONE
+                    || anchor->kind == BEAT_ANCHOR_NPC || anchor->kind == BEAT_ANCHOR_ITEM);
             }
         }
     }
@@ -531,9 +536,9 @@ TEST("Chapter: Every Emerald host passes the placement check")
 {
     u32 numHosts, i, j, numOthers;
     const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
-    struct ChapterHost others[8];
+    struct ChapterHost others[11];
 
-    EXPECT_EQ(numHosts, 8);
+    EXPECT_EQ(numHosts, 11);
     for (i = 0; i < numHosts; i++)
     {
         for (j = 0, numOthers = 0; j < numHosts; j++)
@@ -589,6 +594,50 @@ TEST("Chapter: Mossdeep's Super Rod chapter is stored, role-anchored, and its sc
     EXPECT_EQ(GetChapterNeededRoles(desc), BUILDING_HOUSE);
     EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
     EXPECT_EQ(scene->stageVar, GetCountySlotVar(MOSSDEEP, 0));
+}
+
+TEST("Chapter: Dewford's Old Rod chapter is stored, anchored outdoors, needs no role, and its scene writes the slot var")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(DEWFORD, 0);
+    const struct Scene *scene = GetScene(SCENE_DEWFORD_OLD_ROD);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT_EQ(GetChapterNeededRoles(desc), 0);
+    EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
+    EXPECT_EQ(scene->stageVar, GetCountySlotVar(DEWFORD, 0));
+}
+
+TEST("Chapter: Mauville's Rock Smash chapter is stored, house-anchored, produces no key, and keeps its stage in Mauville's slice")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(MAUVILLE, 0);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT_EQ(GetChapterNeededRoles(desc), BUILDING_HOUSE);
+    EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 0), 0);
+    SetCountySlotStage(MAUVILLE, 0, 1);
+    EXPECT_EQ(VarGet(GetCountySlotVar(MAUVILLE, 0)), 1);
+    EXPECT_EQ(GetCountySlotStage(MOSSDEEP, 0), 0);
+}
+
+TEST("Chapter: Mauville's Coin Case chapter is slot 1, house-anchored, reports the Coin Case plot get and keeps its stage apart from the Rock Smash slot")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(MAUVILLE, 1);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT_EQ(GetChapterNeededRoles(desc), BUILDING_HOUSE);
+    EXPECT(desc->producesMainGet);
+    EXPECT_EQ(desc->mainGet.kind, PLOT_KIND_UTILITY);
+    EXPECT_EQ(desc->mainGet.ordinal, PLOT_UTILITY_COIN_CASE);
+    SetCountySlotStage(MAUVILLE, 1, 1);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 1), 1);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 0), 0);
 }
 
 // The stage constants scripts use are the descriptor's stage indices.

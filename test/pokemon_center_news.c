@@ -28,6 +28,8 @@ extern const u8 LilycoveCity_EventScript_RichBoy[];
 extern const u8 RustboroCity_EventScript_Woman[];
 extern const u8 RustboroCity_EventScript_Twin[];
 extern const u8 RustboroCity_CuttersHouse_EventScript_Cutter[];
+extern const u8 MauvilleCity_House1_EventScript_RockSmashDude[];
+extern const u8 MauvilleCity_House2_EventScript_AcceptTrade[];
 
 // Talks to the NPC bound to `script` and runs frames until its message has printed.
 static void TalkTo(const u8 *script)
@@ -141,18 +143,33 @@ TEST("PokemonCenterNews: Rustboro's second city hinter says the planner's hint f
     ExpectHinterSpeaksIn(RUSTBORO, MAP_GROUP(MAP_RUSTBORO_CITY), MAP_NUM(MAP_RUSTBORO_CITY), RustboroCity_EventScript_Twin, 1, 21, 46);
 }
 
-// `setvar VAR_0x8004, 0`, `setvar VAR_0x8005, 1` then `special`, as the Cutter's script does after the HM.
+// `setvar VAR_0x8004, <slot>`, `setvar VAR_0x8005, 1` then `special`, as a script sets a chapter slot to stage 1 after its reward.
+static bool32 ScriptSetsSlotToStage1(const u8 *script, u8 slot)
+{
+    const u8 setStage[] = {SCR_OP_SETVAR, 0x04, 0x80, slot, 0x00, SCR_OP_SETVAR, 0x05, 0x80, 0x01, 0x00, SCR_OP_SPECIAL};
+    u32 i, j;
+
+    for (i = 0; i + sizeof(setStage) < 120; i++)
+    {
+        for (j = 0; j < sizeof(setStage) && script[i + j] == setStage[j]; j++)
+            ;
+        if (j == sizeof(setStage))
+            return TRUE;
+    }
+    return FALSE;
+}
+
 TEST("PokemonCenterNews: The Cutter's script sets slot 0 to stage 1 when it gives the HM")
 {
-    static const u8 sSetStage[] = {SCR_OP_SETVAR, 0x04, 0x80, 0x00, 0x00, SCR_OP_SETVAR, 0x05, 0x80, 0x01, 0x00, SCR_OP_SPECIAL};
-    const u8 *script = RustboroCity_CuttersHouse_EventScript_Cutter;
-    u32 i, j, found = FALSE;
+    EXPECT(ScriptSetsSlotToStage1(RustboroCity_CuttersHouse_EventScript_Cutter, 0));
+}
 
-    for (i = 0; i + sizeof(sSetStage) < 120 && !found; i++)
-    {
-        for (j = 0; j < sizeof(sSetStage) && script[i + j] == sSetStage[j]; j++)
-            ;
-        found = j == sizeof(sSetStage);
-    }
-    EXPECT(found);
+TEST("PokemonCenterNews: The Rock Smash dude's script sets slot 0 to stage 1 when it gives the HM")
+{
+    EXPECT(ScriptSetsSlotToStage1(MauvilleCity_House1_EventScript_RockSmashDude, 0));
+}
+
+TEST("PokemonCenterNews: The Coin Case trade sets slot 1 to stage 1 when it gives the case")
+{
+    EXPECT(ScriptSetsSlotToStage1(MauvilleCity_House2_EventScript_AcceptTrade, 1));
 }
