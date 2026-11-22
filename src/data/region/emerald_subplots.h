@@ -53,6 +53,16 @@ static const struct SubplotDesc sMauvilleBikeProxySubplot = {ARRAY_COUNT(sMauvil
 static const struct SubplotEntry sSlateportHarborMailEntries[] = {SUBPLOT_ENTRY_OPTIONAL(sSlateportHarborMailChapter)};
 static const struct SubplotDesc sSlateportHarborMailSubplot = {ARRAY_COUNT(sSlateportHarborMailEntries), sSlateportHarborMailEntries};
 
+// Each gym is its own required subplot (its badge is a main-story get, so it is bound to the gym's slot).
+#define GYM_SUBPLOT(name) \
+static const struct SubplotEntry name##Entries[] = {SUBPLOT_ENTRY_REQUIRED(name##Chapter)}; \
+static const struct SubplotDesc name##Subplot = {ARRAY_COUNT(name##Entries), name##Entries}
+
+GYM_SUBPLOT(sRustboroGym);
+GYM_SUBPLOT(sDewfordGym);
+GYM_SUBPLOT(sMauvilleGym);
+GYM_SUBPLOT(sMossdeepGym);
+
 static const struct SubplotHost sEmeraldSubplotHosts[] =
 {
     {COUNTY_ID(1, 3), &sTutorialLittlerootSubplot},
@@ -68,4 +78,8 @@ static const struct SubplotHost sEmeraldSubplotHosts[] =
     {COUNTY_ID(2, 1), &sMauvilleBikeSubplot},
     {COUNTY_ID(2, 1), &sMauvilleBikeProxySubplot},
     {COUNTY_ID(2, 3), &sSlateportHarborMailSubplot},
+    {COUNTY_ID(0, 1), &sRustboroGymSubplot},
+    {COUNTY_ID(0, 3), &sDewfordGymSubplot},
+    {COUNTY_ID(2, 1), &sMauvilleGymSubplot},
+    {COUNTY_ID(5, 1), &sMossdeepGymSubplot},
 };

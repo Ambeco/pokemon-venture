@@ -8,7 +8,7 @@
 #define COUNTY_PLAN_NO_SLOT 0xFF
 #define COUNTY_PLAN_BOUND_ELSEWHERE 0xFE
 
-// Kinds a county's chapters supply today: HMs, utility items, the tutorial's scripted gets and rival beats. Gym badges,
+// Kinds a county's chapters supply today: gym badges, HMs, utility items, the tutorial's scripted gets and rival beats.
 // Wally, arc beats, Devon Goods and special items are hosted by other mechanisms and open no chapter capacity.
 static bool32 IsChapterSuppliedKind(u32 kind)
 {
@@ -34,10 +34,6 @@ static void GetListRule(u32 index, struct SubplotSlotRule *rule)
         numDescs = GetPlotSlotGetDescs(&items[i], descs);
         for (j = 0; j < numDescs; j++)
         {
-            bool32 isBadge = j == 0 && items[i].kind == PLOT_KIND_GYM && !items[i].hmOnly;
-
-            if (isBadge)
-                continue;
             rule->max = CHAPTERS_PER_COUNTY;
             if (descs[j].getClass == PLOT_GET_BLOCKING)
                 rule->min = 1;

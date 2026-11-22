@@ -106,11 +106,13 @@ Shuffling never sorts a slot's chapters. Order comes from two places only: a sub
 
 The generator therefore sorts chapters into classes and deals the classes in this order, each against the placement check:
 
-1. Outputs: chapters that produce a declared key (gyms included once they are chapters), dealt to the earliest eligible slots.
+1. Outputs: chapters that produce a declared key (a gym declares none: its badge is a pinned get, below), dealt to the earliest eligible slots.
 2. Neutral: chapters with no declared key; they fit any eligible slot.
 3. Inputs: chapters that require a key, dealt to a (county, slot) strictly after their producer's.
 
 No chapter is both an input and an output (`test/chapter.c` asserts it), so key chains are one link deep and this two-phase deal always finds a slot for a consumer if any slot after its producer is eligible. A slot with at least one neutral chapter is never stuck, since neutrals fit everywhere. A dealing that fails the check retries with the next offset; the class rule only decides the order the classes are tried in.
+
+Pinned chapters are not dealt: a chapter that supplies a main-plot get (`producesMainGet`, `mainHm`) is bound to the main-story slot of that get, so its slot is fixed by the planner. Gyms are the main case (`GYM_CHAPTER`, `emerald_chapters.h`): a stateless adapter chapter per gym (`CHAPTER_SLOT_STATELESS`, done when its badge flag is set, no hints, no key) on the gym's main-story slot, which now takes chapters and, being blocking, needs one. Only gyms in their own county's block are ported (Rustboro, Dewford, Mauville, Mossdeep); the others wait on callback and planned-county handling.
 
 ### Parallel subplots (proxy entries)
 

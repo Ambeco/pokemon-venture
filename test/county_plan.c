@@ -1,5 +1,8 @@
 #include "global.h"
 #include "test/test.h"
+#include "constants/flags.h"
+#include "event_data.h"
+#include "region_city.h"
 #include "chapter.h"
 #include "county_plan.h"
 #include "county_chain.h"
@@ -49,7 +52,7 @@ TEST("CountyPlan: Every Emerald county plans, and its chain and off-chain slots 
             ASSUME(plan.chainDesc[i] != NULL);
             if (plan.chain[i].chapterSlot == CHAPTER_SLOT_STATELESS)
             {
-                EXPECT_EQ(plan.chainDesc[i]->backend, CHAPTER_PROXY);
+                EXPECT(plan.chainDesc[i]->backend == CHAPTER_PROXY || plan.chainDesc[i]->backend == CHAPTER_ADAPTER);
             }
             else
             {
@@ -71,14 +74,14 @@ TEST("CountyPlan: Every Emerald county plans, and its chain and off-chain slots 
     }
 }
 
-TEST("CountyPlan: Mauville's chain holds Rock Smash and Rydel's proxy in slot 2; the Coin Case and Rydel's Cycles run beside it")
+TEST("CountyPlan: Mauville's chain holds Rock Smash, Rydel's proxy and the gym in slot 2; the Coin Case and Rydel's Cycles run beside it")
 {
     struct CountyChainPlan plan;
     u32 i;
-    bool32 smash = FALSE, proxy = FALSE;
+    bool32 smash = FALSE, proxy = FALSE, gym = FALSE;
 
     EXPECT(PlanEmeraldCountyChain(MAUVILLE, &plan));
-    EXPECT_EQ(plan.numEntries, 2);
+    EXPECT_EQ(plan.numEntries, 3);
     EXPECT_EQ(plan.numOffChain, 2);
     EXPECT_EQ(plan.offChainSlot[0], 1);
     EXPECT_EQ(plan.offChainSlot[1], 2);
@@ -87,7 +90,9 @@ TEST("CountyPlan: Mauville's chain holds Rock Smash and Rydel's proxy in slot 2;
         EXPECT_EQ(plan.chain[i].mainSlot, 2);
         smash |= plan.chain[i].chapterSlot == 0;
         proxy |= plan.chain[i].chapterSlot == CHAPTER_SLOT_STATELESS && plan.chainDesc[i]->backend == CHAPTER_PROXY;
+        gym |= plan.chain[i].chapterSlot == CHAPTER_SLOT_STATELESS && plan.chainDesc[i]->backend == CHAPTER_ADAPTER;
     }
+    EXPECT(gym);
     EXPECT(smash);
     EXPECT(proxy);
 }
@@ -114,16 +119,18 @@ TEST("CountyPlan: The Littleroot tutorial stays one ordered subplot, in slot 0 w
     EXPECT_EQ(plan.chain[1].mainSlot, 0);
 }
 
-TEST("CountyPlan: The Old Rod and the Super Rod sit in the slot their utility gets are in")
+TEST("CountyPlan: The Old Rod and the Super Rod sit in the slot their utility gets are in, beside their gyms")
 {
     struct CountyChainPlan plan;
 
     EXPECT(PlanEmeraldCountyChain(COUNTY_ID(0, 3), &plan));
-    EXPECT_EQ(plan.numEntries, 1);
+    EXPECT_EQ(plan.numEntries, 2);
     EXPECT_EQ(plan.chain[0].mainSlot, 0);
+    EXPECT_EQ(plan.chain[1].mainSlot, 0);
     EXPECT(PlanEmeraldCountyChain(COUNTY_ID(5, 1), &plan));
-    EXPECT_EQ(plan.numEntries, 1);
+    EXPECT_EQ(plan.numEntries, 2);
     EXPECT_EQ(plan.chain[0].mainSlot, 0);
+    EXPECT_EQ(plan.chain[1].mainSlot, 0);
 }
 
 TEST("CountyPlan: The Cutter's House takes the slot of HM Cut, and Rock Smash the slot of HM Rock Smash")
@@ -199,24 +206,37 @@ TEST("CountyPlan: An entry supplying a get is bound to the get's slot, whether i
     static const struct SubplotDesc fillerSubplot = {1, fillerEntries};
     struct SubplotEntry hmEntries[1];
     struct SubplotDesc hmSubplot = {1, hmEntries};
+    struct ChapterDesc gymChapter = {.numStages = 2};
+    struct SubplotEntry gymEntries[1] = {{&gymChapter, FALSE}};
+    struct SubplotDesc gymSubplot = {1, gymEntries};
+    u32 ordinal = 0;
 
     EXPECT(FindCountyWithLateGet(&county, &get, &slot));
+    ordinal = GetCountyGymOrdinal(county);
+    gymChapter.producesMainGet = TRUE;
+    gymChapter.mainGet = (struct PlotKeyRef){PLOT_KIND_GYM, ordinal};
     getChapter.producesMainGet = TRUE;
     getChapter.mainGet = get;
     hmEntries[0].chapter = &getChapter;
     hmEntries[0].optional = FALSE;
     for (order = 0; order < 2; order++)
     {
-        struct ChapterHost hosts[2];
-        struct SubplotHost subplots[2];
+        struct ChapterHost hosts[3];
+        struct SubplotHost subplots[3];
         struct CountyChainPlan plan;
-        u32 i, hmMainSlot = 0xFF;
+        u32 i, hmMainSlot = 0xFF, num = 2; // a gym county's gym slot needs its own gym chapter
 
         hosts[0] = (struct ChapterHost){county, 0, &sFillerChapter};
         hosts[1] = (struct ChapterHost){county, 1, &getChapter};
         subplots[order] = (struct SubplotHost){county, &fillerSubplot};
         subplots[1 - order] = (struct SubplotHost){county, &hmSubplot};
-        EXPECT(PlanCountyChain(county, subplots, 2, hosts, 2, &plan));
+        if (ordinal >= 1 && ordinal < ELITE_FOUR_ORDINAL)
+        {
+            hosts[2] = (struct ChapterHost){county, CHAPTER_SLOT_STATELESS, &gymChapter};
+            subplots[2] = (struct SubplotHost){county, &gymSubplot};
+            num = 3;
+        }
+        EXPECT(PlanCountyChain(county, subplots, num, hosts, num, &plan));
         for (i = 0; i < plan.numEntries; i++)
         {
             if (plan.chain[i].chapterSlot == 1)
@@ -284,6 +304,8 @@ TEST("CountyPlan: A main-story slot is done when all its on-chain entries are, i
     EXPECT(IsCountyChainEntryDone(MAUVILLE, 2));
     EXPECT(!IsCountyMainSlotDone(MAUVILLE, 2));
     SetCountySlotStage(MAUVILLE, 0, 1);
+    EXPECT(!IsCountyMainSlotDone(MAUVILLE, 2));
+    FlagSet(FLAG_BADGE03_GET);
     EXPECT(IsCountyMainSlotDone(MAUVILLE, 2));
 }
 
@@ -297,4 +319,41 @@ TEST("CountyPlan: A slot with no chain entries is never done")
 {
     EXPECT(!IsCountyMainSlotDone(MAUVILLE, 1));
     EXPECT(!IsCountyMainSlotDone(SLATEPORT, 0));
+}
+
+TEST("CountyPlan: Each ported gym is on its county's chain in its badge's slot, and done once the badge is held")
+{
+    static const struct { u16 county; u8 ordinal; u16 flag; } gyms[] =
+    {
+        {COUNTY_ID(0, 1), 1, FLAG_BADGE01_GET}, {COUNTY_ID(0, 3), 2, FLAG_BADGE02_GET},
+        {MAUVILLE, 3, FLAG_BADGE03_GET}, {COUNTY_ID(5, 1), 7, FLAG_BADGE07_GET},
+    };
+    u32 g, i;
+
+    for (g = 0; g < ARRAY_COUNT(gyms); g++)
+    {
+        struct CountyChainPlan plan;
+        u32 found = 0, slot = GetGymSlot(gyms[g].ordinal).step;
+
+        EXPECT_EQ(GetCountyGymOrdinal(gyms[g].county), gyms[g].ordinal);
+        EXPECT(PlanEmeraldCountyChain(gyms[g].county, &plan));
+        for (i = 0; i < plan.numEntries; i++)
+        {
+            if (plan.chainDesc[i]->producesMainGet && plan.chainDesc[i]->mainGet.kind == PLOT_KIND_GYM)
+            {
+                found++;
+                EXPECT_EQ(plan.chain[i].mainSlot, slot);
+                EXPECT_EQ(plan.chain[i].chapterSlot, CHAPTER_SLOT_STATELESS);
+                EXPECT_EQ(GetChapterStage(gyms[g].county, plan.chain[i].chapterSlot, plan.chainDesc[i]), 0);
+            }
+        }
+        EXPECT_EQ(found, 1);
+        FlagSet(gyms[g].flag);
+        for (i = 0; i < plan.numEntries; i++)
+        {
+            if (plan.chainDesc[i]->producesMainGet && plan.chainDesc[i]->mainGet.kind == PLOT_KIND_GYM)
+                EXPECT_EQ(GetChapterStage(gyms[g].county, plan.chain[i].chapterSlot, plan.chainDesc[i]), 1);
+        }
+        FlagClear(gyms[g].flag);
+    }
 }

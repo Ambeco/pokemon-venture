@@ -441,6 +441,34 @@ static const struct ChapterDesc sRivalDexChapter =
     .hints = sRivalDexHints,
 };
 
+// A gym is a two-stage adapter chapter: stage 1 once its badge flag is set. It is stateless (hosted with
+// CHAPTER_SLOT_STATELESS, so it takes no slot var), reports no hints (the main-beat hints already name the leader), and supplies the
+// badge's plot get (`producesMainGet`), so the planner binds it to the gym's main-story slot; the news lookup scans stateful slots only, so it never points at a gym.
+// It declares no key and no minBadges: gym order is the planner's, and no chapter consumes a badge key yet.
+#define GYM_CHAPTER(name, ordinal, badgeFlag) \
+static const struct ChapterStage name##Stages[] = \
+{ \
+    {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}}, \
+    {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}, .done = {STORY_PRED_FLAG, badgeFlag, 0}}, \
+}; \
+static const struct ChapterHint name##Hints[] = {{0, 1, {NULL, 0}, {NULL, 0}}}; \
+static const struct ChapterDesc name = \
+{ \
+    .backend = CHAPTER_ADAPTER, \
+    .numStages = ARRAY_COUNT(name##Stages), \
+    .stages = name##Stages, \
+    .numHints = ARRAY_COUNT(name##Hints), \
+    .hints = name##Hints, \
+    .requiredRoles = BUILDING_GYM, \
+    .producesMainGet = TRUE, \
+    .mainGet = {PLOT_KIND_GYM, ordinal}, \
+}
+
+GYM_CHAPTER(sRustboroGymChapter, 1, FLAG_BADGE01_GET);
+GYM_CHAPTER(sDewfordGymChapter, 2, FLAG_BADGE02_GET);
+GYM_CHAPTER(sMauvilleGymChapter, 3, FLAG_BADGE03_GET);
+GYM_CHAPTER(sMossdeepGymChapter, 7, FLAG_BADGE07_GET);
+
 static const struct ChapterHost sEmeraldChapterHosts[] =
 {
     {COUNTY_ID(1, 2), 0, &sRivalDexChapter}, // Oldale, county-story-index 1
@@ -457,4 +485,8 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(2, 1), 2, &sMauvilleBikeChapter},
     {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sMauvilleBikeProxyChapter},
     {COUNTY_ID(2, 3), 0, &sSlateportHarborMailChapter}, // Slateport
+    {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sRustboroGymChapter},
+    {COUNTY_ID(0, 3), CHAPTER_SLOT_STATELESS, &sDewfordGymChapter},
+    {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sMauvilleGymChapter},
+    {COUNTY_ID(5, 1), CHAPTER_SLOT_STATELESS, &sMossdeepGymChapter},
 };

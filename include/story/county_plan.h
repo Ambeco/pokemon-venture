@@ -5,10 +5,10 @@
  * The county's chain planner (design_chapters.md, "County chain"): the subplots a county hosts, planned against its
  * real main-story slot rules into one county chain.
  *
- * GetCountySlotRules reads the planner's lists for the county's block: a slot with no get a chapter can supply (HM,
- * utility item, scripted get, rival beat; not a gym badge, Wally, arc, Devon or special item), a step-3 unlock, or a
+ * GetCountySlotRules reads the planner's lists for the county's block: a slot with no get a chapter can supply (gym badge, HM,
+ * utility item, scripted get, rival beat; not Wally, arc, Devon or special item), a step-3 unlock, or a
  * callback hosted by another county takes no chapters ({0, 0}); every other slot takes up to CHAPTERS_PER_COUNTY and
- * needs one chapter when one of those gets is blocking (gyms are not chapters yet).
+ * needs one chapter when one of those gets is blocking.
  *
  * PlanCountyChain plans each hosted subplot in declaration order with PlanSubplotBound. A slot's max is per subplot (every
  * subplot sees the full max; storage, not slots, bounds how many chapters a county hosts), while its min is shared: it is

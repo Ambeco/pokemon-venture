@@ -56,7 +56,7 @@
   - Parallel subplots (design_chapters.md, "Parallel subplots (proxy entries)"): Mauville's Rydel is converted (`CHAPTER_PROXY`, `CHAPTER_SLOT_STATELESS`); convert other independent errands on a shared chain the same way, and `CheckProxySoftLock` checks the four soft-lock conditions for every proxy.
     - Var 0 of each county slice is reserved and unused; give it a job or renumber the slices when the legacy var block shrinks (`vars.h` rebuilds everything).
   - Use `IsCountyMainSlotDone` where main-slot completion is needed (gym chapters, the main-story-index advance); adapter chapters on a chain read legacy vars, so a county with one still needs it ported.
-  - Add gym chapters (gym badges open no capacity yet).
+  - Port the other gyms (`GYM_CHAPTER` in `emerald_chapters.h`): Lavaridge, Fortree, Petalburg (callback in Fortree's block) and Sootopolis (callback in Pacifidlog's) need their counties planned (each other blocking get there needs a chapter or the plan underfills) and the callback slot handled; gym scripts and hints are still vanilla, and the Ever Grande lobby (ordinal 9) has no chapter.
   - A chapter that supplies a get (`mainGet`, `mainHm`) but whose get is in another county's block or a slot without room asserts (`SUBPLOT_PLAN_BOUND_ELSEWHERE`); untested, since an `assertf` makes a test invalid. The tutorial chapters (Moving in, Save Birch, Rival and Pokédex) still declare no get, so they are first-fit.
   - Advance the global main-story-index when `DidChainJustFinishMainSlot` fires (no stored index exists until Milestone 3; `GetMainStoryIndex` is computed by the adapter).
 - Scene runner (design_scenes.md, "Scene runner"; `src/story/scene.c`, first conversion is Littleroot's "need a Pokémon" girl):
