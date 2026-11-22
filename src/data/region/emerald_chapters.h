@@ -331,6 +331,34 @@ static const struct ChapterDesc sMauvilleBikeChapter =
     .hints = sMauvilleBikeHints,
     .producesMainGet = TRUE,
     .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_BICYCLE},
+    // Rydel's Cycles runs beside Mauville's chain as a parallel subplot; its proxy on the chain waits for this key.
+    // Pool index MCGUFFIN_IDS_PER_COUNTY - 1 stays clear of the special locations' ids (at most 6, from index 0).
+    .producedKeyStage = MAUVILLE_BIKE_GIVEN,
+    .producedKey = {CHAPTER_KEY_HOST_POOL, MCGUFFIN_IDS_PER_COUNTY - 1},
+    .givesReward = TRUE,
+};
+
+// The chain's stand-in for Rydel's Cycles (design_chapters.md, "Parallel subplots (proxy entries)"): stage 1 once the
+// Bicycle is given. It has no state, hosts no hinters and supplies the Bicycle's plot get to the planner, which puts it in that get's slot.
+static const struct ChapterStage sMauvilleBikeProxyStages[] =
+{
+    [0 ... 1] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_HOUSE}},
+};
+
+static const struct ChapterHint sMauvilleBikeProxyHints[] =
+{
+    {0, 1, {NULL, 0}, {NULL, 0}},
+};
+
+static const struct ChapterDesc sMauvilleBikeProxyChapter =
+{
+    .backend = CHAPTER_PROXY,
+    .numStages = ARRAY_COUNT(sMauvilleBikeProxyStages),
+    .stages = sMauvilleBikeProxyStages,
+    .numHints = ARRAY_COUNT(sMauvilleBikeProxyHints),
+    .hints = sMauvilleBikeProxyHints,
+    .requiredKeys = {{CHAPTER_KEY_HOST_POOL, MCGUFFIN_IDS_PER_COUNTY - 1}},
+    .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_BICYCLE},
 };
 
 // The tutorial's first arc (design_story.md, "Opening"): the twin sends the player to Route 101, where Birch is
@@ -427,5 +455,6 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(2, 1), 0, &sMauvilleRockSmashChapter}, // Mauville, county-story-index 7
     {COUNTY_ID(2, 1), 1, &sMauvilleCoinCaseChapter},
     {COUNTY_ID(2, 1), 2, &sMauvilleBikeChapter},
+    {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sMauvilleBikeProxyChapter},
     {COUNTY_ID(2, 3), 0, &sSlateportHarborMailChapter}, // Slateport
 };

@@ -538,9 +538,9 @@ TEST("Chapter: Every Emerald host passes the placement check")
 {
     u32 numHosts, i, j, numOthers;
     const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
-    struct ChapterHost others[13];
+    struct ChapterHost others[14];
 
-    EXPECT_EQ(numHosts, 13);
+    EXPECT_EQ(numHosts, 14);
     for (i = 0; i < numHosts; i++)
     {
         for (j = 0, numOthers = 0; j < numHosts; j++)
@@ -1020,7 +1020,7 @@ TEST("Chapter: The Coin Case chapter's placement needs the Mart chapter among th
 {
     u32 numHosts, i, numOthers = 0;
     const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
-    struct ChapterHost others[13];
+    struct ChapterHost others[14];
 
     for (i = 0; i < numHosts; i++)
     {
@@ -1076,4 +1076,71 @@ TEST("Chapter: The script specials read and write the stage of the current map's
     SetCurrentChapterStage();
     EXPECT_EQ(GetCountySlotStage(MAUVILLE, 2), 1);
     EXPECT_EQ(GetCountySlotStage(SLATEPORT, 0), 1);
+}
+
+static const struct ChapterDesc *FindMauvilleProxy(const struct ChapterHost *hosts, u32 numHosts)
+{
+    u32 i;
+
+    for (i = 0; i < numHosts; i++)
+    {
+        if (hosts[i].county == MAUVILLE && hosts[i].slot == CHAPTER_SLOT_STATELESS)
+            return hosts[i].desc;
+    }
+    return NULL;
+}
+
+TEST("Chapter: Rydel's proxy has no state: it reads stage 1 exactly when the Bicycle chapter has produced its key")
+{
+    u32 numHosts;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+    const struct ChapterDesc *proxy = FindMauvilleProxy(hosts, numHosts);
+
+    ASSUME(proxy != NULL);
+    EXPECT_EQ(proxy->backend, CHAPTER_PROXY);
+    EXPECT_EQ(GetChapterStage(MAUVILLE, CHAPTER_SLOT_STATELESS, proxy), 0);
+    EXPECT(!IsChapterAvailable(proxy, MAUVILLE, hosts, numHosts));
+    SetCountySlotStage(MAUVILLE, 2, 1);
+    EXPECT_EQ(GetChapterStage(MAUVILLE, CHAPTER_SLOT_STATELESS, proxy), 1);
+    EXPECT(IsChapterAvailable(proxy, MAUVILLE, hosts, numHosts));
+}
+
+TEST("Chapter: Rydel's proxy supplies the Bicycle's slot for planning but the news still points at the Bicycle chapter")
+{
+    u32 numHosts;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+    const struct ChapterDesc *proxy = FindMauvilleProxy(hosts, numHosts);
+    const struct ChapterDesc *bike = GetCountyChapter(MAUVILLE, 2);
+    struct PlotSlot proxyGet, bikeGet;
+
+    ASSUME(proxy != NULL && bike != NULL);
+    EXPECT(GetChapterSuppliedSlot(proxy, &proxyGet));
+    EXPECT(GetChapterSuppliedSlot(bike, &bikeGet));
+    EXPECT_EQ(proxyGet.block, bikeGet.block);
+    EXPECT_EQ(proxyGet.step, bikeGet.step);
+    EXPECT(!DoesChapterProduce(proxy, PLOT_KIND_UTILITY, PLOT_UTILITY_BICYCLE));
+    EXPECT(DoesChapterProduce(bike, PLOT_KIND_UTILITY, PLOT_UTILITY_BICYCLE));
+}
+
+TEST("Chapter: The parallel subplot can finish before its proxy opens: the proxy needs no more badges than the subplot, and its key has a producer")
+{
+    u32 numHosts, i, numOthers = 0;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+    const struct ChapterDesc *proxy = FindMauvilleProxy(hosts, numHosts);
+    struct ChapterHost others[14];
+
+    ASSUME(proxy != NULL);
+    EXPECT_GE(proxy->minBadges, GetCountyChapter(MAUVILLE, 2)->minBadges);
+    for (i = 0; i < numHosts; i++)
+    {
+        if (hosts[i].desc != proxy)
+            others[numOthers++] = hosts[i];
+    }
+    EXPECT_EQ(CheckChapterPlacement(proxy, MAUVILLE, CHAPTER_SLOT_STATELESS, others, numOthers), CHAPTER_PLACEMENT_OK);
+    for (i = 0, numOthers = 0; i < numHosts; i++)
+    {
+        if (hosts[i].desc != proxy && hosts[i].desc != GetCountyChapter(MAUVILLE, 2))
+            others[numOthers++] = hosts[i];
+    }
+    EXPECT_EQ(CheckChapterPlacement(proxy, MAUVILLE, CHAPTER_SLOT_STATELESS, others, numOthers), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
 }

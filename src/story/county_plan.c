@@ -105,16 +105,18 @@ static void CountReservedSlots(u32 county, const struct SubplotHost *subplots, u
 }
 
 // Stable insert by main-story slot, so entries stay in declaration order within a slot.
-static void InsertChainEntry(struct CountyChainPlan *out, const struct CountyChainEntry *entry)
+static void InsertChainEntry(struct CountyChainPlan *out, const struct CountyChainEntry *entry, const struct ChapterDesc *desc)
 {
     u32 pos = out->numEntries;
 
     while (pos > 0 && out->chain[pos - 1].mainSlot > entry->mainSlot)
     {
         out->chain[pos] = out->chain[pos - 1];
+        out->chainDesc[pos] = out->chainDesc[pos - 1];
         pos--;
     }
     out->chain[pos] = *entry;
+    out->chainDesc[pos] = desc;
     out->numEntries++;
 }
 
@@ -152,14 +154,23 @@ bool32 PlanCountyChain(u32 county, const struct SubplotHost *subplots, u32 numSu
                 out->problemIndex = e;
                 return FALSE;
             }
-            assertf(numSeen < CHAPTERS_PER_COUNTY, "county %d subplots list more than %d entries; did you list one chapter in two subplots?", county, CHAPTERS_PER_COUNTY)
+            // A proxy has no stage var, so only stateful chapters count against the county's slot vars.
+            assertf(numSeen < CHAPTERS_PER_COUNTY || slot == CHAPTER_SLOT_STATELESS, "county %d subplots list more than %d stateful entries; did you list one chapter in two subplots?", county, CHAPTERS_PER_COUNTY)
             {
                 out->problem = SUBPLOT_PLAN_NO_ROOM;
                 out->problemSubplot = subplotIndex;
                 out->problemIndex = e;
                 return FALSE;
             }
-            numSeen++;
+            assertf(slot == CHAPTER_SLOT_STATELESS || slot < CHAPTERS_PER_COUNTY, "subplot %d entry %d is hosted in slot %d, but a county has slots 0-%d or CHAPTER_SLOT_STATELESS", subplotIndex, e, slot, CHAPTERS_PER_COUNTY - 1)
+            {
+                out->problem = SUBPLOT_PLAN_NO_ROOM;
+                out->problemSubplot = subplotIndex;
+                out->problemIndex = e;
+                return FALSE;
+            }
+            if (slot != CHAPTER_SLOT_STATELESS)
+                numSeen++;
             if (subplot->entries[e].optional)
             {
                 out->offChainSlot[out->numOffChain++] = slot;
@@ -194,8 +205,14 @@ bool32 PlanCountyChain(u32 county, const struct SubplotHost *subplots, u32 numSu
         numPlaced = BuildSubplotChain(&requiredOnly, &plan, 0, placed);
         for (e = 0; e < numPlaced; e++)
         {
+            assertf(out->numEntries < COUNTY_PLAN_MAX_ENTRIES, "county %d chain has more than %d entries", county, COUNTY_PLAN_MAX_ENTRIES)
+            {
+                out->problem = SUBPLOT_PLAN_NO_ROOM;
+                out->problemSubplot = subplotIndex;
+                return FALSE;
+            }
             placed[e].chapterSlot = requiredSlot[e];
-            InsertChainEntry(out, &placed[e]);
+            InsertChainEntry(out, &placed[e], required[e].chapter);
         }
         for (s = 0; s < COUNTY_MAIN_SLOTS; s++)
         {
@@ -241,7 +258,7 @@ bool32 IsCountyMainSlotDone(u32 county, u32 mainSlot)
         if (plan.chain[i].mainSlot != mainSlot)
             continue;
         entries++;
-        if (!IsCountyChainEntryDone(county, plan.chain[i].chapterSlot))
+        if (GetChapterStage(county, plan.chain[i].chapterSlot, plan.chainDesc[i]) < (u32)plan.chainDesc[i]->numStages - 1)
             return FALSE;
     }
     return entries > 0;

@@ -42,8 +42,13 @@ static const struct SubplotDesc sMauvilleRockSmashSubplot = {ARRAY_COUNT(sMauvil
 static const struct SubplotEntry sMauvilleCoinCaseEntries[] = {SUBPLOT_ENTRY_OPTIONAL(sMauvilleCoinCaseChapter)};
 static const struct SubplotDesc sMauvilleCoinCaseSubplot = {ARRAY_COUNT(sMauvilleCoinCaseEntries), sMauvilleCoinCaseEntries};
 
-static const struct SubplotEntry sMauvilleBikeEntries[] = {SUBPLOT_ENTRY_REQUIRED(sMauvilleBikeChapter)};
+// Rydel's Cycles is a parallel subplot: it runs beside the chain, and the chain holds its proxy, which waits for the
+// Bicycle (design_chapters.md, "Parallel subplots (proxy entries)"). Both stand in the Bicycle's main-story slot.
+static const struct SubplotEntry sMauvilleBikeEntries[] = {SUBPLOT_ENTRY_OPTIONAL(sMauvilleBikeChapter)};
 static const struct SubplotDesc sMauvilleBikeSubplot = {ARRAY_COUNT(sMauvilleBikeEntries), sMauvilleBikeEntries};
+
+static const struct SubplotEntry sMauvilleBikeProxyEntries[] = {SUBPLOT_ENTRY_REQUIRED(sMauvilleBikeProxyChapter)};
+static const struct SubplotDesc sMauvilleBikeProxySubplot = {ARRAY_COUNT(sMauvilleBikeProxyEntries), sMauvilleBikeProxyEntries};
 
 static const struct SubplotEntry sSlateportHarborMailEntries[] = {SUBPLOT_ENTRY_OPTIONAL(sSlateportHarborMailChapter)};
 static const struct SubplotDesc sSlateportHarborMailSubplot = {ARRAY_COUNT(sSlateportHarborMailEntries), sSlateportHarborMailEntries};
@@ -61,5 +66,6 @@ static const struct SubplotHost sEmeraldSubplotHosts[] =
     {COUNTY_ID(2, 1), &sMauvilleRockSmashSubplot},
     {COUNTY_ID(2, 1), &sMauvilleCoinCaseSubplot},
     {COUNTY_ID(2, 1), &sMauvilleBikeSubplot},
+    {COUNTY_ID(2, 1), &sMauvilleBikeProxySubplot},
     {COUNTY_ID(2, 3), &sSlateportHarborMailSubplot},
 };

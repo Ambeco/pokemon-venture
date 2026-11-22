@@ -46,12 +46,20 @@ TEST("CountyPlan: Every Emerald county plans, and its chain and off-chain slots 
         EXPECT_EQ(covered, hosted);
         for (i = 0; i < plan.numEntries; i++)
         {
-            EXPECT(GetCountyChapter(county, plan.chain[i].chapterSlot) != NULL);
-            EXPECT(!seen[plan.chain[i].chapterSlot]);
-            seen[plan.chain[i].chapterSlot] = TRUE;
-            EXPECT_EQ(plan.chain[i].numStages, GetCountyChapter(county, plan.chain[i].chapterSlot)->numStages);
+            ASSUME(plan.chainDesc[i] != NULL);
+            if (plan.chain[i].chapterSlot == CHAPTER_SLOT_STATELESS)
+            {
+                EXPECT_EQ(plan.chainDesc[i]->backend, CHAPTER_PROXY);
+            }
+            else
+            {
+                EXPECT(GetCountyChapter(county, plan.chain[i].chapterSlot) == plan.chainDesc[i]);
+                EXPECT(!seen[plan.chain[i].chapterSlot]);
+                seen[plan.chain[i].chapterSlot] = TRUE;
+            }
+            EXPECT_EQ(plan.chain[i].numStages, plan.chainDesc[i]->numStages);
             EXPECT(i == 0 || plan.chain[i].mainSlot >= plan.chain[i - 1].mainSlot);
-            if (GetChapterSuppliedSlot(GetCountyChapter(county, plan.chain[i].chapterSlot), &get))
+            if (GetChapterSuppliedSlot(plan.chainDesc[i], &get))
                 EXPECT_EQ(plan.chain[i].mainSlot, get.step);
         }
         for (i = 0; i < plan.numOffChain; i++)
@@ -63,24 +71,25 @@ TEST("CountyPlan: Every Emerald county plans, and its chain and off-chain slots 
     }
 }
 
-TEST("CountyPlan: Mauville's Rock Smash and Rydel's Cycles are on the chain in slot 2; the optional Coin Case need not be")
+TEST("CountyPlan: Mauville's chain holds Rock Smash and Rydel's proxy in slot 2; the Coin Case and Rydel's Cycles run beside it")
 {
     struct CountyChainPlan plan;
     u32 i;
-    bool32 smash = FALSE, bike = FALSE;
+    bool32 smash = FALSE, proxy = FALSE;
 
     EXPECT(PlanEmeraldCountyChain(MAUVILLE, &plan));
     EXPECT_EQ(plan.numEntries, 2);
-    EXPECT_EQ(plan.numOffChain, 1);
+    EXPECT_EQ(plan.numOffChain, 2);
     EXPECT_EQ(plan.offChainSlot[0], 1);
+    EXPECT_EQ(plan.offChainSlot[1], 2);
     for (i = 0; i < plan.numEntries; i++)
     {
         EXPECT_EQ(plan.chain[i].mainSlot, 2);
         smash |= plan.chain[i].chapterSlot == 0;
-        bike |= plan.chain[i].chapterSlot == 2;
+        proxy |= plan.chain[i].chapterSlot == CHAPTER_SLOT_STATELESS && plan.chainDesc[i]->backend == CHAPTER_PROXY;
     }
     EXPECT(smash);
-    EXPECT(bike);
+    EXPECT(proxy);
 }
 
 TEST("CountyPlan: Slateport's optional Harbor Mail has no slot with gets, so it runs beside the chain")
@@ -217,7 +226,7 @@ TEST("CountyPlan: An entry supplying a get is bound to the get's slot, whether i
     }
 }
 
-TEST("CountyPlan: A main-story slot is done when all its on-chain entries are, in any order")
+TEST("CountyPlan: A main-story slot is done when all its on-chain entries are, in any order, and a proxy is done with its subplot")
 {
     EXPECT(!IsCountyMainSlotDone(MAUVILLE, 2));
     SetCountySlotStage(MAUVILLE, 2, 1);
@@ -225,6 +234,12 @@ TEST("CountyPlan: A main-story slot is done when all its on-chain entries are, i
     EXPECT(!IsCountyMainSlotDone(MAUVILLE, 2));
     SetCountySlotStage(MAUVILLE, 0, 1);
     EXPECT(IsCountyMainSlotDone(MAUVILLE, 2));
+}
+
+TEST("CountyPlan: Rock Smash alone does not finish Mauville's slot 2 while Rydel's Cycles is open")
+{
+    SetCountySlotStage(MAUVILLE, 0, 1);
+    EXPECT(!IsCountyMainSlotDone(MAUVILLE, 2));
 }
 
 TEST("CountyPlan: A slot with no chain entries is never done")

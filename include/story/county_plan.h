@@ -24,6 +24,9 @@
 #include "county_chain.h"
 #include "subplot.h"
 
+// Entries a county's chain can hold: its stateful chapters plus a proxy for each parallel subplot.
+#define COUNTY_PLAN_MAX_ENTRIES (CHAPTERS_PER_COUNTY * 2)
+
 struct CountyChainPlan
 {
     u8 problem;         // enum SubplotPlanProblem
@@ -31,7 +34,8 @@ struct CountyChainPlan
     u8 problemIndex;    // SubplotPlan.problemIndex of that subplot
     u8 numEntries;
     u8 numOffChain;
-    struct CountyChainEntry chain[CHAPTERS_PER_COUNTY];
+    struct CountyChainEntry chain[COUNTY_PLAN_MAX_ENTRIES]; // a proxy's chapterSlot is CHAPTER_SLOT_STATELESS: use chainDesc
+    const struct ChapterDesc *chainDesc[COUNTY_PLAN_MAX_ENTRIES];
     u8 offChainSlot[CHAPTERS_PER_COUNTY]; // chapter slots of the dropped entries
 };
 

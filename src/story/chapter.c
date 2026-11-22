@@ -251,6 +251,13 @@ u32 GetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc)
     {
         return 0;
     }
+    if (desc->backend == CHAPTER_PROXY)
+    {
+        u32 numHosts;
+        const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+        return IsMcGuffinProducedBy(hosts, numHosts, ResolveChapterKey(&desc->requiredKeys[0], countyId)) ? desc->numStages - 1 : 0;
+    }
     if (desc->backend == CHAPTER_STORED)
     {
         stage = VarGet(GetCountySlotVar(countyId, slot));
@@ -274,7 +281,7 @@ void SetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc, u32
     {
         return;
     }
-    assertf(desc->backend == CHAPTER_STORED, "county %d slot %d is an adapter chapter, which is read-only; did you mean to port it to the stored backend?", countyId, slot)
+    assertf(desc->backend == CHAPTER_STORED, "county %d slot %d is an adapter or proxy chapter, which is read-only; did you mean to port it to the stored backend, or to set the subplot it stands for?", countyId, slot)
     {
         return;
     }
@@ -354,7 +361,8 @@ bool32 DoesChapterProduce(const struct ChapterDesc *desc, u32 kind, u32 ordinal)
 
 bool32 GetChapterSuppliedSlot(const struct ChapterDesc *desc, struct PlotSlot *out)
 {
-    if (desc->producesMainGet)
+    // A proxy supplies the get of its subplot's chapter for planning only; the news still points at that chapter (DoesChapterProduce).
+    if (desc->producesMainGet || desc->backend == CHAPTER_PROXY)
         *out = GetVanillaPlotSlot(desc->mainGet.kind, desc->mainGet.ordinal);
     else if (desc->mainHm != PLOT_HM_NONE)
         *out = GetVanillaHmSlot(desc->mainHm);

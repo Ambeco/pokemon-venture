@@ -36,7 +36,11 @@ enum ChapterBackend
 {
     CHAPTER_STORED,
     CHAPTER_ADAPTER,
+    CHAPTER_PROXY, // a chain entry standing for a parallel subplot (design_chapters.md, "Parallel subplots"): done exactly when requiredKeys[0] is produced
 };
+
+// ChapterHost.slot of a proxy: it has no stage var, so it takes no slot and is found by descriptor.
+#define CHAPTER_SLOT_STATELESS 0xFD
 
 // Where the talking NPC is relative to the beat: far = another city or county, close = at the place.
 enum ChapterDistance

@@ -117,6 +117,8 @@ Soft-lock proof, by induction on story order. A county story index has no slots,
 
 No transitive closure over hosts is needed; each link is a strict-earlier check. Use this pattern whenever two chapters of a slot have no real dependency, instead of ordering them by declaration.
 
+Mauville is the worked example: Rock Smash stays on the chain, Rydel's Cycles (same stage count) is an optional subplot whose last stage produces the host-pool key `MCGUFFIN_IDS_PER_COUNTY - 1` (clear of the special locations' ids), and a `CHAPTER_PROXY` chapter in its own required subplot waits for that key and supplies the Bicycle's get to the planner. The proxy is hosted with `CHAPTER_SLOT_STATELESS`, takes no slot var and is found by descriptor (`CountyChainPlan.chainDesc`). `GetChapterSuppliedSlot` reads the proxy's get, but `DoesChapterProduce` does not, so the news and hinters still point at Rydel's own chapter.
+
 Capacity: a main-story slot takes one chapter per subplot, not one per county, so a county may host many subplots that each place a chapter in the same slot (a proxy is one more subplot's chapter). What bounds the number of chapters a county hosts is storage, not slots: a stateful chapter needs its own stage storage (today one of the slice's `CHAPTERS_PER_COUNTY` slot vars; packing stages into bits would raise it), while a proxy is stateless and costs none.
 
 ## Alternatives considered
