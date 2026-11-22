@@ -108,9 +108,9 @@ Chapters that do not need each other should not share a linear chain: the chain'
 - For each such subplot the chain gets a proxy entry: a one-stage chapter ("subplot reference") that locks until the subplot is complete. Its required key is the key the subplot's last stage produces (`producedKey` at `producedKeyStage`), so it needs no stored state and no new key type; it is done exactly when its key is produced. It inherits the get the subplot supplies, so the planner binds it to that get's slot.
 - The chain stays linear, so one position (or one "slot done" test) describes the county, and parallelism costs one entry per extra subplot.
 
-Soft-lock proof, by induction on the existing placement rule (`CheckChapterPlacement`: every consumed key has a producer in an earlier county or an earlier slot of the same county, so every chapter's requirements lie strictly earlier in the order (county story index, slot)). The subplot can finish before its proxy opens when:
+Soft-lock proof, by induction on story order. A county story index has no slots, so the order is the county story index (earlier counties first), then the main-story-index `4x + s` for chain entries, then keys and subplot order; a chapter's storage var index is not an order. Every consumed key must have a producer strictly earlier in that order. The subplot can finish before its proxy opens when:
 
-1. the subplot's host slot is lower than the proxy's (this is the key-not-earlier check applied to the proxy's key);
+1. the subplot (the proxy key's producer) depends on nothing at or after the proxy's chain position: every key it consumes is produced in an earlier county or at an earlier main-story position, or by a chapter it does not wait on;
 2. the proxy's `minBadges` is at least the subplot's, so whenever the chain reaches the proxy the player may already have started the subplot;
 3. every key the subplot consumes has an earlier producer (checked when the subplot is placed, so by induction its own requirements are reachable before it);
 4. the subplot has no predecessor on the chain: it is off-chain, so only the main-story-index gate (same county as the proxy) and its own subplot order apply.
