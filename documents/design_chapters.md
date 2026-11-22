@@ -100,7 +100,35 @@ Ordering a chain: by default a chapter has no declared key (`producedKey` unset)
 
 Planning a county's chain: `PlanCountyChain` (`county_plan.h`) reads the county's slot rules from the planner's lists (`GetCountySlotRules`) and plans each hosted subplot's required entries with `PlanSubplotBound`, each against the capacity the earlier ones left. An entry whose chapter supplies a main-plot get (`mainGet`, or `mainHm` for an HM; `GetChapterSuppliedSlot`) is bound to the slot of that get, so it lands where the get is, not in the first slot with room; unbound entries are first-fit, leave room for bound ones (later in their subplot or in later subplots), and never pass a later bound slot. A get outside the county's block, or in a slot without room, fails the plan; optional entries are off-chain (the interleave rule is in design_scenes.md, "Interleaving subplots").
 
+### Parallel subplots (proxy entries)
+
+Chapters that do not need each other should not share a linear chain: the chain's position is one counter, so two independent errands in one main-story slot (Mauville's Rock Smash and Rydel's Cycles) would force an order the player never has to follow. Instead the county splits them:
+
+- Of the parallel chapters in a slot, the one with the fewest stages stays on the chain; each other one becomes an optional (off-chain) subplot with its own stage var.
+- For each such subplot the chain gets a proxy entry: a one-stage chapter ("subplot reference") that locks until the subplot is complete. Its required key is the key the subplot's last stage produces (`producedKey` at `producedKeyStage`), so it needs no stored state and no new key type; it is done exactly when its key is produced. It inherits the get the subplot supplies, so the planner binds it to that get's slot.
+- The chain stays linear, so one position (or one "slot done" test) describes the county, and parallelism costs one entry per extra subplot.
+
+Soft-lock proof, by induction on the existing placement rule (`CheckChapterPlacement`: every consumed key has a producer in an earlier county or an earlier slot of the same county, so every chapter's requirements lie strictly earlier in the order (county story index, slot)). The subplot can finish before its proxy opens when:
+
+1. the subplot's host slot is lower than the proxy's (this is the key-not-earlier check applied to the proxy's key);
+2. the proxy's `minBadges` is at least the subplot's, so whenever the chain reaches the proxy the player may already have started the subplot;
+3. every key the subplot consumes has an earlier producer (checked when the subplot is placed, so by induction its own requirements are reachable before it);
+4. the subplot has no predecessor on the chain: it is off-chain, so only the main-story-index gate (same county as the proxy) and its own subplot order apply.
+
+No transitive closure over hosts is needed; each link is a strict-earlier check. Use this pattern whenever two chapters of a slot have no real dependency, instead of ordering them by declaration. A proxy occupies a chapter slot (no var), and a county has `CHAPTERS_PER_COUNTY` of them.
+
 ## Alternatives considered
+
+### Store parallel chain entries as a set of done flags beside the position
+
+Keep both errands on the chain and store which entries are done as bits.
+
+Pros:
+- No proxy chapters or extra slots.
+
+Cons:
+- The chain is no longer a single position, so `ResolveChainPosition` and the pure `Chain*` functions stop describing the county.
+- Every consumer (scene arbitration, main-story-index advance) must handle sets instead of one counter.
 
 ### Chapters bound to their original maps (shuffling only by swapping maps)
 
