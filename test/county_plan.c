@@ -226,6 +226,57 @@ TEST("CountyPlan: An entry supplying a get is bound to the get's slot, whether i
     }
 }
 
+static const struct ChapterDesc sParallelChapters[CHAPTERS_PER_COUNTY + 1] = {[0 ... CHAPTERS_PER_COUNTY] = {.numStages = 2}};
+
+#define PARALLEL_ENTRY(i) static const struct SubplotEntry sParallelEntries##i[] = {{&sParallelChapters[i], FALSE}};
+PARALLEL_ENTRY(0)
+PARALLEL_ENTRY(1)
+PARALLEL_ENTRY(2)
+PARALLEL_ENTRY(3)
+
+TEST("CountyPlan: Slot capacity is per subplot: more subplots than the slot's max all take the same slot, and its minimum stays shared")
+{
+    static const struct SubplotDesc subplots[] =
+    {
+        {1, sParallelEntries0}, {1, sParallelEntries1}, {1, sParallelEntries2}, {1, sParallelEntries3},
+    };
+    struct SubplotHost subplotHosts[4];
+    struct ChapterHost hosts[4];
+    struct CountyChainPlan plan;
+    u32 county, s, i, firstSlot = COUNTY_MAIN_SLOTS;
+
+    for (county = 0; county < NUM_COUNTIES && firstSlot == COUNTY_MAIN_SLOTS; county++)
+    {
+        struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS];
+        u32 minimums = 0;
+
+        GetCountySlotRules(county, rules);
+        for (s = 0; s < COUNTY_MAIN_SLOTS; s++)
+            minimums += rules[s].min;
+        for (s = 0; s < COUNTY_MAIN_SLOTS && minimums == 0; s++)
+        {
+            if (rules[s].max > 0)
+            {
+                firstSlot = s;
+                break;
+            }
+        }
+        if (firstSlot != COUNTY_MAIN_SLOTS)
+            break;
+    }
+    ASSUME(firstSlot != COUNTY_MAIN_SLOTS);
+    EXPECT_GT(ARRAY_COUNT(subplots), CHAPTERS_PER_COUNTY);
+    for (i = 0; i < ARRAY_COUNT(subplots); i++)
+    {
+        hosts[i] = (struct ChapterHost){county, CHAPTER_SLOT_STATELESS, &sParallelChapters[i]};
+        subplotHosts[i] = (struct SubplotHost){county, &subplots[i]};
+    }
+    EXPECT(PlanCountyChain(county, subplotHosts, ARRAY_COUNT(subplots), hosts, ARRAY_COUNT(hosts), &plan));
+    EXPECT_EQ(plan.numEntries, ARRAY_COUNT(subplots));
+    for (i = 0; i < plan.numEntries; i++)
+        EXPECT_EQ(plan.chain[i].mainSlot, firstSlot);
+}
+
 TEST("CountyPlan: A main-story slot is done when all its on-chain entries are, in any order, and a proxy is done with its subplot")
 {
     EXPECT(!IsCountyMainSlotDone(MAUVILLE, 2));

@@ -187,11 +187,12 @@ bool32 PlanCountyChain(u32 county, const struct SubplotHost *subplots, u32 numSu
             required[requiredOnly.numEntries] = subplot->entries[e];
             requiredSlot[requiredOnly.numEntries++] = slot;
         }
-        // Later subplots' bound entries keep their slots free from this subplot's unbound ones.
+        // Capacity (max) is per subplot, so every subplot sees the full base max. The minimum is shared: what earlier subplots
+        // met is not owed again, and later subplots' bound entries keep their share of it free from this subplot's unbound ones.
         CountReservedSlots(county, subplots, numSubplots, sp + 1, baseRules, reserved);
         for (s = 0; s < COUNTY_MAIN_SLOTS; s++)
         {
-            planRules[s].max = rules[s].max > reserved[s] ? rules[s].max - reserved[s] : 0;
+            planRules[s].max = baseRules[s].max;
             planRules[s].min = rules[s].min > reserved[s] ? rules[s].min - reserved[s] : 0;
         }
         plan = PlanSubplotBound(&requiredOnly, planRules, boundSlot);
@@ -215,10 +216,7 @@ bool32 PlanCountyChain(u32 county, const struct SubplotHost *subplots, u32 numSu
             InsertChainEntry(out, &placed[e], required[e].chapter);
         }
         for (s = 0; s < COUNTY_MAIN_SLOTS; s++)
-        {
-            rules[s].max -= plan.count[s];
             rules[s].min = rules[s].min > plan.count[s] ? rules[s].min - plan.count[s] : 0;
-        }
         subplotIndex++;
     }
     return TRUE;
