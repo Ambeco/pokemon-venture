@@ -115,7 +115,9 @@ Soft-lock proof, by induction on the existing placement rule (`CheckChapterPlace
 3. every key the subplot consumes has an earlier producer (checked when the subplot is placed, so by induction its own requirements are reachable before it);
 4. the subplot has no predecessor on the chain: it is off-chain, so only the main-story-index gate (same county as the proxy) and its own subplot order apply.
 
-No transitive closure over hosts is needed; each link is a strict-earlier check. Use this pattern whenever two chapters of a slot have no real dependency, instead of ordering them by declaration. A proxy occupies a chapter slot (no var), and a county has `CHAPTERS_PER_COUNTY` of them.
+No transitive closure over hosts is needed; each link is a strict-earlier check. Use this pattern whenever two chapters of a slot have no real dependency, instead of ordering them by declaration.
+
+Capacity: a main-story slot takes one chapter per subplot, not one per county, so a county may host many subplots that each place a chapter in the same slot (a proxy is one more subplot's chapter). What bounds the number of chapters a county hosts is storage, not slots: a stateful chapter needs its own stage storage (today one of the slice's `CHAPTERS_PER_COUNTY` slot vars; packing stages into bits would raise it), while a proxy is stateless and costs none.
 
 ## Alternatives considered
 
