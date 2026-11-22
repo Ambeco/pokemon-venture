@@ -48,6 +48,10 @@ bool32 PlanCountyChain(u32 county, const struct SubplotHost *subplots, u32 numSu
 // PlanCountyChain over Emerald's subplots and hosts.
 bool32 PlanEmeraldCountyChain(u32 county, struct CountyChainPlan *out);
 
+// Emerald's chapter hosts with each one's planned main-story slot (CHAPTER_MAIN_SLOT_OFF_CHAIN when off the chain), the
+// input of the story-order placement checks in chapter.h. Plans every hosting county; returns the host count, 0 on failure.
+u32 GetPlannedChapterHosts(struct ChapterHost *out, u32 maxHosts);
+
 // The stored chain is the chapters' own stage vars (var 0 of the slice is reserved): a chain entry is done when its chapter has reached its
 // last stage, and a main-story slot is done when all its on-chain entries are. Entries of one slot may be played in any
 // order (independent subplots), which a single linear position cannot represent. A slot with no entries is never done.

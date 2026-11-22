@@ -13,6 +13,7 @@
 #include "scene.h"
 #include "region_city.h"
 #include "chapter.h"
+#include "county_plan.h"
 #include "subplot.h"
 #include "string_util.h"
 
@@ -537,9 +538,9 @@ TEST("Chapter: The Cutter hints follow the stage and expand the house reference"
 TEST("Chapter: Every Emerald host passes the placement check")
 {
     u32 numHosts, i, j, numOthers;
-    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
-    struct ChapterHost others[14];
+    struct ChapterHost hosts[14], others[14];
 
+    numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts));
     EXPECT_EQ(numHosts, 14);
     for (i = 0; i < numHosts; i++)
     {
@@ -548,7 +549,7 @@ TEST("Chapter: Every Emerald host passes the placement check")
             if (j != i)
                 others[numOthers++] = hosts[j];
         }
-        EXPECT_EQ(CheckChapterPlacement(hosts[i].desc, hosts[i].county, hosts[i].slot, others, numOthers), CHAPTER_PLACEMENT_OK);
+        EXPECT_EQ(CheckChapterPlacement(hosts[i].desc, hosts[i].county, hosts[i].mainSlot, others, numOthers), CHAPTER_PLACEMENT_OK);
     }
 }
 
@@ -851,7 +852,7 @@ TEST("Chapter: A consumer waits for a producer in another host")
     EXPECT(IsChapterAvailable(&sCrossConsumerDesc, RUSTBORO, hosts, 2));
 }
 
-TEST("Chapter: A key consumed must have a producer in an earlier county, or an earlier slot")
+TEST("Chapter: A key consumed must have a producer in an earlier county, or an earlier main-story slot")
 {
     struct ChapterHost producer[] = {{RUSTBORO, 0, &sItemProducerDesc}};
 
@@ -863,13 +864,29 @@ TEST("Chapter: A key consumed must have a producer in an earlier county, or an e
     EXPECT_EQ(CheckChapterPlacement(&sCrossConsumerDesc, RUSTBORO, 0, producer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
 }
 
-TEST("Chapter: A host-pool key consumed in the same host needs the producer's slot to be earlier")
+TEST("Chapter: A host-pool key consumed in the same host needs the producer's main-story slot to be earlier")
 {
-    struct ChapterHost producer[] = {{RUSTBORO, 0, &sGatedDesc}};
+    struct ChapterHost producer[] = {{RUSTBORO, 0, &sGatedDesc, 0}};
 
     EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, RUSTBORO, 1, producer, 1), CHAPTER_PLACEMENT_OK);
     EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, RUSTBORO, 0, producer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
     EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, LILYCOVE, 0, producer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+}
+
+TEST("Chapter: Storage order is not story order: a producer in a lower chapter slot but a later main-story slot is not earlier")
+{
+    struct ChapterHost producer[] = {{RUSTBORO, 0, &sGatedDesc, 2}};
+
+    EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, RUSTBORO, 1, producer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+    EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, RUSTBORO, 3, producer, 1), CHAPTER_PLACEMENT_OK);
+}
+
+TEST("Chapter: An off-chain producer is earlier than any main-story slot of its county, but not than an off-chain consumer there")
+{
+    struct ChapterHost producer[] = {{RUSTBORO, 0, &sGatedDesc, CHAPTER_MAIN_SLOT_OFF_CHAIN}};
+
+    EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, RUSTBORO, 0, producer, 1), CHAPTER_PLACEMENT_OK);
+    EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, RUSTBORO, CHAPTER_MAIN_SLOT_OFF_CHAIN, producer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
 }
 
 TEST("Chapter: Availability counts badges held in any order")
@@ -1027,13 +1044,13 @@ TEST("Chapter: The Coin Case chapter's placement needs the Mart chapter among th
         if (!(hosts[i].county == MAUVILLE && hosts[i].slot == 1))
             others[numOthers++] = hosts[i];
     }
-    EXPECT_EQ(CheckChapterPlacement(GetCountyChapter(MAUVILLE, 1), MAUVILLE, 1, others, numOthers), CHAPTER_PLACEMENT_OK);
+    EXPECT_EQ(CheckChapterPlacement(GetCountyChapter(MAUVILLE, 1), MAUVILLE, CHAPTER_MAIN_SLOT_OFF_CHAIN, others, numOthers), CHAPTER_PLACEMENT_OK);
     for (i = 0, numOthers = 0; i < numHosts; i++)
     {
         if (hosts[i].county != SLATEPORT && !(hosts[i].county == MAUVILLE && hosts[i].slot == 1))
             others[numOthers++] = hosts[i];
     }
-    EXPECT_EQ(CheckChapterPlacement(GetCountyChapter(MAUVILLE, 1), MAUVILLE, 1, others, numOthers), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+    EXPECT_EQ(CheckChapterPlacement(GetCountyChapter(MAUVILLE, 1), MAUVILLE, CHAPTER_MAIN_SLOT_OFF_CHAIN, others, numOthers), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
 }
 
 TEST("Chapter: Slateport's Mart hints follow the stage, and its far and close lists differ")
@@ -1122,25 +1139,110 @@ TEST("Chapter: Rydel's proxy supplies the Bicycle's slot for planning but the ne
     EXPECT(DoesChapterProduce(bike, PLOT_KIND_UTILITY, PLOT_UTILITY_BICYCLE));
 }
 
-TEST("Chapter: The parallel subplot can finish before its proxy opens: the proxy needs no more badges than the subplot, and its key has a producer")
+TEST("Chapter: Every Emerald proxy keeps the four soft-lock conditions, and its key has a producer before it")
 {
-    u32 numHosts, i, numOthers = 0;
-    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
-    const struct ChapterDesc *proxy = FindMauvilleProxy(hosts, numHosts);
-    struct ChapterHost others[14];
+    u32 numHosts, numSubplots, i, j, numOthers, proxies = 0;
+    struct ChapterHost hosts[14], others[14];
+    const struct SubplotHost *subplots = GetSubplotHosts(&numSubplots);
 
-    ASSUME(proxy != NULL);
-    EXPECT_GE(proxy->minBadges, GetCountyChapter(MAUVILLE, 2)->minBadges);
+    numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts));
     for (i = 0; i < numHosts; i++)
     {
-        if (hosts[i].desc != proxy)
-            others[numOthers++] = hosts[i];
+        if (hosts[i].desc->backend != CHAPTER_PROXY)
+            continue;
+        proxies++;
+        EXPECT_EQ(CheckProxySoftLock(&hosts[i], hosts, numHosts, subplots, numSubplots), PROXY_OK);
+        for (j = 0, numOthers = 0; j < numHosts; j++)
+        {
+            if (hosts[j].desc != hosts[i].desc && hosts[j].desc != GetCountyChapter(hosts[i].county, 2))
+                others[numOthers++] = hosts[j];
+        }
+        EXPECT_EQ(CheckProxySoftLock(&hosts[i], others, numOthers, subplots, numSubplots), PROXY_NO_SUBPLOT);
     }
-    EXPECT_EQ(CheckChapterPlacement(proxy, MAUVILLE, CHAPTER_SLOT_STATELESS, others, numOthers), CHAPTER_PLACEMENT_OK);
-    for (i = 0, numOthers = 0; i < numHosts; i++)
-    {
-        if (hosts[i].desc != proxy && hosts[i].desc != GetCountyChapter(MAUVILLE, 2))
-            others[numOthers++] = hosts[i];
-    }
-    EXPECT_EQ(CheckChapterPlacement(proxy, MAUVILLE, CHAPTER_SLOT_STATELESS, others, numOthers), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+    EXPECT_GE(proxies, 1);
+}
+
+static const struct ChapterStage sBlankStages[2] = {};
+
+static const struct ChapterDesc sSoftLockSub =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = 2,
+    .stages = sBlankStages,
+    .producedKeyStage = 1,
+    .producedKey = {CHAPTER_KEY_HOST_POOL, 5},
+};
+
+static const struct ChapterDesc sSoftLockProxy =
+{
+    .backend = CHAPTER_PROXY,
+    .numStages = 2,
+    .stages = sBlankStages,
+    .requiredKeys = {{CHAPTER_KEY_HOST_POOL, 5}},
+};
+
+static const struct ChapterDesc sSoftLockEarlier = {.backend = CHAPTER_STORED, .numStages = 2, .stages = sBlankStages, .producedKeyStage = 1, .producedKey = {CHAPTER_KEY_HOST_POOL, 6}};
+
+// Mauville hosting `sub` (off-chain, in a subplot of its own) and a proxy in main-story slot 2; `extra`, if set, is a third host.
+static u32 CheckSoftLockFixture(const struct ChapterDesc *sub, bool32 subOptional, const struct ChapterDesc *proxy, const struct ChapterHost *extra)
+{
+    struct SubplotEntry entries[1] = {{sub, subOptional}};
+    struct SubplotDesc subplot = {1, entries};
+    struct SubplotHost subplotHost = {MAUVILLE, &subplot};
+    struct ChapterHost hosts[3] = {{MAUVILLE, 0, sub, CHAPTER_MAIN_SLOT_OFF_CHAIN}, {MAUVILLE, CHAPTER_SLOT_STATELESS, proxy, 2}};
+    u32 numHosts = 2;
+
+    if (extra != NULL)
+        hosts[numHosts++] = *extra;
+    return CheckProxySoftLock(&hosts[1], hosts, numHosts, &subplotHost, 1);
+}
+
+TEST("Chapter: The soft-lock check passes a proxy whose subplot is off-chain, consumes nothing and needs no more badges")
+{
+    EXPECT_EQ(CheckSoftLockFixture(&sSoftLockSub, TRUE, &sSoftLockProxy, NULL), PROXY_OK);
+}
+
+TEST("Chapter: Soft-lock condition 2: a proxy that opens with fewer badges than its subplot needs is refused")
+{
+    struct ChapterDesc sub = sSoftLockSub, proxy = sSoftLockProxy;
+
+    sub.minBadges = 3;
+    proxy.minBadges = 2;
+    EXPECT_EQ(CheckSoftLockFixture(&sub, TRUE, &proxy, NULL), PROXY_BADGES_BELOW_SUBPLOT);
+    proxy.minBadges = 3;
+    EXPECT_EQ(CheckSoftLockFixture(&sub, TRUE, &proxy, NULL), PROXY_OK);
+}
+
+TEST("Chapter: Soft-lock condition 4: a subplot with a required entry can wait behind the chain, so its proxy is refused")
+{
+    EXPECT_EQ(CheckSoftLockFixture(&sSoftLockSub, FALSE, &sSoftLockProxy, NULL), PROXY_SUBPLOT_ON_CHAIN);
+}
+
+TEST("Chapter: A proxy whose key has no producer, or whose producer reaches the key before its last stage, is refused")
+{
+    struct ChapterDesc sub = sSoftLockSub;
+
+    EXPECT_EQ(CheckProxySoftLock(&(struct ChapterHost){MAUVILLE, CHAPTER_SLOT_STATELESS, &sSoftLockProxy, 2}, NULL, 0, NULL, 0), PROXY_NO_SUBPLOT);
+    sub.producedKeyStage = 0;
+    EXPECT_EQ(CheckSoftLockFixture(&sub, TRUE, &sSoftLockProxy, NULL), PROXY_NO_SUBPLOT);
+}
+
+TEST("Chapter: Soft-lock condition 1: a subplot consuming a key produced in the proxy's own slot or later is refused")
+{
+    struct ChapterDesc sub = sSoftLockSub;
+    struct ChapterHost earlier = {MAUVILLE, 1, &sSoftLockEarlier, 2};
+
+    sub.requiredKeys[0] = (struct ChapterKeyRef){CHAPTER_KEY_HOST_POOL, 6};
+    EXPECT_EQ(CheckSoftLockFixture(&sub, TRUE, &sSoftLockProxy, &earlier), PROXY_SUBPLOT_NEEDS_LATER_KEY);
+    earlier.mainSlot = 3;
+    EXPECT_EQ(CheckSoftLockFixture(&sub, TRUE, &sSoftLockProxy, &earlier), PROXY_SUBPLOT_NEEDS_LATER_KEY);
+}
+
+TEST("Chapter: Soft-lock condition 3: a subplot whose own key producer is not before the subplot is refused, though it is before the proxy")
+{
+    struct ChapterDesc sub = sSoftLockSub;
+    struct ChapterHost earlier = {MAUVILLE, 1, &sSoftLockEarlier, 0};
+
+    sub.requiredKeys[0] = (struct ChapterKeyRef){CHAPTER_KEY_HOST_POOL, 6};
+    EXPECT_EQ(CheckSoftLockFixture(&sub, TRUE, &sSoftLockProxy, &earlier), PROXY_SUBPLOT_MISPLACED);
 }

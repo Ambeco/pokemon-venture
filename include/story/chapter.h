@@ -165,11 +165,15 @@ struct ChapterDesc
     const struct ChapterActor *actors;
 };
 
+// ChapterHost.mainSlot of a chapter that is not on its county's chain: it runs beside the chain from the county's entry.
+#define CHAPTER_MAIN_SLOT_OFF_CHAIN 0xFF
+
 struct ChapterHost
 {
     u8 county;
     u8 slot;
     const struct ChapterDesc *desc;
+    u8 mainSlot; // planned main-story slot (0-3) or CHAPTER_MAIN_SLOT_OFF_CHAIN; the static host tables leave it 0, GetPlannedChapterHosts fills it
 };
 
 // Where Emerald hosts its ported chapters.
@@ -267,11 +271,27 @@ enum ChapterPlacementProblem
     CHAPTER_PLACEMENT_KEY_NOT_EARLIER, // a consumed key has no producer in an earlier county or slot
 };
 
-// Static check for putting `desc` in (county, slot) among `hosts` (which must not list that slot): the
-// county has a city with every needed role; a chapter that produces a main-plot get comes after the
-// minBadges-th gym (any other just waits for the badges at runtime); each consumed key has a producer
-// hosted in an earlier county, or in an earlier slot of this one.
-u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 slot, const struct ChapterHost *hosts, u32 numHosts);
+// Static check for putting `desc` in `mainSlot` (a main-story slot or CHAPTER_MAIN_SLOT_OFF_CHAIN) of `county` among
+// `hosts`: the county has a city with every needed role; a chapter that produces a main-plot get comes after the
+// minBadges-th gym (any other just waits for the badges at runtime); each consumed key has a producer strictly earlier in
+// story order, which is the producer's county story index, then its main-story slot (an off-chain chapter is open from
+// its county's entry). Producers in the same county and slot tie, and a tie is not earlier. `hosts` must not list `desc`
+// itself, and carry each host's planned mainSlot (GetPlannedChapterHosts).
+u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 mainSlot, const struct ChapterHost *hosts, u32 numHosts);
+
+enum ProxyProblem
+{
+    PROXY_OK,
+    PROXY_NO_SUBPLOT,              // no single chapter of the county produces the proxy's key at its last stage, in a subplot the county hosts
+    PROXY_BADGES_BELOW_SUBPLOT,    // soft-lock condition 2: the proxy opens with fewer badges than a chapter of the subplot needs
+    PROXY_SUBPLOT_ON_CHAIN,        // condition 4: the subplot has a required entry, so it can wait behind the chain
+    PROXY_SUBPLOT_NEEDS_LATER_KEY, // condition 1: the subplot consumes a key not produced strictly before the proxy's position
+    PROXY_SUBPLOT_MISPLACED,       // condition 3: the subplot's chapter fails CheckChapterPlacement
+};
+
+// The four soft-lock conditions (design_chapters.md, "Parallel subplots (proxy entries)") for one proxy host. `hosts` is
+// the planned set including the proxy; the subplot is the one chapter of the proxy's county that produces its key.
+u32 CheckProxySoftLock(const struct ChapterHost *proxy, const struct ChapterHost *hosts, u32 numHosts, const struct SubplotHost *subplots, u32 numSubplots);
 
 // TRUE iff the chain before (county, slot) is done: the main-story-index has reached the county's slots
 // (4x + s, x its story index), so every earlier county is finished, and the chapter before it in its subplot

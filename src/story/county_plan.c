@@ -231,6 +231,45 @@ bool32 PlanEmeraldCountyChain(u32 county, struct CountyChainPlan *out)
     return PlanCountyChain(county, subplots, numSubplots, hosts, numHosts, out);
 }
 
+u32 GetPlannedChapterHosts(struct ChapterHost *out, u32 maxHosts)
+{
+    u32 numHosts, county, i, j;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    assertf(numHosts <= maxHosts, "%d chapter hosts do not fit the %d-entry buffer", numHosts, maxHosts)
+    {
+        return 0;
+    }
+    for (i = 0; i < numHosts; i++)
+    {
+        out[i] = hosts[i];
+        out[i].mainSlot = CHAPTER_MAIN_SLOT_OFF_CHAIN;
+    }
+    for (county = 0; county < NUM_COUNTIES; county++)
+    {
+        struct CountyChainPlan plan;
+        bool32 hosted = FALSE;
+
+        for (i = 0; i < numHosts; i++)
+            hosted |= hosts[i].county == county;
+        if (!hosted)
+            continue;
+        assertf(PlanEmeraldCountyChain(county, &plan), "county %d chain does not plan (problem %d); fix the plan before asking for planned hosts", county, plan.problem)
+        {
+            return 0;
+        }
+        for (j = 0; j < plan.numEntries; j++)
+        {
+            for (i = 0; i < numHosts; i++)
+            {
+                if (hosts[i].county == county && hosts[i].desc == plan.chainDesc[j])
+                    out[i].mainSlot = plan.chain[j].mainSlot;
+            }
+        }
+    }
+    return numHosts;
+}
+
 bool32 IsCountyChainEntryDone(u32 county, u32 chapterSlot)
 {
     const struct ChapterDesc *desc = GetCountyChapter(county, chapterSlot);

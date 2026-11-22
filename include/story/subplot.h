@@ -18,8 +18,8 @@
  * chapter-slot var. Order between chapters comes only from the subplot: each entry waits for the one before it, and
  * chapters of different subplots never wait for each other (design_scenes.md, "Interleaving subplots").
  *
- * The functions are pure. A chapter's chain length is its stage count, so a subplot's chain is as long as the
- * stages of its placed chapters.
+ * The functions are pure. A chapter's chain length is its stage advances (numStages - 1, since its last stage means
+ * done), so a subplot's chain is as long as the advances of its placed chapters.
  */
 
 #include "global.h"

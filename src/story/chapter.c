@@ -564,24 +564,31 @@ bool32 IsCountySlotAvailable(u32 countyId, u32 slot)
     return IsChainPredecessorComplete(hosts, numHosts, countyId, slot, GetMainStoryIndex()) && IsChapterAvailable(desc, countyId, hosts, numHosts);
 }
 
-static bool32 HasEarlierProducer(u32 mcguffinId, u32 county, u32 slot, const struct ChapterHost *hosts, u32 numHosts)
+// Story order (design_chapters.md, "Parallel subplots"): county story index, then main-story position. An off-chain
+// chapter is open from its county's entry, so it sorts before every main-story slot of that county.
+static u32 GetStoryPosition(u32 county, u32 mainSlot)
 {
-    u32 i, storyIdx = GetCountyHeader(county)->storyIdx;
+    return GetCountyHeader(county)->storyIdx << 8 | (mainSlot == CHAPTER_MAIN_SLOT_OFF_CHAIN ? 0 : mainSlot + 1);
+}
+
+// Positions tie within one county and slot, and a tie is not "earlier": key order inside a slot would admit cycles.
+static bool32 HasProducerBefore(u32 mcguffinId, u32 position, const struct ChapterHost *hosts, u32 numHosts)
+{
+    u32 i;
 
     for (i = 0; i < numHosts; i++)
     {
         const struct ChapterDesc *desc = hosts[i].desc;
-        u32 hostIdx = GetCountyHeader(hosts[i].county)->storyIdx;
 
         if (desc->producedKey.type == CHAPTER_KEY_NONE || ResolveChapterKey(&desc->producedKey, hosts[i].county) != mcguffinId)
             continue;
-        if (hostIdx < storyIdx || (hosts[i].county == county && hosts[i].slot < slot))
+        if (GetStoryPosition(hosts[i].county, hosts[i].mainSlot) < position)
             return TRUE;
     }
     return FALSE;
 }
 
-u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 slot, const struct ChapterHost *hosts, u32 numHosts)
+u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 mainSlot, const struct ChapterHost *hosts, u32 numHosts)
 {
     u32 needed = GetChapterNeededRoles(desc), bit, i;
 
@@ -603,10 +610,81 @@ u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 slot, 
     for (i = 0; i < CHAPTER_MAX_REQUIRED_KEYS; i++)
     {
         if (desc->requiredKeys[i].type != CHAPTER_KEY_NONE
-         && !HasEarlierProducer(ResolveChapterKey(&desc->requiredKeys[i], county), county, slot, hosts, numHosts))
+         && !HasProducerBefore(ResolveChapterKey(&desc->requiredKeys[i], county), GetStoryPosition(county, mainSlot), hosts, numHosts))
             return CHAPTER_PLACEMENT_KEY_NOT_EARLIER;
     }
     return CHAPTER_PLACEMENT_OK;
+}
+
+// The one hosted chapter of the proxy's county that produces the proxy's key; NULL when none or several do.
+static const struct ChapterHost *FindProxySubplotHost(const struct ChapterHost *proxy, const struct ChapterHost *hosts, u32 numHosts)
+{
+    const struct ChapterHost *found = NULL;
+    u32 key = ResolveChapterKey(&proxy->desc->requiredKeys[0], proxy->county), i;
+
+    for (i = 0; i < numHosts; i++)
+    {
+        const struct ChapterDesc *desc = hosts[i].desc;
+
+        if (hosts[i].county != proxy->county || desc == proxy->desc || desc->producedKey.type == CHAPTER_KEY_NONE
+         || ResolveChapterKey(&desc->producedKey, hosts[i].county) != key)
+            continue;
+        if (found != NULL)
+            return NULL;
+        found = &hosts[i];
+    }
+    return found;
+}
+
+static const struct SubplotDesc *FindSubplotOfChapter(const struct SubplotHost *subplots, u32 numSubplots, u32 county, const struct ChapterDesc *desc)
+{
+    u32 h, i;
+
+    for (h = 0; h < numSubplots; h++)
+    {
+        for (i = 0; subplots[h].county == county && i < subplots[h].subplot->numEntries; i++)
+        {
+            if (subplots[h].subplot->entries[i].chapter == desc)
+                return subplots[h].subplot;
+        }
+    }
+    return NULL;
+}
+
+u32 CheckProxySoftLock(const struct ChapterHost *proxy, const struct ChapterHost *hosts, u32 numHosts, const struct SubplotHost *subplots, u32 numSubplots)
+{
+    const struct ChapterHost *sub = FindProxySubplotHost(proxy, hosts, numHosts);
+    const struct SubplotDesc *subplot;
+    u32 i, proxyPosition = GetStoryPosition(proxy->county, proxy->mainSlot);
+
+    if (sub == NULL)
+        return PROXY_NO_SUBPLOT;
+    subplot = FindSubplotOfChapter(subplots, numSubplots, proxy->county, sub->desc);
+    if (subplot == NULL || sub->desc->producedKeyStage != sub->desc->numStages - 1)
+        return PROXY_NO_SUBPLOT;
+    for (i = 0; i < subplot->numEntries; i++)
+    {
+        if (subplot->entries[i].chapter->minBadges > proxy->desc->minBadges)
+            return PROXY_BADGES_BELOW_SUBPLOT;
+    }
+    for (i = 0; i < subplot->numEntries; i++)
+    {
+        if (!subplot->entries[i].optional)
+            return PROXY_SUBPLOT_ON_CHAIN;
+    }
+    for (i = 0; i < subplot->numEntries; i++)
+    {
+        const struct ChapterDesc *desc = subplot->entries[i].chapter;
+        u32 k;
+
+        for (k = 0; k < CHAPTER_MAX_REQUIRED_KEYS; k++)
+        {
+            if (desc->requiredKeys[k].type != CHAPTER_KEY_NONE
+             && !HasProducerBefore(ResolveChapterKey(&desc->requiredKeys[k], proxy->county), proxyPosition, hosts, numHosts))
+                return PROXY_SUBPLOT_NEEDS_LATER_KEY;
+        }
+    }
+    return CheckChapterPlacement(sub->desc, sub->county, sub->mainSlot, hosts, numHosts) == CHAPTER_PLACEMENT_OK ? PROXY_OK : PROXY_SUBPLOT_MISPLACED;
 }
 
 static const u8 *const sBuildingRoleNames[] =
