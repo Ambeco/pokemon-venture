@@ -470,7 +470,7 @@ PlayersHouse_1F_EventScript_GetSSTicketAndSeeLatiTV::
 	multichoice 22, 8, MULTI_TV_LATI, TRUE
 	copyvar VAR_0x8004, VAR_RESULT
 	special InitRoamer
-	call_if_ne VAR_RESULT, 0, PlayersHouse_1F_EventScript_SetRoamerIsLatios
+	call_if_ne VAR_0x8004, 0, PlayersHouse_1F_EventScript_SetRoamerIsLatios
 	msgbox PlayersHouse_1F_Text_StillUnknownPokemon, MSGBOX_DEFAULT
 	closemessage
 	setvar VAR_LITTLEROOT_HOUSES_STATE_MAY, 4
