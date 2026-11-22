@@ -7,7 +7,7 @@
  * A chapter is a linear list of stages. A county hosts up to CHAPTERS_PER_COUNTY chapters, each in a
  * numbered slot; callers address a chapter by (county, slot) and never by identity, so moving a chapter to
  * another host moves no state. A stored chapter keeps its stage in the host county's slice var for that
- * slot (a county's var 0 is its chain position, see county_chain.h). An adapter chapter has no state of its own:
+ * slot (a county's var 0 is reserved and unused). An adapter chapter has no state of its own:
  * its stage is the highest stage whose done-predicate is true, over Emerald's old flags and vars, and it
  * cannot be set. The query functions cannot tell the two apart.
  *

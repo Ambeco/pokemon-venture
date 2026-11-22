@@ -6,7 +6,7 @@
 #include "event_data.h"
 #include "subplot.h"
 
-static const struct ChapterDesc sOneStage = {.numStages = 1};
+static const struct ChapterDesc sShortChapter = {.numStages = 2};
 static const struct ChapterDesc sThreeStages = {.numStages = 3};
 
 #define REQ(c) {&c, FALSE}
@@ -18,7 +18,7 @@ static const struct SubplotSlotRule sRules[COUNTY_MAIN_SLOTS] = {{0, 2}, {0, 0},
 
 TEST("Subplot: Required entries fill slot 0, skip the callback slot, and leave one for slot 2's minimum")
 {
-    static const struct SubplotEntry entries[] = {REQ(sOneStage), REQ(sOneStage), REQ(sThreeStages)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter), REQ(sShortChapter), REQ(sThreeStages)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     struct SubplotPlan plan = PlanSubplot(&subplot, sRules);
 
@@ -33,7 +33,7 @@ TEST("Subplot: Required entries fill slot 0, skip the callback slot, and leave o
 
 TEST("Subplot: Two required entries put the second in slot 2 so its minimum holds, though slot 0 has room")
 {
-    static const struct SubplotEntry entries[] = {REQ(sOneStage), REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter), REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     struct SubplotPlan plan = PlanSubplot(&subplot, sRules);
 
@@ -45,7 +45,7 @@ TEST("Subplot: Two required entries put the second in slot 2 so its minimum hold
 TEST("Subplot: An optional entry is dropped when its slot is full, and the next required entry spills over")
 {
     static const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS] = {{0, 1}, {0, 0}, {1, 2}, {0, 0}};
-    static const struct SubplotEntry entries[] = {REQ(sOneStage), OPT(sOneStage), REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter), OPT(sShortChapter), REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     struct SubplotPlan plan = PlanSubplot(&subplot, rules);
 
@@ -58,7 +58,7 @@ TEST("Subplot: An optional entry is dropped when its slot is full, and the next 
 
 TEST("Subplot: An optional entry that would leave a later minimum unguaranteed is dropped")
 {
-    static const struct SubplotEntry entries[] = {OPT(sOneStage)};
+    static const struct SubplotEntry entries[] = {OPT(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     struct SubplotPlan plan = PlanSubplot(&subplot, sRules);
 
@@ -69,7 +69,7 @@ TEST("Subplot: An optional entry that would leave a later minimum unguaranteed i
 
 TEST("Subplot: An optional entry stays when required entries after it cover the later minimums")
 {
-    static const struct SubplotEntry entries[] = {OPT(sOneStage), REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {OPT(sShortChapter), REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     struct SubplotPlan plan = PlanSubplot(&subplot, sRules);
 
@@ -80,7 +80,7 @@ TEST("Subplot: An optional entry stays when required entries after it cover the 
 
 TEST("Subplot: A required entry with no slot left fails the plan and names the entry")
 {
-    static const struct SubplotEntry entries[] = {REQ(sOneStage), REQ(sOneStage), REQ(sOneStage), REQ(sOneStage), REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter), REQ(sShortChapter), REQ(sShortChapter), REQ(sShortChapter), REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     struct SubplotPlan plan = PlanSubplot(&subplot, sRules);
 
@@ -91,7 +91,7 @@ TEST("Subplot: A required entry with no slot left fails the plan and names the e
 TEST("Subplot: A slot below its minimum at the end fails the plan and names the slot")
 {
     static const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS] = {{1, 2}, {0, 0}, {1, 2}, {0, 0}};
-    static const struct SubplotEntry entries[] = {REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     struct SubplotPlan plan = PlanSubplot(&subplot, rules);
 
@@ -99,9 +99,9 @@ TEST("Subplot: A slot below its minimum at the end fails the plan and names the 
     EXPECT_EQ(plan.problemIndex, 2);
 }
 
-TEST("Subplot: The chain has an entry per placed chapter with its stage count, and resolves like any county chain")
+TEST("Subplot: The chain has an entry per placed chapter with its stage advances, and resolves like any county chain")
 {
-    static const struct SubplotEntry entries[] = {REQ(sOneStage), OPT(sThreeStages), REQ(sThreeStages)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter), OPT(sThreeStages), REQ(sThreeStages)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     static const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS] = {{0, 1}, {0, 0}, {1, 2}, {0, 0}};
     struct SubplotPlan plan = PlanSubplot(&subplot, rules);
@@ -112,11 +112,11 @@ TEST("Subplot: The chain has an entry per placed chapter with its stage count, a
     EXPECT_EQ(n, 2);
     EXPECT_EQ(chain[0].mainSlot, 0);
     EXPECT_EQ(chain[0].chapterSlot, 1);
-    EXPECT_EQ(chain[0].numStages, 1);
+    EXPECT_EQ(chain[0].numAdvances, 1);
     EXPECT_EQ(chain[1].mainSlot, 2);
     EXPECT_EQ(chain[1].chapterSlot, 2);
-    EXPECT_EQ(chain[1].numStages, 3);
-    EXPECT_EQ(GetChainLength(chain, n), 4);
+    EXPECT_EQ(chain[1].numAdvances, 2);
+    EXPECT_EQ(GetChainLength(chain, n), 3);
     position = ResolveChainPosition(chain, n, 2);
     EXPECT_EQ(position.entry, 1);
     EXPECT_EQ(position.stage, 1);
@@ -156,7 +156,7 @@ TEST("Subplot: A full subplot of seven optional entries and a required last one 
 
     for (i = 0; i < SUBPLOT_MAX_ENTRIES; i++)
     {
-        entries[i].chapter = &sOneStage;
+        entries[i].chapter = &sShortChapter;
         entries[i].optional = i != SUBPLOT_MAX_ENTRIES - 1;
     }
     plan = PlanSubplot(&subplot, sRules);
@@ -180,7 +180,7 @@ TEST("Subplot: An empty subplot with no minimums plans to nothing")
 
 TEST("Subplot: A bound entry goes to its slot though an earlier slot has room")
 {
-    static const struct SubplotEntry entries[] = {REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     static const u8 bound[] = {2};
     struct SubplotPlan plan = PlanSubplotBound(&subplot, sRules, bound);
@@ -193,7 +193,7 @@ TEST("Subplot: A bound entry goes to its slot though an earlier slot has room")
 TEST("Subplot: An unbound entry before a bound one stays at or before the bound slot, and leaves room in it")
 {
     static const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS] = {{0, 1}, {0, 0}, {0, 1}, {0, 0}};
-    static const struct SubplotEntry entries[] = {REQ(sOneStage), OPT(sOneStage), REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter), OPT(sShortChapter), REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     static const u8 bound[] = {SUBPLOT_UNBOUND, SUBPLOT_UNBOUND, 2};
     struct SubplotPlan plan = PlanSubplotBound(&subplot, rules, bound);
@@ -207,7 +207,7 @@ TEST("Subplot: An unbound entry before a bound one stays at or before the bound 
 TEST("Subplot: Unbound entries do not take the room a later bound entry needs in the same slot")
 {
     static const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS] = {{0, 0}, {0, 0}, {1, 2}, {0, 0}};
-    static const struct SubplotEntry entries[] = {REQ(sOneStage), REQ(sOneStage), REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter), REQ(sShortChapter), REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     static const u8 bound[] = {SUBPLOT_UNBOUND, SUBPLOT_UNBOUND, 2};
     struct SubplotPlan plan = PlanSubplotBound(&subplot, rules, bound);
@@ -218,7 +218,7 @@ TEST("Subplot: Unbound entries do not take the room a later bound entry needs in
 
 TEST("Subplot: A bound entry before the cursor is out of order")
 {
-    static const struct SubplotEntry entries[] = {REQ(sOneStage), REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter), REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     static const u8 bound[] = {2, 0};
     struct SubplotPlan plan = PlanSubplotBound(&subplot, sRules, bound);
@@ -229,7 +229,7 @@ TEST("Subplot: A bound entry before the cursor is out of order")
 
 TEST("Subplot: A bound entry in a slot with no room, or past the last slot, is a problem")
 {
-    static const struct SubplotEntry entries[] = {REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     static const u8 callbackSlot[] = {1};
     static const u8 pastLast[] = {COUNTY_MAIN_SLOTS};
@@ -242,7 +242,7 @@ TEST("Subplot: A bound entry in a slot with no room, or past the last slot, is a
 
 TEST("Subplot: Binding to a slot that fills a minimum is not starved by an earlier unbound entry")
 {
-    static const struct SubplotEntry entries[] = {REQ(sOneStage), REQ(sOneStage)};
+    static const struct SubplotEntry entries[] = {REQ(sShortChapter), REQ(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     static const u8 bound[] = {SUBPLOT_UNBOUND, 2};
     struct SubplotPlan plan = PlanSubplotBound(&subplot, sRules, bound);
@@ -254,7 +254,7 @@ TEST("Subplot: Binding to a slot that fills a minimum is not starved by an earli
 
 TEST("Subplot: Bindings of optional entries are ignored")
 {
-    static const struct SubplotEntry entries[] = {OPT(sOneStage)};
+    static const struct SubplotEntry entries[] = {OPT(sShortChapter)};
     static const struct SubplotDesc subplot = SUBPLOT(entries);
     static const u8 bound[] = {1};
     struct SubplotPlan plan = PlanSubplotBound(&subplot, sRules, bound);

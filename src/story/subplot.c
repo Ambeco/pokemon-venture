@@ -189,9 +189,13 @@ u32 BuildSubplotChain(const struct SubplotDesc *subplot, const struct SubplotPla
     {
         if (plan->mainSlot[i] == SUBPLOT_DROPPED)
             continue;
+        assertf(subplot->entries[i].chapter->numStages >= 2, "subplot entry %d has %d stage(s); a chain entry needs at least 2, since a chapter's last stage means done (did you mean to add a done stage?)", i, subplot->entries[i].chapter->numStages)
+        {
+            return 0;
+        }
         out[n].mainSlot = plan->mainSlot[i];
         out[n].chapterSlot = firstChapterSlot + n;
-        out[n].numStages = subplot->entries[i].chapter->numStages;
+        out[n].numAdvances = subplot->entries[i].chapter->numStages - 1;
         n++;
     }
     return n;

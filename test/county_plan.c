@@ -57,7 +57,7 @@ TEST("CountyPlan: Every Emerald county plans, and its chain and off-chain slots 
                 EXPECT(!seen[plan.chain[i].chapterSlot]);
                 seen[plan.chain[i].chapterSlot] = TRUE;
             }
-            EXPECT_EQ(plan.chain[i].numStages, plan.chainDesc[i]->numStages);
+            EXPECT_EQ(plan.chain[i].numAdvances, plan.chainDesc[i]->numStages - 1);
             EXPECT(i == 0 || plan.chain[i].mainSlot >= plan.chain[i - 1].mainSlot);
             if (GetChapterSuppliedSlot(plan.chainDesc[i], &get))
                 EXPECT_EQ(plan.chain[i].mainSlot, get.step);
@@ -149,7 +149,7 @@ TEST("CountyPlan: The Cutter's House takes the slot of HM Cut, and Rock Smash th
     }
 }
 
-static const struct ChapterDesc sFillerChapter = {.numStages = 1};
+static const struct ChapterDesc sFillerChapter = {.numStages = 2};
 
 // A county with a utility, scripted or rival get in a slot that is not its first slot with room, so first-fit would misplace
 // the chapter supplying it.
@@ -194,7 +194,7 @@ TEST("CountyPlan: An entry supplying a get is bound to the get's slot, whether i
 {
     u32 county = 0, slot = 0, order;
     struct PlotKeyRef get = {0};
-    struct ChapterDesc getChapter = {.numStages = 1};
+    struct ChapterDesc getChapter = {.numStages = 2};
     static const struct SubplotEntry fillerEntries[] = {{&sFillerChapter, FALSE}};
     static const struct SubplotDesc fillerSubplot = {1, fillerEntries};
     struct SubplotEntry hmEntries[1];

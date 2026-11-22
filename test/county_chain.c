@@ -1,12 +1,10 @@
 #include "global.h"
 #include "test/test.h"
-#include "constants/vars.h"
 #include "county_chain.h"
-#include "event_data.h"
-#include "chapter.h"
 
-// design_chapters.md's "County chain" worked example: slot 0 is Nugget Bridge (1), Copycat Girl (1) and the Rocket hideout (3);
-// slot 1 is a callback hosted by another county, so it has no entries; slot 2 is two stages, slot 3 one.
+// design_chapters.md's "County chain" worked example, in stage advances (a chapter's numStages - 1): slot 0 is Nugget Bridge (1),
+// Copycat Girl (1) and the Rocket hideout (3); slot 1 is a callback hosted by another county, so it has no entries; slot 2 is
+// two advances, slot 3 one.
 static const struct CountyChainEntry sChain[] =
 {
     {0, 0, 1},
@@ -18,7 +16,7 @@ static const struct CountyChainEntry sChain[] =
 
 #define N ARRAY_COUNT(sChain)
 
-TEST("CountyChain: The length is the sum of the entries' stages")
+TEST("CountyChain: The length is the sum of the entries' advances")
 {
     EXPECT_EQ(GetChainLength(sChain, N), 8);
     EXPECT_EQ(GetChainLength(sChain, 0), 0);
@@ -106,24 +104,3 @@ TEST("CountyChain: Finishing a main-story slot is true only at its exact boundar
     EXPECT(DidChainJustFinishMainSlot(sChain, N, 8, 3));
     EXPECT(!DidChainJustFinishMainSlot(sChain, N, 9, 3));
 }
-
-TEST("CountyChain: The stored position lives in var 0 of the county's slice")
-{
-    EXPECT_EQ(GetCountyChainPosition(2), 0);
-    SetCountyChainPosition(2, 3);
-    EXPECT_EQ(GetCountyChainPosition(2), 3);
-    EXPECT_EQ(VarGet(COUNTY_VARS_START + 2 * VARS_PER_COUNTY), 3);
-    EXPECT_EQ(GetCountyChainPosition(3), 0);
-    EXPECT_EQ(VarGet(GetCountySlotVar(2, 0)), 0);
-}
-
-TEST("CountyChain: Advancing moves the stored position by one up to the end")
-{
-    u32 i;
-
-    for (i = 1; i <= GetChainLength(sChain, N); i++)
-        EXPECT_EQ(AdvanceCountyChainPosition(2, sChain, N), i);
-    EXPECT_EQ(GetCountyChainPosition(2), 8);
-    EXPECT_EQ(ResolveChainPosition(sChain, N, GetCountyChainPosition(2)).state, CHAIN_COMPLETE);
-}
-

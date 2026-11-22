@@ -2,15 +2,15 @@
 #define GUARD_COUNTY_CHAIN_H
 
 /**
- * The county chain (design_chapters.md, "County chain"): a county's progress through the chapters that fulfil its
- * main-story slots, stored as one position in var 0 of its slice.
+ * The county chain (design_chapters.md, "County chain"): the chapters that fulfil a county's main-story slots, as a
+ * linear model of its progress. Nothing stores the position (var 0 of a county's slice is reserved and unused): the
+ * chapters' own stage vars are the state, and county_plan.h reads them (IsCountyMainSlotDone).
  *
  * A chain is an ordered list of entries, each a chapter (by its chapter slot, vars 1-3 of the slice) that
- * supplies one main-story slot, with the number of stages it contributes. The position counts through the
- * concatenated stages of all entries, so it only ever advances by one, and ResolveChainPosition turns it
- * back into (entry, stage). ResolveChainPosition and the other Chain* functions are pure, so an adapter
- * can feed them a position computed from Emerald's old vars; only Get/Set/AdvanceCountyChainPosition touch
- * the stored var.
+ * supplies one main-story slot, with the number of stage advances it contributes: a chapter's last stage means
+ * "done", so a chapter with S stages adds S - 1 advances, and the next entry's stage 0 starts where its last
+ * stage ends. The position counts through the concatenated advances of all entries, and ResolveChainPosition
+ * turns it back into (entry, stage), where the stage is the chapter's current stage. The Chain* functions are pure.
  *
  * Two kinds of "slot" exist: a chapter slot addresses a county's chapter vars (see chapter.h), a main-story
  * slot (0 to COUNTY_MAIN_SLOTS - 1, the `s` of main-story-index `4x + s`) is a step of the main plot a county
@@ -28,14 +28,14 @@ struct CountyChainEntry
 {
     u8 mainSlot;    // main-story slot this entry helps fulfil; entries are ordered by non-decreasing mainSlot
     u8 chapterSlot; // the county's chapter slot that runs the entry
-    u8 numStages;   // stages this entry adds to the position (>= 1): the chapter's stages without before/after pseudo-stages
+    u8 numAdvances; // stage advances this entry adds to the position (>= 1): the chapter's numStages - 1, since its last stage is "done"
 };
 
 enum ChainState
 {
     CHAIN_NOT_STARTED, // position 0 of a chain: its first stage is current, nothing is done
     CHAIN_IN_PROGRESS,
-    CHAIN_COMPLETE,    // position past the last stage: every entry is done and entry/stage are not meaningful
+    CHAIN_COMPLETE,    // position at or past the chain's length: every entry is at its last stage and entry/stage are not meaningful
 };
 
 struct ChainPosition
@@ -46,7 +46,7 @@ struct ChainPosition
     u8 mainSlot;    // the entry's mainSlot; COUNTY_MAIN_SLOTS when complete
 };
 
-// Sum of the entries' stages: the position of a finished chain.
+// Sum of the entries' advances: the position of a finished chain.
 u32 GetChainLength(const struct CountyChainEntry *chain, u32 numEntries);
 
 // Position `position` mapped to the entry and the stage it falls in. A position past the end is
@@ -64,12 +64,5 @@ bool32 IsChainMainSlotDone(const struct CountyChainEntry *chain, u32 numEntries,
 // position of the next entry's stage 0 or the end of the chain. This is when the global main-story-index
 // would advance to the next step.
 bool32 DidChainJustFinishMainSlot(const struct CountyChainEntry *chain, u32 numEntries, u32 position, u32 mainSlot);
-
-// The stored position, var 0 of the county's slice.
-u32 GetCountyChainPosition(u32 countyId);
-void SetCountyChainPosition(u32 countyId, u32 position);
-
-// Moves the stored position forward by one stage and returns the new position. Asserts at the end of the chain.
-u32 AdvanceCountyChainPosition(u32 countyId, const struct CountyChainEntry *chain, u32 numEntries);
 
 #endif // GUARD_COUNTY_CHAIN_H

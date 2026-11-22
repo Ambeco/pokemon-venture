@@ -1,10 +1,7 @@
 #include "global.h"
-#include "constants/vars.h"
 #include "assertf.h"
 #include "county_chain.h"
 #include "region_county.h"
-#include "event_data.h"
-#include "chapter.h"
 
 static void AssertChainValid(const struct CountyChainEntry *chain, u32 numEntries)
 {
@@ -12,7 +9,7 @@ static void AssertChainValid(const struct CountyChainEntry *chain, u32 numEntrie
 
     for (i = 0; i < numEntries; i++)
     {
-        assertf(chain[i].numStages >= 1, "chain entry %d (chapter slot %d) has no stages; did you mean to leave the chapter out of the chain?", i, chain[i].chapterSlot)
+        assertf(chain[i].numAdvances >= 1, "chain entry %d (chapter slot %d) has no stage advances; a chapter needs at least 2 stages, since its last stage means done (did you mean to leave it out of the chain?)", i, chain[i].chapterSlot)
         {
             return;
         }
@@ -33,7 +30,7 @@ u32 GetChainLength(const struct CountyChainEntry *chain, u32 numEntries)
 
     AssertChainValid(chain, numEntries);
     for (i = 0; i < numEntries; i++)
-        length += chain[i].numStages;
+        length += chain[i].numAdvances;
     return length;
 }
 
@@ -45,7 +42,7 @@ struct ChainPosition ResolveChainPosition(const struct CountyChainEntry *chain, 
     AssertChainValid(chain, numEntries);
     for (i = 0; i < numEntries; i++)
     {
-        if (remaining < chain[i].numStages)
+        if (remaining < chain[i].numAdvances)
         {
             result.state = position == 0 ? CHAIN_NOT_STARTED : CHAIN_IN_PROGRESS;
             result.entry = i;
@@ -53,7 +50,7 @@ struct ChainPosition ResolveChainPosition(const struct CountyChainEntry *chain, 
             result.mainSlot = chain[i].mainSlot;
             return result;
         }
-        remaining -= chain[i].numStages;
+        remaining -= chain[i].numAdvances;
     }
     result.state = CHAIN_COMPLETE;
     result.entry = numEntries;
@@ -71,7 +68,7 @@ u32 GetChainEntryStart(const struct CountyChainEntry *chain, u32 numEntries, u32
         return 0;
     }
     for (i = 0; i < entry; i++)
-        start += chain[i].numStages;
+        start += chain[i].numAdvances;
     return start;
 }
 
@@ -109,37 +106,4 @@ bool32 DidChainJustFinishMainSlot(const struct CountyChainEntry *chain, u32 numE
     if (end < 0)
         return FALSE;
     return position == GetChainEntryStart(chain, numEntries, end);
-}
-
-static u16 GetChainVar(u32 countyId)
-{
-    u32 slice = GetCountyVarSlice(countyId);
-
-    assertf(slice < COUNTY_VAR_SLICES_FREE, "county %d uses var slice %d, which overlaps legacy vars (only slices 0-%d are free); retire legacy vars first", countyId, slice, COUNTY_VAR_SLICES_FREE - 1)
-    {
-        return COUNTY_VARS_START;
-    }
-    return COUNTY_VARS_START + slice * VARS_PER_COUNTY;
-}
-
-u32 GetCountyChainPosition(u32 countyId)
-{
-    return VarGet(GetChainVar(countyId));
-}
-
-void SetCountyChainPosition(u32 countyId, u32 position)
-{
-    VarSet(GetChainVar(countyId), position);
-}
-
-u32 AdvanceCountyChainPosition(u32 countyId, const struct CountyChainEntry *chain, u32 numEntries)
-{
-    u32 position = GetCountyChainPosition(countyId);
-
-    assertf(position < GetChainLength(chain, numEntries), "county %d chain is already complete at position %d; did you mean to check ResolveChainPosition(...).state first?", countyId, position)
-    {
-        return position;
-    }
-    SetCountyChainPosition(countyId, position + 1);
-    return position + 1;
 }

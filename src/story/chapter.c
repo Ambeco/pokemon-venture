@@ -216,7 +216,7 @@ const struct ChapterDesc *GetCountyChapter(u32 countyId, u32 slot)
 {
     u32 i;
 
-    assertf(slot < CHAPTERS_PER_COUNTY, "chapter slot %d >= %d; var 0 of a county slice is its chain position", slot, CHAPTERS_PER_COUNTY)
+    assertf(slot < CHAPTERS_PER_COUNTY, "chapter slot %d >= %d; var 0 of a county slice is reserved", slot, CHAPTERS_PER_COUNTY)
     {
         return NULL;
     }
