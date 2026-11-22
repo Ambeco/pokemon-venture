@@ -68,7 +68,7 @@ A scene is a `struct Scene` (`include/story/scene.h`): a list of actor local ids
 
 - Order comes only from a subplot: a chapter waits for the entry before it in its subplot (that entry at its last stage) and for the main story to reach its county, and never for a chapter of another subplot. Chapters that are independent errands (Mauville's Rock Smash, Coin Case and Rydel's Cycles) are separate subplots, so the player may do them in any order, or leave them for later.
 - A key is still the way to wait on something else: the Coin Case waits for Slateport's Harbor Mail through a produced key, not through order, so it also works across counties.
-- The county chain (stored position, var 0) holds only the required entries of the county's subplots, merged by main-story slot and, within a slot, in subplot declaration order. Optional entries run beside the chain on their own chapter-slot var, so an unfinished optional chapter never holds a main-story slot. A chapter keeps its chapter slot whether or not it is on the chain, so no stored state moves.
+- The county chain holds only the required entries of the county's subplots, merged by main-story slot and, within a slot, in subplot declaration order. Optional entries run beside the chain on their own chapter-slot var, so an unfinished optional chapter never holds a main-story slot. A chapter keeps its chapter slot whether or not it is on the chain, so no stored state moves.
 - Scenes of different subplots may be triggerable at the same moment (two chapters anchored to one building). The scene runner runs at most one scene per trigger; when two qualify, the chain entry wins over an off-chain one, then the lower chapter slot, and the other fires on the next trigger.
 
 ## Alternatives considered
