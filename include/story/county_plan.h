@@ -43,4 +43,10 @@ bool32 PlanCountyChain(u32 county, const struct SubplotHost *subplots, u32 numSu
 // PlanCountyChain over Emerald's subplots and hosts.
 bool32 PlanEmeraldCountyChain(u32 county, struct CountyChainPlan *out);
 
+// The stored chain is the chapters' own stage vars, not var 0: a chain entry is done when its chapter has reached its
+// last stage, and a main-story slot is done when all its on-chain entries are. Entries of one slot may be played in any
+// order (independent subplots), which a single linear position cannot represent. A slot with no entries is never done.
+bool32 IsCountyChainEntryDone(u32 county, u32 chapterSlot);
+bool32 IsCountyMainSlotDone(u32 county, u32 mainSlot);
+
 #endif // GUARD_COUNTY_PLAN_H

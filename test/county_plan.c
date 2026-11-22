@@ -216,3 +216,19 @@ TEST("CountyPlan: An entry supplying a get is bound to the get's slot, whether i
         EXPECT_EQ(hmMainSlot, slot);
     }
 }
+
+TEST("CountyPlan: A main-story slot is done when all its on-chain entries are, in any order")
+{
+    EXPECT(!IsCountyMainSlotDone(MAUVILLE, 2));
+    SetCountySlotStage(MAUVILLE, 2, 1);
+    EXPECT(IsCountyChainEntryDone(MAUVILLE, 2));
+    EXPECT(!IsCountyMainSlotDone(MAUVILLE, 2));
+    SetCountySlotStage(MAUVILLE, 0, 1);
+    EXPECT(IsCountyMainSlotDone(MAUVILLE, 2));
+}
+
+TEST("CountyPlan: A slot with no chain entries is never done")
+{
+    EXPECT(!IsCountyMainSlotDone(MAUVILLE, 1));
+    EXPECT(!IsCountyMainSlotDone(SLATEPORT, 0));
+}

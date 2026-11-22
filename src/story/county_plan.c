@@ -215,3 +215,34 @@ bool32 PlanEmeraldCountyChain(u32 county, struct CountyChainPlan *out)
 
     return PlanCountyChain(county, subplots, numSubplots, hosts, numHosts, out);
 }
+
+bool32 IsCountyChainEntryDone(u32 county, u32 chapterSlot)
+{
+    const struct ChapterDesc *desc = GetCountyChapter(county, chapterSlot);
+
+    assertf(desc != NULL, "county %d hosts no chapter in slot %d; did you mean a chapterSlot from PlanEmeraldCountyChain?", county, chapterSlot)
+    {
+        return FALSE;
+    }
+    return GetChapterStage(county, chapterSlot, desc) >= (u32)desc->numStages - 1;
+}
+
+bool32 IsCountyMainSlotDone(u32 county, u32 mainSlot)
+{
+    struct CountyChainPlan plan;
+    u32 i, entries = 0;
+
+    assertf(PlanEmeraldCountyChain(county, &plan), "county %d chain does not plan (problem %d); fix the plan before asking about its slots", county, plan.problem)
+    {
+        return FALSE;
+    }
+    for (i = 0; i < plan.numEntries; i++)
+    {
+        if (plan.chain[i].mainSlot != mainSlot)
+            continue;
+        entries++;
+        if (!IsCountyChainEntryDone(county, plan.chain[i].chapterSlot))
+            return FALSE;
+    }
+    return entries > 0;
+}
