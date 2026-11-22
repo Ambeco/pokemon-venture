@@ -281,6 +281,20 @@ TEST("Chapter: A chapter that produces a McGuffin gives a reward")
     }
 }
 
+TEST("Chapter: No chapter both requires and produces a key")
+{
+    u32 numHosts, i;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    for (i = 0; i < numHosts; i++)
+    {
+        const struct ChapterDesc *desc = hosts[i].desc;
+        bool32 requires = desc->requiredKeys[0].type != CHAPTER_KEY_NONE || desc->requiredKeys[1].type != CHAPTER_KEY_NONE;
+
+        EXPECT(!(requires && desc->producedKey.type != CHAPTER_KEY_NONE));
+    }
+}
+
 TEST("Chapter: Hinter counts come from the stage")
 {
     EXPECT_EQ(sFullDesc.stages[1].numHinters, 2);

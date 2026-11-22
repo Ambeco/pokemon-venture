@@ -100,6 +100,18 @@ Ordering a chain: by default a chapter has no declared key (`producedKey` unset)
 
 Planning a county's chain: `PlanCountyChain` (`county_plan.h`) reads the county's slot rules from the planner's lists (`GetCountySlotRules`) and plans each hosted subplot's required entries with `PlanSubplotBound`, each against the capacity the earlier ones left. An entry whose chapter supplies a main-plot get (`mainGet`, or `mainHm` for an HM; `GetChapterSuppliedSlot`) is bound to the slot of that get, so it lands where the get is, not in the first slot with room; unbound entries are first-fit, leave room for bound ones (later in their subplot or in later subplots), and never pass a later bound slot. A get outside the county's block, or in a slot without room, fails the plan; optional entries are off-chain (the interleave rule is in design_scenes.md, "Interleaving subplots").
 
+### Ordering when chapters are shuffled
+
+Shuffling never sorts a slot's chapters. Order comes from two places only: a subplot's own entry order, and keys, which `CheckChapterPlacement` requires to have a producer in a strictly earlier (county story index, main-story slot); a producer in the same slot is a tie and is refused. So two chapters of one slot are never ordered by a key, and a slot's chapters need no internal order beyond their subplots'.
+
+The generator therefore sorts chapters into classes and deals the classes in this order, each against the placement check:
+
+1. Outputs: chapters that produce a declared key (gyms included once they are chapters), dealt to the earliest eligible slots.
+2. Neutral: chapters with no declared key; they fit any eligible slot.
+3. Inputs: chapters that require a key, dealt to a (county, slot) strictly after their producer's.
+
+No chapter is both an input and an output (`test/chapter.c` asserts it), so key chains are one link deep and this two-phase deal always finds a slot for a consumer if any slot after its producer is eligible. A slot with at least one neutral chapter is never stuck, since neutrals fit everywhere. A dealing that fails the check retries with the next offset; the class rule only decides the order the classes are tried in.
+
 ### Parallel subplots (proxy entries)
 
 Chapters that do not need each other should not share a linear chain: the chain's position is one counter, so two independent errands in one main-story slot (Mauville's Rock Smash and Rydel's Cycles) would force an order the player never has to follow. Instead the county splits them:
