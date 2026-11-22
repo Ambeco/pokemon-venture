@@ -80,6 +80,14 @@ async function runSteps(game, test) {
 async function checkMemory(game, expect) {
   const failures = [];
   for (const e of expect ?? []) {
+    if (e.var !== undefined) {
+      // A save-block var by id (0x4000 and up); the save block moves, so its pointer is read fresh.
+      if (e.u16 === undefined) throw new Error(`Expectation ${JSON.stringify(e)} needs "u16" with "var".`);
+      const sb1 = await game.u32("gSaveBlock1Ptr");
+      const got = await game.u16(sb1 + 0x139c + 2 * (e.var - 0x4000));
+      if (got !== e.u16) failures.push(`var 0x${e.var.toString(16)}: expected ${e.u16} but found ${got}`);
+      continue;
+    }
     const target = e.symbol ?? e.address;
     const label = `${e.symbol ?? "0x" + e.address.toString(16)}${e.offset ? "+" + e.offset : ""}`;
     if (e.text !== undefined) {

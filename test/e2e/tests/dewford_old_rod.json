@@ -1,0 +1,187 @@
+[
+  {
+    "name": "Dewford Old Rod: talking to the fisherman asks the question and advances nothing",
+    "snapshot": "dewford_town_below_fisherman",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "This is a renowned fishing spot.\nAre you getting the itch to fish?"
+      },
+      {
+        "var": 16489,
+        "u16": 0
+      }
+    ]
+  },
+  {
+    "name": "Dewford Old Rod: yes gives the Old Rod, advances the stage and then gives the fishing advice",
+    "snapshot": "dewford_town_below_fisherman",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gSpecialVar_0x8006",
+        "u16": 709
+      },
+      {
+        "var": 16489,
+        "u16": 1
+      },
+      {
+        "symbol": "gStringVar4",
+        "text": "And, as an added bonus, I’ll even throw\nin a little fishing advice!\\pFirst, you want to face the water,\nthen use the ROD.\\pFocus your mind…\nIf you get a bite, pull on the ROD.\\pSometimes you can snag something\nimmediately, but with bigger catches,\\lyou need to time the pulls on your ROD\\lto haul them in."
+      }
+    ]
+  },
+  {
+    "name": "Dewford Old Rod: no says that is too bad and leaves the stage alone",
+    "snapshot": "dewford_town_below_fisherman",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "DOWN"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Oh, is that so?\nThat’s too bad, then."
+      },
+      {
+        "var": 16489,
+        "u16": 0
+      }
+    ]
+  },
+  {
+    "name": "Dewford Old Rod: once received, the fisherman asks how the fishing is going and a good answer gets a cheer",
+    "snapshot": "dewford_town_old_rod_given",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Is that right! That’s great!\nHaul in some big ones!"
+      },
+      {
+        "var": 16489,
+        "u16": 1
+      }
+    ]
+  },
+  {
+    "name": "Dewford Old Rod: once received, a bad answer to the fishing question gets fishing advice",
+    "snapshot": "dewford_town_old_rod_given",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "DOWN"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Oh, hey, don’t get down on yourself!\nI’ll give you a little fishing advice.\\pFirst, you want to face the water,\nthen use the ROD.\\pFocus your mind…\nIf you get a bite, pull the ROD.\\pSometimes you can snag something\nimmediately, but with bigger catches,\\lyou need to time the pulls on your ROD\\lto haul them in."
+      }
+    ]
+  }
+]

@@ -41,7 +41,8 @@ Build the ROM first (`make -j` in WSL): the runner needs `pokeemerald.gba` and t
       "expect": [
         { "symbol": "gStringVar4", "text": "decoded game text, \n and \\p for control codes" },
         { "symbol": "gSpecialVar_Result", "u16": 1 },       // also u8, u32, "offset", or raw "address"
-        { "symbol": "gMain", "offset": 4, "bytes": "ab cd" }
+        { "symbol": "gMain", "offset": 4, "bytes": "ab cd" },
+        { "var": 16489, "u16": 1 }                          // a save-block var by id (0x4000 and up), e.g. a chapter stage var
       ],
       "screenshot": { "region": {"x":0,"y":104,"width":240,"height":56}, "golden": "goldens/name.png" }
     }
@@ -53,6 +54,8 @@ Symbols come from `pokeemerald.map`; static symbols are not listed there.
 - Write a var at `sb1 + 0x139C + 2 * (varId - 0x4000)` (`sb1` read fresh from `gSaveBlock1Ptr`; `VAR_SAVE_BIRCH_BEAT` is `0x4022`). Write it after `teleport` so a map-load or on-frame scene starts as the snapshot is taken.
 - Run `node run.mjs` from PowerShell with the UNC path as the working directory.
 - A failing test's `out/<name>/actual_full.png` shows where it stopped (assert screens and message boxes included).
+- A short tap only turns the player; hold the key (24 frames) to walk a tile. An NPC that wanders must be frozen (`ObjectEvent.frozen`, bit 0 of byte 1) before the snapshot (`dewford_town_below_fisherman.mjs`); overwriting its `movementType` does nothing, since the step callback is bound at spawn. A recipe that imports another recipe's helper is not re-cached when the helper changes: edit its own text too.
+- A Mart clerk's "Welcome!" page needs an A before the BUY/SELL/QUIT menu takes input; B does not close that menu in these tests, so pick QUIT.
 - Scene-driven maps can need a specific start tile (Route 101's rescue asserts from tiles that are too close, and a coord trigger at y=18 pushes the player north).
 
 ## Snapshots

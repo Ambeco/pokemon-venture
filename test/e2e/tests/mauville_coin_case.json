@@ -1,0 +1,179 @@
+[
+  {
+    "name": "Mauville Coin Case: without Harbor Mail she only talks about buying it",
+    "snapshot": "mauville_house2_below_coin_case_woman",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "var": 16450,
+        "u16": 0
+      }
+    ]
+  },
+  {
+    "name": "Mauville Coin Case: with Harbor Mail she offers the trade",
+    "snapshot": "mauville_house2_with_harbor_mail",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "var": 16450,
+        "u16": 0
+      }
+    ]
+  },
+  {
+    "name": "Mauville Coin Case: accepting the trade gives the Coin Case and advances the stage",
+    "snapshot": "mauville_house2_with_harbor_mail",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 300
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "var": 16450,
+        "u16": 1
+      }
+    ]
+  },
+  {
+    "name": "Mauville Coin Case: declining the trade leaves the stage alone",
+    "snapshot": "mauville_house2_with_harbor_mail",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "DOWN"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "var": 16450,
+        "u16": 0
+      }
+    ]
+  }
+]

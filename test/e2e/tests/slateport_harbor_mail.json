@@ -1,0 +1,88 @@
+[
+  {
+    "name": "Slateport Harbor Mail: leaving the shop without the mail does not advance the stage",
+    "snapshot": "slateport_mart_at_clerk",
+    "steps": [
+      {
+        "press": "LEFT"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "DOWN"
+      },
+      {
+        "press": "DOWN"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 300
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Please come again!"
+      },
+      {
+        "var": 16497,
+        "u16": 0
+      }
+    ]
+  },
+  {
+    "name": "Slateport Harbor Mail: leaving the shop holding the mail advances the stage",
+    "snapshot": "slateport_mart_with_harbor_mail",
+    "steps": [
+      {
+        "press": "LEFT"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "DOWN"
+      },
+      {
+        "press": "DOWN"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 300
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Please come again!"
+      },
+      {
+        "var": 16497,
+        "u16": 1
+      }
+    ]
+  }
+]

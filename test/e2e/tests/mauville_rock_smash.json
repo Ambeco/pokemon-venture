@@ -1,0 +1,199 @@
+[
+  {
+    "name": "Mauville Rock Smash: talking to the dude gives HM Rock Smash and advances the stage",
+    "snapshot": "mauville_house1_below_rock_smash_dude",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "That HM contains ROCK SMASH.\\pIf you come across large boulders\nthat block your path…\\pWell, use that HM move and smash\nthem right out of your way!\\pYes, sir! Smash rocks aside, I say!\nWoohoo!"
+      },
+      {
+        "var": 16449,
+        "u16": 1
+      }
+    ]
+  },
+  {
+    "name": "Mauville Rock Smash: before talking to him the stage is not advanced",
+    "snapshot": "mauville_house1_below_rock_smash_dude",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "var": 16449,
+        "u16": 0
+      }
+    ]
+  },
+  {
+    "name": "Mauville Rock Smash: a second talk after receiving the HM is the smashed-rock tip",
+    "snapshot": "mauville_house1_below_rock_smash_dude",
+    "steps": [
+      {
+        "press": "UP"
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 200
+      }
+    ],
+    "expect": [
+      {
+        "symbol": "gStringVar4",
+        "text": "Oh, yes, if you smash a rock, a POKéMON\ncould come flying out of hiding.\\pWoohoo!"
+      },
+      {
+        "var": 16449,
+        "u16": 1
+      }
+    ]
+  }
+]
