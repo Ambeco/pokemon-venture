@@ -552,10 +552,10 @@ TEST("Chapter: The Cutter hints follow the stage and expand the house reference"
 TEST("Chapter: Every Emerald host passes the placement check")
 {
     u32 numHosts, i, j, numOthers;
-    struct ChapterHost hosts[18], others[18];
+    struct ChapterHost hosts[20], others[20];
 
     numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts));
-    EXPECT_EQ(numHosts, 18);
+    EXPECT_EQ(numHosts, 19);
     for (i = 0; i < numHosts; i++)
     {
         for (j = 0, numOthers = 0; j < numHosts; j++)
@@ -694,6 +694,49 @@ TEST("Chapter: Mauville's Rydel chapter is slot 2, house-anchored, reports the B
     EXPECT_EQ(GetCountySlotStage(MAUVILLE, 2), 1);
     EXPECT_EQ(GetCountySlotStage(MAUVILLE, 0), 0);
     EXPECT_EQ(GetCountySlotStage(MAUVILLE, 1), 0);
+}
+
+static const struct ChapterDesc *FindMauvilleStatelessAdapter(u32 skip)
+{
+    u32 numHosts, i;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    for (i = 0; i < numHosts; i++)
+    {
+        if (hosts[i].county == MAUVILLE && hosts[i].slot == CHAPTER_SLOT_STATELESS && hosts[i].desc->backend == CHAPTER_ADAPTER
+         && hosts[i].desc->numStages == 4 && skip-- == 0)
+            return hosts[i].desc;
+    }
+    return NULL;
+}
+
+TEST("Chapter: New Mauville is a stateless adapter whose stage follows Wattson's key, the generator and his thank-you")
+{
+    const struct ChapterDesc *desc = FindMauvilleStatelessAdapter(0);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(GetChapterStage(MAUVILLE, CHAPTER_SLOT_STATELESS, desc), 0);
+    FlagSet(FLAG_GOT_BASEMENT_KEY_FROM_WATTSON);
+    EXPECT_EQ(GetChapterStage(MAUVILLE, CHAPTER_SLOT_STATELESS, desc), 1);
+    VarSet(VAR_NEW_MAUVILLE_STATE, 1); // the door opened, the generator still runs
+    EXPECT_EQ(GetChapterStage(MAUVILLE, CHAPTER_SLOT_STATELESS, desc), 1);
+    VarSet(VAR_NEW_MAUVILLE_STATE, 2);
+    EXPECT_EQ(GetChapterStage(MAUVILLE, CHAPTER_SLOT_STATELESS, desc), 2);
+    FlagSet(FLAG_GOT_TM_THUNDERBOLT_FROM_WATTSON);
+    EXPECT_EQ(GetChapterStage(MAUVILLE, CHAPTER_SLOT_STATELESS, desc), 3);
+}
+
+TEST("Chapter: New Mauville takes no slot var, reports no hints and anchors its key stage on the facility")
+{
+    const struct ChapterDesc *desc = FindMauvilleStatelessAdapter(0);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->stages[1].anchor.locationKind, ROUTE_LOCATION_FACILITY);
+    EXPECT(!desc->producesMainGet);
+    EXPECT(GetChapterHint(desc, 1, CHAPTER_CLOSE, 0) == NULL);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 0), 0);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 1), 0);
+    EXPECT_EQ(GetCountySlotStage(MAUVILLE, 2), 0);
 }
 
 // The stage constants scripts use are the descriptor's stage indices.
@@ -1051,7 +1094,7 @@ TEST("Chapter: The Coin Case chapter's placement needs the Mart chapter among th
 {
     u32 numHosts, i, numOthers = 0;
     const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
-    struct ChapterHost others[18];
+    struct ChapterHost others[20];
 
     for (i = 0; i < numHosts; i++)
     {
@@ -1156,7 +1199,7 @@ TEST("Chapter: Rydel's proxy supplies the Bicycle's slot for planning but the ne
 TEST("Chapter: Every Emerald proxy keeps the four soft-lock conditions, and its key has a producer before it")
 {
     u32 numHosts, numSubplots, i, j, numOthers, proxies = 0;
-    struct ChapterHost hosts[18], others[18];
+    struct ChapterHost hosts[20], others[20];
     const struct SubplotHost *subplots = GetSubplotHosts(&numSubplots);
 
     numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts));

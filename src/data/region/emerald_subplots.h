@@ -53,6 +53,10 @@ static const struct SubplotDesc sMauvilleBikeProxySubplot = {ARRAY_COUNT(sMauvil
 static const struct SubplotEntry sSlateportHarborMailEntries[] = {SUBPLOT_ENTRY_OPTIONAL(sSlateportHarborMailChapter)};
 static const struct SubplotDesc sSlateportHarborMailSubplot = {ARRAY_COUNT(sSlateportHarborMailEntries), sSlateportHarborMailEntries};
 
+// Wattson's New Mauville favor supplies no main-story get, so it runs off the chain beside the gym.
+static const struct SubplotEntry sNewMauvilleEntries[] = {SUBPLOT_ENTRY_OPTIONAL(sNewMauvilleChapter)};
+static const struct SubplotDesc sNewMauvilleSubplot = {ARRAY_COUNT(sNewMauvilleEntries), sNewMauvilleEntries};
+
 // Each gym is its own required subplot (its badge is a main-story get, so it is bound to the gym's slot).
 #define GYM_SUBPLOT(name) \
 static const struct SubplotEntry name##Entries[] = {SUBPLOT_ENTRY_REQUIRED(name##Chapter)}; \
@@ -81,5 +85,6 @@ static const struct SubplotHost sEmeraldSubplotHosts[] =
     {COUNTY_ID(0, 1), &sRustboroGymSubplot},
     {COUNTY_ID(0, 3), &sDewfordGymSubplot},
     {COUNTY_ID(2, 1), &sMauvilleGymSubplot},
+    {COUNTY_ID(2, 1), &sNewMauvilleSubplot},
     {COUNTY_ID(5, 1), &sMossdeepGymSubplot},
 };

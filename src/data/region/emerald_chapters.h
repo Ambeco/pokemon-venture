@@ -469,6 +469,51 @@ GYM_CHAPTER(sDewfordGymChapter, 2, FLAG_BADGE02_GET);
 GYM_CHAPTER(sMauvilleGymChapter, 3, FLAG_BADGE03_GET);
 GYM_CHAPTER(sMossdeepGymChapter, 7, FLAG_BADGE07_GET);
 
+enum NewMauvilleStage
+{
+    NEW_MAUVILLE_NOT_ASKED,
+    NEW_MAUVILLE_KEY_GIVEN,
+    NEW_MAUVILLE_GENERATOR_OFF,
+    NEW_MAUVILLE_REPORTED,
+};
+
+// Wattson's favor (walkthrough #83-85): he gives the Basement Key, the player shuts the generator off in New Mauville,
+// and he pays out TM Thunderbolt. An adapter chapter hosted stateless (Mauville's three stateful slots are full), so it
+// reads the legacy flags and VAR_NEW_MAUVILLE_STATE and reports no hints until stateless chapters can be reached by
+// the NPC-talk query. minBadges 5 only approximates "Norman defeated" (no chapter produces that key yet; wrong once
+// gym order shuffles); Surf is not modeled either.
+static const struct ChapterStage sNewMauvilleStages[] =
+{
+    [NEW_MAUVILLE_NOT_ASKED] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}},
+    [NEW_MAUVILLE_KEY_GIVEN] =
+    {
+        .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, ROUTE_LOCATION_FACILITY, 0},
+        .done = {STORY_PRED_FLAG, FLAG_GOT_BASEMENT_KEY_FROM_WATTSON, 0},
+    },
+    [NEW_MAUVILLE_GENERATOR_OFF] =
+    {
+        .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0},
+        .done = {STORY_PRED_VAR_GE, VAR_NEW_MAUVILLE_STATE, 2},
+    },
+    [NEW_MAUVILLE_REPORTED] =
+    {
+        .anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0},
+        .done = {STORY_PRED_FLAG, FLAG_GOT_TM_THUNDERBOLT_FROM_WATTSON, 0},
+    },
+};
+
+static const struct ChapterHint sNewMauvilleHints[] = {{0, NEW_MAUVILLE_REPORTED, {NULL, 0}, {NULL, 0}}};
+
+static const struct ChapterDesc sNewMauvilleChapter =
+{
+    .backend = CHAPTER_ADAPTER,
+    .numStages = ARRAY_COUNT(sNewMauvilleStages),
+    .stages = sNewMauvilleStages,
+    .numHints = ARRAY_COUNT(sNewMauvilleHints),
+    .hints = sNewMauvilleHints,
+    .minBadges = 5,
+};
+
 static const struct ChapterHost sEmeraldChapterHosts[] =
 {
     {COUNTY_ID(1, 2), 0, &sRivalDexChapter}, // Oldale, county-story-index 1
@@ -488,5 +533,6 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sRustboroGymChapter},
     {COUNTY_ID(0, 3), CHAPTER_SLOT_STATELESS, &sDewfordGymChapter},
     {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sMauvilleGymChapter},
+    {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sNewMauvilleChapter},
     {COUNTY_ID(5, 1), CHAPTER_SLOT_STATELESS, &sMossdeepGymChapter},
 };

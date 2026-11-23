@@ -103,7 +103,7 @@ Levels:
 ### Part 5
 
 45. Mauville, woman next to the Poké Mart — needs: Harbor Mail (key: P4 #40) — gives: Coin Case — bucket: city chapter (convert)
-46. Mauville Game Corner — needs: Coin Case — gives: Game Corner access — bucket: city chapter (convert)
+46. Mauville Game Corner — needs: Coin Case — gives: Game Corner access — bucket: plain access (the coin clerk only checks the Coin Case; no stage or reward to port)
 47. Mauville, Rydel's Cycles (checks your dirty Running Shoes) — needs: Running Shoes — gives: Mach Bike or Acro Bike (Mach Bike climbs muddy slopes, e.g. Granite Cave; Acro Bike scales Jagged Pass) — unlocks: Seaside Cycling Road (P4 #41), Jagged Pass northward (P7 #69), Mirage Tower (P8 #75), Sky Pillar return (P18 #129) — bucket: city chapter (convert)
 48. Mauville, Scientist in the southeast house — needs?: Mauville access — gives: HM06 Rock Smash — unlocks: Rusturf debris (P2 #24), Granite Cave B2F rocks (P5 #51), Mirage Tower (P8 #75), Trick House puzzle 3 (P7 #72), Seafloor Cavern (P15 #117), Desert Ruins (P8 #74) — bucket: city chapter (convert)
 49. Mauville Gym, Wally's Challenge outside — needs?: Mauville access — gives: Wally Battle done, Wally in PokéNav — bucket: main arc (Wally)
