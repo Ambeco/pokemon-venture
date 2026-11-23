@@ -2,9 +2,8 @@
 
 One line per item, roughly highest priority first. Delete an item when it is paid off.
 
-- `notes.md` bullets exceed the lean rule (chapter-port bullets, Scene runner, Build/Test speed) and the "Chapter ports" section still mixes in non-port notes (Debug checkpoints, Lilycove e2e failure, two-state vars).
-  - Trim each chapter-port bullet to only quirks that could cause future bugs
-  - Move Debug checkpoints, Lilycove e2e failure and two-state vars bullets into a "Rejected / open" or "Misc" section
+- `notes.md` "Misc environment and test limits" still has over-long bullets (Scene runner, Test limits) and the Build/Test speed notes are unreviewed.
+  - Split the Scene runner bullet into one bullet per quirk and drop what the code now makes obvious
 - `remaining_work.md` mixes milestone work with ~60 "open design questions" (many are design content, not work) and has multi-clause items that cannot be deleted whole; the 1a milestone is a grab bag.
 - `src/story/scene.c` (~1100 lines) holds the step interpreter, path search, triggers and the scene table; split by responsibility.
 - Scenes bind actors by raw local ids per `struct Scene`, door facing is hardcoded "south", and the trigger table is hand-written; ids are bare u8/u16 with no types.
