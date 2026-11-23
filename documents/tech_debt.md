@@ -3,6 +3,15 @@
 One line per item, roughly highest priority first. Delete an item when it is paid off.
 
 - `remaining_work.md` mixes milestone work with ~60 "open design questions" (many are design content, not work) and has multi-clause items that cannot be deleted whole; the 1a milestone is a grab bag.
+  - Step 1: move the "Open design questions" that only define a future design (biome grid, settlement algorithms, landform list, species metadata, move pools, trainer generation, theme catalog, geography generator, catch-rate floor) into the matching `design_*.md` "Open questions" section, one commit per design file
+  - Step 2: move the two decided-but-unchecked notes (Ports cross-check, "Exceptions to the normal rules" in `Emerald.md`) into `Emerald.md` / `design_region.md`, leaving a one-line remaining_work item each
+  - Step 3: keep in "Open design questions" only actionable work (battle damage estimates, gym guide, team analyzer, type-recolored sprites, type icons, New Game menu, starters, Pokédex habitat view) and rename the section "Unscheduled work"
+  - Step 4: split "Type-recolored sprites" into one parent line plus sub-bullets (build tool, runtime recolor, shimmer, tests, party icons, PC box icons, open palette-tag mapping)
+  - Step 5: split multi-clause items into sub-bullets: "County planning", "Hinter follow-ups", "Pokémon Center news object", "Add the remaining triggers", "Location placeholders", "Building classification for chapters"
+  - Step 6: break Milestone 1a into sub-headers (Planner/Flash, Chapter ports, Scene runner, Hinters and news, Placeholders and far references, County chain) so each group can be finished and deleted whole
+  - Step 7: move per-item code pointers and "(done/exists)" status clauses (e.g. "exists and is tested", "already gate on stage writes") into `design_*.md` or `notes.md`, leaving only what is left to do on each line
+  - Step 8: move the "Cross-cutting" and Milestone 0 "Routes" sub-bullets that are really design caveats (lock tile, cityless routes, outermost row) into `design_region.md`
+  - Step 9: add a check (extend `tools/misc/` or a test) that every non-blank `remaining_work.md` line is a header or list item, and that no line exceeds ~400 characters
 - `src/story/scene.c` (~1100 lines) holds the step interpreter, path search, triggers and the scene table; split by responsibility.
 - Scenes bind actors by raw local ids per `struct Scene`, door facing is hardcoded "south", and the trigger table is hand-written; ids are bare u8/u16 with no types.
 - County var slices: `GetCountyVarSlice(county)` swaps Littleroot/Oldale with slices 0/1, so "county id" and "slice" silently differ; legacy var block cannot shrink from the middle.
