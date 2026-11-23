@@ -19,30 +19,34 @@
 
 ## Codebase layout
 
-- `src/` ~387 C files (flat), `include/` headers, `include/config/` feature toggles, `data/maps/` ~944 maps, `test/` test suite, `tools/` build tools (mapjson, trainerproc, wild_encounters, etc.).
-- Branch `origin/Folders` (2 commits, not merged) reorganizes `src/` and `include/` into subfolders — pure renames, ~690 files.
+- `src/` is organized into subfolders (see `design.md` Layout), `include/` headers, `include/config/` feature toggles, `data/maps/` ~944 maps, `test/` test suite, `tools/` build tools (mapjson, trainerproc, wild_encounters, etc.).
 
 ## Branches
 
-- `Folders` (src/ and include/ reorganized into subfolders) is the working main branch; GitHub's default branch should be changed to it (Settings > Branches). `master` tracks upstream layout.
+- `Folders` (src/ and include/ in subfolders) is the working main branch; GitHub's default branch should be changed to it (Settings > Branches). `master` is the upstream-layout staging branch.
 - An earlier implementation of fully-random species types (about 4 months before 2026-10-10) was not found in this clone's reflog, branches, or fsck; it may live in another clone. It needs a redo anyway.
 
-## Folders branch test status
+## Folder move aftermath (path-keyed config)
 
-`make check` passes on `Folders` (4780 passed, 0 failed). Moving files broke path-keyed config in four places; after any further move, grep for the old path in `Makefile`, `ld_script*.ld`, and `test/`:
+Moving files into folders broke path-keyed config in four places; after any further move, grep for the old path in `Makefile`, `ld_script*.ld`, and `test/`:
 
 - `ld_script_test.ld` named `src/m4a.o` and `src/libisagbprn.o`.
 - The Makefile per-file flags rule for `librfu_intr.c` (needs ARM-mode flags; a stale path silently compiled it wrong and the ROM ran garbage).
 - `test/test_runner.c` exempts `src/pokenav/config_changes.c` from the leak check by path; a stale path failed every PARAMETRIZE battle test.
 - Link order: the Makefile links `src/` objects sorted by basename, as when `src/` was flat. In directory order, the Z-Move animation test crashes (a latent upstream memory-layout bug, root cause not found). If it reappears after other layout changes, suspect a buffer overrun in the animation code.
 
-Running tests: use `make check -j4` (all 12 cores plus a misbehaving ROM exhausts WSL's 7.9 GB; add `ulimit -v`). Upstream worktree for comparison: `~/decomps/pv-master` (outside the repo).
+## Misc environment and test limits
+
+- Running tests: use `make check -j4` (all 12 cores plus a misbehaving ROM exhausts WSL's 7.9 GB; add `ulimit -v`). Upstream worktree for comparison: `~/decomps/pv-master` (outside the repo).
 - Kanto (FRLG) content is in the repo: 419 `data/maps/*_Frlg` maps (incl. Sevii Islands) with full scripts, Kanto wild encounters in `wild_encounters.json`, `src/data/trainers_frlg.*`. Built only by `make firered`/`leafgreen` (`docs/tutorials/how_to_frlg.md`); `tools/mapjson` drops maps whose `region` differs from the build, so the Emerald ROM cannot reach them.
 - `core.filemode=false` is set in this clone's `.git/config` (local, untracked) because Windows git over `\\wsl.localhost` sees every executable as `100644`. New executable scripts need `git update-index --chmod=+x <file>`.
 - In the test build `gTrainers` is a stub (`test/test_runner_battle.c`, `battle/trainer_control.h`), so tests cannot read real trainer parties; check real trainer data offline against `src/data/trainers.party`.
 - Test limits: `RUN_OVERWORLD_SCRIPT` runs only specials and variable commands (no `lock`/`faceplayer`/`waitmessage`/objects). NPC bindings are tested by reading script bytes (`goto` and `call` are opcode + 4-byte pointer, `setvar` is opcode + 2 + 2) and the map's `events->objectEvents[].script` via `Overworld_GetMapHeaderByGroupAndId` (`test/pokemon_center_news.c`). Scripts with `lock`/messages are run via `Test_LoadMap` instead (`test/pokemon_center_news.c`).
-- Second chapter port (Rustboro Cutter's House): Briney's Wingull was rejected as a city chapter (it spans Route 104, Rustboro and the Rusturf tunnel on `VAR_RUSTURF_TUNNEL_STATE`/`VAR_BRINEY_HOUSE_STATE`, the Devon Goods chain). The Cutter produces no key: HM Cut is a gate (Petalburg Woods, Rusturf) and its script still sets `FLAG_RECEIVED_HM_CUT` for the plot-get adapter. Rustboro's roles gained `BUILDING_HOUSE`. Hint texts with `{HINT_ANCHOR}` carry no manual line breaks (the width test wraps them, and a hand-broken line overflows once the anchor expands).
 - Scene runner: object coordinates include `MAP_OFFSET` (7), so tests compare `currentCoords` with `+ MAP_OFFSET`. `GetCollisionAtCoords` returns `COLLISION_OUTSIDE_RANGE` for an NPC's wander range though scripted walks ignore it, so the path search zeroes `range` while it runs. Littleroot's twin scenes replaced the `NeedPokemonTrigger*` and `GoSaveBirchTrigger` coord events: the twin walks home by `SCENE_SIDE_HOME`, and tests set the stage var before `Test_LoadMapAt` because `OnTransition` places the twin by it (`SAVE_BIRCH_TWIN_GUARDS` is 0). Message tests must press A on a timer regardless of `IsFieldMessageBoxHidden` (it reads hidden while `waitbuttonpress` waits). Headless overworld tests cannot run `Std_ObtainItem` (it never returns, probably `showitemdescription` or the fanfare wait without VBlank) or a real battle (the battle UI crashes or times out): give scenes are stepped from C, and battle steps only check the configured params. `ScriptContext_IsEnabled` is false while a script waits on a menu, so scene tests run a fixed frame budget and stop on `gSpecialVar_Result == SCENE_RESULT_END`; list menus read `newAndRepeatedKeys` (`Test_PressKeys` sets it). Test builds are short of EWRAM: walk paths share one `sWalkDirs` buffer.
+
+## Chapter ports
+
+- Second chapter port (Rustboro Cutter's House): Briney's Wingull was rejected as a city chapter (it spans Route 104, Rustboro and the Rusturf tunnel on `VAR_RUSTURF_TUNNEL_STATE`/`VAR_BRINEY_HOUSE_STATE`, the Devon Goods chain). The Cutter produces no key: HM Cut is a gate (Petalburg Woods, Rusturf) and its script still sets `FLAG_RECEIVED_HM_CUT` for the plot-get adapter. Rustboro's roles gained `BUILDING_HOUSE`. Hint texts with `{HINT_ANCHOR}` carry no manual line breaks (the width test wraps them, and a hand-broken line overflows once the anchor expands).
 - Debug "checkpoints" (snapshot flags and vars at each key item or badge, restore and teleport from a menu) were rejected: the emulator's save states already do this, and a separate in-ROM save file would need new save-sector handling.
 - Save Birch (Littleroot slot 1) is the first tutorial chapter: its stage var replaced `VAR_ROUTE101_STATE` and values 0-2 of `VAR_LITTLEROOT_TOWN_STATE`, 2-3 of `VAR_BIRCH_LAB_STATE`; those two legacy vars stay for the Pokédex chapter (town 3-4, lab 4-5). Littleroot's own slice (19) overlaps the legacy block, so `GetCountyVarSlice` swaps it with slice 0 (Oldale with 1); retiring 23 legacy vars would have been the alternative. A legacy var removed from the middle of the block leaves its address unused (the block cannot shrink from there).
 - `test/e2e` `Lilycove City: the hinter Man3` failed at the box frame pixels (text identical) on 2026-11-15, while the Mossdeep tests passed; not investigated.
