@@ -479,8 +479,8 @@ enum NewMauvilleStage
 
 // Wattson's favor (walkthrough #83-85): he gives the Basement Key, the player shuts the generator off in New Mauville,
 // and he pays out TM Thunderbolt. An adapter chapter hosted stateless (Mauville's three stateful slots are full), so it
-// reads the legacy flags and VAR_NEW_MAUVILLE_STATE and reports no hints until stateless chapters can be reached by
-// the NPC-talk query. minBadges 5 only approximates "Norman defeated" (no chapter produces that key yet; wrong once
+// reads the legacy flags and VAR_NEW_MAUVILLE_STATE, and its hints are reached by GetCountyStatelessHint. No hinters
+// are placed yet (numHinters 0), and it supplies no main-plot get, so the news never mentions it. minBadges 5 only approximates "Norman defeated" (no chapter produces that key yet; wrong once
 // gym order shuffles); Surf is not modeled either.
 static const struct ChapterStage sNewMauvilleStages[] =
 {
@@ -502,7 +502,13 @@ static const struct ChapterStage sNewMauvilleStages[] =
     },
 };
 
-static const struct ChapterHint sNewMauvilleHints[] = {{0, NEW_MAUVILLE_REPORTED, {NULL, 0}, {NULL, 0}}};
+static const struct ChapterHint sNewMauvilleHints[] =
+{
+    {0, 0, TEXT_LIST(sMauvilleGen0Far), TEXT_LIST(sMauvilleGen0Close)},
+    {1, 1, TEXT_LIST(sMauvilleGen1Far), TEXT_LIST(sMauvilleGen1Close)},
+    {2, 2, TEXT_LIST(sMauvilleGen2Far), TEXT_LIST(sMauvilleGen2Close)},
+    {3, 3, TEXT_LIST(sMauvilleGen3Far), TEXT_LIST(sMauvilleGen3Close)},
+};
 
 static const struct ChapterDesc sNewMauvilleChapter =
 {

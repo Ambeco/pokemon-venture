@@ -190,6 +190,9 @@ bool32 GetChapterSuppliedSlot(const struct ChapterDesc *desc, struct PlotSlot *o
 // NULL when the county hosts nothing in the slot.
 const struct ChapterDesc *GetCountyChapter(u32 countyId, u32 slot);
 
+// The index-th chapter the county hosts stateless (gym, proxy or adapter, in host-table order); NULL past the last.
+const struct ChapterDesc *GetCountyStatelessChapter(u32 countyId, u32 index);
+
 u16 GetCountySlotVar(u32 countyId, u32 slot);
 
 // Adapter chapters are read-only.
@@ -212,6 +215,9 @@ const struct ChapterHint *FindChapterHint(const struct ChapterDesc *desc, u32 ch
 
 // The NPC-talk query: the hint for the (county, slot) chapter's current stage. NULL = generic text.
 const u8 *GetCountySlotHint(u32 countyId, u32 slot, u32 distance, u32 selector);
+
+// GetCountySlotHint for the index-th stateless chapter (GetCountyStatelessChapter), which has no slot to name.
+const u8 *GetCountyStatelessHint(u32 countyId, u32 index, u32 distance, u32 selector);
 
 // TRUE iff completing the chapter is the planner item (kind, ordinal); a gym item names its HM too.
 bool32 DoesChapterProduce(const struct ChapterDesc *desc, u32 kind, u32 ordinal);

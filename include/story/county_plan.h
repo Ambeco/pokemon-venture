@@ -37,7 +37,7 @@ struct CountyChainPlan
     u8 numOffChain;
     struct CountyChainEntry chain[COUNTY_PLAN_MAX_ENTRIES]; // a proxy's chapterSlot is CHAPTER_SLOT_STATELESS: use chainDesc
     const struct ChapterDesc *chainDesc[COUNTY_PLAN_MAX_ENTRIES];
-    u8 offChainSlot[CHAPTERS_PER_COUNTY]; // chapter slots of the dropped entries
+    u8 offChainSlot[COUNTY_PLAN_MAX_ENTRIES]; // chapter slots of the dropped entries (CHAPTER_SLOT_STATELESS for a stateless one)
 };
 
 void GetCountySlotRules(u32 county, struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS]);

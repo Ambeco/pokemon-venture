@@ -83,6 +83,15 @@ static const u8 gText_Mauville_Bike1FarCurrent[] = _("Somebody in {HINT_CITY} ri
 static const u8 gText_Mauville_Bike1CloseBefore[] = _("People say the owner {HINT_ANCHOR} hands out a BICYCLE for free.");
 static const u8 gText_Mauville_Bike1CloseCurrent[] = _("The owner {HINT_ANCHOR} will swap your BICYCLE for the other kind if you ask.");
 
+static const u8 gText_Mauville_Gen0FarCurrent[] = _("I heard the GYM LEADER of {HINT_CITY} needs a favor once a strong TRAINER shows up.");
+static const u8 gText_Mauville_Gen0CloseCurrent[] = _("WATTSON {HINT_ANCHOR} has been fretting about the old generator below the city.");
+static const u8 gText_Mauville_Gen1FarCurrent[] = _("Somebody in {HINT_CITY} got a KEY to a place under the city, I heard.");
+static const u8 gText_Mauville_Gen1CloseCurrent[] = _("WATTSON gave a TRAINER the key to the basement. The old place is {HINT_ANCHOR}.");
+static const u8 gText_Mauville_Gen2FarCurrent[] = _("The lights under {HINT_CITY} went quiet, I heard. A TRAINER did it.");
+static const u8 gText_Mauville_Gen2CloseCurrent[] = _("The generator is off at last. WATTSON {HINT_ANCHOR} is waiting for a report.");
+static const u8 gText_Mauville_Gen3FarCurrent[] = _("WATTSON in {HINT_CITY} rewarded a TRAINER for shutting down the old generator.");
+static const u8 gText_Mauville_Gen3CloseCurrent[] = _("WATTSON {HINT_ANCHOR} is happy again. The generator's quiet.");
+
 static const u8 gText_Littleroot_Birch0FarCurrent[] = _("PROF. BIRCH of {HINT_CITY} spends all day in the tall grass studying wild POKéMON, I heard.");
 static const u8 gText_Littleroot_Birch0FarAfter[] = _("PROF. BIRCH of {HINT_CITY} was jumped by a wild POKéMON, but a TRAINER saved him, I heard.");
 static const u8 gText_Littleroot_Birch0CloseCurrent[] = _("PROF. BIRCH is out studying wild POKéMON again. I hope he's careful.");
@@ -197,6 +206,15 @@ static const u8 *const sMauvilleBike0Close[] = {gText_Mauville_Bike0CloseCurrent
 static const u8 *const sMauvilleBike1Far[] = {gText_Mauville_Bike1FarCurrent, gText_Mauville_Bike0FarAfter};
 static const u8 *const sMauvilleBike1Close[] = {gText_Mauville_Bike1CloseCurrent, gText_Mauville_Bike0CloseAfter};
 
+static const u8 *const sMauvilleGen0Far[] = {gText_Mauville_Gen0FarCurrent};
+static const u8 *const sMauvilleGen0Close[] = {gText_Mauville_Gen0CloseCurrent};
+static const u8 *const sMauvilleGen1Far[] = {gText_Mauville_Gen1FarCurrent};
+static const u8 *const sMauvilleGen1Close[] = {gText_Mauville_Gen1CloseCurrent};
+static const u8 *const sMauvilleGen2Far[] = {gText_Mauville_Gen2FarCurrent};
+static const u8 *const sMauvilleGen2Close[] = {gText_Mauville_Gen2CloseCurrent};
+static const u8 *const sMauvilleGen3Far[] = {gText_Mauville_Gen3FarCurrent};
+static const u8 *const sMauvilleGen3Close[] = {gText_Mauville_Gen3CloseCurrent};
+
 #include "data/region/emerald_chapters.h"
 #include "data/region/emerald_subplots.h"
 
@@ -223,6 +241,18 @@ const struct ChapterDesc *GetCountyChapter(u32 countyId, u32 slot)
     for (i = 0; i < ARRAY_COUNT(sEmeraldChapterHosts); i++)
     {
         if (sEmeraldChapterHosts[i].county == countyId && sEmeraldChapterHosts[i].slot == slot)
+            return sEmeraldChapterHosts[i].desc;
+    }
+    return NULL;
+}
+
+const struct ChapterDesc *GetCountyStatelessChapter(u32 countyId, u32 index)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sEmeraldChapterHosts); i++)
+    {
+        if (sEmeraldChapterHosts[i].county == countyId && sEmeraldChapterHosts[i].slot == CHAPTER_SLOT_STATELESS && index-- == 0)
             return sEmeraldChapterHosts[i].desc;
     }
     return NULL;
@@ -352,6 +382,17 @@ const u8 *GetCountySlotHint(u32 countyId, u32 slot, u32 distance, u32 selector)
     const struct ChapterDesc *desc = GetCountyChapter(countyId, slot);
 
     return GetChapterHint(desc, GetChapterStage(countyId, slot, desc), distance, selector);
+}
+
+const u8 *GetCountyStatelessHint(u32 countyId, u32 index, u32 distance, u32 selector)
+{
+    const struct ChapterDesc *desc = GetCountyStatelessChapter(countyId, index);
+
+    assertf(desc != NULL, "county %d hosts no stateless chapter %d; did you mean a stored chapter's slot (GetCountySlotHint)?", countyId, index)
+    {
+        return NULL;
+    }
+    return GetChapterHint(desc, GetChapterStage(countyId, CHAPTER_SLOT_STATELESS, desc), distance, selector);
 }
 
 bool32 DoesChapterProduce(const struct ChapterDesc *desc, u32 kind, u32 ordinal)

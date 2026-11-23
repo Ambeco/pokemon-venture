@@ -726,17 +726,54 @@ TEST("Chapter: New Mauville is a stateless adapter whose stage follows Wattson's
     EXPECT_EQ(GetChapterStage(MAUVILLE, CHAPTER_SLOT_STATELESS, desc), 3);
 }
 
-TEST("Chapter: New Mauville takes no slot var, reports no hints and anchors its key stage on the facility")
+TEST("Chapter: New Mauville takes no slot var and anchors its key stage on the facility")
 {
     const struct ChapterDesc *desc = FindMauvilleStatelessAdapter(0);
 
     ASSUME(desc != NULL);
     EXPECT_EQ(desc->stages[1].anchor.locationKind, ROUTE_LOCATION_FACILITY);
     EXPECT(!desc->producesMainGet);
-    EXPECT(GetChapterHint(desc, 1, CHAPTER_CLOSE, 0) == NULL);
     EXPECT_EQ(GetCountySlotStage(MAUVILLE, 0), 0);
     EXPECT_EQ(GetCountySlotStage(MAUVILLE, 1), 0);
     EXPECT_EQ(GetCountySlotStage(MAUVILLE, 2), 0);
+}
+
+static u32 FindNewMauvilleIndex(void)
+{
+    u32 i;
+
+    for (i = 0; GetCountyStatelessChapter(MAUVILLE, i) != NULL; i++)
+    {
+        if (GetCountyStatelessChapter(MAUVILLE, i) == FindMauvilleStatelessAdapter(0))
+            return i;
+    }
+    return 0xFF;
+}
+
+TEST("Chapter: A stateless chapter's hints follow its stage and have both lists in every stage")
+{
+    u32 index = FindNewMauvilleIndex(), stage, i;
+    const struct ChapterDesc *desc = FindMauvilleStatelessAdapter(0);
+    const u8 *far, *close;
+
+    ASSUME(index != 0xFF);
+    EXPECT(GetCountyStatelessChapter(MAUVILLE, 99) == NULL);
+    far = GetCountyStatelessHint(MAUVILLE, index, CHAPTER_FAR, 0);
+    close = GetCountyStatelessHint(MAUVILLE, index, CHAPTER_CLOSE, 0);
+    EXPECT(far != NULL && close != NULL && far != close);
+    for (stage = 0; stage < desc->numStages; stage++)
+    {
+        u32 covering = 0;
+        const struct ChapterHint *hint = FindChapterHint(desc, stage);
+
+        for (i = 0; i < desc->numHints; i++)
+            covering += DoesChapterHintCover(&desc->hints[i], stage);
+        EXPECT_EQ(covering, 1);
+        ASSUME(hint != NULL);
+        EXPECT(hint->far.count > 0 && hint->close.count > 0);
+    }
+    FlagSet(FLAG_GOT_BASEMENT_KEY_FROM_WATTSON);
+    EXPECT(GetCountyStatelessHint(MAUVILLE, index, CHAPTER_CLOSE, 0) != close);
 }
 
 // The stage constants scripts use are the descriptor's stage indices.

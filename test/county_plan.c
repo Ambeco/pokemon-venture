@@ -67,6 +67,8 @@ TEST("CountyPlan: Every Emerald county plans, and its chain and off-chain slots 
         }
         for (i = 0; i < plan.numOffChain; i++)
         {
+            if (plan.offChainSlot[i] == CHAPTER_SLOT_STATELESS)
+                continue;
             EXPECT(GetCountyChapter(county, plan.offChainSlot[i]) != NULL);
             EXPECT(!seen[plan.offChainSlot[i]]);
             seen[plan.offChainSlot[i]] = TRUE;
@@ -74,7 +76,7 @@ TEST("CountyPlan: Every Emerald county plans, and its chain and off-chain slots 
     }
 }
 
-TEST("CountyPlan: Mauville's chain holds Rock Smash, Rydel's proxy and the gym in slot 2; the Coin Case and Rydel's Cycles run beside it")
+TEST("CountyPlan: Mauville's chain holds Rock Smash, Rydel's proxy and the gym in slot 2; the Coin Case, Rydel's Cycles and New Mauville run beside it")
 {
     struct CountyChainPlan plan;
     u32 i;
@@ -82,9 +84,10 @@ TEST("CountyPlan: Mauville's chain holds Rock Smash, Rydel's proxy and the gym i
 
     EXPECT(PlanEmeraldCountyChain(MAUVILLE, &plan));
     EXPECT_EQ(plan.numEntries, 3);
-    EXPECT_EQ(plan.numOffChain, 2);
+    EXPECT_EQ(plan.numOffChain, 3);
     EXPECT_EQ(plan.offChainSlot[0], 1);
     EXPECT_EQ(plan.offChainSlot[1], 2);
+    EXPECT_EQ(plan.offChainSlot[2], CHAPTER_SLOT_STATELESS); // New Mauville
     for (i = 0; i < plan.numEntries; i++)
     {
         EXPECT_EQ(plan.chain[i].mainSlot, 2);
