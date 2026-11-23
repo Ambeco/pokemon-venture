@@ -480,8 +480,9 @@ enum NewMauvilleStage
 // Wattson's favor (walkthrough #83-85): he gives the Basement Key, the player shuts the generator off in New Mauville,
 // and he pays out TM Thunderbolt. An adapter chapter hosted stateless (Mauville's three stateful slots are full), so it
 // reads the legacy flags and VAR_NEW_MAUVILLE_STATE, and its hints are reached by GetCountyStatelessHint. No hinters
-// are placed yet (numHinters 0), and it supplies no main-plot get, so the news never mentions it. minBadges 5 only approximates "Norman defeated" (no chapter produces that key yet; wrong once
-// gym order shuffles); Surf is not modeled either.
+// are placed yet (numHinters 0), and it supplies no main-plot get, so the news never mentions it. minBadges 5 only
+// approximates "Norman defeated" (no chapter produces that key yet; wrong once gym order shuffles); Surf is not
+// modeled either.
 static const struct ChapterStage sNewMauvilleStages[] =
 {
     [NEW_MAUVILLE_NOT_ASKED] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}},
