@@ -248,6 +248,21 @@ The existing tips man at each gym entrance also gives party-specific advice from
 - Which party Pokémon have types weak defensively against the gym type.
 - Species found in the current county, at an equal or lower route-story-index, with a type advantage over the gym type.
 
+## Open questions
+
+Points the sections above leave undecided.
+
+- **Species typing:** species whose sprite strongly implies an element probably always keep it, and base forms get one type while evolutions gain the second; the algorithm for this, and its interaction with abilities, is undecided.
+- **Biome affinity tables:** the 25 biomes' tables (18 types each, log-scale encoding) are not yet written.
+- **Stride:** the hardcoded stride (coprime to 12) and its inverse over the ~541 lines are not yet picked; check that one biome's species end up evenly spaced and that traded Pokémon (other trainer ID) map sensibly.
+- **Route filters:** the level-plausibility rule (from evolution levels), the domestication-by-edge-distance rule, the random-drop rate and any further filters are not yet defined, nor are the starter, legendary and pseudo-legendary exclusion lists.
+- **Super-common species:** whether to adopt the list, and what "too few species" means for a table.
+- **Move pools:** the appendage bitfield vocabulary, per-move requirement and stat tagging for ~1000 moves, the power-sorted level bucketing, the learn-level generator and the filter probabilities (type match, stat match); the egg-move rule needs research into mainline breeding.
+- **Trainer teams:** the trainer classes (ordinary, boss, low-level grunt), how route-story-index maps to trainer and wild levels and hidden items, and the grunt catch-rate cutoff (starts at 255) are not yet defined or tuned.
+- **Catch-rate floor:** the curve as a function of route-story-index or badge count, and any excluded category beyond babies, starters and legendaries (pseudo-legendaries, mythicals).
+- **Legendaries and starters:** the acquisition mechanism (gift chapters, weekly legendary spawn, generation grouping of legendary locations).
+- **Expansion mechanics:** which of Mega Evolution, Gigantamax, Z-Moves, Terastallization and alternate forms to keep, and how procedural typing and move pools interact with them (Mega types, Tera types, form-specific moves).
+
 ## Alternatives considered
 
 ### Two biomes per species
