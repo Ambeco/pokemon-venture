@@ -62,34 +62,34 @@ static const struct SubplotDesc sWallyRaltsSubplot = {ARRAY_COUNT(sWallyRaltsEnt
 
 // Each gym, and each get an adapter chapter (PLOT_GET_CHAPTER) supplies, is its own required subplot: the get is a
 // main-story get, so the chapter is bound to its slot.
-#define GYM_SUBPLOT(name) \
+#define GET_SUBPLOT(name) \
 static const struct SubplotEntry name##Entries[] = {SUBPLOT_ENTRY_REQUIRED(name##Chapter)}; \
 static const struct SubplotDesc name##Subplot = {ARRAY_COUNT(name##Entries), name##Entries}
 
-GYM_SUBPLOT(sRustboroGym);
-GYM_SUBPLOT(sDewfordGym);
-GYM_SUBPLOT(sMauvilleGym);
-GYM_SUBPLOT(sLavaridgeGym);
-GYM_SUBPLOT(sFortreeGym);
-GYM_SUBPLOT(sMossdeepGym);
-GYM_SUBPLOT(sSootopolisGym);
-GYM_SUBPLOT(sPetalburgGym);
-GYM_SUBPLOT(sEverGrandeLobby);
-GYM_SUBPLOT(sEliteFour);
-GYM_SUBPLOT(sChampion);
-GYM_SUBPLOT(sRival1);
-GYM_SUBPLOT(sRival2);
-GYM_SUBPLOT(sRival3);
-GYM_SUBPLOT(sRival4);
-GYM_SUBPLOT(sRival5);
-GYM_SUBPLOT(sPokenav);
-GYM_SUBPLOT(sGoodRod);
-GYM_SUBPLOT(sItemfinder);
-GYM_SUBPLOT(sStarter);
-GYM_SUBPLOT(sPokedex);
-GYM_SUBPLOT(sPokeBalls);
-GYM_SUBPLOT(sRunningShoes);
-GYM_SUBPLOT(sShipyard);
+GET_SUBPLOT(sRustboroGym);
+GET_SUBPLOT(sDewfordGym);
+GET_SUBPLOT(sMauvilleGym);
+GET_SUBPLOT(sLavaridgeGym);
+GET_SUBPLOT(sFortreeGym);
+GET_SUBPLOT(sMossdeepGym);
+GET_SUBPLOT(sSootopolisGym);
+GET_SUBPLOT(sPetalburgGym);
+GET_SUBPLOT(sEverGrandeLobby);
+GET_SUBPLOT(sEliteFour);
+GET_SUBPLOT(sChampion);
+GET_SUBPLOT(sRival1);
+GET_SUBPLOT(sRival2);
+GET_SUBPLOT(sRival3);
+GET_SUBPLOT(sRival4);
+GET_SUBPLOT(sRival5);
+GET_SUBPLOT(sPokenav);
+GET_SUBPLOT(sGoodRod);
+GET_SUBPLOT(sItemfinder);
+GET_SUBPLOT(sStarter);
+GET_SUBPLOT(sPokedex);
+GET_SUBPLOT(sPokeBalls);
+GET_SUBPLOT(sRunningShoes);
+GET_SUBPLOT(sShipyard);
 
 static const struct SubplotHost sEmeraldSubplotHosts[] =
 {

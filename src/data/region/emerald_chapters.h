@@ -62,8 +62,8 @@ enum LilycoveCaseStage
 };
 
 // The Pokéblock Case is a reported-only plot get (FLAG_RECEIVED_POKEBLOCK_CASE, still set by the script and read by
-// the adapter) that the chapter supplies, and it produces no key. The receptionist is an immobile NPC of the contest hall role; no hinters
-// are placed yet (numHinters 0), since nothing binds NPCs for generated Lilycove maps.
+// the adapter) that the chapter supplies, and it produces no key. The receptionist is an immobile NPC of the contest
+// hall role; no hinters are placed yet (numHinters 0), since nothing binds NPCs for generated Lilycove maps.
 static const struct ChapterStage sLilycoveCaseStages[] =
 {
     [LILYCOVE_CASE_NOT_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_CONTEST_HALL}},
@@ -585,7 +585,24 @@ static const struct ChapterDesc sNewMauvilleChapter =
 
 // A two-stage stateless adapter chapter for a main-plot get whose scene stays vanilla: stage 1 once the get's own
 // predicate (as in emerald_plot_gets.h) holds. It reports no hints and anchors nowhere in particular.
-#define PLOT_GET_CHAPTER(name, getKind, getOrdinal, roles, ...) static const struct ChapterStage name##Stages[] = {     {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}},     {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}, .done = {__VA_ARGS__}}, }; static const struct ChapterHint name##Hints[] = {{0, 1, {NULL, 0}, {NULL, 0}}}; static const struct ChapterDesc name = {     .backend = CHAPTER_ADAPTER,     .numStages = ARRAY_COUNT(name##Stages),     .stages = name##Stages,     .numHints = ARRAY_COUNT(name##Hints),     .hints = name##Hints,     .requiredRoles = roles,     .producesMainGet = TRUE,     .mainGet = {getKind, getOrdinal}, }
+#define PLOT_GET_CHAPTER(name, getKind, getOrdinal, roles, ...) \
+static const struct ChapterStage name##Stages[] = \
+{ \
+    {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}}, \
+    {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}, .done = {__VA_ARGS__}}, \
+}; \
+static const struct ChapterHint name##Hints[] = {{0, 1, {NULL, 0}, {NULL, 0}}}; \
+static const struct ChapterDesc name = \
+{ \
+    .backend = CHAPTER_ADAPTER, \
+    .numStages = ARRAY_COUNT(name##Stages), \
+    .stages = name##Stages, \
+    .numHints = ARRAY_COUNT(name##Hints), \
+    .hints = name##Hints, \
+    .requiredRoles = roles, \
+    .producesMainGet = TRUE, \
+    .mainGet = {getKind, getOrdinal}, \
+}
 
 PLOT_GET_CHAPTER(sEverGrandeLobbyChapter, PLOT_KIND_GYM, ELITE_FOUR_ORDINAL, BUILDING_LEAGUE, STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0);
 PLOT_GET_CHAPTER(sRival1Chapter, PLOT_KIND_RIVAL, 1, 0, STORY_PRED_FLAG, FLAG_DEFEATED_RIVAL_ROUTE103, 0);
