@@ -105,26 +105,30 @@ TEST("CountyPlan: Mauville's chain holds Rock Smash, Rydel's proxy and the gym i
     EXPECT(proxy);
 }
 
-TEST("CountyPlan: Slateport's optional Harbor Mail has no slot with gets, so it runs beside the chain")
+TEST("CountyPlan: Slateport's optional Harbor Mail has no slot with gets, so it runs beside the chain, and only the Shipyard get is on it")
 {
     struct CountyChainPlan plan;
 
     EXPECT(PlanEmeraldCountyChain(SLATEPORT, &plan));
-    EXPECT_EQ(plan.numEntries, 0);
+    EXPECT_EQ(plan.numEntries, 1);
     EXPECT_EQ(plan.numOffChain, 1);
     EXPECT_EQ(plan.offChainSlot[0], 0);
 }
 
-TEST("CountyPlan: The Littleroot tutorial stays one ordered subplot, in slot 0 with slots kept")
+TEST("CountyPlan: The Littleroot tutorial stays one ordered subplot, in slot 0 with slots kept, then the Starter and block 1's three callback gets")
 {
     struct CountyChainPlan plan;
+    u32 i;
 
     EXPECT(PlanEmeraldCountyChain(LITTLEROOT, &plan));
-    EXPECT_EQ(plan.numEntries, 2);
+    EXPECT_EQ(plan.numEntries, 6);
     EXPECT_EQ(plan.chain[0].chapterSlot, 0);
     EXPECT_EQ(plan.chain[1].chapterSlot, 1);
     EXPECT_EQ(plan.chain[0].mainSlot, 0);
     EXPECT_EQ(plan.chain[1].mainSlot, 0);
+    EXPECT_EQ(plan.chain[2].mainSlot, 0);
+    for (i = 3; i < 6; i++)
+        EXPECT_EQ(plan.chain[i].mainSlot, CHAPTER_MAIN_SLOT_CALLBACK(1));
 }
 
 TEST("CountyPlan: The Old Rod and the Super Rod sit in the slot their utility gets are in, beside their gyms")
@@ -332,7 +336,7 @@ TEST("CountyPlan: A slot with no chain entries is never done")
 TEST("CountyPlan: Petalburg's gym is block 11's callback, so it joins Petalburg's chain after its own slots at the callback block")
 {
     struct CountyChainPlan plan;
-    struct ChapterHost hosts[32];
+    struct ChapterHost hosts[48];
     u32 numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts)), i, found = 0;
     u32 petalburg = COUNTY_ID(0, 2);
 

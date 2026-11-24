@@ -25,7 +25,7 @@ static const struct SubplotDesc sRustboroFossilSubplot = {ARRAY_COUNT(sRustboroF
 static const struct SubplotEntry sLilycoveMuseumEntries[] = {SUBPLOT_ENTRY_OPTIONAL(sLilycoveMuseumChapter)};
 static const struct SubplotDesc sLilycoveMuseumSubplot = {ARRAY_COUNT(sLilycoveMuseumEntries), sLilycoveMuseumEntries};
 
-static const struct SubplotEntry sLilycoveCaseEntries[] = {SUBPLOT_ENTRY_OPTIONAL(sLilycoveCaseChapter)};
+static const struct SubplotEntry sLilycoveCaseEntries[] = {SUBPLOT_ENTRY_REQUIRED(sLilycoveCaseChapter)};
 static const struct SubplotDesc sLilycoveCaseSubplot = {ARRAY_COUNT(sLilycoveCaseEntries), sLilycoveCaseEntries};
 
 static const struct SubplotEntry sMossdeepSuperRodEntries[] = {SUBPLOT_ENTRY_REQUIRED(sMossdeepSuperRodChapter)};
@@ -60,7 +60,8 @@ static const struct SubplotDesc sNewMauvilleSubplot = {ARRAY_COUNT(sNewMauvilleE
 static const struct SubplotEntry sWallyRaltsEntries[] = {SUBPLOT_ENTRY_REQUIRED(sWallyRaltsChapter)};
 static const struct SubplotDesc sWallyRaltsSubplot = {ARRAY_COUNT(sWallyRaltsEntries), sWallyRaltsEntries};
 
-// Each gym is its own required subplot (its badge is a main-story get, so it is bound to the gym's slot).
+// Each gym, and each get an adapter chapter (PLOT_GET_CHAPTER) supplies, is its own required subplot: the get is a
+// main-story get, so the chapter is bound to its slot.
 #define GYM_SUBPLOT(name) \
 static const struct SubplotEntry name##Entries[] = {SUBPLOT_ENTRY_REQUIRED(name##Chapter)}; \
 static const struct SubplotDesc name##Subplot = {ARRAY_COUNT(name##Entries), name##Entries}
@@ -73,6 +74,22 @@ GYM_SUBPLOT(sFortreeGym);
 GYM_SUBPLOT(sMossdeepGym);
 GYM_SUBPLOT(sSootopolisGym);
 GYM_SUBPLOT(sPetalburgGym);
+GYM_SUBPLOT(sEverGrandeLobby);
+GYM_SUBPLOT(sEliteFour);
+GYM_SUBPLOT(sChampion);
+GYM_SUBPLOT(sRival1);
+GYM_SUBPLOT(sRival2);
+GYM_SUBPLOT(sRival3);
+GYM_SUBPLOT(sRival4);
+GYM_SUBPLOT(sRival5);
+GYM_SUBPLOT(sPokenav);
+GYM_SUBPLOT(sGoodRod);
+GYM_SUBPLOT(sItemfinder);
+GYM_SUBPLOT(sStarter);
+GYM_SUBPLOT(sPokedex);
+GYM_SUBPLOT(sPokeBalls);
+GYM_SUBPLOT(sRunningShoes);
+GYM_SUBPLOT(sShipyard);
 
 static const struct SubplotHost sEmeraldSubplotHosts[] =
 {
@@ -99,4 +116,20 @@ static const struct SubplotHost sEmeraldSubplotHosts[] =
     {COUNTY_ID(4, 2), &sSootopolisGymSubplot},
     {COUNTY_ID(0, 2), &sWallyRaltsSubplot},
     {COUNTY_ID(0, 2), &sPetalburgGymSubplot},
+    {COUNTY_ID(5, 2), &sEverGrandeLobbySubplot},
+    {COUNTY_ID(5, 2), &sEliteFourSubplot},
+    {COUNTY_ID(5, 2), &sChampionSubplot},
+    {COUNTY_ID(1, 2), &sRival1Subplot},
+    {COUNTY_ID(0, 1), &sRival2Subplot},
+    {COUNTY_ID(2, 2), &sRival3Subplot},
+    {COUNTY_ID(3, 0), &sRival4Subplot},
+    {COUNTY_ID(4, 0), &sRival5Subplot},
+    {COUNTY_ID(0, 1), &sPokenavSubplot},
+    {COUNTY_ID(3, 0), &sGoodRodSubplot},
+    {COUNTY_ID(2, 2), &sItemfinderSubplot},
+    {COUNTY_ID(1, 3), &sStarterSubplot},
+    {COUNTY_ID(1, 3), &sPokedexSubplot},
+    {COUNTY_ID(1, 3), &sPokeBallsSubplot},
+    {COUNTY_ID(1, 3), &sRunningShoesSubplot},
+    {COUNTY_ID(2, 3), &sShipyardSubplot},
 };

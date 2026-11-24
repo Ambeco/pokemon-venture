@@ -552,10 +552,10 @@ TEST("Chapter: The Cutter hints follow the stage and expand the house reference"
 TEST("Chapter: Every Emerald host passes the placement check")
 {
     u32 numHosts, i, j, numOthers;
-    struct ChapterHost hosts[32], others[32];
+    struct ChapterHost hosts[48], others[48];
 
     numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts));
-    EXPECT_EQ(numHosts, 24);
+    EXPECT_EQ(numHosts, 40);
     for (i = 0; i < numHosts; i++)
     {
         for (j = 0, numOthers = 0; j < numHosts; j++)
@@ -1214,7 +1214,7 @@ TEST("Chapter: The Coin Case chapter's placement needs the Mart chapter among th
 {
     u32 numHosts, i, numOthers = 0;
     const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
-    struct ChapterHost others[32];
+    struct ChapterHost others[48];
 
     for (i = 0; i < numHosts; i++)
     {
@@ -1319,7 +1319,7 @@ TEST("Chapter: Rydel's proxy supplies the Bicycle's slot for planning but the ne
 TEST("Chapter: Every Emerald proxy keeps the four soft-lock conditions, and its key has a producer before it")
 {
     u32 numHosts, numSubplots, i, j, numOthers, proxies = 0;
-    struct ChapterHost hosts[32], others[32];
+    struct ChapterHost hosts[48], others[48];
     const struct SubplotHost *subplots = GetSubplotHosts(&numSubplots);
 
     numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts));

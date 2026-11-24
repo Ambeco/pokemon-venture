@@ -655,7 +655,8 @@ u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 mainSl
 {
     u32 needed = GetChapterNeededRoles(desc), bit, i;
 
-    if (!DoesCountyHaveCity(county))
+    // A role-free adapter chapter only reads state, so a county without a city can host it (a get of a cityless county's block).
+    if (!DoesCountyHaveCity(county) && (needed != 0 || desc->backend != CHAPTER_ADAPTER))
         return CHAPTER_PLACEMENT_NO_CITY;
     for (bit = 0; bit < NUM_BUILDING_ROLES; bit++)
     {

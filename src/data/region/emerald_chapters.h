@@ -62,7 +62,7 @@ enum LilycoveCaseStage
 };
 
 // The Pokéblock Case is a reported-only plot get (FLAG_RECEIVED_POKEBLOCK_CASE, still set by the script and read by
-// the adapter), so the chapter produces no key. The receptionist is an immobile NPC of the contest hall role; no hinters
+// the adapter) that the chapter supplies, and it produces no key. The receptionist is an immobile NPC of the contest hall role; no hinters
 // are placed yet (numHinters 0), since nothing binds NPCs for generated Lilycove maps.
 static const struct ChapterStage sLilycoveCaseStages[] =
 {
@@ -84,6 +84,8 @@ static const struct ChapterDesc sLilycoveCaseChapter =
     .numHints = ARRAY_COUNT(sLilycoveCaseHints),
     .hints = sLilycoveCaseHints,
     .requiredRoles = BUILDING_CONTEST_HALL,
+    .producesMainGet = TRUE,
+    .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_POKEBLOCK_CASE},
 };
 
 enum RustboroCutterStage
@@ -581,6 +583,27 @@ static const struct ChapterDesc sNewMauvilleChapter =
     .waitsForLaterKey = TRUE,
 };
 
+// A two-stage stateless adapter chapter for a main-plot get whose scene stays vanilla: stage 1 once the get's own
+// predicate (as in emerald_plot_gets.h) holds. It reports no hints and anchors nowhere in particular.
+#define PLOT_GET_CHAPTER(name, getKind, getOrdinal, roles, ...) static const struct ChapterStage name##Stages[] = {     {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}},     {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}, .done = {__VA_ARGS__}}, }; static const struct ChapterHint name##Hints[] = {{0, 1, {NULL, 0}, {NULL, 0}}}; static const struct ChapterDesc name = {     .backend = CHAPTER_ADAPTER,     .numStages = ARRAY_COUNT(name##Stages),     .stages = name##Stages,     .numHints = ARRAY_COUNT(name##Hints),     .hints = name##Hints,     .requiredRoles = roles,     .producesMainGet = TRUE,     .mainGet = {getKind, getOrdinal}, }
+
+PLOT_GET_CHAPTER(sEverGrandeLobbyChapter, PLOT_KIND_GYM, ELITE_FOUR_ORDINAL, BUILDING_LEAGUE, STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0);
+PLOT_GET_CHAPTER(sRival1Chapter, PLOT_KIND_RIVAL, 1, 0, STORY_PRED_FLAG, FLAG_DEFEATED_RIVAL_ROUTE103, 0);
+PLOT_GET_CHAPTER(sRival2Chapter, PLOT_KIND_RIVAL, 2, 0, STORY_PRED_ANY_FLAG, FLAG_DEFEATED_RIVAL_RUSTBORO, FLAG_DEFEATED_RIVAL_ROUTE_104);
+PLOT_GET_CHAPTER(sRival3Chapter, PLOT_KIND_RIVAL, 3, 0, STORY_PRED_VAR_GE, VAR_ROUTE110_STATE, 1);
+PLOT_GET_CHAPTER(sRival4Chapter, PLOT_KIND_RIVAL, 4, 0, STORY_PRED_VAR_GE, VAR_ROUTE119_STATE, 1);
+PLOT_GET_CHAPTER(sRival5Chapter, PLOT_KIND_RIVAL, 5, 0, STORY_PRED_FLAG, FLAG_MET_RIVAL_LILYCOVE, 0);
+PLOT_GET_CHAPTER(sPokenavChapter, PLOT_KIND_UTILITY, PLOT_UTILITY_POKENAV, 0, STORY_PRED_FLAG, FLAG_RECEIVED_POKENAV, 0);
+PLOT_GET_CHAPTER(sGoodRodChapter, PLOT_KIND_UTILITY, PLOT_UTILITY_GOOD_ROD, 0, STORY_PRED_FLAG, FLAG_RECEIVED_GOOD_ROD, 0);
+PLOT_GET_CHAPTER(sItemfinderChapter, PLOT_KIND_UTILITY, PLOT_UTILITY_ITEMFINDER, 0, STORY_PRED_VAR_GE, VAR_ROUTE110_STATE, 1);
+PLOT_GET_CHAPTER(sStarterChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_STARTER, 0, STORY_PRED_FLAG, FLAG_SYS_POKEMON_GET, 0);
+PLOT_GET_CHAPTER(sPokedexChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKEDEX, 0, STORY_PRED_FLAG, FLAG_RECEIVED_POKEDEX_FROM_BIRCH, 0);
+PLOT_GET_CHAPTER(sPokeBallsChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKE_BALLS, 0, STORY_PRED_ALWAYS, 0, 0);
+PLOT_GET_CHAPTER(sRunningShoesChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_RUNNING_SHOES, 0, STORY_PRED_FLAG, FLAG_RECEIVED_RUNNING_SHOES, 0);
+PLOT_GET_CHAPTER(sShipyardChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_SHIPYARD, 0, STORY_PRED_ANY_FLAG, FLAG_DOCK_REJECTED_DEVON_GOODS, FLAG_DELIVERED_DEVON_GOODS);
+PLOT_GET_CHAPTER(sEliteFourChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_ELITE_FOUR, 0, STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0);
+PLOT_GET_CHAPTER(sChampionChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_CHAMPION, 0, STORY_PRED_FLAG, FLAG_SYS_GAME_CLEAR, 0);
+
 static const struct ChapterHost sEmeraldChapterHosts[] =
 {
     {COUNTY_ID(1, 2), 0, &sRivalDexChapter}, // Oldale, county-story-index 1
@@ -607,4 +630,20 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(4, 2), CHAPTER_SLOT_STATELESS, &sSootopolisGymChapter},
     {COUNTY_ID(0, 2), CHAPTER_SLOT_STATELESS, &sWallyRaltsChapter},
     {COUNTY_ID(0, 2), CHAPTER_SLOT_STATELESS, &sPetalburgGymChapter}, // Petalburg, hosting block 11's callback
+    {COUNTY_ID(5, 2), CHAPTER_SLOT_STATELESS, &sEverGrandeLobbyChapter}, // League, hosting the lobby (gym 9)
+    {COUNTY_ID(5, 2), CHAPTER_SLOT_STATELESS, &sEliteFourChapter},
+    {COUNTY_ID(5, 2), CHAPTER_SLOT_STATELESS, &sChampionChapter},
+    {COUNTY_ID(1, 2), CHAPTER_SLOT_STATELESS, &sRival1Chapter},
+    {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sRival2Chapter},
+    {COUNTY_ID(2, 2), CHAPTER_SLOT_STATELESS, &sRival3Chapter},
+    {COUNTY_ID(3, 0), CHAPTER_SLOT_STATELESS, &sRival4Chapter},
+    {COUNTY_ID(4, 0), CHAPTER_SLOT_STATELESS, &sRival5Chapter},
+    {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sPokenavChapter},
+    {COUNTY_ID(3, 0), CHAPTER_SLOT_STATELESS, &sGoodRodChapter},
+    {COUNTY_ID(2, 2), CHAPTER_SLOT_STATELESS, &sItemfinderChapter},
+    {COUNTY_ID(1, 3), CHAPTER_SLOT_STATELESS, &sStarterChapter},
+    {COUNTY_ID(1, 3), CHAPTER_SLOT_STATELESS, &sPokedexChapter}, // Littleroot, hosting block 1's callback
+    {COUNTY_ID(1, 3), CHAPTER_SLOT_STATELESS, &sPokeBallsChapter},
+    {COUNTY_ID(1, 3), CHAPTER_SLOT_STATELESS, &sRunningShoesChapter},
+    {COUNTY_ID(2, 3), CHAPTER_SLOT_STATELESS, &sShipyardChapter},
 };
