@@ -7,6 +7,7 @@
 
 #define COUNTY_PLAN_NO_SLOT 0xFF
 #define COUNTY_PLAN_BOUND_ELSEWHERE 0xFE
+#define COUNTY_PLAN_BOUND_CALLBACK 0xFD
 
 // Kinds a county's chapters supply today: gym badges, HMs, utility items, the tutorial's scripted gets and rival beats.
 // Wally, arc beats, Devon Goods and special items are hosted by other mechanisms and open no chapter capacity.
@@ -66,15 +67,19 @@ static u32 FindChapterSlot(const struct ChapterHost *hosts, u32 numHosts, u32 co
     return COUNTY_PLAN_NO_SLOT;
 }
 
-// The main-story slot of the get the chapter supplies, SUBPLOT_UNBOUND when it supplies none, or COUNTY_PLAN_BOUND_ELSEWHERE
-// when that get is in another county's block or a slot this county's rules give no room.
+// The main-story slot of the get the chapter supplies, SUBPLOT_UNBOUND when it supplies none, COUNTY_PLAN_BOUND_CALLBACK when
+// the get is the callback list another block hands to this county, or COUNTY_PLAN_BOUND_ELSEWHERE when it is in another
+// county's block or a slot this county's rules give no room.
 static u32 GetChapterBoundSlot(u32 county, const struct ChapterDesc *desc, const struct SubplotSlotRule rules[COUNTY_MAIN_SLOTS])
 {
     struct PlotSlot get;
+    u32 storyIdx = GetCountyHeader(county)->storyIdx;
 
     if (!GetChapterSuppliedSlot(desc, &get))
         return SUBPLOT_UNBOUND;
-    if (get.block != GetCountyHeader(county)->storyIdx || get.step >= COUNTY_MAIN_SLOTS || rules[get.step].max == 0)
+    if (get.block != storyIdx && get.step == 1 && GetPlotCallbackHost(get.block) == storyIdx)
+        return COUNTY_PLAN_BOUND_CALLBACK;
+    if (get.block != storyIdx || get.step >= COUNTY_MAIN_SLOTS || rules[get.step].max == 0)
         return COUNTY_PLAN_BOUND_ELSEWHERE;
     return get.step;
 }
@@ -179,6 +184,26 @@ bool32 PlanCountyChain(u32 county, const struct SubplotHost *subplots, u32 numSu
                 out->problemSubplot = subplotIndex;
                 out->problemIndex = e;
                 return FALSE;
+            }
+            if (boundSlot[requiredOnly.numEntries] == COUNTY_PLAN_BOUND_CALLBACK)
+            {
+                // A callback list has no slot rules: the chapter goes on the chain at its callback block, after the county's own slots.
+                struct PlotSlot get;
+                struct CountyChainEntry entry;
+
+                GetChapterSuppliedSlot(subplot->entries[e].chapter, &get);
+                assertf(subplot->entries[e].chapter->numStages >= 2, "subplot %d entry %d has %d stage(s); a chain entry needs at least 2", subplotIndex, e, subplot->entries[e].chapter->numStages)
+                {
+                    out->problem = SUBPLOT_PLAN_NO_ROOM;
+                    out->problemSubplot = subplotIndex;
+                    out->problemIndex = e;
+                    return FALSE;
+                }
+                entry.mainSlot = CHAPTER_MAIN_SLOT_CALLBACK(get.block);
+                entry.chapterSlot = slot;
+                entry.numAdvances = subplot->entries[e].chapter->numStages - 1;
+                InsertChainEntry(out, &entry, subplot->entries[e].chapter);
+                continue;
             }
             required[requiredOnly.numEntries] = subplot->entries[e];
             requiredSlot[requiredOnly.numEntries++] = slot;

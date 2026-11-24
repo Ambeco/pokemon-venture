@@ -609,7 +609,11 @@ bool32 IsCountySlotAvailable(u32 countyId, u32 slot)
 // chapter is open from its county's entry, so it sorts before every main-story slot of that county.
 static u32 GetStoryPosition(u32 county, u32 mainSlot)
 {
-    return GetCountyHeader(county)->storyIdx << 8 | (mainSlot == CHAPTER_MAIN_SLOT_OFF_CHAIN ? 0 : mainSlot + 1);
+    if (mainSlot == CHAPTER_MAIN_SLOT_OFF_CHAIN)
+        return GetCountyHeader(county)->storyIdx << 8;
+    if (mainSlot >= CHAPTER_MAIN_SLOT_CALLBACK_BASE)
+        return (mainSlot - CHAPTER_MAIN_SLOT_CALLBACK_BASE) << 8 | 2; // callbacks are step 1
+    return GetCountyHeader(county)->storyIdx << 8 | (mainSlot + 1);
 }
 
 // Positions tie within one county and slot, and a tie is not "earlier": key order inside a slot would admit cycles.
@@ -624,6 +628,24 @@ static bool32 HasProducerBefore(u32 mcguffinId, u32 position, const struct Chapt
         if (desc->producedKey.type == CHAPTER_KEY_NONE || ResolveChapterKey(&desc->producedKey, hosts[i].county) != mcguffinId)
             continue;
         if (GetStoryPosition(hosts[i].county, hosts[i].mainSlot) < position)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+// A chapter flagged waitsForLaterKey is not part of the main story's order, so it may wait at runtime for a producer that
+// comes later (New Mauville waits for Norman's callback). Deadlock needs a producer that itself consumes, and a chapter is never both.
+static bool32 HasProducerAtOtherPosition(u32 mcguffinId, u32 position, const struct ChapterHost *hosts, u32 numHosts)
+{
+    u32 i;
+
+    for (i = 0; i < numHosts; i++)
+    {
+        const struct ChapterDesc *desc = hosts[i].desc;
+
+        if (desc->producedKey.type == CHAPTER_KEY_NONE || ResolveChapterKey(&desc->producedKey, hosts[i].county) != mcguffinId)
+            continue;
+        if (GetStoryPosition(hosts[i].county, hosts[i].mainSlot) != position)
             return TRUE;
     }
     return FALSE;
@@ -650,8 +672,13 @@ u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 mainSl
     }
     for (i = 0; i < CHAPTER_MAX_REQUIRED_KEYS; i++)
     {
-        if (desc->requiredKeys[i].type != CHAPTER_KEY_NONE
-         && !HasProducerBefore(ResolveChapterKey(&desc->requiredKeys[i], county), GetStoryPosition(county, mainSlot), hosts, numHosts))
+        u32 key, position;
+
+        if (desc->requiredKeys[i].type == CHAPTER_KEY_NONE)
+            continue;
+        key = ResolveChapterKey(&desc->requiredKeys[i], county);
+        position = GetStoryPosition(county, mainSlot);
+        if (mainSlot == CHAPTER_MAIN_SLOT_OFF_CHAIN && desc->waitsForLaterKey ? !HasProducerAtOtherPosition(key, position, hosts, numHosts) : !HasProducerBefore(key, position, hosts, numHosts))
             return CHAPTER_PLACEMENT_KEY_NOT_EARLIER;
     }
     return CHAPTER_PLACEMENT_OK;

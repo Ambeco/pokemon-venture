@@ -469,6 +469,62 @@ GYM_CHAPTER(sDewfordGymChapter, 2, FLAG_BADGE02_GET);
 GYM_CHAPTER(sMauvilleGymChapter, 3, FLAG_BADGE03_GET);
 GYM_CHAPTER(sMossdeepGymChapter, 7, FLAG_BADGE07_GET);
 
+enum PetalburgGymStage
+{
+    PETALBURG_GYM_NOT_BEATEN,
+    PETALBURG_GYM_BADGE_GIVEN,
+    PETALBURG_GYM_SURF_GIVEN,
+};
+
+// Norman's gym (gym 5) is Lavaridge's block-11 callback hosted by Petalburg, so it sits on Petalburg's chain at that
+// callback, not in Petalburg's own block. Its last stage is the Surf hand-over, which produces the "gym 5" key (badge and
+// HM, region_unlock.h) that New Mauville consumes. Emerald hands Surf over in Wally's house after a walk from the gym
+// (design_chapters.md, "Stage anchors"); Petalburg has no house role yet, so the stage anchors on the gym.
+static const struct ChapterStage sPetalburgGymStages[] =
+{
+    [PETALBURG_GYM_NOT_BEATEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}},
+    [PETALBURG_GYM_BADGE_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}, .done = {STORY_PRED_FLAG, FLAG_BADGE05_GET, 0}},
+    [PETALBURG_GYM_SURF_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_GYM}, .done = {STORY_PRED_FLAG, FLAG_RECEIVED_HM_SURF, 0}},
+};
+
+static const struct ChapterHint sPetalburgGymHints[] = {{0, 2, {NULL, 0}, {NULL, 0}}};
+
+static const struct ChapterDesc sPetalburgGymChapter =
+{
+    .backend = CHAPTER_ADAPTER,
+    .numStages = ARRAY_COUNT(sPetalburgGymStages),
+    .stages = sPetalburgGymStages,
+    .numHints = ARRAY_COUNT(sPetalburgGymHints),
+    .hints = sPetalburgGymHints,
+    .requiredRoles = BUILDING_GYM,
+    .producesMainGet = TRUE,
+    .mainGet = {PLOT_KIND_GYM, 5},
+    .producedKeyStage = PETALBURG_GYM_SURF_GIVEN,
+    .producedKey = {CHAPTER_KEY_ITEM, PLOT_KIND_GYM, 5},
+    .givesReward = TRUE,
+};
+
+// Petalburg's own block-2 get: the scene where Wally is shown with his Ralts (`VAR_PETALBURG_CITY_STATE` 3). It is a
+// blocking scripted get, so Petalburg's chain needs a chapter for it; the legacy scripts are untouched.
+static const struct ChapterStage sWallyRaltsStages[] =
+{
+    {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}},
+    {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}, .done = {STORY_PRED_VAR_GE, VAR_PETALBURG_CITY_STATE, 3}},
+};
+
+static const struct ChapterHint sWallyRaltsHints[] = {{0, 1, {NULL, 0}, {NULL, 0}}};
+
+static const struct ChapterDesc sWallyRaltsChapter =
+{
+    .backend = CHAPTER_ADAPTER,
+    .numStages = ARRAY_COUNT(sWallyRaltsStages),
+    .stages = sWallyRaltsStages,
+    .numHints = ARRAY_COUNT(sWallyRaltsHints),
+    .hints = sWallyRaltsHints,
+    .producesMainGet = TRUE,
+    .mainGet = {PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_WALLY_RALTS},
+};
+
 enum NewMauvilleStage
 {
     NEW_MAUVILLE_NOT_ASKED,
@@ -480,9 +536,9 @@ enum NewMauvilleStage
 // Wattson's favor (walkthrough #83-85): he gives the Basement Key, the player shuts the generator off in New Mauville,
 // and he pays out TM Thunderbolt. An adapter chapter hosted stateless (Mauville's three stateful slots are full), so it
 // reads the legacy flags and VAR_NEW_MAUVILLE_STATE, and its hints are reached by GetCountyStatelessHint. No hinters
-// are placed yet (numHinters 0), and it supplies no main-plot get, so the news never mentions it. minBadges 5 only
-// approximates "Norman defeated" (no chapter produces that key yet; wrong once gym order shuffles); Surf is not
-// modeled either.
+// are placed yet (numHinters 0), and it supplies no main-plot get, so the news never mentions it. It needs the "gym 5"
+// key (Norman's badge and Surf); it is off-chain, so it waits for that key at runtime although the key's producer, a
+// callback, comes later in story order.
 static const struct ChapterStage sNewMauvilleStages[] =
 {
     [NEW_MAUVILLE_NOT_ASKED] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}},
@@ -518,7 +574,8 @@ static const struct ChapterDesc sNewMauvilleChapter =
     .stages = sNewMauvilleStages,
     .numHints = ARRAY_COUNT(sNewMauvilleHints),
     .hints = sNewMauvilleHints,
-    .minBadges = 5,
+    .requiredKeys = {{CHAPTER_KEY_ITEM, PLOT_KIND_GYM, 5}},
+    .waitsForLaterKey = TRUE,
 };
 
 static const struct ChapterHost sEmeraldChapterHosts[] =
@@ -542,4 +599,6 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sMauvilleGymChapter},
     {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sNewMauvilleChapter},
     {COUNTY_ID(5, 1), CHAPTER_SLOT_STATELESS, &sMossdeepGymChapter},
+    {COUNTY_ID(0, 2), CHAPTER_SLOT_STATELESS, &sWallyRaltsChapter},
+    {COUNTY_ID(0, 2), CHAPTER_SLOT_STATELESS, &sPetalburgGymChapter}, // Petalburg, hosting block 11's callback
 };

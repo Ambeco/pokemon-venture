@@ -552,10 +552,10 @@ TEST("Chapter: The Cutter hints follow the stage and expand the house reference"
 TEST("Chapter: Every Emerald host passes the placement check")
 {
     u32 numHosts, i, j, numOthers;
-    struct ChapterHost hosts[20], others[20];
+    struct ChapterHost hosts[24], others[24];
 
     numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts));
-    EXPECT_EQ(numHosts, 19);
+    EXPECT_EQ(numHosts, 21);
     for (i = 0; i < numHosts; i++)
     {
         for (j = 0, numOthers = 0; j < numHosts; j++)
@@ -983,6 +983,89 @@ TEST("Chapter: An off-chain producer is earlier than any main-story slot of its 
     EXPECT_EQ(CheckChapterPlacement(&sConsumerDesc, RUSTBORO, CHAPTER_MAIN_SLOT_OFF_CHAIN, producer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
 }
 
+static const struct ChapterDesc sLateWaiterDesc =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sPlainStages),
+    .requiredKeys = {{CHAPTER_KEY_ITEM, PLOT_KIND_GYM, 4}},
+    .waitsForLaterKey = TRUE,
+    .stages = sPlainStages,
+};
+
+TEST("Chapter: An off-chain consumer that waitsForLaterKey may wait for a later producer, no other chapter may, and a tie is refused")
+{
+    struct ChapterHost callbackProducer[] = {{PETALBURG, CHAPTER_SLOT_STATELESS, &sItemProducerDesc, CHAPTER_MAIN_SLOT_CALLBACK(11)}};
+    struct ChapterHost sameCounty[] = {{LILYCOVE, 0, &sItemProducerDesc, 2}};
+
+    // MAUVILLE is county story index 7 and the callback is block 11, step 1: the producer is later than any Mauville slot.
+    EXPECT_EQ(CheckChapterPlacement(&sLateWaiterDesc, MAUVILLE, CHAPTER_MAIN_SLOT_OFF_CHAIN, callbackProducer, 1), CHAPTER_PLACEMENT_OK);
+    EXPECT_EQ(CheckChapterPlacement(&sLateWaiterDesc, MAUVILLE, 2, callbackProducer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+    EXPECT_EQ(CheckChapterPlacement(&sCrossConsumerDesc, MAUVILLE, CHAPTER_MAIN_SLOT_OFF_CHAIN, callbackProducer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+    EXPECT_EQ(CheckChapterPlacement(&sLateWaiterDesc, MAUVILLE, CHAPTER_MAIN_SLOT_OFF_CHAIN, NULL, 0), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+    // An off-chain waiter in the producer's own county and position still ties.
+    sameCounty[0].county = MAUVILLE;
+    sameCounty[0].mainSlot = CHAPTER_MAIN_SLOT_OFF_CHAIN;
+    EXPECT_EQ(CheckChapterPlacement(&sLateWaiterDesc, MAUVILLE, CHAPTER_MAIN_SLOT_OFF_CHAIN, sameCounty, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+}
+
+TEST("Chapter: A callback host sorts at its callback block's step 1, not in the host county's own block")
+{
+    // Petalburg is story index 2; its callback is block 11. A consumer in Lavaridge's (block 11) slot 0 or 1 is not later than it.
+    struct ChapterHost callbackProducer[] = {{PETALBURG, CHAPTER_SLOT_STATELESS, &sItemProducerDesc, CHAPTER_MAIN_SLOT_CALLBACK(11)}};
+    u32 lavaridge = COUNTY_ID(2, 0);
+
+    EXPECT_EQ((u32)GetCountyHeader(lavaridge)->storyIdx, 11);
+    EXPECT_EQ(CheckChapterPlacement(&sCrossConsumerDesc, lavaridge, 1, callbackProducer, 1), CHAPTER_PLACEMENT_KEY_NOT_EARLIER);
+    EXPECT_EQ(CheckChapterPlacement(&sCrossConsumerDesc, lavaridge, 2, callbackProducer, 1), CHAPTER_PLACEMENT_OK);
+    EXPECT_EQ(CheckChapterPlacement(&sCrossConsumerDesc, COUNTY_ID(3, 1), 0, callbackProducer, 1), CHAPTER_PLACEMENT_OK);
+}
+
+TEST("Chapter: Petalburg's gym is a three-stage stateless adapter producing the gym 5 key at the Surf hand-over")
+{
+    u32 numHosts, i;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+    const struct ChapterDesc *desc = NULL;
+    u32 key = GetPlotItemMcGuffinId(PLOT_KIND_GYM, 5);
+
+    for (i = 0; i < numHosts; i++)
+    {
+        if (hosts[i].county == PETALBURG && hosts[i].desc->producesMainGet)
+            desc = hosts[i].desc;
+    }
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->numStages, 3);
+    EXPECT_EQ(ResolveChapterKey(&desc->producedKey, PETALBURG), key);
+    EXPECT_EQ(GetChapterStage(PETALBURG, CHAPTER_SLOT_STATELESS, desc), 0);
+    EXPECT(!IsMcGuffinProducedBy(hosts, numHosts, key));
+    FlagSet(FLAG_BADGE05_GET);
+    EXPECT_EQ(GetChapterStage(PETALBURG, CHAPTER_SLOT_STATELESS, desc), 1);
+    EXPECT(!IsMcGuffinProducedBy(hosts, numHosts, key));
+    FlagSet(FLAG_RECEIVED_HM_SURF);
+    EXPECT_EQ(GetChapterStage(PETALBURG, CHAPTER_SLOT_STATELESS, desc), 2);
+    EXPECT(IsMcGuffinProducedBy(hosts, numHosts, key));
+    FlagClear(FLAG_BADGE05_GET);
+    FlagClear(FLAG_RECEIVED_HM_SURF);
+}
+
+TEST("Chapter: New Mauville needs Norman's badge and Surf, not a badge count")
+{
+    const struct ChapterDesc *desc = FindMauvilleStatelessAdapter(0);
+    u32 numHosts;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->minBadges, 0);
+    EXPECT(desc->waitsForLaterKey);
+    EXPECT_EQ(desc->requiredKeys[0].type, CHAPTER_KEY_ITEM);
+    EXPECT_EQ(ResolveChapterKey(&desc->requiredKeys[0], MAUVILLE), GetPlotItemMcGuffinId(PLOT_KIND_GYM, 5));
+    SetBadges(0xFF); // every badge, Norman's included: the key still waits for the Surf hand-over
+    EXPECT(!IsChapterAvailable(desc, MAUVILLE, hosts, numHosts));
+    FlagSet(FLAG_RECEIVED_HM_SURF);
+    EXPECT(IsChapterAvailable(desc, MAUVILLE, hosts, numHosts));
+    FlagClear(FLAG_RECEIVED_HM_SURF);
+    SetBadges(0);
+}
+
 TEST("Chapter: Availability counts badges held in any order")
 {
     EXPECT(!IsChapterAvailable(&sGatedDesc, RUSTBORO, NULL, 0));
@@ -1236,7 +1319,7 @@ TEST("Chapter: Rydel's proxy supplies the Bicycle's slot for planning but the ne
 TEST("Chapter: Every Emerald proxy keeps the four soft-lock conditions, and its key has a producer before it")
 {
     u32 numHosts, numSubplots, i, j, numOthers, proxies = 0;
-    struct ChapterHost hosts[20], others[20];
+    struct ChapterHost hosts[24], others[24];
     const struct SubplotHost *subplots = GetSubplotHosts(&numSubplots);
 
     numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts));

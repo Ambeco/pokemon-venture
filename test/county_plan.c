@@ -7,6 +7,7 @@
 #include "county_plan.h"
 #include "county_chain.h"
 #include "region_county.h"
+#include "region_plot.h"
 #include "subplot.h"
 
 #define MAUVILLE COUNTY_ID(2, 1)
@@ -322,6 +323,47 @@ TEST("CountyPlan: A slot with no chain entries is never done")
 {
     EXPECT(!IsCountyMainSlotDone(MAUVILLE, 1));
     EXPECT(!IsCountyMainSlotDone(SLATEPORT, 0));
+}
+
+TEST("CountyPlan: Petalburg's gym is block 11's callback, so it joins Petalburg's chain after its own slots at the callback block")
+{
+    struct CountyChainPlan plan;
+    struct ChapterHost hosts[24];
+    u32 numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts)), i, found = 0;
+    u32 petalburg = COUNTY_ID(0, 2);
+
+    EXPECT_EQ(GetPlotCallbackHost(11), (u32)GetCountyHeader(petalburg)->storyIdx);
+    EXPECT_EQ(GetVanillaPlotSlot(PLOT_KIND_GYM, 5).block, 11);
+    EXPECT_EQ(GetVanillaPlotSlot(PLOT_KIND_GYM, 5).step, 1);
+    EXPECT(PlanEmeraldCountyChain(petalburg, &plan));
+    EXPECT_EQ(plan.numEntries, 1);
+    EXPECT_EQ(plan.chain[0].mainSlot, CHAPTER_MAIN_SLOT_CALLBACK(11));
+    EXPECT_EQ(plan.chain[0].chapterSlot, CHAPTER_SLOT_STATELESS);
+    EXPECT_EQ(plan.chain[0].numAdvances, 2);
+    EXPECT_EQ(plan.numOffChain, 0);
+    for (i = 0; i < numHosts; i++)
+    {
+        if (hosts[i].county == petalburg)
+        {
+            found++;
+            EXPECT_EQ(hosts[i].mainSlot, CHAPTER_MAIN_SLOT_CALLBACK(11));
+        }
+    }
+    EXPECT_EQ(found, 1);
+}
+
+static const struct ChapterDesc sCallbackGymChapter = {.numStages = 2, .producesMainGet = TRUE, .mainGet = {PLOT_KIND_GYM, 5}};
+
+TEST("CountyPlan: A gym whose get is another block's callback is refused by any county but the callback's host")
+{
+    struct CountyChainPlan plan;
+    static const struct SubplotEntry entries[] = {{&sCallbackGymChapter, FALSE}};
+    static const struct SubplotDesc subplot = {1, entries};
+    struct SubplotHost subplots[] = {{COUNTY_ID(2, 1), &subplot}};
+    struct ChapterHost hosts[] = {{COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sCallbackGymChapter}};
+
+    EXPECT(!PlanCountyChain(COUNTY_ID(2, 1), subplots, 1, hosts, 1, &plan));
+    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_BOUND_ELSEWHERE);
 }
 
 TEST("CountyPlan: Each ported gym is on its county's chain in its badge's slot, and done once the badge is held")

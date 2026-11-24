@@ -157,6 +157,7 @@ struct ChapterDesc
     // Intro McGuffins: every key must be produced before the chapter can start, so a chain entry's
     // predecessor hands it over (design_chapters.md, "County chain").
     struct ChapterKeyRef requiredKeys[CHAPTER_MAX_REQUIRED_KEYS];
+    bool8 waitsForLaterKey; // an off-chain chapter that may wait at runtime for a key whose producer comes later in story order (CheckChapterPlacement)
     bool8 producesMainGet; // completion is a get of a main-plot list: mainGet names it, and the news points at this chapter
     struct PlotKeyRef mainGet;
     u8 mainHm; // enum PlotHm: the HM the chapter hands out (a get of its gym's list, not a McGuffin); PLOT_HM_NONE for none
@@ -168,12 +169,17 @@ struct ChapterDesc
 // ChapterHost.mainSlot of a chapter that is not on its county's chain: it runs beside the chain from the county's entry.
 #define CHAPTER_MAIN_SLOT_OFF_CHAIN 0xFF
 
+// ChapterHost.mainSlot of a chapter hosted for a callback: the callback list (step 1) of main-story block `block`, which
+// another county's block owns. It sorts at (block, step 1), not in the host county's own block.
+#define CHAPTER_MAIN_SLOT_CALLBACK_BASE 0x40
+#define CHAPTER_MAIN_SLOT_CALLBACK(block) (CHAPTER_MAIN_SLOT_CALLBACK_BASE + (block))
+
 struct ChapterHost
 {
     u8 county;
     u8 slot;
     const struct ChapterDesc *desc;
-    u8 mainSlot; // planned main-story slot (0-3) or CHAPTER_MAIN_SLOT_OFF_CHAIN; the static host tables leave it 0, GetPlannedChapterHosts fills it
+    u8 mainSlot; // planned main-story slot (0-3), CHAPTER_MAIN_SLOT_CALLBACK(block) or CHAPTER_MAIN_SLOT_OFF_CHAIN; the static host tables leave it 0, GetPlannedChapterHosts fills it
 };
 
 // Where Emerald hosts its ported chapters.
@@ -274,15 +280,16 @@ enum ChapterPlacementProblem
     CHAPTER_PLACEMENT_NO_CITY,
     CHAPTER_PLACEMENT_MISSING_ROLE,
     CHAPTER_PLACEMENT_BEFORE_BADGES,   // produces a main-plot get that comes no later than the minBadges-th gym
-    CHAPTER_PLACEMENT_KEY_NOT_EARLIER, // a consumed key has no producer in an earlier county or slot
+    CHAPTER_PLACEMENT_KEY_NOT_EARLIER, // a consumed key has no producer in an earlier county or slot (waitsForLaterKey: no producer at another position)
 };
 
 // Static check for putting `desc` in `mainSlot` (a main-story slot or CHAPTER_MAIN_SLOT_OFF_CHAIN) of `county` among
 // `hosts`: the county has a city with every needed role; a chapter that produces a main-plot get comes after the
 // minBadges-th gym (any other just waits for the badges at runtime); each consumed key has a producer strictly earlier in
 // story order, which is the producer's county story index, then its main-story slot (an off-chain chapter is open from
-// its county's entry). Producers in the same county and slot tie, and a tie is not earlier. `hosts` must not list `desc`
-// itself, and carry each host's planned mainSlot (GetPlannedChapterHosts).
+// its county's entry; a callback chapter sits at its callback block's step 1). Producers in the same county and slot tie, and
+// a tie is not earlier. An off-chain chapter with waitsForLaterKey may instead wait for a later producer (any other position). `hosts` must not
+// list `desc` itself, and carry each host's planned mainSlot (GetPlannedChapterHosts).
 u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 mainSlot, const struct ChapterHost *hosts, u32 numHosts);
 
 enum ProxyProblem
