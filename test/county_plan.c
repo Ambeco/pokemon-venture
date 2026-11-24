@@ -64,7 +64,11 @@ TEST("CountyPlan: Every Emerald county plans, and its chain and off-chain slots 
             EXPECT_EQ(plan.chain[i].numAdvances, plan.chainDesc[i]->numStages - 1);
             EXPECT(i == 0 || plan.chain[i].mainSlot >= plan.chain[i - 1].mainSlot);
             if (GetChapterSuppliedSlot(plan.chainDesc[i], &get))
-                EXPECT_EQ(plan.chain[i].mainSlot, get.block == (u32)GetCountyHeader(county)->storyIdx ? get.step : CHAPTER_MAIN_SLOT_CALLBACK(get.block));
+            {
+                bool32 isCallback = get.block != (u32)GetCountyHeader(county)->storyIdx;
+
+                EXPECT_EQ(plan.chain[i].mainSlot, isCallback ? CHAPTER_MAIN_SLOT_CALLBACK(get.block) : get.step);
+            }
         }
         for (i = 0; i < plan.numOffChain; i++)
         {
@@ -355,7 +359,8 @@ TEST("CountyPlan: Each ported gym is on its county's chain in its badge's slot, 
     static const struct { u16 county; u8 ordinal; u16 flag; } gyms[] =
     {
         {COUNTY_ID(0, 1), 1, FLAG_BADGE01_GET}, {COUNTY_ID(0, 3), 2, FLAG_BADGE02_GET},
-        {MAUVILLE, 3, FLAG_BADGE03_GET}, {COUNTY_ID(2, 0), 4, FLAG_BADGE04_GET}, {COUNTY_ID(3, 1), 6, FLAG_BADGE06_GET}, {COUNTY_ID(5, 1), 7, FLAG_BADGE07_GET},
+        {MAUVILLE, 3, FLAG_BADGE03_GET}, {COUNTY_ID(2, 0), 4, FLAG_BADGE04_GET},
+        {COUNTY_ID(3, 1), 6, FLAG_BADGE06_GET}, {COUNTY_ID(5, 1), 7, FLAG_BADGE07_GET},
     };
     u32 g, i;
 
