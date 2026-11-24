@@ -468,7 +468,9 @@ GYM_CHAPTER(sRustboroGymChapter, 1, FLAG_BADGE01_GET);
 GYM_CHAPTER(sDewfordGymChapter, 2, FLAG_BADGE02_GET);
 GYM_CHAPTER(sMauvilleGymChapter, 3, FLAG_BADGE03_GET);
 GYM_CHAPTER(sLavaridgeGymChapter, 4, FLAG_BADGE04_GET);
+GYM_CHAPTER(sFortreeGymChapter, 6, FLAG_BADGE06_GET);
 GYM_CHAPTER(sMossdeepGymChapter, 7, FLAG_BADGE07_GET);
+GYM_CHAPTER(sSootopolisGymChapter, 8, FLAG_BADGE08_GET); // block 19's callback, hosted by Sootopolis
 
 enum PetalburgGymStage
 {
@@ -600,7 +602,9 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sMauvilleGymChapter},
     {COUNTY_ID(2, 0), CHAPTER_SLOT_STATELESS, &sLavaridgeGymChapter},
     {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sNewMauvilleChapter},
+    {COUNTY_ID(3, 1), CHAPTER_SLOT_STATELESS, &sFortreeGymChapter},
     {COUNTY_ID(5, 1), CHAPTER_SLOT_STATELESS, &sMossdeepGymChapter},
+    {COUNTY_ID(4, 2), CHAPTER_SLOT_STATELESS, &sSootopolisGymChapter},
     {COUNTY_ID(0, 2), CHAPTER_SLOT_STATELESS, &sWallyRaltsChapter},
     {COUNTY_ID(0, 2), CHAPTER_SLOT_STATELESS, &sPetalburgGymChapter}, // Petalburg, hosting block 11's callback
 };

@@ -69,7 +69,9 @@ GYM_SUBPLOT(sRustboroGym);
 GYM_SUBPLOT(sDewfordGym);
 GYM_SUBPLOT(sMauvilleGym);
 GYM_SUBPLOT(sLavaridgeGym);
+GYM_SUBPLOT(sFortreeGym);
 GYM_SUBPLOT(sMossdeepGym);
+GYM_SUBPLOT(sSootopolisGym);
 GYM_SUBPLOT(sPetalburgGym);
 
 static const struct SubplotHost sEmeraldSubplotHosts[] =
@@ -92,7 +94,9 @@ static const struct SubplotHost sEmeraldSubplotHosts[] =
     {COUNTY_ID(2, 1), &sMauvilleGymSubplot},
     {COUNTY_ID(2, 0), &sLavaridgeGymSubplot},
     {COUNTY_ID(2, 1), &sNewMauvilleSubplot},
+    {COUNTY_ID(3, 1), &sFortreeGymSubplot},
     {COUNTY_ID(5, 1), &sMossdeepGymSubplot},
+    {COUNTY_ID(4, 2), &sSootopolisGymSubplot},
     {COUNTY_ID(0, 2), &sWallyRaltsSubplot},
     {COUNTY_ID(0, 2), &sPetalburgGymSubplot},
 };

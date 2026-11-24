@@ -328,7 +328,7 @@ TEST("CountyPlan: A slot with no chain entries is never done")
 TEST("CountyPlan: Petalburg's gym is block 11's callback, so it joins Petalburg's chain after its own slots at the callback block")
 {
     struct CountyChainPlan plan;
-    struct ChapterHost hosts[24];
+    struct ChapterHost hosts[32];
     u32 numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts)), i, found = 0;
     u32 petalburg = COUNTY_ID(0, 2);
 
@@ -355,7 +355,7 @@ TEST("CountyPlan: Each ported gym is on its county's chain in its badge's slot, 
     static const struct { u16 county; u8 ordinal; u16 flag; } gyms[] =
     {
         {COUNTY_ID(0, 1), 1, FLAG_BADGE01_GET}, {COUNTY_ID(0, 3), 2, FLAG_BADGE02_GET},
-        {MAUVILLE, 3, FLAG_BADGE03_GET}, {COUNTY_ID(2, 0), 4, FLAG_BADGE04_GET}, {COUNTY_ID(5, 1), 7, FLAG_BADGE07_GET},
+        {MAUVILLE, 3, FLAG_BADGE03_GET}, {COUNTY_ID(2, 0), 4, FLAG_BADGE04_GET}, {COUNTY_ID(3, 1), 6, FLAG_BADGE06_GET}, {COUNTY_ID(5, 1), 7, FLAG_BADGE07_GET},
     };
     u32 g, i;
 
