@@ -37,7 +37,7 @@ Detail lives in topic files; this file keeps the principles, the development ord
 
 | File | Covers |
 |---|---|
-| `design_region.md` | The 6x4 county grid: county layout, reserved legendary locations, Enclaves, settlement types, city themes, gym type order, special locations (landmark, detour, pitstop), county-story-index assignment (with Ports and the Kanto reference pattern), route generation, route story indices, geography, landforms, biomes. |
+| `design_region.md` | The 6x4 county grid: county layout, reserved legendary locations, Enclaves, settlement types, city themes, gym type order, special locations (landmark, detour, pitstop), county-story-index assignment (with Ports and the Kanto reference pattern), route generation, route story indices, geography, landforms, biomes, open questions. |
 | `design_data.md` | How region data is stored and read: determinism and seeds, county headers, region tiles, city data, the region dump, multiple regions. |
 | `design_pokemon.md` | Everything about Pokémon and battle: biome type affinity, the species-to-biome mapping, species metadata, route encounter selection, trainer teams and levels, experience, catch-rate floor, legendaries and starters, move pools, shops and trading, type-recolored sprites, type icons, battle damage estimates, the team analyzer, gym guide advice, open questions. |
 | `design_story.md` | The main story: arcs, arc progression, the main plot planner (steps, items, unlock gating, Surf, McGuffin kinds, the soft-lock proof's inputs), story state storage, McGuffins, the story graph and the soft-lock argument. |

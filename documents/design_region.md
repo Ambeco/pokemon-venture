@@ -228,6 +228,25 @@ Biome terrain and art:
 - To keep graphics size down, many biomes share tile sprites and differ by palette tint; ideally each biome still has some unique sprites.
 - Each biome has its own algorithm for the number and placement of trees, dark/tall/short grass, dirt, water, rocks, hills, etc.
 
+## Open questions
+
+Undecided points; none blocks the generator work in progress.
+
+- Region generation details still open: terrain, biome, population and special-location types, the story-order algorithm, key/lock rules, capital selection, and how generated data maps onto pokeemerald maps, warps and encounters.
+- Whether a city's count of inside-city special locations equals its population (1-3); Emerald averages about 0.6 per city (about 1.2 counting gyms), see `Emerald.md`.
+- Route rules: tie-breaking and duplicate-route handling when several adjacency rules apply to the same county pair.
+- The special-location catalog: inside-city vs outside-city lists, how a location is chosen for a county, and its relation to terrain, biome and story order.
+- How the underground tunnels around Saffron (Underground Path) fit the region model; Red/Blue map reproducibility is a design check.
+- The 5x5 biome grid's axis values and which 12 biomes each 4x3 subset yields; the meaning of each 2-bit population level (0 = none, 1 = village, 2 = town, 3 = city) and how it relates to terrain and biome; whether the region is regenerated on demand or cached in RAM (cost of regeneration).
+- The three settlement generation algorithms (village, town, city): building footprints, path layout, mapping onto GBA map layouts and metatiles, and where gyms, Pokémon Centers and Marts go in each.
+- Biome art and terrain: which biomes share tilesets (palette variants) and which get unique sprites; the per-biome terrain placement algorithms (trees, grass types, dirt, water, rocks, hills); mapping the 25 biomes to type-affinity tables and to Emerald's existing tilesets for the hardcoded stage.
+- The geography generator: outer-ring mountain and ocean stretches, inland mountain and ocean extensions, island formation, and humidity and temperature gradients at region-tile granularity that guarantee a non-mountain desert-like biome.
+- How each landform and cave variant (see "Landforms and cave variants") biases tiles, encounters and layouts.
+- The theme catalog (requirements, sprite sets, gym types, NPC texts), how the region layer assigns themes to spread gym types, and how placement tendencies (Elite Four corner, start near it, capital far, coast and mountain city nudges) are implemented within the layering principle.
+- How strongly gym assignment follows the average gym-order table (soft bias strength, Elite Four preference for late types) alongside theme requirements.
+- Whether the dropped top tile row leaves the 28x15 cells (after dropping the first and last columns too) holding the intended county contents, and whether the city name and Nav overlays cover only unused tiles; to be checked against the Emerald region map.
+- Shuffling which gym ordinal unlocks which HM (non-blocking). Constraints: Surf stays tied to the Surf-lock county's block and gym 5, Fly (and its gym) is never a callback and its block sets the callback distance bound, water HMs need terrain on the routes into the next county (or the blocker fallback), and an HM's badge must be held when the HM-gated route is entered.
+
 ## Alternatives considered
 
 ### 5x4 counties of 6x4 tiles
