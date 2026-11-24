@@ -678,7 +678,9 @@ u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 mainSl
             continue;
         key = ResolveChapterKey(&desc->requiredKeys[i], county);
         position = GetStoryPosition(county, mainSlot);
-        if (mainSlot == CHAPTER_MAIN_SLOT_OFF_CHAIN && desc->waitsForLaterKey ? !HasProducerAtOtherPosition(key, position, hosts, numHosts) : !HasProducerBefore(key, position, hosts, numHosts))
+        if ((mainSlot == CHAPTER_MAIN_SLOT_OFF_CHAIN && desc->waitsForLaterKey)
+            ? !HasProducerAtOtherPosition(key, position, hosts, numHosts)
+            : !HasProducerBefore(key, position, hosts, numHosts))
             return CHAPTER_PLACEMENT_KEY_NOT_EARLIER;
     }
     return CHAPTER_PLACEMENT_OK;

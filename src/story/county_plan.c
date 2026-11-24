@@ -199,6 +199,13 @@ bool32 PlanCountyChain(u32 county, const struct SubplotHost *subplots, u32 numSu
                     out->problemIndex = e;
                     return FALSE;
                 }
+                assertf(out->numEntries < COUNTY_PLAN_MAX_ENTRIES, "county %d chain has more than %d entries", county, COUNTY_PLAN_MAX_ENTRIES)
+                {
+                    out->problem = SUBPLOT_PLAN_NO_ROOM;
+                    out->problemSubplot = subplotIndex;
+                    out->problemIndex = e;
+                    return FALSE;
+                }
                 entry.mainSlot = CHAPTER_MAIN_SLOT_CALLBACK(get.block);
                 entry.chapterSlot = slot;
                 entry.numAdvances = subplot->entries[e].chapter->numStages - 1;
