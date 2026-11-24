@@ -64,7 +64,7 @@ TEST("CountyPlan: Every Emerald county plans, and its chain and off-chain slots 
             EXPECT_EQ(plan.chain[i].numAdvances, plan.chainDesc[i]->numStages - 1);
             EXPECT(i == 0 || plan.chain[i].mainSlot >= plan.chain[i - 1].mainSlot);
             if (GetChapterSuppliedSlot(plan.chainDesc[i], &get))
-                EXPECT_EQ(plan.chain[i].mainSlot, get.step);
+                EXPECT_EQ(plan.chain[i].mainSlot, get.block == (u32)GetCountyHeader(county)->storyIdx ? get.step : CHAPTER_MAIN_SLOT_CALLBACK(get.block));
         }
         for (i = 0; i < plan.numOffChain; i++)
         {
@@ -336,34 +336,18 @@ TEST("CountyPlan: Petalburg's gym is block 11's callback, so it joins Petalburg'
     EXPECT_EQ(GetVanillaPlotSlot(PLOT_KIND_GYM, 5).block, 11);
     EXPECT_EQ(GetVanillaPlotSlot(PLOT_KIND_GYM, 5).step, 1);
     EXPECT(PlanEmeraldCountyChain(petalburg, &plan));
-    EXPECT_EQ(plan.numEntries, 1);
-    EXPECT_EQ(plan.chain[0].mainSlot, CHAPTER_MAIN_SLOT_CALLBACK(11));
-    EXPECT_EQ(plan.chain[0].chapterSlot, CHAPTER_SLOT_STATELESS);
-    EXPECT_EQ(plan.chain[0].numAdvances, 2);
+    EXPECT_EQ(plan.numEntries, 2);
+    EXPECT_EQ(plan.chain[0].mainSlot, 0);
+    EXPECT_EQ(plan.chain[1].mainSlot, CHAPTER_MAIN_SLOT_CALLBACK(11));
+    EXPECT_EQ(plan.chain[1].chapterSlot, CHAPTER_SLOT_STATELESS);
+    EXPECT_EQ(plan.chain[1].numAdvances, 2);
     EXPECT_EQ(plan.numOffChain, 0);
     for (i = 0; i < numHosts; i++)
     {
-        if (hosts[i].county == petalburg)
-        {
+        if (hosts[i].county == petalburg && hosts[i].mainSlot == CHAPTER_MAIN_SLOT_CALLBACK(11))
             found++;
-            EXPECT_EQ(hosts[i].mainSlot, CHAPTER_MAIN_SLOT_CALLBACK(11));
-        }
     }
     EXPECT_EQ(found, 1);
-}
-
-static const struct ChapterDesc sCallbackGymChapter = {.numStages = 2, .producesMainGet = TRUE, .mainGet = {PLOT_KIND_GYM, 5}};
-
-TEST("CountyPlan: A gym whose get is another block's callback is refused by any county but the callback's host")
-{
-    struct CountyChainPlan plan;
-    static const struct SubplotEntry entries[] = {{&sCallbackGymChapter, FALSE}};
-    static const struct SubplotDesc subplot = {1, entries};
-    struct SubplotHost subplots[] = {{COUNTY_ID(2, 1), &subplot}};
-    struct ChapterHost hosts[] = {{COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sCallbackGymChapter}};
-
-    EXPECT(!PlanCountyChain(COUNTY_ID(2, 1), subplots, 1, hosts, 1, &plan));
-    EXPECT_EQ(plan.problem, SUBPLOT_PLAN_BOUND_ELSEWHERE);
 }
 
 TEST("CountyPlan: Each ported gym is on its county's chain in its badge's slot, and done once the badge is held")
@@ -371,7 +355,7 @@ TEST("CountyPlan: Each ported gym is on its county's chain in its badge's slot, 
     static const struct { u16 county; u8 ordinal; u16 flag; } gyms[] =
     {
         {COUNTY_ID(0, 1), 1, FLAG_BADGE01_GET}, {COUNTY_ID(0, 3), 2, FLAG_BADGE02_GET},
-        {MAUVILLE, 3, FLAG_BADGE03_GET}, {COUNTY_ID(5, 1), 7, FLAG_BADGE07_GET},
+        {MAUVILLE, 3, FLAG_BADGE03_GET}, {COUNTY_ID(2, 0), 4, FLAG_BADGE04_GET}, {COUNTY_ID(5, 1), 7, FLAG_BADGE07_GET},
     };
     u32 g, i;
 

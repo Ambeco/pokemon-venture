@@ -555,7 +555,7 @@ TEST("Chapter: Every Emerald host passes the placement check")
     struct ChapterHost hosts[24], others[24];
 
     numHosts = GetPlannedChapterHosts(hosts, ARRAY_COUNT(hosts));
-    EXPECT_EQ(numHosts, 21);
+    EXPECT_EQ(numHosts, 22);
     for (i = 0; i < numHosts; i++)
     {
         for (j = 0, numOthers = 0; j < numHosts; j++)

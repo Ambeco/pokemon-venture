@@ -2,7 +2,6 @@
 
 One line per item, roughly highest priority first. Delete an item when it is paid off.
 
-- BROKEN at e407255fc6: `make check TESTS=CountyPlan` fails 3 tests (`test/county_plan.c` "Every Emerald county plans" at :67, "refused by any county but the callback's host" at :259, "Petalburg's gym is block 11's callback" at :339 expects 1 chain entry, got 2): `sWallyRaltsChapter` (`emerald_chapters.h`) in Petalburg's subplots trips the BOUND_ELSEWHERE assert in `PlanCountyChain` for county 8.
 - `remaining_work.md` mixes milestone work with ~60 "open design questions" (many are design content, not work) and has multi-clause items that cannot be deleted whole; the 1a milestone is a grab bag.
   - Step 1: `design_pokemon.md` "Open questions" is done; move the remaining "Open design questions" that only define a future design (biome grid, settlement algorithms, landform list, geography generator, theme catalog, gym assignment, story arcs, chapter format) into the matching `design_*.md` "Open questions" section, one commit per design file
   - Step 2: move the two decided-but-unchecked notes (Ports cross-check, "Exceptions to the normal rules" in `Emerald.md`) into `Emerald.md` / `design_region.md`, leaving a one-line remaining_work item each

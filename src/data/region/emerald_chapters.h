@@ -467,6 +467,7 @@ static const struct ChapterDesc name = \
 GYM_CHAPTER(sRustboroGymChapter, 1, FLAG_BADGE01_GET);
 GYM_CHAPTER(sDewfordGymChapter, 2, FLAG_BADGE02_GET);
 GYM_CHAPTER(sMauvilleGymChapter, 3, FLAG_BADGE03_GET);
+GYM_CHAPTER(sLavaridgeGymChapter, 4, FLAG_BADGE04_GET);
 GYM_CHAPTER(sMossdeepGymChapter, 7, FLAG_BADGE07_GET);
 
 enum PetalburgGymStage
@@ -597,6 +598,7 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sRustboroGymChapter},
     {COUNTY_ID(0, 3), CHAPTER_SLOT_STATELESS, &sDewfordGymChapter},
     {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sMauvilleGymChapter},
+    {COUNTY_ID(2, 0), CHAPTER_SLOT_STATELESS, &sLavaridgeGymChapter},
     {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sNewMauvilleChapter},
     {COUNTY_ID(5, 1), CHAPTER_SLOT_STATELESS, &sMossdeepGymChapter},
     {COUNTY_ID(0, 2), CHAPTER_SLOT_STATELESS, &sWallyRaltsChapter},
