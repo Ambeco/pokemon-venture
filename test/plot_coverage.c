@@ -60,7 +60,7 @@ static bool32 IsPinnedUnsupplied(const struct PlotSlot *item)
     return FALSE;
 }
 
-static bool32 IsPinnedGetUnsupplied(const struct UnsuppliedGet *pin)
+static bool32 IsPinStillUnsupplied(const struct UnsuppliedGet *pin)
 {
     u32 index, i, count;
     struct PlotSlot items[MAX_GETS_PER_LIST];
@@ -95,7 +95,7 @@ TEST("PlotCoverage: Every get is supplied by a chapter, hosted by another mechan
     }
     for (i = 0; i < ARRAY_COUNT(sUnsuppliedGets); i++)
     {
-        if (!IsPinnedGetUnsupplied(&sUnsuppliedGets[i]))
+        if (!IsPinStillUnsupplied(&sUnsuppliedGets[i]))
         {
             stale++;
             Test_MgbaPrintf("{%d, %d} is now supplied (or gone); did you mean to delete it from sUnsuppliedGets?", sUnsuppliedGets[i].kind, sUnsuppliedGets[i].ordinal);
