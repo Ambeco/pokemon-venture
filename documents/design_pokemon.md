@@ -262,6 +262,7 @@ Points the sections above leave undecided.
 - **Trainer teams:** the trainer classes (ordinary, boss, low-level grunt), how route-story-index maps to trainer and wild levels and hidden items, and the grunt catch-rate cutoff (starts at 255) are not yet defined or tuned.
 - **Catch-rate floor:** the curve as a function of route-story-index or badge count, and any excluded category beyond babies, starters and legendaries (pseudo-legendaries, mythicals).
 - **Legendaries and starters:** the acquisition mechanism (gift chapters, weekly legendary spawn, generation grouping of legendary locations).
+- **Analyzer move suggestions:** an extension that suggests moves via per-species best-move lists and a greedy or hill-climb search over box Pokémon and future learnable moves is not designed.
 - **Expansion mechanics:** which of Mega Evolution, Gigantamax, Z-Moves, Terastallization and alternate forms to keep, and how procedural typing and move pools interact with them (Mega types, Tera types, form-specific moves).
 
 ## Alternatives considered

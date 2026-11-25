@@ -3,7 +3,6 @@
 One line per item, roughly highest priority first. Delete an item when it is paid off.
 
 - `remaining_work.md` mixes milestone work with ~60 "open design questions" (many are design content, not work) and has multi-clause items that cannot be deleted whole; the 1a milestone is a grab bag.
-  - Step 3: keep in "Open design questions" only actionable work (battle damage estimates, gym guide, team analyzer, type-recolored sprites, type icons, New Game menu, starters, Pokédex habitat view) and rename the section "Unscheduled work"
   - Step 4: split "Type-recolored sprites" into one parent line plus sub-bullets (build tool, runtime recolor, shimmer, tests, party icons, PC box icons, open palette-tag mapping)
   - Step 5: split multi-clause items into sub-bullets: "County planning", "Hinter follow-ups", "Pokémon Center news object", "Add the remaining triggers", "Location placeholders", "Building classification for chapters"
   - Step 6: break Milestone 1a into sub-headers (Planner/Flash, Chapter ports, Scene runner, Hinters and news, Placeholders and far references, County chain) so each group can be finished and deleted whole

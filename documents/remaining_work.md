@@ -164,7 +164,7 @@
 - Rewrite `README.md` as the fork's own README.
 - End-to-end tests: once map generation exists, add an in-ROM test (`Test_LoadMap` on a generated map, fixed identity seed, check hinters bound from the plan) and a fixed-seed e2e recipe for a generated region; also cover `addobject` scripts in-ROM.
 
-## Open design questions and unscheduled work
+## Unscheduled work
 
 - Story mode (design_dev.md, "Story mode"): play it through in the emulator once and check the skip-to-field transition (fade), the corner popup placement against the map-name popup and the evolution scene hand-off; pooled trainer parties pay out from their first `partySize` entries only.
 - Collect the overall plan for the mod from the user and record it in `design.md`.
@@ -177,7 +177,6 @@
 - Debug menu entry showing the current route's encounter tables (every method, time of day and weather); needed once Milestone 5 generates them.
 - Turn on party-wide experience (`I_EXP_SHARE_FLAG`, always set) and add the underleveled bonus and overleveled penalty (design_pokemon.md, "Experience"); open: the bonus and penalty multipliers, and the exact boss-level estimate, which waits on Milestone 7's boss levels.
 - Implement the PC team analyzer (design_pokemon.md, "Team analyzer"). Open: the hypothetical opponents' attacking stats (for the defensive part of the grade); the score of a Pokémon with no top grades (avg of an empty set, assumed 0, giving score 1).
-- Design the analyzer's move-suggestion extension: per-species best-move lists and a greedy/hill-climb search over box Pokémon and future learnable moves.
 - Type-recolored sprites (design_pokemon.md, "Type-recolored sprites"): the build tool for picked palette indices, the runtime recolor at palette load (battle, summary, Pokédex, party/box icons, followers), the shiny shimmer, and visual tests to tune the bucket cutoffs. Party menu icons (6 Pokémon) fit in free OBJ palette slots. PC box icons: switch OBJ palettes between icon rows with HBlank DMA (rows don't overlap vertically; icons overlap only left/right). BG palettes are a separate bank of 16, so the box's backgrounds don't compete. Use one icon palette per type combination (6 per row). Vanilla `src/pokemon/pokemon_storage_system.c` already loads 15 OBJ palettes: 6 icon palettes (`PALTAG_MON_ICON_0-5`) plus `BOX_TITLE`, `DISPLAY_MON`, `MARKING_COMBO`, `MARKING_MENU`, `MISC_1`, `MISC_2`, and `ITEM_ICON_0-2` (item mode only). Those beside the icon rows (preview sprite, markings, cursor, item icons) plus a slot for the carried Pokémon (it crosses rows) stay reserved, leaving roughly 7-10 per row: 6 fits, 12 split-icon halves do not. Open: map which tags share scanlines with the icon rows and when each is loaded, and check box scrolling (the title slides across) and the carried icon.
 - Implement type icons before Pokémon names in all text: pokeemerald-expansion is believed to already have text icons for each type (unverified; check before adding new glyphs); handling of name buffers and text width, and nickname/name-entry screens.
 - Find the latent memory-layout bug behind the Z-Move animation test crash seen when linking in directory order (see notes.md), so the basename-sorted link order can be dropped.
@@ -186,15 +185,11 @@
 - Define the per-method encounter tables (eager: walk, surf, grass, dark grass; lazy: rods, rock smash, headbutt, berry trees, spots), time-of-day and weather filters, and table recalculation when time or weather changes.
 - Hardcode estimated encounter levels for non-level evolutions (stones ~29, trade, friendship, etc.).
 - Audit existing rules against the layering principle (design.md "Layered generation"): e.g. route-story-index rules must depend only on county-story-indices and connectivity, and species/encounter generation must not need generated map data.
-- Content roadmap: Emerald rival arc and story arc first (preserving cutscene text), then the Kanto story arc and Red/Blue/Yellow rival arc, then other mainline games; chapters from Emerald, then RBY and others, and eventually TV-episode chapters.
 - Design chunked, per-frame generation (region/county/map and city plot points) and its CPU budget.
 - Add the generator id to the save and the refuse-to-load check.
-- Confirm the story-graph proposals in design_story.md (the layer-2 growth constraint, the start county always having a settlement, key items and HMs as the only keys) and check the first-place rule against Emerald's actual layout.
 - Decide each "Exceptions to the normal rules" entry in `Emerald.md` (rule change or table change), then renumber the counties.
 - Cross-check the Ports rules (design_region.md, "Ports") against the Surf land-count threshold and the sea-route levels.
-- V2 readiness (several regions, as in Gold/Silver and FireRed/LeafGreen; design_data.md, "Regions and multiple regions"): the 24 county var slices, `GetRegionHeader()` and the tile table assume one region; give them a region index and a per-region seed when V2 starts.
 - Randomized starters (design_pokemon.md, "Randomized starters"): build the four tables and the bonus list, the stride roll and its saved stride (for the rivals), and the rolling bag.
 - New Game configuration menu and Nuzlocke mode (design_dev.md, "New Game configuration and Nuzlocke mode").
 - Pokédex habitat view and region-tile species view (design_pokemon.md, "Pokédex habitat view").
 - Building classification for chapters: three kinds, city-locations with actors (unique maps), generic-fill buildings with generic-fill NPCs (immutable, per chapter not per stage; a city asks a chapter for actors and for a count of them), and generic-fill buildings with actors. A later chapter refers back to an earlier chapter's building by (`chapter_id`, building index); the id is enough because each run uses a subset of chapters and never reuses one, and re-run `tools/building_audit.py` with only mutations (reads ignored), key items only, and TMs only for Secret Power (TM43).
-- Gym-type chapters: a gym type (Psychic for Mossdeep, Rock for Rustboro) may carry its own chapter so leaders meet the player beforehand, as in Pokémon X/Y.

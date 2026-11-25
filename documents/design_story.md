@@ -205,6 +205,9 @@ Emerald's opening as an example:
 
 - The hand-designed main story arcs: how many (a handful), how much deeper than Red/Blue, and how their beats map onto county story indices.
 - The chapter data format (linear stages, hint texts, story-state texts) is settled for the ported Emerald chapters (`design_chapters.md`); authoring the special-location and city chapters (TV-episode style, introducing each gym leader before their battle) is not designed.
+- **Content roadmap:** the intended order is the Emerald rival and story arc first (preserving cutscene text), then the Kanto story arc and the Red/Blue/Yellow rival arc, then other mainline games; chapters come from Emerald, then RBY and others, and eventually TV-episode chapters.
+- **Gym-type chapters:** a gym type (Psychic for Mossdeep, Rock for Rustboro) might carry its own chapter so the leader meets the player beforehand, as in Pokémon X/Y; undecided.
+- **Story-graph proposals:** the layer-2 growth constraint, the start county always having a settlement, and key items and HMs as the only keys are proposals not yet confirmed; the first-place rule is not yet checked against Emerald's actual layout.
 
 ## Alternatives considered
 
