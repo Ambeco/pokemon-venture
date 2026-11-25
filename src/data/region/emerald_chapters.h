@@ -244,7 +244,17 @@ static const struct ChapterDesc sGoodRodChapter =
 // The scene writes the slot var; on a cityless county's route the map script also sets the legacy var
 // (VAR_ROUTE110_STATE or VAR_ROUTE119_STATE) that its coord events and the plot-get adapter predicates read, because
 // a route script cannot find its county's stage. Lilycove's rival is the same in a city; the adapter reads its flag.
-#define ROUTE_GET_CHAPTER(name, getKind, getOrdinal) static const struct ChapterDesc name = {     .backend = CHAPTER_STORED,     .numStages = ARRAY_COUNT(name##Stages),     .stages = name##Stages,     .numHints = ARRAY_COUNT(name##Hints),     .hints = name##Hints,     .producesMainGet = TRUE,     .mainGet = {getKind, getOrdinal}, }
+#define ROUTE_GET_CHAPTER(name, getKind, getOrdinal) \
+static const struct ChapterDesc name = \
+{ \
+    .backend = CHAPTER_STORED, \
+    .numStages = ARRAY_COUNT(name##Stages), \
+    .stages = name##Stages, \
+    .numHints = ARRAY_COUNT(name##Hints), \
+    .hints = name##Hints, \
+    .producesMainGet = TRUE, \
+    .mainGet = {getKind, getOrdinal}, \
+}
 
 #define ROUTE_NPC_STAGE {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}}
 
