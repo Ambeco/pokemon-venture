@@ -310,7 +310,7 @@ Totals: 64 gets, 20 unlocks (blocks 0-19), 2 of them blockers (indices 39, 67) a
 
 ## Exceptions to the normal rules
 
-Numbered so they can be struck off as the rules or the table change.
+Numbered so they can be struck off as the rules or the table change. Each is either kept as an exception or resolved by changing a rule or the table, after which the counties are renumbered to match. Candidates for rule changes: a callback gym sharing a block with the previous gym (G4 forced to step 0, exception 1), and an arc dictating its own callback host.
 
 1. G4 (Lavaridge, step 0) and G5 (Petalburg, the step-1 callback) share the Surf block 11, so G4 lies outside its window 9-10; encoded in `GetGymSlot`. Lavaridge's gym precedes Surf, which opens the Weather Institute county from Lavaridge's block, and a callback host cannot be a county that is not yet unlocked.
 2. Surf's unlock (index 47) opens a land county (the Weather Institute, across Route 118's river), not an ocean county, and the Surf lock is block 11 rather than "the ocean county's dead end".

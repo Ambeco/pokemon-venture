@@ -126,6 +126,8 @@ Ports are layer-2 county flags. A ferry is a teleport between two port cities, n
 
 Because the ocean county is reached by teleport, it needs no lower-index neighbor for the growth constraint. Its sea routes are Surf-gated, and their wild Pokémon, trainers and items are leveled for the block that gives Surf, not for the cities they connect.
 
+Open point: whether a port's ocean county counts toward the Surf land-count threshold (it is an ocean county, but reached before Surf).
+
 #### Kanto reference pattern
 
 Story points in Kanto, as `county-story-index - content` (an index may hold several things, and the order circles back):
