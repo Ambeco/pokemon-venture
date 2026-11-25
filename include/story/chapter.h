@@ -266,6 +266,10 @@ u8 *ExpandHintTemplateFrom(u8 *dst, const u8 *src, u32 referrer, u32 hostCounty,
 // Returns the end of the string.
 u8 *WriteCountyReferenceAt(u8 *dst, u32 referrer, u32 target, bool32 callback, u32 mainBlock);
 
+// "north", "southeast" and so on: the compass direction from county a to county b, diagonal when the offset is
+// more diagonal than straight and straight on the boundary.
+const u8 *GetCountyDirectionName(u32 a, u32 b);
+
 // WriteCountyReferenceAt for the current main-story block (GetMainStoryIndex() >> 2).
 u8 *WriteCountyReference(u8 *dst, u32 referrer, u32 target, bool32 callback);
 
@@ -291,7 +295,6 @@ bool32 IsChapterAvailable(const struct ChapterDesc *desc, u32 hostCounty, const 
 enum ChapterPlacementProblem
 {
     CHAPTER_PLACEMENT_OK,
-    CHAPTER_PLACEMENT_NO_CITY,
     CHAPTER_PLACEMENT_MISSING_ROLE,
     CHAPTER_PLACEMENT_BEFORE_BADGES,   // produces a main-plot get that comes no later than the minBadges-th gym
     CHAPTER_PLACEMENT_KEY_NOT_EARLIER, // a consumed key has no producer in an earlier county or slot (waitsForLaterKey: no producer at another position)

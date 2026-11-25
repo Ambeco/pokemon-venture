@@ -670,10 +670,8 @@ u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 mainSl
 {
     u32 needed = GetChapterNeededRoles(desc), bit, i;
 
-    // A role-free adapter chapter only reads state, so a county without a city can host it (a get of a cityless county's block).
-    if (!DoesCountyHaveCity(county) && needed != 0)
-        return CHAPTER_PLACEMENT_NO_CITY;
-    for (bit = 0; bit < NUM_BUILDING_ROLES; bit++)
+    // A county without a city places the buildings its chapters need on its routes, so it has no roles to miss.
+    for (bit = 0; bit < NUM_BUILDING_ROLES && DoesCountyHaveCity(county); bit++)
     {
         if ((needed & (1u << bit)) && !DoesCountyCityHaveBuilding(county, 1u << bit))
             return CHAPTER_PLACEMENT_MISSING_ROLE;
@@ -897,21 +895,31 @@ static const u8 sOf[] = _(" of ");
 static const u8 sNear[] = _("near ");
 static const u8 sFarTo[] = _("the far ");
 static const u8 sCommaNear[] = _(", near ");
-static const u8 sSomewhereFar[] = _("somewhere far away");
-static const u8 *const sDirectionNames[] = {COMPOUND_STRING("north"), COMPOUND_STRING("south"), COMPOUND_STRING("east"), COMPOUND_STRING("west")};
 
-enum Direction4 {DIR4_NORTH, DIR4_SOUTH, DIR4_EAST, DIR4_WEST};
-
-// The compass direction from county a to county b along the longer axis of the offset; vertical on a tie.
-static u32 GetCountyDirection(u32 a, u32 b)
+const u8 *GetCountyDirectionName(u32 a, u32 b)
 {
+    static const u8 *const sNames[3][3] =
+    {
+        {COMPOUND_STRING("northwest"), COMPOUND_STRING("north"), COMPOUND_STRING("northeast")},
+        {COMPOUND_STRING("west"), COMPOUND_STRING("here"), COMPOUND_STRING("east")},
+        {COMPOUND_STRING("southwest"), COMPOUND_STRING("south"), COMPOUND_STRING("southeast")},
+    };
     s32 dx = (s32)COUNTY_X(b) - (s32)COUNTY_X(a);
     s32 dy = (s32)COUNTY_Y(b) - (s32)COUNTY_Y(a);
-    u32 ax = dx < 0 ? -dx : dx, ay = dy < 0 ? -dy : dy;
+    s32 ax = dx < 0 ? -dx : dx, ay = dy < 0 ? -dy : dy;
+    s32 major = ax > ay ? ax : ay, minor = ax > ay ? ay : ax;
+    // Diagonal only when the minor axis is over tan(22.5 degrees) (about 5/12) of the major one; the boundary itself is straight.
+    bool32 diagonal = minor * 12 > major * 5;
+    s32 sx = dx == 0 ? 0 : (dx < 0 ? -1 : 1), sy = dy == 0 ? 0 : (dy < 0 ? -1 : 1);
 
-    if (ay >= ax)
-        return dy < 0 ? DIR4_NORTH : DIR4_SOUTH;
-    return dx < 0 ? DIR4_WEST : DIR4_EAST;
+    if (!diagonal)
+    {
+        if (ay >= ax)
+            sx = 0;
+        else
+            sy = 0;
+    }
+    return sNames[sy + 1][sx + 1];
 }
 
 // The mapsec of the county's first landmark, else its first detour or pitstop; FALSE when it has none.
@@ -938,16 +946,19 @@ static bool32 FindCountyLandmarkMapSec(u32 county, u32 *mapSec)
 
 static u8 *WriteLandmarkName(u8 *dst, u32 county)
 {
-    u32 mapSec;
+    u32 mapSec = 0;
+    bool32 found = FindCountyLandmarkMapSec(county, &mapSec);
 
-    if (!FindCountyLandmarkMapSec(county, &mapSec))
-        return StringCopy(dst, sSomewhereFar);
+    assertf(found, "county %d has no landmark, detour or pitstop to refer to; did the generator give every county a place?", county)
+    {
+        return dst;
+    }
     return StringCopy(dst, gRegionMapEntries[mapSec].name);
 }
 
 static u8 *WriteDirectionOf(u8 *dst, u32 from, u32 to)
 {
-    return StringCopy(StringCopy(dst, sDirectionNames[GetCountyDirection(from, to)]), sOf);
+    return StringCopy(StringCopy(dst, GetCountyDirectionName(from, to)), sOf);
 }
 
 // The adjacent county with a smaller story index than `target` and the highest such index that satisfies the
@@ -980,7 +991,7 @@ u8 *WriteCountyReferenceAt(u8 *dst, u32 referrer, u32 target, bool32 callback, u
     if (referrer == target)
         return StringCopy(dst, sHere);
     if (AreCountiesAdjacent(referrer, target))
-        return StringCopy(StringCopy(StringCopy(dst, sTheArea), sDirectionNames[GetCountyDirection(referrer, target)]), sOfHere);
+        return StringCopy(StringCopy(StringCopy(dst, sTheArea), GetCountyDirectionName(referrer, target)), sOfHere);
     if (callback || mainBlock > GetCountyHeader(target)->storyIdx)
         return WriteLandmarkName(StringCopy(StringCopy(dst, sTheArea), sNear), target);
     neighbor = FindEarlierNeighbor(target, TRUE);
@@ -989,7 +1000,7 @@ u8 *WriteCountyReferenceAt(u8 *dst, u32 referrer, u32 target, bool32 callback, u
     neighbor = FindEarlierNeighbor(target, FALSE);
     if (neighbor != NUM_COUNTIES)
         return WriteLandmarkName(WriteDirectionOf(StringCopy(dst, sTheArea), neighbor, target), neighbor);
-    dst = StringCopy(StringCopy(dst, sFarTo), sDirectionNames[GetCountyDirection(referrer, target)]);
+    dst = StringCopy(StringCopy(dst, sFarTo), GetCountyDirectionName(referrer, target));
     return WriteLandmarkName(StringCopy(dst, sCommaNear), target);
 }
 

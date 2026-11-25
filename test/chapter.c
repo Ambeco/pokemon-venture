@@ -913,7 +913,7 @@ TEST("Chapter: Placement needs every role of the descriptor, its anchors and its
     EXPECT_EQ(GetChapterNeededRoles(&desc), BUILDING_POKEMON_CENTER | BUILDING_GYM | BUILDING_HOUSE);
     EXPECT_EQ(CheckChapterPlacement(&desc, RUSTBORO, 0, NULL, 0), CHAPTER_PLACEMENT_OK);
     EXPECT_EQ(CheckChapterPlacement(&desc, LILYCOVE, 0, NULL, 0), CHAPTER_PLACEMENT_MISSING_ROLE);
-    EXPECT_EQ(CheckChapterPlacement(&desc, COUNTY_ID(0, 0), 0, NULL, 0), CHAPTER_PLACEMENT_NO_CITY);
+    EXPECT_EQ(CheckChapterPlacement(&desc, COUNTY_ID(0, 0), 0, NULL, 0), CHAPTER_PLACEMENT_OK); // a cityless county builds on its routes
 }
 
 TEST("Chapter: A chapter giving a main-plot get must come after the gym its badges wait for")
@@ -1490,4 +1490,17 @@ TEST("Chapter: A remote cityless county not yet passed is placed by direction fr
     WriteCountyReferenceAt(out, RUSTBORO, WEATHER, FALSE, 0);
     StringAppend(StringCopy(expect, COMPOUND_STRING("the area east of ")), GetCountyCityName(LAVARIDGE));
     EXPECT_EQ(StringCompare(out, expect), 0);
+}
+
+TEST("Chapter: Direction names are diagonal when the offset is more diagonal than straight, and straight on the boundary")
+{
+    EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(2, 2), COUNTY_ID(2, 1)), COMPOUND_STRING("north")), 0);
+    EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(2, 2), COUNTY_ID(3, 2)), COMPOUND_STRING("east")), 0);
+    EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(2, 2), COUNTY_ID(3, 1)), COMPOUND_STRING("northeast")), 0);
+    EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(2, 2), COUNTY_ID(1, 3)), COMPOUND_STRING("southwest")), 0);
+    EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(0, 0), COUNTY_ID(3, 3)), COMPOUND_STRING("southeast")), 0);
+    // 1 over 3 is flatter than 22.5 degrees' worth of diagonal, so it stays straight; 2 over 3 is diagonal.
+    EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(0, 0), COUNTY_ID(3, 1)), COMPOUND_STRING("east")), 0);
+    EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(0, 0), COUNTY_ID(3, 2)), COMPOUND_STRING("southeast")), 0);
+    EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(3, 3), COUNTY_ID(0, 0)), COMPOUND_STRING("northwest")), 0);
 }
