@@ -1,0 +1,238 @@
+[
+  {
+    "name": "Route 110 rival: the fight, the Itemfinder and the exit advance the rival and Itemfinder chapters and the legacy var",
+    "snapshot": "route110_below_rival",
+    "steps": [
+      {
+        "press": "UP",
+        "hold": 24
+      },
+      {
+        "wait": 400
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "battle": true
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      }
+    ],
+    "settleFrames": 600,
+    "expect": [
+      {
+        "var": 16473,
+        "u16": 1
+      },
+      {
+        "var": 16474,
+        "u16": 1
+      },
+      {
+        "var": 16509,
+        "u16": 1
+      }
+    ]
+  },
+  {
+    "name": "Route 110 rival with a full Key Items pocket: the fight advances only the rival chapter and the rival waits",
+    "snapshot": "route110_full_key_pocket",
+    "steps": [
+      {
+        "press": "UP",
+        "hold": 24
+      },
+      {
+        "wait": 400
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "battle": true
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      }
+    ],
+    "settleFrames": 600,
+    "expect": [
+      {
+        "var": 16473,
+        "u16": 1
+      },
+      {
+        "var": 16474,
+        "u16": 0
+      },
+      {
+        "var": 16509,
+        "u16": 0
+      }
+    ]
+  }
+]

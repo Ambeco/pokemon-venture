@@ -51,6 +51,11 @@ extern const u8 Scene_EventScript_RunTriggered[];
 // Slot 0 of the Weather Institute county (3, 0), likewise.
 #define SCENE_ROUTE118_GOOD_ROD_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(3, 0) * VARS_PER_COUNTY + 1)
 
+// Slots 0 and 1 of the Route 110 county (2, 2), and slot 1 of the Weather Institute county, likewise.
+#define SCENE_ROUTE110_RIVAL_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(2, 2) * VARS_PER_COUNTY + 1)
+#define SCENE_ROUTE110_ITEMFINDER_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(2, 2) * VARS_PER_COUNTY + 2)
+#define SCENE_ROUTE119_RIVAL_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(3, 0) * VARS_PER_COUNTY + 2)
+
 #include "data/scenes.h"
 
 static EWRAM_DATA u8 sSearchCameFrom[WINDOW_CELLS] = {0}; // the direction taken into each cell, CELL_UNSEEN if not reached

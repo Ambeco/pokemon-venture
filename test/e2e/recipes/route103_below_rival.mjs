@@ -15,19 +15,19 @@ export const description = "Fresh New Game with a level 10 Treecko, teleported t
 // are set well above what level 10 gives, so it wins in a turn or two.
 // A struct Pokemon (include/pokemon/pokemon.h) with personality and otId 0: the key that encrypts the substructs is
 // personality ^ otId = 0, so they are stored in the clear, and 0 % 24 puts them in the order growth, attacks, EVs, misc.
-function makeMon() {
+export function makeMon(level = 10, experience = 600) {
   const mon = Buffer.alloc(100);
   mon[19] = 0x02; // hasSpecies (bit 1; bit 0 is isBadEgg)
   const secure = 32;
   mon.writeUInt16LE(SPECIES_TREECKO, secure); // growth: species in the low 11 bits
-  mon.writeUInt32LE(600, secure + 4); // experience (21 bits)
+  mon.writeUInt32LE(experience, secure + 4); // experience (21 bits)
   mon[secure + 9] = 70; // friendship
   mon.writeUInt16LE(MOVE_SCRATCH, secure + 12); // attacks: move1 in the low 11 bits
   mon[secure + 20] = 35; // pp1
   let checksum = 0;
   for (let i = 0; i < 48; i += 2) checksum = (checksum + mon.readUInt16LE(secure + i)) & 0xffff;
   mon.writeUInt16LE(checksum, 28);
-  mon[84] = 10; // level
+  mon[84] = level;
   mon[85] = 0xff; // mail: none
   for (const [offset, value] of [[86, 400], [88, 400], [90, 300], [92, 300], [94, 300], [96, 300], [98, 300]]) {
     mon.writeUInt16LE(value, offset); // hp, maxHP, attack, defense, speed, spAttack, spDefense

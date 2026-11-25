@@ -1,0 +1,128 @@
+[
+  {
+    "name": "Route 119 rival: the fight and the HM Fly advance the rival chapter to its last stage and the legacy var",
+    "snapshot": "route119_below_rival",
+    "steps": [
+      {
+        "press": "UP",
+        "hold": 24
+      },
+      {
+        "wait": 400
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 90
+      },
+      {
+        "battle": true
+      },
+      {
+        "wait": 200
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      },
+      {
+        "press": "A"
+      },
+      {
+        "wait": 120
+      }
+    ],
+    "settleFrames": 600,
+    "expect": [
+      {
+        "var": 16430,
+        "u16": 2
+      },
+      {
+        "var": 16512,
+        "u16": 1
+      }
+    ]
+  }
+]

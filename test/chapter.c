@@ -27,6 +27,7 @@
 #define OLDALE COUNTY_ID(1, 2)
 #define PETALBURG COUNTY_ID(0, 2)
 #define WEATHER COUNTY_ID(3, 0)
+#define ROUTE110_COUNTY COUNTY_ID(2, 2)
 
 static const u8 sTextA[] = _("a");
 static const u8 sTextB[] = _("b");
@@ -101,7 +102,7 @@ static const struct ChapterDesc sFullDesc =
     .actors = sActors,
 };
 
-TEST("Chapter: Mossdeep, Dewford, Slateport and the Weather Institute county host one chapter in slot 0, Mauville in slots 0 to 2, Rustboro, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
+TEST("Chapter: Mossdeep, Dewford and Slateport host one chapter in slot 0, the Weather Institute and Route 110 counties in slots 0 and 1, Mauville in slots 0 to 2, Rustboro, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
 {
     u32 county, slot;
 
@@ -109,7 +110,8 @@ TEST("Chapter: Mossdeep, Dewford, Slateport and the Weather Institute county hos
     {
         for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
         {
-            if (((county == MOSSDEEP || county == DEWFORD || county == SLATEPORT || county == WEATHER) && slot == 0)
+            if (((county == MOSSDEEP || county == DEWFORD || county == SLATEPORT) && slot == 0)
+             || ((county == WEATHER || county == ROUTE110_COUNTY) && slot <= 1)
              || (county == MAUVILLE && slot <= 2)
              || ((county == LITTLEROOT || county == LILYCOVE || county == RUSTBORO) && slot <= 1) || (county == OLDALE && slot == 0))
                 EXPECT(GetCountyChapter(county, slot) != NULL);
@@ -641,6 +643,47 @@ TEST("Chapter: Route 118's Good Rod chapter is stored, anchored outdoors, needs 
     EXPECT_EQ(desc->mainGet.kind, PLOT_KIND_UTILITY);
     EXPECT_EQ(desc->mainGet.ordinal, PLOT_UTILITY_GOOD_ROD);
     EXPECT_EQ(scene->stageVar, GetCountySlotVar(WEATHER, 0));
+}
+
+TEST("Chapter: Route 110's rival and Itemfinder chapters are stored in slots 0 and 1, report their gets, and their scenes write their own slot vars")
+{
+    const struct ChapterDesc *rival = GetCountyChapter(ROUTE110_COUNTY, 0);
+    const struct ChapterDesc *finder = GetCountyChapter(ROUTE110_COUNTY, 1);
+
+    ASSUME(rival != NULL && finder != NULL);
+    EXPECT_EQ(rival->backend, CHAPTER_STORED);
+    EXPECT_EQ(rival->numStages, 2);
+    EXPECT(rival->producesMainGet);
+    EXPECT_EQ(rival->mainGet.kind, PLOT_KIND_RIVAL);
+    EXPECT_EQ(rival->mainGet.ordinal, 3);
+    EXPECT_EQ(finder->backend, CHAPTER_STORED);
+    EXPECT_EQ(finder->numStages, 2);
+    EXPECT(finder->producesMainGet);
+    EXPECT_EQ(finder->mainGet.kind, PLOT_KIND_UTILITY);
+    EXPECT_EQ(finder->mainGet.ordinal, PLOT_UTILITY_ITEMFINDER);
+    EXPECT_EQ(GetChapterNeededRoles(rival), 0);
+    EXPECT_EQ(GetChapterNeededRoles(finder), 0);
+    EXPECT_EQ(GetScene(SCENE_ROUTE110_RIVAL_MAY)->stageVar, GetCountySlotVar(ROUTE110_COUNTY, 0));
+    EXPECT_EQ(GetScene(SCENE_ROUTE110_RIVAL_BRENDAN)->stageVar, GetCountySlotVar(ROUTE110_COUNTY, 0));
+    EXPECT_EQ(GetScene(SCENE_ROUTE110_ITEMFINDER_MAY)->stageVar, GetCountySlotVar(ROUTE110_COUNTY, 1));
+    EXPECT_EQ(GetScene(SCENE_ROUTE110_ITEMFINDER_BRENDAN)->stageVar, GetCountySlotVar(ROUTE110_COUNTY, 1));
+}
+
+TEST("Chapter: Route 119's rival chapter is stored in the Weather Institute county's slot 1 with three stages, and all four of its scenes write that slot var")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(WEATHER, 1);
+    static const u16 sceneIds[] = {SCENE_ROUTE119_RIVAL_MAY, SCENE_ROUTE119_RIVAL_BRENDAN, SCENE_ROUTE119_FLY_MAY, SCENE_ROUTE119_FLY_BRENDAN};
+    u32 i;
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 3);
+    EXPECT(desc->producesMainGet);
+    EXPECT_EQ(desc->mainGet.kind, PLOT_KIND_RIVAL);
+    EXPECT_EQ(desc->mainGet.ordinal, 4);
+    EXPECT_EQ(GetCountySlotVar(WEATHER, 1) == GetCountySlotVar(WEATHER, 0), FALSE);
+    for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
+        EXPECT_EQ(GetScene(sceneIds[i])->stageVar, GetCountySlotVar(WEATHER, 1));
 }
 
 TEST("Chapter: Mauville's Rock Smash chapter is stored, house-anchored, produces no key, and keeps its stage in Mauville's slice")

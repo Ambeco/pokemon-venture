@@ -1226,3 +1226,168 @@ TEST("Scene: Route 118's Good Rod scene on no gives nothing and changes nothing"
     EXPECT_EQ(GetCountySlotStage(WEATHER_COUNTY, 0), 0);
     EXPECT_EQ(StringCompare(gStringVar4, Route118_Text_DontYouLikeToFish), 0);
 }
+
+extern const u8 Route110_Text_MayExplainItemfinder[];
+extern const u8 Route110_Text_BrendanExplainItemfinder[];
+extern const u8 Route119_Text_MayExplainFly[];
+extern const u8 Route119_Text_BrendanExplainFly[];
+
+#define ROUTE110_COUNTY COUNTY_ID(2, 2)
+
+// Steps a rival or gift scene by hand: a battle is acknowledged as won (headless tests cannot run one), a give
+// leaves `received` in VAR_0x8007, and the number of battle steps seen and the last given item are returned.
+static void StepRivalScene(u32 sceneId, bool32 received, u32 *numBattles, u32 *givenItem)
+{
+    u32 i;
+
+    *numBattles = *givenItem = 0;
+    SceneBeginScene(GetScene(sceneId));
+    for (i = 0; i < 50; i++)
+    {
+        SceneNextStep();
+        if (gSpecialVar_Result == SCENE_RESULT_GIVE)
+        {
+            *givenItem = gSpecialVar_0x8000;
+            gSpecialVar_0x8007 = received;
+            SceneTakeAnswer();
+        }
+        else if (gSpecialVar_Result == SCENE_RESULT_BATTLE)
+        {
+            (*numBattles)++;
+        }
+        else if (gSpecialVar_Result == SCENE_RESULT_END)
+        {
+            return;
+        }
+    }
+    EXPECT(FALSE); // the scene never ended
+}
+
+TEST("Scene: Route 110's rival scenes say the challenge, fight the Route 110 rival and advance the rival slot only")
+{
+    static const u16 sceneIds[] = {SCENE_ROUTE110_RIVAL_MAY, SCENE_ROUTE110_RIVAL_BRENDAN};
+    u32 i, numBattles, item;
+
+    for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
+    {
+        const struct Scene *scene = GetScene(sceneIds[i]);
+
+        LoadTestMap();
+        VarSet(GetCountySlotVar(ROUTE110_COUNTY, 0), 0);
+        VarSet(GetCountySlotVar(ROUTE110_COUNTY, 1), 0);
+        ASSUME(scene->numSteps == 3);
+        EXPECT_EQ(scene->steps[1].kind, SCENE_STEP_BATTLE);
+        EXPECT(scene->steps[1].rival);
+        EXPECT_EQ(scene->steps[1].trainer, RIVAL_ENCOUNTER_ROUTE_110);
+        StepRivalScene(sceneIds[i], TRUE, &numBattles, &item);
+        EXPECT_EQ(numBattles, 1);
+        EXPECT_EQ(item, 0);
+        EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 0), 1);
+        EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 1), 0);
+    }
+}
+
+TEST("Scene: Route 110's Itemfinder scenes give the Itemfinder, advance the Itemfinder slot only and end on the explanation")
+{
+    static const u16 sceneIds[] = {SCENE_ROUTE110_ITEMFINDER_MAY, SCENE_ROUTE110_ITEMFINDER_BRENDAN};
+    static const u8 *const explains[] = {Route110_Text_MayExplainItemfinder, Route110_Text_BrendanExplainItemfinder};
+    u32 i, numBattles, item;
+
+    for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
+    {
+        LoadTestMap();
+        VarSet(GetCountySlotVar(ROUTE110_COUNTY, 0), 0);
+        VarSet(GetCountySlotVar(ROUTE110_COUNTY, 1), 0);
+        StepRivalScene(sceneIds[i], TRUE, &numBattles, &item);
+        EXPECT_EQ(numBattles, 0);
+        EXPECT_EQ(item, ITEM_DOWSING_MACHINE);
+        EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 1), 1);
+        EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 0), 0);
+        EXPECT_EQ(StringCompareN(gStringVar4, explains[i], 8), 0); // names are expanded after the speaker
+    }
+}
+
+TEST("Scene: Route 110's Itemfinder scenes with a full bag keep the Itemfinder stage at 0")
+{
+    static const u16 sceneIds[] = {SCENE_ROUTE110_ITEMFINDER_MAY, SCENE_ROUTE110_ITEMFINDER_BRENDAN};
+    u32 i, numBattles, item;
+
+    for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
+    {
+        LoadTestMap();
+        VarSet(GetCountySlotVar(ROUTE110_COUNTY, 1), 0);
+        StepRivalScene(sceneIds[i], FALSE, &numBattles, &item);
+        EXPECT_EQ(item, ITEM_DOWSING_MACHINE);
+        EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 1), 0);
+    }
+}
+
+TEST("Scene: Route 119's rival scenes fight, advance to 1 after the fight and to 2 after the HM Fly, and set its flag")
+{
+    static const u16 sceneIds[] = {SCENE_ROUTE119_RIVAL_MAY, SCENE_ROUTE119_RIVAL_BRENDAN};
+    static const u8 *const explains[] = {Route119_Text_MayExplainFly, Route119_Text_BrendanExplainFly};
+    u32 i, numBattles, item;
+
+    for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
+    {
+        LoadTestMap();
+        FlagClear(FLAG_RECEIVED_HM_FLY);
+        VarSet(GetCountySlotVar(WEATHER_COUNTY, 1), 0);
+        VarSet(GetCountySlotVar(WEATHER_COUNTY, 0), 0);
+        StepRivalScene(sceneIds[i], TRUE, &numBattles, &item);
+        EXPECT_EQ(numBattles, 1);
+        EXPECT_EQ(GetScene(sceneIds[i])->steps[1].trainer, RIVAL_ENCOUNTER_ROUTE_119);
+        EXPECT_EQ(item, ITEM_HM_FLY);
+        EXPECT(FlagGet(FLAG_RECEIVED_HM_FLY));
+        EXPECT_EQ(GetCountySlotStage(WEATHER_COUNTY, 1), 2);
+        EXPECT_EQ(GetCountySlotStage(WEATHER_COUNTY, 0), 0);
+        EXPECT_EQ(StringCompareN(gStringVar4, explains[i], 8), 0); // names are expanded after the speaker
+    }
+}
+
+TEST("Scene: Route 119's rival scenes with a full bag stop at stage 1 with the HM Fly flag clear, and the gift scenes then finish it without another fight")
+{
+    static const u16 rivalIds[] = {SCENE_ROUTE119_RIVAL_MAY, SCENE_ROUTE119_RIVAL_BRENDAN};
+    static const u16 giftIds[] = {SCENE_ROUTE119_FLY_MAY, SCENE_ROUTE119_FLY_BRENDAN};
+    u32 i, numBattles, item;
+
+    for (i = 0; i < ARRAY_COUNT(rivalIds); i++)
+    {
+        LoadTestMap();
+        FlagClear(FLAG_RECEIVED_HM_FLY);
+        VarSet(GetCountySlotVar(WEATHER_COUNTY, 1), 0);
+        StepRivalScene(rivalIds[i], FALSE, &numBattles, &item);
+        EXPECT_EQ(numBattles, 1);
+        EXPECT(!FlagGet(FLAG_RECEIVED_HM_FLY));
+        EXPECT_EQ(GetCountySlotStage(WEATHER_COUNTY, 1), 1);
+        StepRivalScene(giftIds[i], FALSE, &numBattles, &item);
+        EXPECT_EQ(numBattles, 0);
+        EXPECT(!FlagGet(FLAG_RECEIVED_HM_FLY));
+        EXPECT_EQ(GetCountySlotStage(WEATHER_COUNTY, 1), 1);
+        StepRivalScene(giftIds[i], TRUE, &numBattles, &item);
+        EXPECT_EQ(numBattles, 0);
+        EXPECT_EQ(item, ITEM_HM_FLY);
+        EXPECT(FlagGet(FLAG_RECEIVED_HM_FLY));
+        EXPECT_EQ(GetCountySlotStage(WEATHER_COUNTY, 1), 2);
+    }
+}
+
+TEST("Rival: GetRivalTrainer picks the Route 110 and Route 119 trainers for each starter and gender")
+{
+    static const u16 may110[] = {TRAINER_MAY_ROUTE_110_TREECKO, TRAINER_MAY_ROUTE_110_TORCHIC, TRAINER_MAY_ROUTE_110_MUDKIP};
+    static const u16 brendan110[] = {TRAINER_BRENDAN_ROUTE_110_TREECKO, TRAINER_BRENDAN_ROUTE_110_TORCHIC, TRAINER_BRENDAN_ROUTE_110_MUDKIP};
+    static const u16 may119[] = {TRAINER_MAY_ROUTE_119_TREECKO, TRAINER_MAY_ROUTE_119_TORCHIC, TRAINER_MAY_ROUTE_119_MUDKIP};
+    static const u16 brendan119[] = {TRAINER_BRENDAN_ROUTE_119_TREECKO, TRAINER_BRENDAN_ROUTE_119_TORCHIC, TRAINER_BRENDAN_ROUTE_119_MUDKIP};
+    u32 starter;
+
+    for (starter = 0; starter < 3; starter++)
+    {
+        VarSet(VAR_STARTER_MON, starter);
+        gSaveBlock2Ptr->playerGender = MALE;
+        EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_ROUTE_110), may110[starter]);
+        EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_ROUTE_119), may119[starter]);
+        gSaveBlock2Ptr->playerGender = FEMALE;
+        EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_ROUTE_110), brendan110[starter]);
+        EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_ROUTE_119), brendan119[starter]);
+    }
+}

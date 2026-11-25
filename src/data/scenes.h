@@ -426,6 +426,107 @@ static const struct Scene sRoute118GoodRod =
     .steps = sRoute118GoodRodSteps,
 };
 
+extern const u8 Route110_Text_MayLetsBattle[];
+extern const u8 Route110_Text_MayDefeated[];
+extern const u8 Route110_Text_MayTakeThis[];
+extern const u8 Route110_Text_MayExplainItemfinder[];
+extern const u8 Route110_Text_BrendanLetsBattle[];
+extern const u8 Route110_Text_BrendanDefeated[];
+extern const u8 Route110_Text_BrendanTakeThis[];
+extern const u8 Route110_Text_BrendanExplainItemfinder[];
+
+// Route 110's rival and the Itemfinder are two chapters in the Route 110 county (slots 0 and 1), run back to back
+// from the rival's script after he walks up to the player. The Itemfinder scene is separate so a full bag leaves its
+// stage at 0 while the rival stays done; the script then ends without its exit and the next trigger repeats only the
+// Itemfinder (it skips the fight when the rival trainer flag is set). The approach and exit stay in the script.
+#define ROUTE110_RIVAL_SCENE(sceneName, letsBattle, defeated) \
+static const struct SceneStep sceneName##Steps[] = \
+{ \
+    SCENE_SAY(letsBattle), \
+    SCENE_BATTLE_RIVAL(RIVAL_ENCOUNTER_ROUTE_110, defeated), \
+    SCENE_ADVANCE(1), \
+}; \
+static const struct Scene sceneName = \
+{ \
+    .name = #sceneName, \
+    .actors = {LOCALID_PLAYER}, \
+    .numActors = 1, \
+    .stageVar = SCENE_ROUTE110_RIVAL_BEAT_VAR, \
+    .numSteps = ARRAY_COUNT(sceneName##Steps), \
+    .steps = sceneName##Steps, \
+}
+
+#define ROUTE110_ITEMFINDER_SCENE(sceneName, takeThis, explain) \
+static const struct SceneStep sceneName##Steps[] = \
+{ \
+    SCENE_SAY(takeThis), \
+    SCENE_GIVE(ITEM_DOWSING_MACHINE, 1), \
+    SCENE_ADVANCE(1), \
+    SCENE_SAY(explain), \
+}; \
+static const struct Scene sceneName = \
+{ \
+    .name = #sceneName, \
+    .actors = {LOCALID_PLAYER}, \
+    .numActors = 1, \
+    .stageVar = SCENE_ROUTE110_ITEMFINDER_BEAT_VAR, \
+    .numSteps = ARRAY_COUNT(sceneName##Steps), \
+    .steps = sceneName##Steps, \
+}
+
+ROUTE110_RIVAL_SCENE(sRoute110RivalMay, Route110_Text_MayLetsBattle, Route110_Text_MayDefeated);
+ROUTE110_RIVAL_SCENE(sRoute110RivalBrendan, Route110_Text_BrendanLetsBattle, Route110_Text_BrendanDefeated);
+ROUTE110_ITEMFINDER_SCENE(sRoute110ItemfinderMay, Route110_Text_MayTakeThis, Route110_Text_MayExplainItemfinder);
+ROUTE110_ITEMFINDER_SCENE(sRoute110ItemfinderBrendan, Route110_Text_BrendanTakeThis, Route110_Text_BrendanExplainItemfinder);
+
+extern const u8 Route119_Text_MayIntro[];
+extern const u8 Route119_Text_MayDefeat[];
+extern const u8 Route119_Text_MayPresentForYou[];
+extern const u8 Route119_Text_MayExplainFly[];
+extern const u8 Route119_Text_BrendanIntro[];
+extern const u8 Route119_Text_BrendanDefeat[];
+extern const u8 Route119_Text_BrendanIllGiveYouThis[];
+extern const u8 Route119_Text_BrendanExplainFly[];
+
+// Route 119's rival (Weather Institute county, slot 1, three stages: 1 after the fight, 2 after the HM Fly). A full
+// bag at the give leaves the stage at 1 and FLAG_RECEIVED_HM_FLY clear; the script then ends without its exit and
+// the next trigger runs only the gift scene. FLAG_RECEIVED_HM_FLY stays set for the HM adapter.
+#define ROUTE119_GIFT_STEPS(present, explain) \
+    SCENE_SAY(present), \
+    SCENE_GIVE(ITEM_HM_FLY, 1), \
+    SCENE_SET_FLAG(FLAG_RECEIVED_HM_FLY), \
+    SCENE_ADVANCE(2), \
+    SCENE_SAY(explain)
+
+#define ROUTE119_SCENE_DESC(sceneName) \
+static const struct Scene sceneName = \
+{ \
+    .name = #sceneName, \
+    .actors = {LOCALID_PLAYER}, \
+    .numActors = 1, \
+    .stageVar = SCENE_ROUTE119_RIVAL_BEAT_VAR, \
+    .numSteps = ARRAY_COUNT(sceneName##Steps), \
+    .steps = sceneName##Steps, \
+}
+
+#define ROUTE119_RIVAL_SCENES(rivalName, giftName, intro, defeat, present, explain) \
+static const struct SceneStep rivalName##Steps[] = \
+{ \
+    SCENE_SAY(intro), \
+    SCENE_BATTLE_RIVAL(RIVAL_ENCOUNTER_ROUTE_119, defeat), \
+    SCENE_ADVANCE(1), \
+    ROUTE119_GIFT_STEPS(present, explain), \
+}; \
+ROUTE119_SCENE_DESC(rivalName); \
+static const struct SceneStep giftName##Steps[] = \
+{ \
+    ROUTE119_GIFT_STEPS(present, explain), \
+}; \
+ROUTE119_SCENE_DESC(giftName)
+
+ROUTE119_RIVAL_SCENES(sRoute119RivalMay, sRoute119FlyMay, Route119_Text_MayIntro, Route119_Text_MayDefeat, Route119_Text_MayPresentForYou, Route119_Text_MayExplainFly);
+ROUTE119_RIVAL_SCENES(sRoute119RivalBrendan, sRoute119FlyBrendan, Route119_Text_BrendanIntro, Route119_Text_BrendanDefeat, Route119_Text_BrendanIllGiveYouThis, Route119_Text_BrendanExplainFly);
+
 static const struct Scene *const sScenes[SCENE_COUNT] =
 {
     [SCENE_LITTLEROOT_NEED_POKEMON] = &sLittlerootNeedPokemon,
@@ -436,6 +537,14 @@ static const struct Scene *const sScenes[SCENE_COUNT] =
     [SCENE_MOSSDEEP_SUPER_ROD] = &sMossdeepSuperRod,
     [SCENE_DEWFORD_OLD_ROD] = &sDewfordOldRod,
     [SCENE_ROUTE118_GOOD_ROD] = &sRoute118GoodRod,
+    [SCENE_ROUTE110_RIVAL_MAY] = &sRoute110RivalMay,
+    [SCENE_ROUTE110_RIVAL_BRENDAN] = &sRoute110RivalBrendan,
+    [SCENE_ROUTE110_ITEMFINDER_MAY] = &sRoute110ItemfinderMay,
+    [SCENE_ROUTE110_ITEMFINDER_BRENDAN] = &sRoute110ItemfinderBrendan,
+    [SCENE_ROUTE119_RIVAL_MAY] = &sRoute119RivalMay,
+    [SCENE_ROUTE119_RIVAL_BRENDAN] = &sRoute119RivalBrendan,
+    [SCENE_ROUTE119_FLY_MAY] = &sRoute119FlyMay,
+    [SCENE_ROUTE119_FLY_BRENDAN] = &sRoute119FlyBrendan,
     [SCENE_ROUTE103_RIVAL_MAY] = &sRoute103RivalMay,
     [SCENE_ROUTE103_RIVAL_BRENDAN] = &sRoute103RivalBrendan,
     [SCENE_ROUTE101_BAG] = &sRoute101Bag,

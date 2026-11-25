@@ -60,7 +60,7 @@ Storage. "Gets" counts main-arc gets by host county (callback gets count for the
 
 - No city.
 - Places: Cycling Road (Route 110; outside; route feature), Trick House (Route 110; outside; roadside building), Pokémon Daycare (Route 117; outside; roadside building).
-- Steps: 24 RB3 (Route 110) and Itemfinder (`VAR_ROUTE110_STATE >= 1`, Route110:478; the Itemfinder has no flag and is given in the same scene). 26 none (Trick House puzzle 1 is optional). 27 unlock Mauville via RB3.
+- Steps: 24 RB3 (Route 110) and Itemfinder (two stored chapters in this county's slots 0 and 1, run back to back from Route 110's rival script; the script also sets `VAR_ROUTE110_STATE` for its coord events). 26 none (Trick House puzzle 1 is optional). 27 unlock Mauville via RB3.
 - Storage: gets 2, max list 2, chain vars 5 (Trick House, 17 vars packed), bools 2 (Daycare egg pending, one other).
 
 ### 7. Mauville — (2,1), Land, Mangrove swamp

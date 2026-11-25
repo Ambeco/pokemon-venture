@@ -36,8 +36,13 @@ Route119_EventScript_RivalTrigger2::
 	goto Route119_EventScript_RivalEncounter
 	end
 
+@ The fight, the HM Fly give and both stage changes are the scenes Route119Rival* and Route119Fly* (src/data/scenes.h).
+@ A rival already beaten means the last visit ended on a full bag: he is still on the route, so only the gift repeats.
 Route119_EventScript_RivalEncounter::
 	lockall
+	setvar VAR_0x8004, RIVAL_ENCOUNTER_ROUTE_119
+	specialvar VAR_RESULT, ScriptHasRivalBeenDefeated
+	goto_if_eq VAR_RESULT, TRUE, Route119_EventScript_RivalGift
 	addobject LOCALID_ROUTE119_RIVAL_ON_BIKE
 	checkplayergender
 	call_if_eq VAR_RESULT, MALE, Route119_EventScript_PlayMayMusic
@@ -68,69 +73,43 @@ Route119_EventScript_PlayBrendanMusic::
 	return
 
 Route119_EventScript_BattleMay::
-	msgbox Route119_Text_MayIntro, MSGBOX_DEFAULT
-	switch VAR_STARTER_MON
-	case 0, Route119_EventScript_BattleMayTreecko
-	case 1, Route119_EventScript_BattleMayTorchic
-	case 2, Route119_EventScript_BattleMayMudkip
-	end
-
-Route119_EventScript_BattleMayTreecko::
-	trainerbattle_no_intro TRAINER_MAY_ROUTE_119_TREECKO, Route119_Text_MayDefeat
-	goto Route119_EventScript_DefeatedMay
-	end
-
-Route119_EventScript_BattleMayTorchic::
-	trainerbattle_no_intro TRAINER_MAY_ROUTE_119_TORCHIC, Route119_Text_MayDefeat
-	goto Route119_EventScript_DefeatedMay
-	end
-
-Route119_EventScript_BattleMayMudkip::
-	trainerbattle_no_intro TRAINER_MAY_ROUTE_119_MUDKIP, Route119_Text_MayDefeat
-	goto Route119_EventScript_DefeatedMay
-	end
-
-Route119_EventScript_DefeatedMay::
-	msgbox Route119_Text_MayPresentForYou, MSGBOX_DEFAULT
-	call Route119_EventScript_GiveFlyHM
-	msgbox Route119_Text_MayExplainFly, MSGBOX_DEFAULT
-	goto Route119_EventScript_RivalExitScottArrive
+	setvar VAR_0x8004, SCENE_ROUTE119_RIVAL_MAY
+	call Scene_EventScript_Run
+	goto Route119_EventScript_AfterRivalScene
 	end
 
 Route119_EventScript_BattleBrendan::
-	msgbox Route119_Text_BrendanIntro, MSGBOX_DEFAULT
-	switch VAR_STARTER_MON
-	case 0, Route119_EventScript_BattleBrendanTreecko
-	case 1, Route119_EventScript_BattleBrendanTorchic
-	case 2, Route119_EventScript_BattleBrendanMudkip
+	setvar VAR_0x8004, SCENE_ROUTE119_RIVAL_BRENDAN
+	call Scene_EventScript_Run
+	goto Route119_EventScript_AfterRivalScene
 	end
 
-Route119_EventScript_BattleBrendanTreecko::
-	trainerbattle_no_intro TRAINER_BRENDAN_ROUTE_119_TREECKO, Route119_Text_BrendanDefeat
-	goto Route119_EventScript_DefeatedBrendan
+Route119_EventScript_RivalGift::
+	checkplayergender
+	call_if_eq VAR_RESULT, MALE, Route119_EventScript_FlyMay
+	call_if_eq VAR_RESULT, FEMALE, Route119_EventScript_FlyBrendan
+	goto Route119_EventScript_AfterRivalScene
 	end
 
-Route119_EventScript_BattleBrendanTorchic::
-	trainerbattle_no_intro TRAINER_BRENDAN_ROUTE_119_TORCHIC, Route119_Text_BrendanDefeat
-	goto Route119_EventScript_DefeatedBrendan
-	end
+Route119_EventScript_FlyMay::
+	setvar VAR_0x8004, SCENE_ROUTE119_FLY_MAY
+	call Scene_EventScript_Run
+	return
 
-Route119_EventScript_BattleBrendanMudkip::
-	trainerbattle_no_intro TRAINER_BRENDAN_ROUTE_119_MUDKIP, Route119_Text_BrendanDefeat
-	goto Route119_EventScript_DefeatedBrendan
-	end
+Route119_EventScript_FlyBrendan::
+	setvar VAR_0x8004, SCENE_ROUTE119_FLY_BRENDAN
+	call Scene_EventScript_Run
+	return
 
-Route119_EventScript_DefeatedBrendan::
-	msgbox Route119_Text_BrendanIllGiveYouThis, MSGBOX_DEFAULT
-	call Route119_EventScript_GiveFlyHM
-	msgbox Route119_Text_BrendanExplainFly, MSGBOX_DEFAULT
+@ A full bag leaves FLAG_RECEIVED_HM_FLY clear: the rival waits and the next trigger repeats the gift.
+Route119_EventScript_AfterRivalScene::
+	goto_if_unset FLAG_RECEIVED_HM_FLY, Route119_EventScript_RivalWaitsForBagSpace
 	goto Route119_EventScript_RivalExitScottArrive
 	end
 
-Route119_EventScript_GiveFlyHM::
-	giveitem ITEM_HM_FLY
-	setflag FLAG_RECEIVED_HM_FLY
-	return
+Route119_EventScript_RivalWaitsForBagSpace::
+	releaseall
+	end
 
 Route119_EventScript_RivalExitScottArrive::
 	closemessage
@@ -475,7 +454,7 @@ Route119_EventScript_ScottWonAtFortreeGymCall::
 	releaseall
 	end
 
-Route119_Text_MayIntro:
+Route119_Text_MayIntro::
 	.string "MAY: {PLAYER}{KUN}!\n"
 	.string "Where were you? I was looking for you!\p"
 	.string "How much stronger have you gotten?\n"
@@ -483,18 +462,18 @@ Route119_Text_MayIntro:
 	.string "Ready with your POKéMON?\n"
 	.string "Of course you are! Go!$"
 
-Route119_Text_MayDefeat:
+Route119_Text_MayDefeat::
 	.string "Achah!\n"
 	.string "{PLAYER}{KUN}, you're strong!\p"
 	.string "I was worried that you might be\n"
 	.string "struggling with your training.$"
 
-Route119_Text_MayPresentForYou:
+Route119_Text_MayPresentForYou::
 	.string "MAY: But I had absolutely nothing to\n"
 	.string "worry about! Keep it up!\p"
 	.string "And, here! I have a present for you.$"
 
-Route119_Text_MayExplainFly:
+Route119_Text_MayExplainFly::
 	.string "MAY: Use FLY, and your POKéMON will\n"
 	.string "instantly carry you to any town you've\l"
 	.string "already visited.\p"
@@ -507,7 +486,7 @@ Route119_Text_MayExplainFly:
 	.string "{PLAYER}{KUN}.\p"
 	.string "Well, let's meet again somewhere!$"
 
-Route119_Text_BrendanIntro:
+Route119_Text_BrendanIntro::
 	.string "BRENDAN: {PLAYER}! So this is where\n"
 	.string "you've been looking for POKéMON?\p"
 	.string "Let me see how good you got.\n"
@@ -515,17 +494,17 @@ Route119_Text_BrendanIntro:
 	.string "Now!\n"
 	.string "It's a battle, so battle!$"
 
-Route119_Text_BrendanDefeat:
+Route119_Text_BrendanDefeat::
 	.string "Hmm…\n"
 	.string "You've gotten pretty darn decent.$"
 
-Route119_Text_BrendanIllGiveYouThis:
+Route119_Text_BrendanIllGiveYouThis::
 	.string "BRENDAN: I'd say you're good enough\n"
 	.string "to search for POKéMON anywhere.\p"
 	.string "Here, I'll give you this.\n"
 	.string "Try it out.$"
 
-Route119_Text_BrendanExplainFly:
+Route119_Text_BrendanExplainFly::
 	.string "BRENDAN: Use FLY, and your POKéMON\n"
 	.string "instantly carries you to any town\l"
 	.string "you've already visited.\p"

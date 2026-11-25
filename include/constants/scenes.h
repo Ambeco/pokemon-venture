@@ -14,7 +14,15 @@
 #define SCENE_LAB_STARTER            9
 #define SCENE_DEWFORD_OLD_ROD       10
 #define SCENE_ROUTE118_GOOD_ROD     11
-#define SCENE_COUNT                  12
+#define SCENE_ROUTE110_RIVAL_MAY         12
+#define SCENE_ROUTE110_RIVAL_BRENDAN     13
+#define SCENE_ROUTE110_ITEMFINDER_MAY    14
+#define SCENE_ROUTE110_ITEMFINDER_BRENDAN 15
+#define SCENE_ROUTE119_RIVAL_MAY         16
+#define SCENE_ROUTE119_RIVAL_BRENDAN     17
+#define SCENE_ROUTE119_FLY_MAY           18
+#define SCENE_ROUTE119_FLY_BRENDAN       19
+#define SCENE_COUNT                  20
 
 // What the driver script does after a step (SceneNextStep leaves one in VAR_RESULT).
 #define SCENE_RESULT_NEXT          0 // nothing to do: ask for the next step

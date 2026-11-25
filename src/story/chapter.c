@@ -60,6 +60,23 @@ static const u8 gText_Route118_Rod1FarCurrent[] = _("Somebody in {HINT_CITY} got
 static const u8 gText_Route118_Rod1CloseBefore[] = _("People say the fisherman {HINT_ANCHOR} has a GOOD ROD to give away.");
 static const u8 gText_Route118_Rod1CloseCurrent[] = _("The fisherman {HINT_ANCHOR} says to try catching all sorts of POKéMON with a GOOD ROD.");
 
+static const u8 gText_Route110_Rival0FarCurrent[] = _("I heard your rival is looking for you around {HINT_CITY}.");
+static const u8 gText_Route110_Rival0CloseCurrent[] = _("Your rival is looking for you {HINT_ANCHOR}. Show how strong your POKéMON have grown!");
+static const u8 gText_Route110_Rival1FarCurrent[] = _("Somebody around {HINT_CITY} beat their rival, I heard.");
+static const u8 gText_Route110_Rival1CloseCurrent[] = _("Your rival was here {HINT_ANCHOR}, and has already raced off.");
+
+static const u8 gText_Route110_Finder0FarCurrent[] = _("I heard a rival around {HINT_CITY} rewards a good battle with an ITEMFINDER.");
+static const u8 gText_Route110_Finder0CloseCurrent[] = _("A rival {HINT_ANCHOR} gives an ITEMFINDER to anyone who proves themselves in battle.");
+static const u8 gText_Route110_Finder1FarCurrent[] = _("Somebody around {HINT_CITY} got an ITEMFINDER from a rival, I heard.");
+static const u8 gText_Route110_Finder1CloseCurrent[] = _("A rival {HINT_ANCHOR} gave an ITEMFINDER to a TRAINER.");
+
+static const u8 gText_Route119_Rival0FarCurrent[] = _("I heard your rival is racing around {HINT_CITY} on a BIKE.");
+static const u8 gText_Route119_Rival0CloseCurrent[] = _("Your rival is waiting {HINT_ANCHOR} for another battle.");
+static const u8 gText_Route119_Rival1FarCurrent[] = _("Somebody around {HINT_CITY} still has a present coming from their rival, I heard.");
+static const u8 gText_Route119_Rival1CloseCurrent[] = _("Your rival {HINT_ANCHOR} wants to give you a present. Make room in your bag!");
+static const u8 gText_Route119_Rival2FarCurrent[] = _("Somebody around {HINT_CITY} got a present from their rival, I heard.");
+static const u8 gText_Route119_Rival2CloseCurrent[] = _("Your rival raced off {HINT_ANCHOR} after giving you a present.");
+
 static const u8 gText_Mauville_Smash0FarCurrent[] = _("I heard a man in {HINT_CITY} hands HIDDEN MACHINES to anyone with strong POKéMON.");
 static const u8 gText_Mauville_Smash0FarAfter0[] = _("A man in {HINT_CITY} gave someone an HM for smashing rocks, I heard.");
 static const u8 gText_Mauville_Smash0FarAfter1[] = _("Did you hear? A man in {HINT_CITY} gave away an HM, and he's still shouting about it.");
@@ -200,6 +217,21 @@ static const u8 *const sRoute118Stage0Far[] = {gText_Route118_Rod0FarCurrent};
 static const u8 *const sRoute118Stage0Close[] = {gText_Route118_Rod0CloseCurrent, gText_Route118_Rod1CloseBefore};
 static const u8 *const sRoute118Stage1Far[] = {gText_Route118_Rod1FarCurrent, gText_Route118_Rod0FarAfter0, gText_Route118_Rod0FarAfter1};
 static const u8 *const sRoute118Stage1Close[] = {gText_Route118_Rod1CloseCurrent, gText_Route118_Rod0CloseAfter};
+
+static const u8 *const sRoute110Rival0Far[] = {gText_Route110_Rival0FarCurrent};
+static const u8 *const sRoute110Rival0Close[] = {gText_Route110_Rival0CloseCurrent};
+static const u8 *const sRoute110Rival1Far[] = {gText_Route110_Rival1FarCurrent};
+static const u8 *const sRoute110Rival1Close[] = {gText_Route110_Rival1CloseCurrent};
+static const u8 *const sRoute110Finder0Far[] = {gText_Route110_Finder0FarCurrent};
+static const u8 *const sRoute110Finder0Close[] = {gText_Route110_Finder0CloseCurrent};
+static const u8 *const sRoute110Finder1Far[] = {gText_Route110_Finder1FarCurrent};
+static const u8 *const sRoute110Finder1Close[] = {gText_Route110_Finder1CloseCurrent};
+static const u8 *const sRoute119Rival0Far[] = {gText_Route119_Rival0FarCurrent};
+static const u8 *const sRoute119Rival0Close[] = {gText_Route119_Rival0CloseCurrent};
+static const u8 *const sRoute119Rival1Far[] = {gText_Route119_Rival1FarCurrent};
+static const u8 *const sRoute119Rival1Close[] = {gText_Route119_Rival1CloseCurrent};
+static const u8 *const sRoute119Rival2Far[] = {gText_Route119_Rival2FarCurrent};
+static const u8 *const sRoute119Rival2Close[] = {gText_Route119_Rival2CloseCurrent};
 
 static const u8 *const sMauvilleStage0Far[] = {gText_Mauville_Smash0FarCurrent};
 static const u8 *const sMauvilleStage0Close[] = {gText_Mauville_Smash0CloseCurrent, gText_Mauville_Smash1CloseBefore};

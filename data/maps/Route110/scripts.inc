@@ -368,8 +368,13 @@ Route110_EventScript_RivalTrigger3::
 	goto Route110_EventScript_RivalScene
 	end
 
+@ The fight, the Itemfinder give and both stage changes are the scenes Route110Rival* and Route110Itemfinder* (src/data/scenes.h).
+@ A rival already beaten means the last visit ended on a full bag: only the Itemfinder repeats.
 Route110_EventScript_RivalScene::
 	lockall
+	setvar VAR_0x8004, RIVAL_ENCOUNTER_ROUTE_110
+	specialvar VAR_RESULT, ScriptHasRivalBeenDefeated
+	goto_if_eq VAR_RESULT, TRUE, Route110_EventScript_RivalItemfinder
 	checkplayergender
 	call_if_eq VAR_RESULT, MALE, Route110_EventScript_PlayMayMusic
 	call_if_eq VAR_RESULT, FEMALE, Route110_EventScript_PlayBrendanMusic
@@ -398,68 +403,40 @@ Route110_EventScript_PlayBrendanMusic::
 	return
 
 Route110_EventScript_MayBattle::
-	msgbox Route110_Text_MayLetsBattle, MSGBOX_DEFAULT
-	switch VAR_STARTER_MON
-	case 0, Route110_EventScript_MayBattleTreecko
-	case 1, Route110_EventScript_MayBattleTorchic
-	case 2, Route110_EventScript_MayBattleMudkip
-	end
-
-Route110_EventScript_MayBattleTreecko::
-	trainerbattle_no_intro TRAINER_MAY_ROUTE_110_TREECKO, Route110_Text_MayDefeated
-	goto Route110_EventScript_MayDefeated
-	end
-
-Route110_EventScript_MayBattleTorchic::
-	trainerbattle_no_intro TRAINER_MAY_ROUTE_110_TORCHIC, Route110_Text_MayDefeated
-	goto Route110_EventScript_MayDefeated
-	end
-
-Route110_EventScript_MayBattleMudkip::
-	trainerbattle_no_intro TRAINER_MAY_ROUTE_110_MUDKIP, Route110_Text_MayDefeated
-	goto Route110_EventScript_MayDefeated
-	end
-
-Route110_EventScript_MayDefeated::
-	msgbox Route110_Text_MayTakeThis, MSGBOX_DEFAULT
-	call Route110_EventScript_GiveItemfinder
-	msgbox Route110_Text_MayExplainItemfinder, MSGBOX_DEFAULT
-	goto Route110_EventScript_RivalExit
+	setvar VAR_0x8004, SCENE_ROUTE110_RIVAL_MAY
+	call Scene_EventScript_Run
+	goto Route110_EventScript_RivalItemfinder
 	end
 
 Route110_EventScript_BrendanBattle::
-	msgbox Route110_Text_BrendanLetsBattle, MSGBOX_DEFAULT
-	switch VAR_STARTER_MON
-	case 0, Route110_EventScript_BrendanBattleTreecko
-	case 1, Route110_EventScript_BrendanBattleTorchic
-	case 2, Route110_EventScript_BrendanBattleMudkip
+	setvar VAR_0x8004, SCENE_ROUTE110_RIVAL_BRENDAN
+	call Scene_EventScript_Run
+	goto Route110_EventScript_RivalItemfinder
 	end
 
-Route110_EventScript_BrendanBattleTreecko::
-	trainerbattle_no_intro TRAINER_BRENDAN_ROUTE_110_TREECKO, Route110_Text_BrendanDefeated
-	goto Route110_EventScript_BrendanDefeated
-	end
-
-Route110_EventScript_BrendanBattleTorchic::
-	trainerbattle_no_intro TRAINER_BRENDAN_ROUTE_110_TORCHIC, Route110_Text_BrendanDefeated
-	goto Route110_EventScript_BrendanDefeated
-	end
-
-Route110_EventScript_BrendanBattleMudkip::
-	trainerbattle_no_intro TRAINER_BRENDAN_ROUTE_110_MUDKIP, Route110_Text_BrendanDefeated
-	goto Route110_EventScript_BrendanDefeated
-	end
-
-Route110_EventScript_BrendanDefeated::
-	msgbox Route110_Text_BrendanTakeThis, MSGBOX_DEFAULT
-	call Route110_EventScript_GiveItemfinder
-	msgbox Route110_Text_BrendanExplainItemfinder, MSGBOX_DEFAULT
+@ The bag check stands in for the Itemfinder stage, which a route script cannot read.
+Route110_EventScript_RivalItemfinder::
+	checkplayergender
+	call_if_eq VAR_RESULT, MALE, Route110_EventScript_MayItemfinder
+	call_if_eq VAR_RESULT, FEMALE, Route110_EventScript_BrendanItemfinder
+	checkitem ITEM_DOWSING_MACHINE
+	goto_if_eq VAR_RESULT, FALSE, Route110_EventScript_RivalWaitsForBagSpace
 	goto Route110_EventScript_RivalExit
 	end
 
-Route110_EventScript_GiveItemfinder::
-	giveitem ITEM_DOWSING_MACHINE
+Route110_EventScript_MayItemfinder::
+	setvar VAR_0x8004, SCENE_ROUTE110_ITEMFINDER_MAY
+	call Scene_EventScript_Run
 	return
+
+Route110_EventScript_BrendanItemfinder::
+	setvar VAR_0x8004, SCENE_ROUTE110_ITEMFINDER_BRENDAN
+	call Scene_EventScript_Run
+	return
+
+Route110_EventScript_RivalWaitsForBagSpace::
+	releaseall
+	end
 
 Route110_EventScript_RivalExit::
 	closemessage
@@ -754,24 +731,24 @@ Route110_Text_AquaActionsBringSmiles:
 	.string "TEAM AQUA's actions should bring\n"
 	.string "smiles to people's faces!$"
 
-Route110_Text_MayLetsBattle:
+Route110_Text_MayLetsBattle::
 	.string "MAY: Hi, {PLAYER}{KUN}, long time no see!\p"
 	.string "While I was searching for other\n"
 	.string "POKéMON, my POKéMON grew stronger.\p"
 	.string "So…\n"
 	.string "How about a little battle?$"
 
-Route110_Text_MayDefeated:
+Route110_Text_MayDefeated::
 	.string "Yikes!\n"
 	.string "You're better than I expected!$"
 
-Route110_Text_MayTakeThis:
+Route110_Text_MayTakeThis::
 	.string "MAY: {PLAYER}{KUN}, you've been busy\n"
 	.string "training, too, haven't you?\p"
 	.string "I think you deserve a reward!\n"
 	.string "This is from me!$"
 
-Route110_Text_MayExplainItemfinder:
+Route110_Text_MayExplainItemfinder::
 	.string "MAY: That's an ITEMFINDER.\p"
 	.string "Try it out. If there is an item that's\n"
 	.string "not visible, it emits a sound.\p"
@@ -780,24 +757,24 @@ Route110_Text_MayExplainItemfinder:
 	.string "me, but I think you should train a lot\l"
 	.string "harder for the next time.$"
 
-Route110_Text_BrendanLetsBattle:
+Route110_Text_BrendanLetsBattle::
 	.string "BRENDAN: Hey, {PLAYER}.\n"
 	.string "So this is where you were.\l"
 	.string "How's it going?\p"
 	.string "Have you been raising your POKéMON?\n"
 	.string "I'll check for you.$"
 
-Route110_Text_BrendanDefeated:
+Route110_Text_BrendanDefeated::
 	.string "Hmm…\n"
 	.string "You're pretty good.$"
 
-Route110_Text_BrendanTakeThis:
+Route110_Text_BrendanTakeThis::
 	.string "BRENDAN: {PLAYER}, you've trained\n"
 	.string "without me noticing…\p"
 	.string "Good enough!\n"
 	.string "Here, take this.$"
 
-Route110_Text_BrendanExplainItemfinder:
+Route110_Text_BrendanExplainItemfinder::
 	.string "BRENDAN: That's an ITEMFINDER.\p"
 	.string "Use it to root around for items that\n"
 	.string "aren't visible.\p"
