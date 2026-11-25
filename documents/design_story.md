@@ -201,6 +201,11 @@ Emerald's opening as an example:
 - Route 103 contains a McGuffin: the rival battle, which unlocks the next rival cutscene at Birch's Lab.
 - Birch's Lab contains a McGuffin: the Pokédex and Poké Balls, which unlock the Route 102 artist lock.
 
+## Open questions
+
+- The hand-designed main story arcs: how many (a handful), how much deeper than Red/Blue, and how their beats map onto county story indices.
+- The chapter data format (linear stages, hint texts, story-state texts) is settled for the ported Emerald chapters (`design_chapters.md`); authoring the special-location and city chapters (TV-episode style, introducing each gym leader before their battle) is not designed.
+
 ## Alternatives considered
 
 ### Reserving the first 32 vars by position

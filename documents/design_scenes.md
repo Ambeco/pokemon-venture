@@ -71,6 +71,10 @@ A scene is a `struct Scene` (`include/story/scene.h`): a list of actor local ids
 - The county chain holds only the required entries of the county's subplots, merged by main-story slot and, within a slot, in subplot declaration order. Optional entries run beside the chain on their own chapter-slot var, so an unfinished optional chapter never holds a main-story slot. A chapter keeps its chapter slot whether or not it is on the chain, so no stored state moves.
 - Scenes of different subplots may be triggerable at the same moment (two chapters anchored to one building). The scene runner runs at most one scene per trigger; when two qualify, the chain entry wins over an off-chain one, then the lower chapter slot, and the other fires on the next trigger.
 
+### Open questions
+
+- A generic mechanism for triggering chapter stage-advancement cutscenes has no plan yet: scenes today fire from the hand-written trigger table.
+
 ## Alternatives considered
 
 ### Compile a whole scene to one movement/script bytecode buffer

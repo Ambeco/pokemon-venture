@@ -160,6 +160,7 @@ Moves are generated procedurally per species, from per-species anatomy and per-m
 - For each trader, a route or special location is randomly chosen, then a random Pokémon that spawns there; that is the Pokémon the trader asks for, which guarantees the player can obtain it.
 - The Pokémon the trader offers is a random species with the same commonness and a similar catch rate, whose evolution level range overlaps the chosen route's level. It may be the same species as the requested one.
 - Traded Pokémon carry a different trainer ID, so their types and moves differ from the player's own (see the other-trainer-ID biome subset above).
+- Open: whether towns get a Mart, and how the daily trader roll is seeded.
 
 ## Type-recolored sprites
 

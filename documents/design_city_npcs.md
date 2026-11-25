@@ -47,6 +47,11 @@ An NPC with no story text of its own calls `generic_npc_talk role` (`data/script
 
 Pools are C strings (the test build cannot link script text), expanded through `ExpandHintTemplate` so lines may use `{HINT_CITY}`. They carry no manual line breaks, because the line breaker leaves hand-broken text alone and a hand-broken line overflows once the city name expands. A role or theme without lines asserts, rather than falling back to silence. Far hints naming a direction, far references to other counties and the per-state thank-you variants are not written yet.
 
+## Open questions
+
+- Talking points for named buildings and per gym type, with parameterized city and leader names, are not all written; every role and theme the special can reach needs a pool.
+- Whether towns get a Mart and the daily trader generation are open in `design_pokemon.md`, "Shops and trading".
+
 ## Alternatives considered
 
 ### A separate required news string per main beat

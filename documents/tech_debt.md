@@ -3,7 +3,6 @@
 One line per item, roughly highest priority first. Delete an item when it is paid off.
 
 - `remaining_work.md` mixes milestone work with ~60 "open design questions" (many are design content, not work) and has multi-clause items that cannot be deleted whole; the 1a milestone is a grab bag.
-  - Step 1: `design_pokemon.md` and `design_region.md` "Open questions" are done; move the remaining "Open design questions" that only define a future design (story arcs, chapter format and the cutscene-trigger mechanism into `design_story.md`/`design_scenes.md`; NPC talking points and the Mart/trader design into `design_city_npcs.md`) into the matching `design_*.md` "Open questions" section, one commit per design file
   - Step 2: move the two decided-but-unchecked notes (Ports cross-check, "Exceptions to the normal rules" in `Emerald.md`) into `Emerald.md` / `design_region.md`, leaving a one-line remaining_work item each
   - Step 3: keep in "Open design questions" only actionable work (battle damage estimates, gym guide, team analyzer, type-recolored sprites, type icons, New Game menu, starters, Pokédex habitat view) and rename the section "Unscheduled work"
   - Step 4: split "Type-recolored sprites" into one parent line plus sub-bullets (build tool, runtime recolor, shimmer, tests, party icons, PC box icons, open palette-tag mapping)
