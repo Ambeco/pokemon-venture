@@ -6,6 +6,7 @@
 #include "event_data.h"
 #include "global.fieldmap.h"
 #include "region_city.h"
+#include "region_map.h"
 #include "county_chain.h"
 #include "plot_stage.h"
 #include "subplot.h"
@@ -49,6 +50,15 @@ static const u8 gText_Dewford_Rod0CloseAfter[] = _("The fisherman {HINT_ANCHOR} 
 static const u8 gText_Dewford_Rod1FarCurrent[] = _("Somebody in {HINT_CITY} got an OLD ROD from a fisherman, I heard.");
 static const u8 gText_Dewford_Rod1CloseBefore[] = _("People say the fisherman {HINT_ANCHOR} has an OLD ROD to give away.");
 static const u8 gText_Dewford_Rod1CloseCurrent[] = _("The fisherman {HINT_ANCHOR} asks how your fishing is going.");
+
+static const u8 gText_Route118_Rod0FarCurrent[] = _("I heard a fisherman by the river in {HINT_CITY} gives a GOOD ROD to anyone who agrees with him.");
+static const u8 gText_Route118_Rod0FarAfter0[] = _("A fisherman in {HINT_CITY} gave someone a GOOD ROD, I heard.");
+static const u8 gText_Route118_Rod0FarAfter1[] = _("Did you hear? A fisherman in {HINT_CITY} gave away a GOOD ROD.");
+static const u8 gText_Route118_Rod0CloseCurrent[] = _("The fisherman {HINT_ANCHOR} is sure a GOOD ROD is really good. Ask him if you agree!");
+static const u8 gText_Route118_Rod0CloseAfter[] = _("The fisherman {HINT_ANCHOR} gave his GOOD ROD to a TRAINER.");
+static const u8 gText_Route118_Rod1FarCurrent[] = _("Somebody in {HINT_CITY} got a GOOD ROD from a fisherman, I heard.");
+static const u8 gText_Route118_Rod1CloseBefore[] = _("People say the fisherman {HINT_ANCHOR} has a GOOD ROD to give away.");
+static const u8 gText_Route118_Rod1CloseCurrent[] = _("The fisherman {HINT_ANCHOR} says to try catching all sorts of POKéMON with a GOOD ROD.");
 
 static const u8 gText_Mauville_Smash0FarCurrent[] = _("I heard a man in {HINT_CITY} hands HIDDEN MACHINES to anyone with strong POKéMON.");
 static const u8 gText_Mauville_Smash0FarAfter0[] = _("A man in {HINT_CITY} gave someone an HM for smashing rocks, I heard.");
@@ -185,6 +195,11 @@ static const u8 *const sDewfordStage0Far[] = {gText_Dewford_Rod0FarCurrent};
 static const u8 *const sDewfordStage0Close[] = {gText_Dewford_Rod0CloseCurrent, gText_Dewford_Rod1CloseBefore};
 static const u8 *const sDewfordStage1Far[] = {gText_Dewford_Rod1FarCurrent, gText_Dewford_Rod0FarAfter0, gText_Dewford_Rod0FarAfter1};
 static const u8 *const sDewfordStage1Close[] = {gText_Dewford_Rod1CloseCurrent, gText_Dewford_Rod0CloseAfter};
+
+static const u8 *const sRoute118Stage0Far[] = {gText_Route118_Rod0FarCurrent};
+static const u8 *const sRoute118Stage0Close[] = {gText_Route118_Rod0CloseCurrent, gText_Route118_Rod1CloseBefore};
+static const u8 *const sRoute118Stage1Far[] = {gText_Route118_Rod1FarCurrent, gText_Route118_Rod0FarAfter0, gText_Route118_Rod0FarAfter1};
+static const u8 *const sRoute118Stage1Close[] = {gText_Route118_Rod1CloseCurrent, gText_Route118_Rod0CloseAfter};
 
 static const u8 *const sMauvilleStage0Far[] = {gText_Mauville_Smash0FarCurrent};
 static const u8 *const sMauvilleStage0Close[] = {gText_Mauville_Smash0CloseCurrent, gText_Mauville_Smash1CloseBefore};
@@ -656,7 +671,7 @@ u32 CheckChapterPlacement(const struct ChapterDesc *desc, u32 county, u32 mainSl
     u32 needed = GetChapterNeededRoles(desc), bit, i;
 
     // A role-free adapter chapter only reads state, so a county without a city can host it (a get of a cityless county's block).
-    if (!DoesCountyHaveCity(county) && (needed != 0 || desc->backend != CHAPTER_ADAPTER))
+    if (!DoesCountyHaveCity(county) && needed != 0)
         return CHAPTER_PLACEMENT_NO_CITY;
     for (bit = 0; bit < NUM_BUILDING_ROLES; bit++)
     {
@@ -794,6 +809,7 @@ static const u8 sNearThe[] = _("near the ");
 static const u8 sNearTheRoadTo[] = _("near the road to ");
 static const u8 sNearTheRoad[] = _("near the road");
 static const u8 sInCity[] = _("in ");
+static const u8 sOutInTheArea[] = _("out in these parts");
 
 u32 GetBeatAnchorCounty(u32 hostCounty, const struct BeatAnchor *anchor)
 {
@@ -865,11 +881,129 @@ u8 *WriteBeatAnchorReference(u8 *dst, u32 hostCounty, const struct BeatAnchor *a
         StringCopy(dst, sNearTheRoad);
         return dst + StringLength(dst);
     }
+    if (!DoesCountyHaveCity(hostCounty))
+    {
+        StringCopy(dst, sOutInTheArea);
+        return dst + StringLength(dst);
+    }
     StringAppend(StringCopy(dst, sInCity), GetCountyCityName(hostCounty));
     return dst + StringLength(dst);
 }
 
+static const u8 sTheArea[] = _("the area ");
+static const u8 sHere[] = _("these parts");
+static const u8 sOfHere[] = _(" of here");
+static const u8 sOf[] = _(" of ");
+static const u8 sNear[] = _("near ");
+static const u8 sFarTo[] = _("the far ");
+static const u8 sCommaNear[] = _(", near ");
+static const u8 sSomewhereFar[] = _("somewhere far away");
+static const u8 *const sDirectionNames[] = {COMPOUND_STRING("north"), COMPOUND_STRING("south"), COMPOUND_STRING("east"), COMPOUND_STRING("west")};
+
+enum Direction4 {DIR4_NORTH, DIR4_SOUTH, DIR4_EAST, DIR4_WEST};
+
+// The compass direction from county a to county b along the longer axis of the offset; vertical on a tie.
+static u32 GetCountyDirection(u32 a, u32 b)
+{
+    s32 dx = (s32)COUNTY_X(b) - (s32)COUNTY_X(a);
+    s32 dy = (s32)COUNTY_Y(b) - (s32)COUNTY_Y(a);
+    u32 ax = dx < 0 ? -dx : dx, ay = dy < 0 ? -dy : dy;
+
+    if (ay >= ax)
+        return dy < 0 ? DIR4_NORTH : DIR4_SOUTH;
+    return dx < 0 ? DIR4_WEST : DIR4_EAST;
+}
+
+// The mapsec of the county's first landmark, else its first detour or pitstop; FALSE when it has none.
+static bool32 FindCountyLandmarkMapSec(u32 county, u32 *mapSec)
+{
+    u32 count = GetCountySpecialLocationCount(county), i, fallback = count;
+
+    for (i = 0; i < count; i++)
+    {
+        u32 class = GetCountySpecialLocationClass(county, i);
+
+        if (class == LOCATION_CLASS_LANDMARK)
+            break;
+        if (fallback == count && (class == LOCATION_CLASS_DETOUR || class == LOCATION_CLASS_PITSTOP))
+            fallback = i;
+    }
+    if (i == count)
+        i = fallback;
+    if (i == count)
+        return FALSE;
+    *mapSec = GetCountySpecialLocation(county, i).mapSec;
+    return TRUE;
+}
+
+static u8 *WriteLandmarkName(u8 *dst, u32 county)
+{
+    u32 mapSec;
+
+    if (!FindCountyLandmarkMapSec(county, &mapSec))
+        return StringCopy(dst, sSomewhereFar);
+    return StringCopy(dst, gRegionMapEntries[mapSec].name);
+}
+
+static u8 *WriteDirectionOf(u8 *dst, u32 from, u32 to)
+{
+    return StringCopy(StringCopy(dst, sDirectionNames[GetCountyDirection(from, to)]), sOf);
+}
+
+// The adjacent county with a smaller story index than `target` and the highest such index that satisfies the
+// predicate (a city when needCity, else a landmark); NUM_COUNTIES when none.
+static u32 FindEarlierNeighbor(u32 target, bool32 needCity)
+{
+    u32 targetIdx = GetCountyHeader(target)->storyIdx, best = NUM_COUNTIES, bestIdx = 0, m, unused;
+
+    for (m = 0; m < NUM_COUNTIES; m++)
+    {
+        u32 idx = GetCountyHeader(m)->storyIdx;
+
+        if (!AreCountiesAdjacent(m, target) || idx >= targetIdx || (best != NUM_COUNTIES && idx <= bestIdx))
+            continue;
+        if (needCity ? DoesCountyHaveCity(m) : FindCountyLandmarkMapSec(m, &unused))
+        {
+            best = m;
+            bestIdx = idx;
+        }
+    }
+    return best;
+}
+
+u8 *WriteCountyReferenceAt(u8 *dst, u32 referrer, u32 target, bool32 callback, u32 mainBlock)
+{
+    u32 neighbor;
+
+    if (DoesCountyHaveCity(target))
+        return StringCopy(dst, GetCountyCityName(target));
+    if (referrer == target)
+        return StringCopy(dst, sHere);
+    if (AreCountiesAdjacent(referrer, target))
+        return StringCopy(StringCopy(StringCopy(dst, sTheArea), sDirectionNames[GetCountyDirection(referrer, target)]), sOfHere);
+    if (callback || mainBlock > GetCountyHeader(target)->storyIdx)
+        return WriteLandmarkName(StringCopy(StringCopy(dst, sTheArea), sNear), target);
+    neighbor = FindEarlierNeighbor(target, TRUE);
+    if (neighbor != NUM_COUNTIES)
+        return StringCopy(WriteDirectionOf(StringCopy(dst, sTheArea), neighbor, target), GetCountyCityName(neighbor));
+    neighbor = FindEarlierNeighbor(target, FALSE);
+    if (neighbor != NUM_COUNTIES)
+        return WriteLandmarkName(WriteDirectionOf(StringCopy(dst, sTheArea), neighbor, target), neighbor);
+    dst = StringCopy(StringCopy(dst, sFarTo), sDirectionNames[GetCountyDirection(referrer, target)]);
+    return WriteLandmarkName(StringCopy(dst, sCommaNear), target);
+}
+
+u8 *WriteCountyReference(u8 *dst, u32 referrer, u32 target, bool32 callback)
+{
+    return WriteCountyReferenceAt(dst, referrer, target, callback, GetMainStoryIndex() >> 2);
+}
+
 u8 *ExpandHintTemplate(u8 *dst, const u8 *src, u32 hostCounty, const struct BeatAnchor *anchor)
+{
+    return ExpandHintTemplateFrom(dst, src, hostCounty, hostCounty, anchor, FALSE);
+}
+
+u8 *ExpandHintTemplateFrom(u8 *dst, const u8 *src, u32 referrer, u32 hostCounty, const struct BeatAnchor *anchor, bool32 callback)
 {
     while (*src != EOS)
     {
@@ -880,7 +1014,7 @@ u8 *ExpandHintTemplate(u8 *dst, const u8 *src, u32 hostCounty, const struct Beat
         }
         else if (src[0] == PLACEHOLDER_BEGIN && src[1] == PLACEHOLDER_ID_HINT_CITY)
         {
-            dst = StringCopy(dst, GetCountyCityName(hostCounty));
+            dst = WriteCountyReference(dst, referrer, hostCounty, callback);
             src += 2;
         }
         else if (src[0] == PLACEHOLDER_BEGIN && src[1] == PLACEHOLDER_ID_HINT_PLACE)

@@ -13,7 +13,8 @@
 #define SCENE_ROUTE101_BAG           8
 #define SCENE_LAB_STARTER            9
 #define SCENE_DEWFORD_OLD_ROD       10
-#define SCENE_COUNT                  11
+#define SCENE_ROUTE118_GOOD_ROD     11
+#define SCENE_COUNT                  12
 
 // What the driver script does after a step (SceneNextStep leaves one in VAR_RESULT).
 #define SCENE_RESULT_NEXT          0 // nothing to do: ask for the next step

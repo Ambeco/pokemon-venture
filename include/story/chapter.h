@@ -255,6 +255,20 @@ u8 *WriteBeatAnchorPlace(u8 *dst, const struct BeatAnchor *anchor);
 // Other placeholders pass through for StringExpandPlaceholders. Returns the end (the EOS).
 u8 *ExpandHintTemplate(u8 *dst, const u8 *src, u32 hostCounty, const struct BeatAnchor *anchor);
 
+// As ExpandHintTemplate for an NPC of county `referrer` talking about a chapter hosted in hostCounty. `callback` marks a
+// hint about a callback beat, which names the host's landmark.
+u8 *ExpandHintTemplateFrom(u8 *dst, const u8 *src, u32 referrer, u32 hostCounty, const struct BeatAnchor *anchor, bool32 callback);
+
+// How an NPC of county `referrer` names county `target` (what {HINT_CITY} expands to). A county with a city is its
+// city's name. A cityless one is "these parts" (same county), "the area <dir> of here" (adjacent), "the area near
+// <landmark>" (a callback hint, or the main story block `mainBlock` is already past the target), "the area <dir> of
+// <city or landmark>" (an earlier-numbered neighbor the player has seen), else "the far <dir>, near <landmark>".
+// Returns the end of the string.
+u8 *WriteCountyReferenceAt(u8 *dst, u32 referrer, u32 target, bool32 callback, u32 mainBlock);
+
+// WriteCountyReferenceAt for the current main-story block (GetMainStoryIndex() >> 2).
+u8 *WriteCountyReference(u8 *dst, u32 referrer, u32 target, bool32 callback);
+
 // McGuffin id of the key as hosted by hostCounty, MCGUFFIN_ID_NONE for CHAPTER_KEY_NONE.
 u32 ResolveChapterKey(const struct ChapterKeyRef *ref, u32 hostCounty);
 

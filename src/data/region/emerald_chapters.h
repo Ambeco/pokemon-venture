@@ -208,6 +208,38 @@ static const struct ChapterDesc sDewfordOldRodChapter =
     .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_OLD_ROD},
 };
 
+enum Route118GoodRodStage
+{
+    ROUTE118_GOOD_ROD_NOT_GIVEN,
+    ROUTE118_GOOD_ROD_GIVEN,
+};
+
+// The fisherman is an immobile NPC outdoors (anchor role 0) in the Weather Institute county, which has no city: his
+// talk runs the scene Route118GoodRod, and his script reads FLAG_RECEIVED_GOOD_ROD (not the stage) because a route has
+// no city map section to find its county from. The Good Rod is a reported-only plot get, read by the adapter through
+// that flag; the chapter produces no key. No hinters are placed yet (numHinters 0).
+static const struct ChapterStage sRoute118GoodRodStages[] =
+{
+    [0 ... ROUTE118_GOOD_ROD_GIVEN] = {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}},
+};
+
+static const struct ChapterHint sRoute118GoodRodHints[] =
+{
+    {0, 0, TEXT_LIST(sRoute118Stage0Far), TEXT_LIST(sRoute118Stage0Close)},
+    {1, 1, TEXT_LIST(sRoute118Stage1Far), TEXT_LIST(sRoute118Stage1Close)},
+};
+
+static const struct ChapterDesc sGoodRodChapter =
+{
+    .backend = CHAPTER_STORED,
+    .numStages = ARRAY_COUNT(sRoute118GoodRodStages),
+    .stages = sRoute118GoodRodStages,
+    .numHints = ARRAY_COUNT(sRoute118GoodRodHints),
+    .hints = sRoute118GoodRodHints,
+    .producesMainGet = TRUE,
+    .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_GOOD_ROD},
+};
+
 enum MauvilleRockSmashStage
 {
     MAUVILLE_ROCK_SMASH_NOT_GIVEN,
@@ -611,7 +643,6 @@ PLOT_GET_CHAPTER(sRival3Chapter, PLOT_KIND_RIVAL, 3, 0, STORY_PRED_VAR_GE, VAR_R
 PLOT_GET_CHAPTER(sRival4Chapter, PLOT_KIND_RIVAL, 4, 0, STORY_PRED_VAR_GE, VAR_ROUTE119_STATE, 1);
 PLOT_GET_CHAPTER(sRival5Chapter, PLOT_KIND_RIVAL, 5, 0, STORY_PRED_FLAG, FLAG_MET_RIVAL_LILYCOVE, 0);
 PLOT_GET_CHAPTER(sPokenavChapter, PLOT_KIND_UTILITY, PLOT_UTILITY_POKENAV, 0, STORY_PRED_FLAG, FLAG_RECEIVED_POKENAV, 0);
-PLOT_GET_CHAPTER(sGoodRodChapter, PLOT_KIND_UTILITY, PLOT_UTILITY_GOOD_ROD, 0, STORY_PRED_FLAG, FLAG_RECEIVED_GOOD_ROD, 0);
 PLOT_GET_CHAPTER(sItemfinderChapter, PLOT_KIND_UTILITY, PLOT_UTILITY_ITEMFINDER, 0, STORY_PRED_VAR_GE, VAR_ROUTE110_STATE, 1);
 PLOT_GET_CHAPTER(sStarterChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_STARTER, 0, STORY_PRED_FLAG, FLAG_SYS_POKEMON_GET, 0);
 PLOT_GET_CHAPTER(sPokedexChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKEDEX, 0, STORY_PRED_FLAG, FLAG_RECEIVED_POKEDEX_FROM_BIRCH, 0);
@@ -632,6 +663,7 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(4, 0), 1, &sLilycoveCaseChapter}, // Lilycove, county-story-index 15
     {COUNTY_ID(5, 1), 0, &sMossdeepSuperRodChapter}, // Mossdeep
     {COUNTY_ID(0, 3), 0, &sDewfordOldRodChapter}, // Dewford, county-story-index 4
+    {COUNTY_ID(3, 0), 0, &sGoodRodChapter}, // Weather Institute county: Route 118's fisherman
     {COUNTY_ID(2, 1), 0, &sMauvilleRockSmashChapter}, // Mauville, county-story-index 7
     {COUNTY_ID(2, 1), 1, &sMauvilleCoinCaseChapter},
     {COUNTY_ID(2, 1), 2, &sMauvilleBikeChapter},
@@ -656,7 +688,6 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(3, 0), CHAPTER_SLOT_STATELESS, &sRival4Chapter},
     {COUNTY_ID(4, 0), CHAPTER_SLOT_STATELESS, &sRival5Chapter},
     {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sPokenavChapter},
-    {COUNTY_ID(3, 0), CHAPTER_SLOT_STATELESS, &sGoodRodChapter},
     {COUNTY_ID(2, 2), CHAPTER_SLOT_STATELESS, &sItemfinderChapter},
     {COUNTY_ID(1, 3), CHAPTER_SLOT_STATELESS, &sStarterChapter},
     {COUNTY_ID(1, 3), CHAPTER_SLOT_STATELESS, &sPokedexChapter}, // Littleroot, hosting block 1's callback

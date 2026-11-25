@@ -20,26 +20,13 @@ Route118_OnFrame:
 	map_script_2 VAR_SHOULD_END_ABNORMAL_WEATHER, 1, AbnormalWeather_EventScript_EndEventAndCleanup_1
 	.2byte 0
 
+@ The offer, the give and the stage change are the scene Route118GoodRod (src/data/scenes.h).
 Route118_EventScript_GoodRodFisherman::
 	lock
 	faceplayer
 	goto_if_set FLAG_RECEIVED_GOOD_ROD, Route118_EventScript_ReceivedGoodRod
-	msgbox Route118_Text_YouAgreeGoodRodIsGood, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, Route118_EventScript_ReceiveGoodRod
-	goto_if_eq VAR_RESULT, NO, Route118_EventScript_DeclineGoodRod
-	end
-
-Route118_EventScript_ReceiveGoodRod::
-	msgbox Route118_Text_IdenticalMindsTakeThis, MSGBOX_DEFAULT
-	giveitem ITEM_GOOD_ROD
-	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_ShowBagIsFull
-	setflag FLAG_RECEIVED_GOOD_ROD
-	msgbox Route118_Text_TryYourLuckFishing, MSGBOX_DEFAULT
-	release
-	end
-
-Route118_EventScript_DeclineGoodRod::
-	msgbox Route118_Text_DontYouLikeToFish, MSGBOX_DEFAULT
+	setvar VAR_0x8004, SCENE_ROUTE118_GOOD_ROD
+	call Scene_EventScript_Run
 	release
 	end
 
@@ -261,22 +248,22 @@ Route118_Text_StevenQuestions:
 	.string "It would be nice if we were to meet\n"
 	.string "again somewhere.$"
 
-Route118_Text_YouAgreeGoodRodIsGood:
+Route118_Text_YouAgreeGoodRodIsGood::
 	.string "Hmm!\n"
 	.string "A GOOD ROD is really good!\p"
 	.string "Wouldn't you agree?$"
 
-Route118_Text_IdenticalMindsTakeThis:
+Route118_Text_IdenticalMindsTakeThis::
 	.string "Hmm!\n"
 	.string "We're of identical minds!\p"
 	.string "Hmm!\n"
 	.string "Take this GOOD ROD!$"
 
-Route118_Text_TryYourLuckFishing:
+Route118_Text_TryYourLuckFishing::
 	.string "Wherever there's water, try your luck\n"
 	.string "at fishing.$"
 
-Route118_Text_DontYouLikeToFish:
+Route118_Text_DontYouLikeToFish::
 	.string "Don't you like to fish?$"
 
 Route118_Text_TryCatchingMonWithGoodRod:

@@ -26,6 +26,7 @@
 #define LITTLEROOT COUNTY_ID(1, 3)
 #define OLDALE COUNTY_ID(1, 2)
 #define PETALBURG COUNTY_ID(0, 2)
+#define WEATHER COUNTY_ID(3, 0)
 
 static const u8 sTextA[] = _("a");
 static const u8 sTextB[] = _("b");
@@ -100,7 +101,7 @@ static const struct ChapterDesc sFullDesc =
     .actors = sActors,
 };
 
-TEST("Chapter: Mossdeep, Dewford and Slateport host one chapter in slot 0, Mauville in slots 0 to 2, Rustboro, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
+TEST("Chapter: Mossdeep, Dewford, Slateport and the Weather Institute county host one chapter in slot 0, Mauville in slots 0 to 2, Rustboro, Lilycove and Littleroot in slots 0 and 1, Oldale in slot 0")
 {
     u32 county, slot;
 
@@ -108,7 +109,7 @@ TEST("Chapter: Mossdeep, Dewford and Slateport host one chapter in slot 0, Mauvi
     {
         for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
         {
-            if (((county == MOSSDEEP || county == DEWFORD || county == SLATEPORT) && slot == 0)
+            if (((county == MOSSDEEP || county == DEWFORD || county == SLATEPORT || county == WEATHER) && slot == 0)
              || (county == MAUVILLE && slot <= 2)
              || ((county == LITTLEROOT || county == LILYCOVE || county == RUSTBORO) && slot <= 1) || (county == OLDALE && slot == 0))
                 EXPECT(GetCountyChapter(county, slot) != NULL);
@@ -624,6 +625,22 @@ TEST("Chapter: Dewford's Old Rod chapter is stored, anchored outdoors, needs no 
     EXPECT_EQ(GetChapterNeededRoles(desc), 0);
     EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
     EXPECT_EQ(scene->stageVar, GetCountySlotVar(DEWFORD, 0));
+}
+
+TEST("Chapter: Route 118's Good Rod chapter is stored, anchored outdoors, needs no role, reports the Good Rod get, and its scene writes the slot var")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(WEATHER, 0);
+    const struct Scene *scene = GetScene(SCENE_ROUTE118_GOOD_ROD);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT_EQ(GetChapterNeededRoles(desc), 0);
+    EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
+    EXPECT(desc->producesMainGet);
+    EXPECT_EQ(desc->mainGet.kind, PLOT_KIND_UTILITY);
+    EXPECT_EQ(desc->mainGet.ordinal, PLOT_UTILITY_GOOD_ROD);
+    EXPECT_EQ(scene->stageVar, GetCountySlotVar(WEATHER, 0));
 }
 
 TEST("Chapter: Mauville's Rock Smash chapter is stored, house-anchored, produces no key, and keeps its stage in Mauville's slice")
@@ -1422,4 +1439,55 @@ TEST("Chapter: Soft-lock condition 3: a subplot whose own key producer is not be
 
     sub.requiredKeys[0] = (struct ChapterKeyRef){CHAPTER_KEY_HOST_POOL, 6};
     EXPECT_EQ(CheckSoftLockFixture(&sub, TRUE, &sSoftLockProxy, &earlier), PROXY_SUBPLOT_MISPLACED);
+}
+
+#define LAVARIDGE COUNTY_ID(2, 0)
+
+static bool32 StartsWith(const u8 *text, const u8 *prefix)
+{
+    return StringCompareN(text, prefix, StringLength(prefix)) == 0;
+}
+
+TEST("Chapter: A county with a city is referred to by its city, from anywhere, for any reason")
+{
+    u8 out[96];
+
+    WriteCountyReferenceAt(out, LILYCOVE, RUSTBORO, FALSE, 0);
+    EXPECT_EQ(StringCompare(out, GetCountyCityName(RUSTBORO)), 0);
+    WriteCountyReferenceAt(out, RUSTBORO, RUSTBORO, TRUE, 20);
+    EXPECT_EQ(StringCompare(out, GetCountyCityName(RUSTBORO)), 0);
+}
+
+TEST("Chapter: A cityless county is 'these parts' to its own NPCs and 'the area <dir> of here' to an adjacent county")
+{
+    u8 out[96];
+
+    WriteCountyReferenceAt(out, WEATHER, WEATHER, FALSE, 0);
+    EXPECT_EQ(StringCompare(out, COMPOUND_STRING("these parts")), 0);
+    WriteCountyReferenceAt(out, LAVARIDGE, WEATHER, FALSE, 0);
+    EXPECT_EQ(StringCompare(out, COMPOUND_STRING("the area east of here")), 0);
+    WriteCountyReferenceAt(out, LAVARIDGE, WEATHER, TRUE, 20);
+    EXPECT_EQ(StringCompare(out, COMPOUND_STRING("the area east of here")), 0);
+}
+
+TEST("Chapter: A callback hint, or a remote county the story is past, names the cityless county's landmark")
+{
+    u8 out[96];
+
+    ASSUME(!AreCountiesAdjacent(RUSTBORO, WEATHER));
+    WriteCountyReferenceAt(out, RUSTBORO, WEATHER, TRUE, 0);
+    EXPECT(StartsWith(out, COMPOUND_STRING("the area near ")));
+    WriteCountyReferenceAt(out, RUSTBORO, WEATHER, FALSE, 20);
+    EXPECT(StartsWith(out, COMPOUND_STRING("the area near ")));
+}
+
+TEST("Chapter: A remote cityless county not yet passed is placed by direction from an earlier neighboring city")
+{
+    u8 out[96], expect[96];
+
+    ASSUME(!AreCountiesAdjacent(RUSTBORO, WEATHER));
+    ASSUME(GetCountyHeader(LAVARIDGE)->storyIdx < GetCountyHeader(WEATHER)->storyIdx);
+    WriteCountyReferenceAt(out, RUSTBORO, WEATHER, FALSE, 0);
+    StringAppend(StringCopy(expect, COMPOUND_STRING("the area east of ")), GetCountyCityName(LAVARIDGE));
+    EXPECT_EQ(StringCompare(out, expect), 0);
 }

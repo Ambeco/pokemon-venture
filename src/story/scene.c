@@ -48,6 +48,9 @@ extern const u8 Scene_EventScript_RunTriggered[];
 // Slot 0 of Dewford's county slice, likewise.
 #define SCENE_DEWFORD_OLD_ROD_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(0, 3) * VARS_PER_COUNTY + 1)
 
+// Slot 0 of the Weather Institute county (3, 0), likewise.
+#define SCENE_ROUTE118_GOOD_ROD_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(3, 0) * VARS_PER_COUNTY + 1)
+
 #include "data/scenes.h"
 
 static EWRAM_DATA u8 sSearchCameFrom[WINDOW_CELLS] = {0}; // the direction taken into each cell, CELL_UNSEEN if not reached

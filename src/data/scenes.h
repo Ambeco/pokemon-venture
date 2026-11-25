@@ -383,6 +383,49 @@ static const struct Scene sDewfordOldRod =
     .steps = sDewfordOldRodSteps,
 };
 
+extern const u8 Route118_Text_YouAgreeGoodRodIsGood[];
+extern const u8 Route118_Text_IdenticalMindsTakeThis[];
+extern const u8 Route118_Text_TryYourLuckFishing[];
+extern const u8 Route118_Text_DontYouLikeToFish[];
+
+// The Good Rod fisherman on Route 118 (the Weather Institute county's chapter, slot 0), run from his talk script.
+// He stands outdoors, so the scene names no actor or tile. FLAG_RECEIVED_GOOD_ROD stays set for the main-plot adapter.
+// A full bag ends the scene at the give, before the flag and the advance.
+static const struct SceneStep sGoodRodAcceptSteps[] =
+{
+    SCENE_SAY(Route118_Text_IdenticalMindsTakeThis),
+    SCENE_GIVE(ITEM_GOOD_ROD, 1),
+    SCENE_SET_FLAG(FLAG_RECEIVED_GOOD_ROD),
+    SCENE_ADVANCE(1),
+    SCENE_SAY(Route118_Text_TryYourLuckFishing),
+};
+
+static const struct SceneStep sGoodRodDeclineSteps[] =
+{
+    SCENE_SAY(Route118_Text_DontYouLikeToFish),
+};
+
+static const struct SceneBranch sGoodRodAnswers[] =
+{
+    SCENE_BRANCH(NULL, sGoodRodAcceptSteps),
+    SCENE_BRANCH(NULL, sGoodRodDeclineSteps),
+};
+
+static const struct SceneStep sRoute118GoodRodSteps[] =
+{
+    SCENE_ASK_YES_NO(Route118_Text_YouAgreeGoodRodIsGood, sGoodRodAnswers),
+};
+
+static const struct Scene sRoute118GoodRod =
+{
+    .name = "Route118GoodRod",
+    .actors = {LOCALID_PLAYER},
+    .numActors = 1,
+    .stageVar = SCENE_ROUTE118_GOOD_ROD_BEAT_VAR,
+    .numSteps = ARRAY_COUNT(sRoute118GoodRodSteps),
+    .steps = sRoute118GoodRodSteps,
+};
+
 static const struct Scene *const sScenes[SCENE_COUNT] =
 {
     [SCENE_LITTLEROOT_NEED_POKEMON] = &sLittlerootNeedPokemon,
@@ -392,6 +435,7 @@ static const struct Scene *const sScenes[SCENE_COUNT] =
     [SCENE_ROUTE101_RESCUE] = &sRoute101Rescue,
     [SCENE_MOSSDEEP_SUPER_ROD] = &sMossdeepSuperRod,
     [SCENE_DEWFORD_OLD_ROD] = &sDewfordOldRod,
+    [SCENE_ROUTE118_GOOD_ROD] = &sRoute118GoodRod,
     [SCENE_ROUTE103_RIVAL_MAY] = &sRoute103RivalMay,
     [SCENE_ROUTE103_RIVAL_BRENDAN] = &sRoute103RivalBrendan,
     [SCENE_ROUTE101_BAG] = &sRoute101Bag,

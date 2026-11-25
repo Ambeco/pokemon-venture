@@ -1179,3 +1179,50 @@ TEST("Scene: Dewford's Old Rod scene on no gives nothing and changes nothing")
     EXPECT_EQ(GetCountySlotStage(DEWFORD, 0), 0);
     EXPECT_EQ(StringCompare(gStringVar4, DewfordTown_Text_ThatsTooBadThen), 0);
 }
+
+extern const u8 Route118_Text_TryYourLuckFishing[];
+extern const u8 Route118_Text_DontYouLikeToFish[];
+
+#define WEATHER_COUNTY COUNTY_ID(3, 0)
+
+TEST("Scene: Route 118's Good Rod scene gives the rod on yes, sets the flag and the chapter stage, and says the last line")
+{
+    u32 item, quantity;
+
+    LoadTestMap();
+    FlagClear(FLAG_RECEIVED_GOOD_ROD);
+    VarSet(GetCountySlotVar(WEATHER_COUNTY, 0), 0);
+    StepGiveScene(SCENE_ROUTE118_GOOD_ROD, TRUE, TRUE, &item, &quantity);
+    EXPECT_EQ(item, ITEM_GOOD_ROD);
+    EXPECT_EQ(quantity, 1);
+    EXPECT(FlagGet(FLAG_RECEIVED_GOOD_ROD));
+    EXPECT_EQ(GetCountySlotStage(WEATHER_COUNTY, 0), 1);
+    EXPECT_EQ(StringCompare(gStringVar4, Route118_Text_TryYourLuckFishing), 0);
+}
+
+TEST("Scene: Route 118's Good Rod scene with a full bag keeps the flag clear and the stage at 0")
+{
+    u32 item, quantity;
+
+    LoadTestMap();
+    FlagClear(FLAG_RECEIVED_GOOD_ROD);
+    VarSet(GetCountySlotVar(WEATHER_COUNTY, 0), 0);
+    StepGiveScene(SCENE_ROUTE118_GOOD_ROD, TRUE, FALSE, &item, &quantity);
+    EXPECT_EQ(item, ITEM_GOOD_ROD);
+    EXPECT(!FlagGet(FLAG_RECEIVED_GOOD_ROD));
+    EXPECT_EQ(GetCountySlotStage(WEATHER_COUNTY, 0), 0);
+}
+
+TEST("Scene: Route 118's Good Rod scene on no gives nothing and changes nothing")
+{
+    u32 item, quantity;
+
+    LoadTestMap();
+    FlagClear(FLAG_RECEIVED_GOOD_ROD);
+    VarSet(GetCountySlotVar(WEATHER_COUNTY, 0), 0);
+    StepGiveScene(SCENE_ROUTE118_GOOD_ROD, FALSE, TRUE, &item, &quantity);
+    EXPECT_EQ(item, 0);
+    EXPECT(!FlagGet(FLAG_RECEIVED_GOOD_ROD));
+    EXPECT_EQ(GetCountySlotStage(WEATHER_COUNTY, 0), 0);
+    EXPECT_EQ(StringCompare(gStringVar4, Route118_Text_DontYouLikeToFish), 0);
+}
