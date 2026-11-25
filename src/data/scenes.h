@@ -527,6 +527,65 @@ ROUTE119_SCENE_DESC(giftName)
 ROUTE119_RIVAL_SCENES(sRoute119RivalMay, sRoute119FlyMay, Route119_Text_MayIntro, Route119_Text_MayDefeat, Route119_Text_MayPresentForYou, Route119_Text_MayExplainFly);
 ROUTE119_RIVAL_SCENES(sRoute119RivalBrendan, sRoute119FlyBrendan, Route119_Text_BrendanIntro, Route119_Text_BrendanDefeat, Route119_Text_BrendanIllGiveYouThis, Route119_Text_BrendanExplainFly);
 
+extern const u8 LilycoveCity_Text_MayShoppingLetsBattle[];
+extern const u8 LilycoveCity_Text_MayBattleMe[];
+extern const u8 LilycoveCity_Text_MayWontBeBeaten[];
+extern const u8 LilycoveCity_Text_MayDefeat[];
+extern const u8 LilycoveCity_Text_MayGoingBackToLittleroot[];
+extern const u8 LilycoveCity_Text_MayNotRaisingPokemon[];
+extern const u8 LilycoveCity_Text_BrendanShoppingLetsBattle[];
+extern const u8 LilycoveCity_Text_BrendanBattleMe[];
+extern const u8 LilycoveCity_Text_BrendanWontBeBeaten[];
+extern const u8 LilycoveCity_Text_BrendanDefeat[];
+extern const u8 LilycoveCity_Text_BrendanGoingBackToLittleroot[];
+extern const u8 LilycoveCity_Text_BrendanNoConfidence[];
+
+// The Lilycove rival (Lilycove county, slot 2, two stages: 1 after the fight). A "no" sets
+// FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE and leaves the stage at 0, so the rival waits and the script picks the "again"
+// question next time. The after-fight badge talk, the bedroom flags and the fly-away stay in the script, which tells
+// a win from a decline by the trainer flag. FLAG_MET_RIVAL_LILYCOVE (set by the script) stays for the main-plot adapter.
+#define LILYCOVE_RIVAL_SCENES(firstName, againName, firstAsk, againAsk, wontBeBeaten, defeat, goingBack, declined) \
+static const struct SceneStep firstName##AcceptSteps[] = \
+{ \
+    SCENE_SAY(wontBeBeaten), \
+    SCENE_BATTLE_RIVAL(RIVAL_ENCOUNTER_LILYCOVE, defeat), \
+    SCENE_SAY(goingBack), \
+    SCENE_ADVANCE(1), \
+}; \
+static const struct SceneStep firstName##DeclineSteps[] = \
+{ \
+    SCENE_SET_FLAG(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE), \
+    SCENE_SAY(declined), \
+}; \
+static const struct SceneBranch firstName##Answers[] = \
+{ \
+    SCENE_BRANCH(NULL, firstName##AcceptSteps), \
+    SCENE_BRANCH(NULL, firstName##DeclineSteps), \
+}; \
+static const struct SceneStep firstName##Steps[] = {SCENE_ASK_YES_NO(firstAsk, firstName##Answers)}; \
+static const struct Scene firstName = \
+{ \
+    .name = #firstName, \
+    .actors = {LOCALID_PLAYER}, \
+    .numActors = 1, \
+    .stageVar = SCENE_LILYCOVE_RIVAL_BEAT_VAR, \
+    .numSteps = ARRAY_COUNT(firstName##Steps), \
+    .steps = firstName##Steps, \
+}; \
+static const struct SceneStep againName##Steps[] = {SCENE_ASK_YES_NO(againAsk, firstName##Answers)}; \
+static const struct Scene againName = \
+{ \
+    .name = #againName, \
+    .actors = {LOCALID_PLAYER}, \
+    .numActors = 1, \
+    .stageVar = SCENE_LILYCOVE_RIVAL_BEAT_VAR, \
+    .numSteps = ARRAY_COUNT(againName##Steps), \
+    .steps = againName##Steps, \
+}
+
+LILYCOVE_RIVAL_SCENES(sLilycoveRivalMay, sLilycoveRivalMayAgain, LilycoveCity_Text_MayShoppingLetsBattle, LilycoveCity_Text_MayBattleMe, LilycoveCity_Text_MayWontBeBeaten, LilycoveCity_Text_MayDefeat, LilycoveCity_Text_MayGoingBackToLittleroot, LilycoveCity_Text_MayNotRaisingPokemon);
+LILYCOVE_RIVAL_SCENES(sLilycoveRivalBrendan, sLilycoveRivalBrendanAgain, LilycoveCity_Text_BrendanShoppingLetsBattle, LilycoveCity_Text_BrendanBattleMe, LilycoveCity_Text_BrendanWontBeBeaten, LilycoveCity_Text_BrendanDefeat, LilycoveCity_Text_BrendanGoingBackToLittleroot, LilycoveCity_Text_BrendanNoConfidence);
+
 static const struct Scene *const sScenes[SCENE_COUNT] =
 {
     [SCENE_LITTLEROOT_NEED_POKEMON] = &sLittlerootNeedPokemon,
@@ -545,6 +604,10 @@ static const struct Scene *const sScenes[SCENE_COUNT] =
     [SCENE_ROUTE119_RIVAL_BRENDAN] = &sRoute119RivalBrendan,
     [SCENE_ROUTE119_FLY_MAY] = &sRoute119FlyMay,
     [SCENE_ROUTE119_FLY_BRENDAN] = &sRoute119FlyBrendan,
+    [SCENE_LILYCOVE_RIVAL_MAY] = &sLilycoveRivalMay,
+    [SCENE_LILYCOVE_RIVAL_MAY_AGAIN] = &sLilycoveRivalMayAgain,
+    [SCENE_LILYCOVE_RIVAL_BRENDAN] = &sLilycoveRivalBrendan,
+    [SCENE_LILYCOVE_RIVAL_BRENDAN_AGAIN] = &sLilycoveRivalBrendanAgain,
     [SCENE_ROUTE103_RIVAL_MAY] = &sRoute103RivalMay,
     [SCENE_ROUTE103_RIVAL_BRENDAN] = &sRoute103RivalBrendan,
     [SCENE_ROUTE101_BAG] = &sRoute101Bag,

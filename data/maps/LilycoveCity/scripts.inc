@@ -232,6 +232,9 @@ LilycoveCity_EventScript_AquaGrunt4::
 	msgbox LilycoveCity_Text_IfWorldBecomesOurs, MSGBOX_NPC
 	end
 
+@ The question, the fight and the "going back to Littleroot" talk are the scenes LilycoveRival* (src/data/scenes.h);
+@ FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE picks the first or the repeated question. A decline leaves the stage at 0 and
+@ the rival standing; a win is told from a decline by the trainer flag.
 LilycoveCity_EventScript_Rival::
 	lock
 	faceplayer
@@ -242,92 +245,41 @@ LilycoveCity_EventScript_Rival::
 
 LilycoveCity_EventScript_May::
 	playbgm MUS_ENCOUNTER_MAY, TRUE
-	call_if_set FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE, LilycoveCity_EventScript_MayAskToBattleAgain
-	call_if_unset FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE, LilycoveCity_EventScript_MayAskToBattle
-	goto_if_eq VAR_RESULT, NO, LilycoveCity_EventScript_DeclineMayBattle
-	msgbox LilycoveCity_Text_MayWontBeBeaten, MSGBOX_DEFAULT
-	switch VAR_STARTER_MON
-	case 0, LilycoveCity_EventScript_BattleMayTreecko
-	case 1, LilycoveCity_EventScript_BattleMayTorchic
-	case 2, LilycoveCity_EventScript_BattleMayMudkip
+	setvar VAR_0x8004, SCENE_LILYCOVE_RIVAL_MAY
+	call_if_set FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE, LilycoveCity_EventScript_MayAskAgainScene
+	call Scene_EventScript_Run
+	setvar VAR_0x8004, RIVAL_ENCOUNTER_LILYCOVE
+	specialvar VAR_RESULT, ScriptHasRivalBeenDefeated
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_RivalDeclined
+	goto LilycoveCity_EventScript_DefeatedMay
 	end
 
-LilycoveCity_EventScript_MayAskToBattleAgain::
-	msgbox LilycoveCity_Text_MayBattleMe, MSGBOX_YESNO
+LilycoveCity_EventScript_MayAskAgainScene::
+	setvar VAR_0x8004, SCENE_LILYCOVE_RIVAL_MAY_AGAIN
 	return
-
-LilycoveCity_EventScript_MayAskToBattle::
-	msgbox LilycoveCity_Text_MayShoppingLetsBattle, MSGBOX_YESNO
-	return
-
-LilycoveCity_EventScript_DeclineMayBattle::
-	setflag FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE
-	msgbox LilycoveCity_Text_MayNotRaisingPokemon, MSGBOX_DEFAULT
-	savebgm MUS_DUMMY
-	fadedefaultbgm
-	release
-	end
 
 LilycoveCity_EventScript_Brendan::
 	playbgm MUS_ENCOUNTER_BRENDAN, TRUE
-	call_if_set FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE, LilycoveCity_EventScript_BrendanAskToBattleAgain
-	call_if_unset FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE, LilycoveCity_EventScript_BrendanAskToBattle
-	goto_if_eq VAR_RESULT, NO, LilycoveCity_EventScript_DeclineBrendanBattle
-	msgbox LilycoveCity_Text_BrendanWontBeBeaten, MSGBOX_DEFAULT
-	switch VAR_STARTER_MON
-	case 0, LilycoveCity_EventScript_BattleBrendanTreecko
-	case 1, LilycoveCity_EventScript_BattleBrendanTorchic
-	case 2, LilycoveCity_EventScript_BattleBrendanMudkip
+	setvar VAR_0x8004, SCENE_LILYCOVE_RIVAL_BRENDAN
+	call_if_set FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE, LilycoveCity_EventScript_BrendanAskAgainScene
+	call Scene_EventScript_Run
+	setvar VAR_0x8004, RIVAL_ENCOUNTER_LILYCOVE
+	specialvar VAR_RESULT, ScriptHasRivalBeenDefeated
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_RivalDeclined
+	goto LilycoveCity_EventScript_DefeatedBrendan
 	end
 
-LilycoveCity_EventScript_BrendanAskToBattleAgain::
-	msgbox LilycoveCity_Text_BrendanBattleMe, MSGBOX_YESNO
+LilycoveCity_EventScript_BrendanAskAgainScene::
+	setvar VAR_0x8004, SCENE_LILYCOVE_RIVAL_BRENDAN_AGAIN
 	return
 
-LilycoveCity_EventScript_BrendanAskToBattle::
-	msgbox LilycoveCity_Text_BrendanShoppingLetsBattle, MSGBOX_YESNO
-	return
-
-LilycoveCity_EventScript_DeclineBrendanBattle::
-	setflag FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE
-	msgbox LilycoveCity_Text_BrendanNoConfidence, MSGBOX_DEFAULT
+LilycoveCity_EventScript_RivalDeclined::
 	savebgm MUS_DUMMY
 	fadedefaultbgm
 	release
 	end
 
-LilycoveCity_EventScript_BattleMayTreecko::
-	trainerbattle_no_intro TRAINER_MAY_LILYCOVE_TREECKO, LilycoveCity_Text_MayDefeat
-	goto LilycoveCity_EventScript_DefeatedMay
-	end
-
-LilycoveCity_EventScript_BattleMayTorchic::
-	trainerbattle_no_intro TRAINER_MAY_LILYCOVE_TORCHIC, LilycoveCity_Text_MayDefeat
-	goto LilycoveCity_EventScript_DefeatedMay
-	end
-
-LilycoveCity_EventScript_BattleMayMudkip::
-	trainerbattle_no_intro TRAINER_MAY_LILYCOVE_MUDKIP, LilycoveCity_Text_MayDefeat
-	goto LilycoveCity_EventScript_DefeatedMay
-	end
-
-LilycoveCity_EventScript_BattleBrendanTreecko::
-	trainerbattle_no_intro TRAINER_BRENDAN_LILYCOVE_TREECKO, LilycoveCity_Text_BrendanDefeat
-	goto LilycoveCity_EventScript_DefeatedBrendan
-	end
-
-LilycoveCity_EventScript_BattleBrendanTorchic::
-	trainerbattle_no_intro TRAINER_BRENDAN_LILYCOVE_TORCHIC, LilycoveCity_Text_BrendanDefeat
-	goto LilycoveCity_EventScript_DefeatedBrendan
-	end
-
-LilycoveCity_EventScript_BattleBrendanMudkip::
-	trainerbattle_no_intro TRAINER_BRENDAN_LILYCOVE_MUDKIP, LilycoveCity_Text_BrendanDefeat
-	goto LilycoveCity_EventScript_DefeatedBrendan
-	end
-
 LilycoveCity_EventScript_DefeatedMay::
-	msgbox LilycoveCity_Text_MayGoingBackToLittleroot, MSGBOX_DEFAULT
 	setvar VAR_RESULT, FALSE
 	call_if_set FLAG_BADGE06_GET, LilycoveCity_EventScript_CheckFinalBadge
 	call_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_MayCollectBadges
@@ -359,7 +311,6 @@ LilycoveCity_EventScript_MayBattleFrontier::
 	return
 
 LilycoveCity_EventScript_DefeatedBrendan::
-	msgbox LilycoveCity_Text_BrendanGoingBackToLittleroot, MSGBOX_DEFAULT
 	setvar VAR_RESULT, FALSE
 	call_if_set FLAG_BADGE06_GET, LilycoveCity_EventScript_CheckFinalBadge
 	call_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_BrendanCollectBadges
@@ -415,7 +366,7 @@ LilycoveCity_EventScript_DontKnowAboutBerryBlender::
 	msgbox LilycoveCity_Text_ExplainBerryBlender, MSGBOX_DEFAULT
 	return
 
-LilycoveCity_Text_MayShoppingLetsBattle:
+LilycoveCity_Text_MayShoppingLetsBattle::
 	.string "MAY: Oh, hey?\n"
 	.string "{PLAYER}{KUN}, are you shopping, too?\p"
 	.string "I bought a whole bunch of DOLLS and\n"
@@ -428,28 +379,28 @@ LilycoveCity_Text_MayShoppingLetsBattle:
 	.string "I'll battle with you, so you can show\n"
 	.string "me your POKéMON, {PLAYER}{KUN}.$"
 
-LilycoveCity_Text_MayNotRaisingPokemon:
+LilycoveCity_Text_MayNotRaisingPokemon::
 	.string "MAY: Oh, why? {PLAYER}{KUN}, haven't you\n"
 	.string "been raising your POKéMON?\p"
 	.string "That's not a very good showing as a\n"
 	.string "TRAINER…$"
 
-LilycoveCity_Text_MayBattleMe:
+LilycoveCity_Text_MayBattleMe::
 	.string "MAY: Come on, battle with me, so I can\n"
 	.string "check out your POKéMON!$"
 
-LilycoveCity_Text_MayWontBeBeaten:
+LilycoveCity_Text_MayWontBeBeaten::
 	.string "MAY: The POKéMON I raised won't be\n"
 	.string "beaten by your POKéMON, {PLAYER}{KUN}!$"
 
-LilycoveCity_Text_MayDefeat:
+LilycoveCity_Text_MayDefeat::
 	.string "… … … … … … … …\p"
 	.string "I remember the battle I had with you,\n"
 	.string "{PLAYER}{KUN}, on ROUTE 103.\p"
 	.string "That battle helped you become this\n"
 	.string "strong, {PLAYER}{KUN}, didn't it?$"
 
-LilycoveCity_Text_MayGoingBackToLittleroot:
+LilycoveCity_Text_MayGoingBackToLittleroot::
 	.string "MAY: I'm thinking of going back to\n"
 	.string "LITTLEROOT soon.\p"
 	.string "I've caught a decent group of POKéMON,\n"
@@ -485,7 +436,7 @@ LilycoveCity_Text_MayYouGoingToBattleFrontier:
 	.string "but I'll finish my POKéDEX before you!\p"
 	.string "See you!$"
 
-LilycoveCity_Text_BrendanShoppingLetsBattle:
+LilycoveCity_Text_BrendanShoppingLetsBattle::
 	.string "BRENDAN: Oh, hey, it's {PLAYER}.\p"
 	.string "I'm running an errand for my dad.\n"
 	.string "No, I'm not buying any DOLLS.\p"
@@ -493,25 +444,25 @@ LilycoveCity_Text_BrendanShoppingLetsBattle:
 	.string "Want to have a battle to see who's been\n"
 	.string "raising POKéMON better?$"
 
-LilycoveCity_Text_BrendanNoConfidence:
+LilycoveCity_Text_BrendanNoConfidence::
 	.string "BRENDAN: Oh, what's the matter?\n"
 	.string "Don't have the confidence?$"
 
-LilycoveCity_Text_BrendanBattleMe:
+LilycoveCity_Text_BrendanBattleMe::
 	.string "BRENDAN: Want to battle to see who's\n"
 	.string "been raising POKéMON better?$"
 
-LilycoveCity_Text_BrendanWontBeBeaten:
+LilycoveCity_Text_BrendanWontBeBeaten::
 	.string "BRENDAN: Aww, but you know I'm not\n"
 	.string "going to lose to no {PLAYER}.$"
 
-LilycoveCity_Text_BrendanDefeat:
+LilycoveCity_Text_BrendanDefeat::
 	.string "Humph…\n"
 	.string "You've done a lot of raising.\p"
 	.string "That stings a bit--I had a head start\n"
 	.string "on you as a TRAINER…$"
 
-LilycoveCity_Text_BrendanGoingBackToLittleroot:
+LilycoveCity_Text_BrendanGoingBackToLittleroot::
 	.string "BRENDAN: I…\n"
 	.string "I plan on going home to LITTLEROOT.\p"
 	.string "You know I'm helping out my dad on his\n"

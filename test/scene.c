@@ -1391,3 +1391,107 @@ TEST("Rival: GetRivalTrainer picks the Route 110 and Route 119 trainers for each
         EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_ROUTE_119), brendan119[starter]);
     }
 }
+
+extern const u8 LilycoveCity_Text_MayShoppingLetsBattle[];
+extern const u8 LilycoveCity_Text_MayBattleMe[];
+extern const u8 LilycoveCity_Text_MayGoingBackToLittleroot[];
+extern const u8 LilycoveCity_Text_MayNotRaisingPokemon[];
+extern const u8 LilycoveCity_Text_BrendanShoppingLetsBattle[];
+extern const u8 LilycoveCity_Text_BrendanBattleMe[];
+extern const u8 LilycoveCity_Text_BrendanGoingBackToLittleroot[];
+extern const u8 LilycoveCity_Text_BrendanNoConfidence[];
+
+#define LILYCOVE_COUNTY COUNTY_ID(4, 0)
+
+// Steps a Lilycove rival scene by hand, answering its question `yes` (the battle counts as won).
+static void StepLilycoveRival(u32 sceneId, bool32 yes, u32 *numBattles)
+{
+    u32 i;
+
+    *numBattles = 0;
+    SceneBeginScene(GetScene(sceneId));
+    for (i = 0; i < 50; i++)
+    {
+        SceneNextStep();
+        if (gSpecialVar_Result == SCENE_RESULT_ASK_YES_NO)
+        {
+            gSpecialVar_Result = yes;
+            SceneTakeAnswer();
+        }
+        else if (gSpecialVar_Result == SCENE_RESULT_BATTLE)
+        {
+            (*numBattles)++;
+        }
+        else if (gSpecialVar_Result == SCENE_RESULT_END)
+        {
+            return;
+        }
+    }
+    EXPECT(FALSE); // the scene never ended
+}
+
+TEST("Scene: Lilycove's rival scenes on yes fight the Lilycove rival, say he is going home and advance slot 2 to stage 1")
+{
+    static const u16 sceneIds[] = {SCENE_LILYCOVE_RIVAL_MAY, SCENE_LILYCOVE_RIVAL_MAY_AGAIN, SCENE_LILYCOVE_RIVAL_BRENDAN, SCENE_LILYCOVE_RIVAL_BRENDAN_AGAIN};
+    static const u8 *const goingBack[] = {LilycoveCity_Text_MayGoingBackToLittleroot, LilycoveCity_Text_MayGoingBackToLittleroot, LilycoveCity_Text_BrendanGoingBackToLittleroot, LilycoveCity_Text_BrendanGoingBackToLittleroot};
+    u32 i, numBattles;
+
+    for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
+    {
+        LoadTestMap();
+        FlagClear(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE);
+        VarSet(GetCountySlotVar(LILYCOVE_COUNTY, 2), 0);
+        StepLilycoveRival(sceneIds[i], TRUE, &numBattles);
+        EXPECT_EQ(numBattles, 1);
+        EXPECT(!FlagGet(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE));
+        EXPECT_EQ(GetCountySlotStage(LILYCOVE_COUNTY, 2), 1);
+        EXPECT_EQ(GetCountySlotStage(LILYCOVE_COUNTY, 0), 0);
+        EXPECT_EQ(GetCountySlotStage(LILYCOVE_COUNTY, 1), 0);
+        EXPECT_EQ(StringCompareN(gStringVar4, goingBack[i], 8), 0); // names are expanded after the speaker
+    }
+}
+
+TEST("Scene: Lilycove's rival scenes on no set the declined flag, fight nothing and leave the stage at 0")
+{
+    static const u16 sceneIds[] = {SCENE_LILYCOVE_RIVAL_MAY, SCENE_LILYCOVE_RIVAL_MAY_AGAIN, SCENE_LILYCOVE_RIVAL_BRENDAN, SCENE_LILYCOVE_RIVAL_BRENDAN_AGAIN};
+    static const u8 *const declined[] = {LilycoveCity_Text_MayNotRaisingPokemon, LilycoveCity_Text_MayNotRaisingPokemon, LilycoveCity_Text_BrendanNoConfidence, LilycoveCity_Text_BrendanNoConfidence};
+    u32 i, numBattles;
+
+    for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
+    {
+        LoadTestMap();
+        FlagClear(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE);
+        VarSet(GetCountySlotVar(LILYCOVE_COUNTY, 2), 0);
+        StepLilycoveRival(sceneIds[i], FALSE, &numBattles);
+        EXPECT_EQ(numBattles, 0);
+        EXPECT(FlagGet(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE));
+        EXPECT_EQ(GetCountySlotStage(LILYCOVE_COUNTY, 2), 0);
+        EXPECT_EQ(StringCompareN(gStringVar4, declined[i], 8), 0); // names are expanded after the speaker
+    }
+}
+
+TEST("Scene: Lilycove's first and repeated rival scenes ask different questions and share their answers")
+{
+    EXPECT(GetScene(SCENE_LILYCOVE_RIVAL_MAY)->steps[0].text == LilycoveCity_Text_MayShoppingLetsBattle);
+    EXPECT(GetScene(SCENE_LILYCOVE_RIVAL_MAY_AGAIN)->steps[0].text == LilycoveCity_Text_MayBattleMe);
+    EXPECT(GetScene(SCENE_LILYCOVE_RIVAL_BRENDAN)->steps[0].text == LilycoveCity_Text_BrendanShoppingLetsBattle);
+    EXPECT(GetScene(SCENE_LILYCOVE_RIVAL_BRENDAN_AGAIN)->steps[0].text == LilycoveCity_Text_BrendanBattleMe);
+    EXPECT(GetScene(SCENE_LILYCOVE_RIVAL_MAY)->steps[0].branches == GetScene(SCENE_LILYCOVE_RIVAL_MAY_AGAIN)->steps[0].branches);
+    EXPECT(GetScene(SCENE_LILYCOVE_RIVAL_BRENDAN)->steps[0].branches == GetScene(SCENE_LILYCOVE_RIVAL_BRENDAN_AGAIN)->steps[0].branches);
+}
+
+TEST("Rival: GetRivalTrainer picks the Lilycove trainers for each starter and gender")
+{
+    static const u16 may[] = {TRAINER_MAY_LILYCOVE_TREECKO, TRAINER_MAY_LILYCOVE_TORCHIC, TRAINER_MAY_LILYCOVE_MUDKIP};
+    static const u16 brendan[] = {TRAINER_BRENDAN_LILYCOVE_TREECKO, TRAINER_BRENDAN_LILYCOVE_TORCHIC, TRAINER_BRENDAN_LILYCOVE_MUDKIP};
+    u32 starter;
+
+    for (starter = 0; starter < 3; starter++)
+    {
+        VarSet(VAR_STARTER_MON, starter);
+        gSaveBlock2Ptr->playerGender = MALE;
+        EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_LILYCOVE), may[starter]);
+        gSaveBlock2Ptr->playerGender = FEMALE;
+        EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_LILYCOVE), brendan[starter]);
+    }
+}

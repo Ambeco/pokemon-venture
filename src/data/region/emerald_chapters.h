@@ -240,10 +240,10 @@ static const struct ChapterDesc sGoodRodChapter =
     .mainGet = {PLOT_KIND_UTILITY, PLOT_UTILITY_GOOD_ROD},
 };
 
-// A stored chapter for a rival beat or the Itemfinder on a cityless county's route: an NPC outdoors (anchor role 0),
-// completing a main-plot get. The scene writes the slot var; the map script also sets the legacy var
+// A stored chapter for a rival beat or the Itemfinder: an NPC outdoors (anchor role 0), completing a main-plot get.
+// The scene writes the slot var; on a cityless county's route the map script also sets the legacy var
 // (VAR_ROUTE110_STATE or VAR_ROUTE119_STATE) that its coord events and the plot-get adapter predicates read, because
-// a route script cannot find its county's stage.
+// a route script cannot find its county's stage. Lilycove's rival is the same in a city; the adapter reads its flag.
 #define ROUTE_GET_CHAPTER(name, getKind, getOrdinal) static const struct ChapterDesc name = {     .backend = CHAPTER_STORED,     .numStages = ARRAY_COUNT(name##Stages),     .stages = name##Stages,     .numHints = ARRAY_COUNT(name##Hints),     .hints = name##Hints,     .producesMainGet = TRUE,     .mainGet = {getKind, getOrdinal}, }
 
 #define ROUTE_NPC_STAGE {.anchor = {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, 0}}
@@ -272,6 +272,16 @@ static const struct ChapterHint sRival4ChapterHints[] =
     {2, 2, TEXT_LIST(sRoute119Rival2Far), TEXT_LIST(sRoute119Rival2Close)},
 };
 ROUTE_GET_CHAPTER(sRival4Chapter, PLOT_KIND_RIVAL, 4);
+
+// Lilycove's rival is the one city-county rival: he stands in the open city (anchor role 0), and the scene writes slot 2
+// of the county slice. The script sets FLAG_MET_RIVAL_LILYCOVE after his fly-away, which the adapter predicate reads.
+static const struct ChapterStage sRival5ChapterStages[] = {[0 ... 1] = ROUTE_NPC_STAGE};
+static const struct ChapterHint sRival5ChapterHints[] =
+{
+    {0, 0, TEXT_LIST(sLilycoveRival0Far), TEXT_LIST(sLilycoveRival0Close)},
+    {1, 1, TEXT_LIST(sLilycoveRival1Far), TEXT_LIST(sLilycoveRival1Close)},
+};
+ROUTE_GET_CHAPTER(sRival5Chapter, PLOT_KIND_RIVAL, 5);
 
 enum MauvilleRockSmashStage
 {
@@ -672,7 +682,6 @@ static const struct ChapterDesc name = \
 PLOT_GET_CHAPTER(sEverGrandeLobbyChapter, PLOT_KIND_GYM, ELITE_FOUR_ORDINAL, BUILDING_LEAGUE, STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0);
 PLOT_GET_CHAPTER(sRival1Chapter, PLOT_KIND_RIVAL, 1, 0, STORY_PRED_FLAG, FLAG_DEFEATED_RIVAL_ROUTE103, 0);
 PLOT_GET_CHAPTER(sRival2Chapter, PLOT_KIND_RIVAL, 2, 0, STORY_PRED_ANY_FLAG, FLAG_DEFEATED_RIVAL_RUSTBORO, FLAG_DEFEATED_RIVAL_ROUTE_104);
-PLOT_GET_CHAPTER(sRival5Chapter, PLOT_KIND_RIVAL, 5, 0, STORY_PRED_FLAG, FLAG_MET_RIVAL_LILYCOVE, 0);
 PLOT_GET_CHAPTER(sPokenavChapter, PLOT_KIND_UTILITY, PLOT_UTILITY_POKENAV, 0, STORY_PRED_FLAG, FLAG_RECEIVED_POKENAV, 0);
 PLOT_GET_CHAPTER(sStarterChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_STARTER, 0, STORY_PRED_FLAG, FLAG_SYS_POKEMON_GET, 0);
 PLOT_GET_CHAPTER(sPokedexChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKEDEX, 0, STORY_PRED_FLAG, FLAG_RECEIVED_POKEDEX_FROM_BIRCH, 0);
@@ -691,6 +700,7 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(0, 1), 1, &sRustboroFossilChapter}, // Rustboro, county-story-index 3
     {COUNTY_ID(4, 0), 0, &sLilycoveMuseumChapter}, // Lilycove, county-story-index 15
     {COUNTY_ID(4, 0), 1, &sLilycoveCaseChapter}, // Lilycove, county-story-index 15
+    {COUNTY_ID(4, 0), 2, &sRival5Chapter}, // Lilycove's rival
     {COUNTY_ID(5, 1), 0, &sMossdeepSuperRodChapter}, // Mossdeep
     {COUNTY_ID(0, 3), 0, &sDewfordOldRodChapter}, // Dewford, county-story-index 4
     {COUNTY_ID(3, 0), 0, &sGoodRodChapter}, // Weather Institute county: Route 118's fisherman
@@ -717,7 +727,6 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(5, 2), CHAPTER_SLOT_STATELESS, &sChampionChapter},
     {COUNTY_ID(1, 2), CHAPTER_SLOT_STATELESS, &sRival1Chapter},
     {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sRival2Chapter},
-    {COUNTY_ID(4, 0), CHAPTER_SLOT_STATELESS, &sRival5Chapter},
     {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sPokenavChapter},
     {COUNTY_ID(1, 3), CHAPTER_SLOT_STATELESS, &sStarterChapter},
     {COUNTY_ID(1, 3), CHAPTER_SLOT_STATELESS, &sPokedexChapter}, // Littleroot, hosting block 1's callback

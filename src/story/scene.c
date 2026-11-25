@@ -56,6 +56,9 @@ extern const u8 Scene_EventScript_RunTriggered[];
 #define SCENE_ROUTE110_ITEMFINDER_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(2, 2) * VARS_PER_COUNTY + 2)
 #define SCENE_ROUTE119_RIVAL_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(3, 0) * VARS_PER_COUNTY + 2)
 
+// Slot 2 of Lilycove's county slice (4, 0), likewise.
+#define SCENE_LILYCOVE_RIVAL_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(4, 0) * VARS_PER_COUNTY + 3)
+
 #include "data/scenes.h"
 
 static EWRAM_DATA u8 sSearchCameFrom[WINDOW_CELLS] = {0}; // the direction taken into each cell, CELL_UNSEEN if not reached

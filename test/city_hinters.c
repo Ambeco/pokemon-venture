@@ -376,7 +376,7 @@ TEST("CityHinters: Chapter news is the current close hint of the stage, and a mi
 
     EXPECT(WriteChapterNews(sNews, LILYCOVE, 0));
     EXPECT(sNews[0] != EOS);
-    EXPECT(!WriteChapterNews(sNews, LILYCOVE, 2));
+    EXPECT(!WriteChapterNews(sNews, COUNTY_ID(5, 1), 1));
 }
 
 TEST("CityHinters: The first undone blocking get is an item of the list, and a step-3 list names none")

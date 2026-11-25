@@ -77,6 +77,11 @@ static const u8 gText_Route119_Rival1CloseCurrent[] = _("Your rival {HINT_ANCHOR
 static const u8 gText_Route119_Rival2FarCurrent[] = _("Somebody around {HINT_CITY} got a present from their rival, I heard.");
 static const u8 gText_Route119_Rival2CloseCurrent[] = _("Your rival raced off {HINT_ANCHOR} after giving you a present.");
 
+static const u8 gText_Lilycove_Rival0FarCurrent[] = _("I heard your rival is shopping around {HINT_CITY} and wants a battle.");
+static const u8 gText_Lilycove_Rival0CloseCurrent[] = _("Your rival is out shopping {HINT_ANCHOR}. Show how strong your POKéMON have grown!");
+static const u8 gText_Lilycove_Rival1FarCurrent[] = _("Somebody around {HINT_CITY} battled their rival while shopping, I heard.");
+static const u8 gText_Lilycove_Rival1CloseCurrent[] = _("Your rival was here {HINT_ANCHOR}, and has already flown home.");
+
 static const u8 gText_Mauville_Smash0FarCurrent[] = _("I heard a man in {HINT_CITY} hands HIDDEN MACHINES to anyone with strong POKéMON.");
 static const u8 gText_Mauville_Smash0FarAfter0[] = _("A man in {HINT_CITY} gave someone an HM for smashing rocks, I heard.");
 static const u8 gText_Mauville_Smash0FarAfter1[] = _("Did you hear? A man in {HINT_CITY} gave away an HM, and he's still shouting about it.");
@@ -232,6 +237,11 @@ static const u8 *const sRoute119Rival1Far[] = {gText_Route119_Rival1FarCurrent};
 static const u8 *const sRoute119Rival1Close[] = {gText_Route119_Rival1CloseCurrent};
 static const u8 *const sRoute119Rival2Far[] = {gText_Route119_Rival2FarCurrent};
 static const u8 *const sRoute119Rival2Close[] = {gText_Route119_Rival2CloseCurrent};
+
+static const u8 *const sLilycoveRival0Far[] = {gText_Lilycove_Rival0FarCurrent};
+static const u8 *const sLilycoveRival0Close[] = {gText_Lilycove_Rival0CloseCurrent};
+static const u8 *const sLilycoveRival1Far[] = {gText_Lilycove_Rival1FarCurrent};
+static const u8 *const sLilycoveRival1Close[] = {gText_Lilycove_Rival1CloseCurrent};
 
 static const u8 *const sMauvilleStage0Far[] = {gText_Mauville_Smash0FarCurrent};
 static const u8 *const sMauvilleStage0Close[] = {gText_Mauville_Smash0CloseCurrent, gText_Mauville_Smash1CloseBefore};
