@@ -898,8 +898,6 @@ TEST("Chapter: The Starter, Pokenav, Shipyard, Elite Four, Champion and League l
     {
         const struct ChapterDesc *desc = FindStatelessAdapterByGet(sHintedPlotGets[i].kind, sHintedPlotGets[i].ordinal);
         const u8 *before, *after;
-
-        ASSUME(desc != NULL);
         u32 last, stage;
 
         ASSUME(desc != NULL);
@@ -938,6 +936,8 @@ TEST("Chapter: The Elite Four adapter advances one stage per flag and the Shipya
     FlagSet(FLAG_DOCK_REJECTED_DEVON_GOODS);
     EXPECT_EQ(GetChapterStage(LITTLEROOT, CHAPTER_SLOT_STATELESS, yard), 1);
     FlagSet(FLAG_DELIVERED_DEVON_GOODS);
+    EXPECT_EQ(GetChapterStage(LITTLEROOT, CHAPTER_SLOT_STATELESS, yard), 2);
+    FlagClear(FLAG_DOCK_REJECTED_DEVON_GOODS);
     EXPECT_EQ(GetChapterStage(LITTLEROOT, CHAPTER_SLOT_STATELESS, yard), 2);
 }
 
