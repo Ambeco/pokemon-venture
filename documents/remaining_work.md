@@ -41,11 +41,11 @@
 
 #### Chapter ports
 
-- Port more chapters to the descriptor (`Emerald_walkthrough.md`): no "city chapter (convert)" entries are left; the rest are the special-location chapters (Abandoned Ship, Trick House, Petalburg Woods and the flower shop). Briney's Wingull is main arc (Route 104, Rustboro and the Rusturf tunnel on the Devon Goods vars).
-- New Mauville (a stateless adapter in Mauville, `sNewMauvilleChapter`): its hints (`GetCountyStatelessHint`) have no hinters yet, and the news never mentions it (no main-plot get): bind NPCs for Mauville, and give the other stateless chapters (gyms, Rydel's proxy) hints only if they need them.
+- Port the remaining special-location chapters to the descriptor (`Emerald_walkthrough.md`): Abandoned Ship, Trick House, Petalburg Woods and the flower shop. Briney's Wingull is main arc (Route 104, Rustboro and the Rusturf tunnel on the Devon Goods vars).
+- Bind Mauville NPCs as hinters for New Mauville (`sNewMauvilleChapter`; no main-plot get, so the news never mentions it), and give the other stateless chapters (gyms, Rydel's proxy) hints only if they need them.
 - Re-analyze city locations vs building roles, then refactor: `BuildingRole` is a per-city bit mask (all 16 `u16` bits used); consider a role enum plus subroles, with a wider set type for `.roles`/`requiredRoles`. Anchors that are really locations should use `TownLocationKind`: the fossil revival (Devon Corp = Rustboro's `TOWN_LOCATION_INSTITUTION`, currently anchored on `BUILDING_SERVICE`) and the Lilycove contest hall (`BUILDING_CONTEST_HALL`; not a special location of Lilycove's tile yet). `BUILDING_SERVICE` lumps name rater, tutor, reminder, deleter.
 - Save Birch: Birch's Lab is not a special location of Littleroot's tile entry, so every stage is anchored to the Oldale road; anchor the lab stages there once it is.
-- Lock NPCs (twin, Birch's chase, the Oldale sketch artist): all three already gate on stage writes (`VAR_SAVE_BIRCH_BEAT` written by the rival-meeting scripts; the artist on `FLAG_ADVENTURE_STARTED`, set when the Pokédex is given). `IsCurrentChapterAvailable` adds nothing until a chapter can be moved or reordered; wire it when the first one is. Also make the cutscene runner (Milestone 2) walk a stage's `extraRoles` buildings.
+- Lock NPCs (twin, Birch's chase, the Oldale sketch artist): wire `IsCurrentChapterAvailable` in when the first chapter can be moved or reordered (it adds nothing before). Also make the cutscene runner (Milestone 2) walk a stage's `extraRoles` buildings.
 - Once the descriptor and McGuffin abstraction exist, also abstract Kanto's chapters and McGuffins (`data/maps/*_Frlg` scripts, `src/data/trainers_frlg.*`; notes.md) and add them to the chapter and McGuffin lists.
 
 #### Main-plot descriptor
@@ -61,7 +61,7 @@
 - Location placeholders for plot strings: `{CUR_LOCATION}`, `{PREV_LOCATION}`, `{NEXT_LOCATION}` (city, landmark, detour or pitstop):
   - Resolve prev/next in another county through one county accessor, since that county must say which location it picks.
   - Write a remote county as "near X" with X its first city, landmark or detour (county names don't exist for cityless counties, and relative phrasing like "northeast of CERULEAN" is grammatically hard and not always adjacent to a city).
-- Direction hint placeholder ("north of RUSTBORO"): needs county adjacency via the route accessor in Milestone 0 and the hinter's county in `ExpandHintTemplate`; only far chapter hinters need it, and none exist yet (design_city_npcs.md, "City planning"). `{HINT_CITY}` and `{HINT_PLACE}` exist.
+- Direction hint placeholder ("north of RUSTBORO"): needs county adjacency via the route accessor in Milestone 0 and the hinter's county in `ExpandHintTemplate`; only far chapter hinters need it (design_city_npcs.md, "City planning").
 - Far references (random NPC babble only, no story link): each county generates a few far-reference texts about its own places (e.g. the shopping center in Saffron), and an NPC may pull one from an adjacent county, so a Cerulean NPC can mention Saffron. Replaces referring to adjacent towns by gym leader, type or theme, which is hard to match.
 
 #### County chain
@@ -71,7 +71,7 @@
   - Open: a host's candidates are filtered by roles, badges and pool, so a class's eligible members may have holes; keep it scan-free with fixed class sizes per slot or a per-county eligible list.
   - Add a static test that each id's class matches its block.
 - County chain (design_chapters.md, "County chain"; `county_chain.h` is unused by game code yet):
-  - Parallel subplots (design_chapters.md, "Parallel subplots (proxy entries)"): Mauville's Rydel is converted (`CHAPTER_PROXY`, `CHAPTER_SLOT_STATELESS`); convert other independent errands on a shared chain the same way, and `CheckProxySoftLock` checks the four soft-lock conditions for every proxy.
+  - Convert other independent errands on a shared chain to parallel subplots with a stateless proxy, as Mauville's Rydel is (design_chapters.md, "Parallel subplots (proxy entries)").
     - Var 0 of each county slice is reserved and unused; give it a job or renumber the slices when the legacy var block shrinks (`vars.h` rebuilds everything).
   - Use `IsCountyMainSlotDone` where main-slot completion is needed (gym chapters, the main-story-index advance); adapter chapters on a chain read legacy vars, so a county with one still needs it ported.
   - Port the other gyms (`GYM_CHAPTER` in `emerald_chapters.h`): the gym scripts and hints are still vanilla; Sootopolis's block-20 callback (Victory Road, Wally 2) hosts no chapter.
@@ -89,12 +89,12 @@
 #### Scene runner
 
 - Scene runner (design_scenes.md, "Scene runner"; `src/story/scene.c`, first conversion is Littleroot's "need a Pokémon" girl):
-  - Check the wild form of `battle` in a real game or `make e2e` (no ported scene uses it yet, and the headless tests cannot run battles); the trainer form and `ask_choice` are covered by `test/e2e/tests/route103_rival.json`.
+  - Check the wild form of `battle` in a real game or `make e2e` (no ported scene uses it, and the headless tests cannot run battles).
   - Add a Lilycove rival e2e (decline, ask again, then win; needs a `lilycove_city_below_rival` recipe with the strong-party helper), likewise for Rival 2 on Route 104 and in Rustboro: those scenes are covered only by headless scene and chapter tests.
   - Give `give` a stage reward (a descriptor field) and `battle` a wild double or two-trainer form when a chapter needs them.
   - Route generation must guarantee the rescue's grass in view of the route entrance and an open 8-10 tile ring near it (design_scenes.md, "Scene runner") and keep the ring off the entrance-to-bag path.
   - Add the remaining triggers:
-    - Add talk, enter a door and interact with an item; the proximity and door-tile triggers exist, but a map-edge door has no "on door", so scenes needing it must be refused at placement (design_scenes.md, "Door and off-screen approach rules").
+    - Add talk, enter a door and interact with an item; a map-edge door has no "on door", so scenes needing it must be refused at placement (design_scenes.md, "Door and off-screen approach rules").
     - Classify the entrance/exit border: `SCENE_TRIGGER_EXIT` takes its edge from the table, not from route locks.
     - Bind actors per map instead of by local ids in each `struct Scene`.
     - Add a stage-to-scenes field beside `actors` on `ChapterDesc` (triggers are still a hand-written table).
@@ -103,7 +103,7 @@
   - Add building features (chair, TV, center-stage) and transient-actor placement with its test.
   - Convert the rest of the Route 101 tutorial (stage 5) and the other two ported chapters' scripts.
   - Replace the Super Rod fisherman's talk script with a "talk" trigger once it exists (his script still checks the stage and calls the scene).
-- Scene arbitration (design_scenes.md, "Interleaving subplots"): when two subplots' scenes qualify for one trigger, run the chain entry before an off-chain one, then the lower chapter slot; nothing implements this yet.
+- Scene arbitration (design_scenes.md, "Interleaving subplots"): when two subplots' scenes qualify for one trigger, run the chain entry before an off-chain one, then the lower chapter slot.
 - Actor placement: enforce the per-screen and per-map object budgets in the layout step (check the engine's spawn margin and the player and follower overhead first).
 
 #### Hinters and news
@@ -116,7 +116,7 @@
 - Place the hinters of the newest ports (Dewford's Old Rod, Mauville's Rock Smash and Coin Case, Slateport's Harbor Mail) once NPCs are bound for those cities; their e2e tests have no bag-full case, and Harbor Mail's does not buy through the Mart menu (the bag is pre-filled).
 - Pokémon Center news object (design_city_npcs.md, "City planning"):
   - Place the news NPC in Pokémon Centers: `ShowPokemonCenterNews` is bound by hand only to Lilycove's Pokémon Center Boy, via `Common_EventScript_PokemonCenterNews`, and not yet checked in-game; bind it in the other Emerald centers and for generated maps.
-  - Mark ported chapters that give a main-plot get with `producesMainGet` and `mainGet` as they are ported (only Mossdeep's Super Rod does so far).
+  - Mark ported chapters that give a main-plot get with `producesMainGet` and `mainGet` as they are ported.
   - Give a county details to hint at for a step-3 unlock that is no blocker (the Letter), so the news in that county is more than a vague line.
   - Write more generic news lines: `sGenericNews` has only 2, since Emerald has almost no standalone news text.
 

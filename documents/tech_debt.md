@@ -3,7 +3,7 @@
 One line per item, roughly highest priority first. Delete an item when it is paid off.
 
 - `remaining_work.md` mixes milestone work with ~60 "open design questions" (many are design content, not work) and has multi-clause items that cannot be deleted whole; the 1a milestone is a grab bag.
-  - Step 7: move per-item code pointers and "(done/exists)" status clauses (e.g. "exists and is tested", "already gate on stage writes") into `design_*.md` or `notes.md`, leaving only what is left to do on each line
+  - Step 7: Milestone 1a's status clauses are stripped (they were already in the design docs); still strip "(done/exists)" clauses and code pointers from Milestone 0, 1, 3 and 10, Cross-cutting and Unscheduled work (e.g. `DealCountyPitstops` "exists and is tested", the Enclaves "exist" clause), moving any fact not yet in a `design_*.md` there
   - Step 8: move the "Cross-cutting" and Milestone 0 "Routes" sub-bullets that are really design caveats (lock tile, cityless routes, outermost row) into `design_region.md`
   - Step 9: add a check (extend `tools/misc/` or a test) that every non-blank `remaining_work.md` line is a header or list item, and that no line exceeds ~400 characters
 - `src/story/scene.c` (~1100 lines) holds the step interpreter, path search, triggers and the scene table; split by responsibility.
