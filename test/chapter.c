@@ -102,7 +102,7 @@ static const struct ChapterDesc sFullDesc =
     .actors = sActors,
 };
 
-TEST("Chapter: Mossdeep, Dewford and Slateport host one chapter in slot 0, the Weather Institute and Route 110 counties in slots 0 and 1, Mauville and Lilycove in slots 0 to 2, Rustboro and Littleroot in slots 0 and 1, Oldale in slot 0")
+TEST("Chapter: Mossdeep, Dewford and Slateport host one chapter in slot 0, the Weather Institute and Route 110 counties in slots 0 and 1, Mauville, Lilycove and Rustboro in slots 0 to 2, Littleroot in slots 0 and 1, Oldale in slot 0")
 {
     u32 county, slot;
 
@@ -112,8 +112,8 @@ TEST("Chapter: Mossdeep, Dewford and Slateport host one chapter in slot 0, the W
         {
             if (((county == MOSSDEEP || county == DEWFORD || county == SLATEPORT) && slot == 0)
              || ((county == WEATHER || county == ROUTE110_COUNTY) && slot <= 1)
-             || ((county == MAUVILLE || county == LILYCOVE) && slot <= 2)
-             || ((county == LITTLEROOT || county == RUSTBORO) && slot <= 1) || (county == OLDALE && slot == 0))
+             || ((county == MAUVILLE || county == LILYCOVE || county == RUSTBORO) && slot <= 2)
+             || (county == LITTLEROOT && slot <= 1) || (county == OLDALE && slot == 0))
                 EXPECT(GetCountyChapter(county, slot) != NULL);
             else
                 EXPECT(GetCountyChapter(county, slot) == NULL);
@@ -701,6 +701,19 @@ TEST("Chapter: Lilycove's rival chapter is stored in slot 2 with two stages, rep
     EXPECT_EQ(GetChapterNeededRoles(desc), 0);
     for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
         EXPECT_EQ(GetScene(sceneIds[i])->stageVar, GetCountySlotVar(LILYCOVE, 2));
+}
+
+TEST("Chapter: Rival 2's chapter is stored in Rustboro's slot 2 with two stages and reports the second rival get")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(RUSTBORO, 2);
+
+    ASSUME(desc != NULL);
+    EXPECT_EQ(desc->backend, CHAPTER_STORED);
+    EXPECT_EQ(desc->numStages, 2);
+    EXPECT(desc->producesMainGet);
+    EXPECT_EQ(desc->mainGet.kind, PLOT_KIND_RIVAL);
+    EXPECT_EQ(desc->mainGet.ordinal, 2);
+    EXPECT_EQ(GetChapterNeededRoles(desc), 0);
 }
 
 TEST("Chapter: Mauville's Rock Smash chapter is stored, house-anchored, produces no key, and keeps its stage in Mauville's slice")

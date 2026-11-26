@@ -293,6 +293,16 @@ static const struct ChapterHint sRival5ChapterHints[] =
 };
 ROUTE_GET_CHAPTER(sRival5Chapter, PLOT_KIND_RIVAL, 5);
 
+// Rival 2 appears on Route 104 or in Rustboro (whichever the player reaches first); both sites' scenes write this slot,
+// and the scripts keep setting FLAG_DEFEATED_RIVAL_ROUTE_104 / FLAG_DEFEATED_RIVAL_RUSTBORO for the adapter predicate.
+static const struct ChapterStage sRival2ChapterStages[] = {[0 ... 1] = ROUTE_NPC_STAGE};
+static const struct ChapterHint sRival2ChapterHints[] =
+{
+    {0, 0, TEXT_LIST(sRival2Hint0Far), TEXT_LIST(sRival2Hint0Close)},
+    {1, 1, TEXT_LIST(sRival2Hint1Far), TEXT_LIST(sRival2Hint1Close)},
+};
+ROUTE_GET_CHAPTER(sRival2Chapter, PLOT_KIND_RIVAL, 2);
+
 enum MauvilleRockSmashStage
 {
     MAUVILLE_ROCK_SMASH_NOT_GIVEN,
@@ -691,7 +701,6 @@ static const struct ChapterDesc name = \
 
 PLOT_GET_CHAPTER(sEverGrandeLobbyChapter, PLOT_KIND_GYM, ELITE_FOUR_ORDINAL, BUILDING_LEAGUE, STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0);
 PLOT_GET_CHAPTER(sRival1Chapter, PLOT_KIND_RIVAL, 1, 0, STORY_PRED_FLAG, FLAG_DEFEATED_RIVAL_ROUTE103, 0);
-PLOT_GET_CHAPTER(sRival2Chapter, PLOT_KIND_RIVAL, 2, 0, STORY_PRED_ANY_FLAG, FLAG_DEFEATED_RIVAL_RUSTBORO, FLAG_DEFEATED_RIVAL_ROUTE_104);
 PLOT_GET_CHAPTER(sPokenavChapter, PLOT_KIND_UTILITY, PLOT_UTILITY_POKENAV, 0, STORY_PRED_FLAG, FLAG_RECEIVED_POKENAV, 0);
 PLOT_GET_CHAPTER(sStarterChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_STARTER, 0, STORY_PRED_FLAG, FLAG_SYS_POKEMON_GET, 0);
 PLOT_GET_CHAPTER(sPokedexChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKEDEX, 0, STORY_PRED_FLAG, FLAG_RECEIVED_POKEDEX_FROM_BIRCH, 0);
@@ -708,6 +717,7 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(1, 3), 1, &sSaveBirchChapter}, // Littleroot, county-story-index 0
     {COUNTY_ID(0, 1), 0, &sRustboroCutterChapter}, // Rustboro, county-story-index 3
     {COUNTY_ID(0, 1), 1, &sRustboroFossilChapter}, // Rustboro, county-story-index 3
+    {COUNTY_ID(0, 1), 2, &sRival2Chapter}, // Rival 2, met on Route 104 or in Rustboro
     {COUNTY_ID(4, 0), 0, &sLilycoveMuseumChapter}, // Lilycove, county-story-index 15
     {COUNTY_ID(4, 0), 1, &sLilycoveCaseChapter}, // Lilycove, county-story-index 15
     {COUNTY_ID(4, 0), 2, &sRival5Chapter}, // Lilycove's rival
@@ -736,7 +746,6 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(5, 2), CHAPTER_SLOT_STATELESS, &sEliteFourChapter},
     {COUNTY_ID(5, 2), CHAPTER_SLOT_STATELESS, &sChampionChapter},
     {COUNTY_ID(1, 2), CHAPTER_SLOT_STATELESS, &sRival1Chapter},
-    {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sRival2Chapter},
     {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sPokenavChapter},
     {COUNTY_ID(1, 3), CHAPTER_SLOT_STATELESS, &sStarterChapter},
     {COUNTY_ID(1, 3), CHAPTER_SLOT_STATELESS, &sPokedexChapter}, // Littleroot, hosting block 1's callback

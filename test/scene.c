@@ -1495,3 +1495,72 @@ TEST("Rival: GetRivalTrainer picks the Lilycove trainers for each starter and ge
         EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_LILYCOVE), brendan[starter]);
     }
 }
+
+#define RUSTBORO_COUNTY COUNTY_ID(0, 1)
+
+TEST("Scene: Rival 2's Route 104 and Rustboro scenes on yes fight the Rustboro trainers and advance Rustboro's slot 2 to stage 1")
+{
+    static const u16 sceneIds[] =
+    {
+        SCENE_ROUTE104_RIVAL_MAY, SCENE_ROUTE104_RIVAL_MAY_AGAIN, SCENE_ROUTE104_RIVAL_BRENDAN, SCENE_ROUTE104_RIVAL_BRENDAN_AGAIN,
+        SCENE_RUSTBORO_RIVAL_MAY, SCENE_RUSTBORO_RIVAL_MAY_AGAIN, SCENE_RUSTBORO_RIVAL_BRENDAN, SCENE_RUSTBORO_RIVAL_BRENDAN_AGAIN,
+    };
+    u32 i, numBattles;
+
+    for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
+    {
+        LoadTestMap();
+        VarSet(GetCountySlotVar(RUSTBORO_COUNTY, 2), 0);
+        StepLilycoveRival(sceneIds[i], TRUE, &numBattles);
+        EXPECT_EQ(numBattles, 1);
+        EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 2), 1);
+        EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 0), 0);
+        EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 1), 0);
+        EXPECT_EQ(GetScene(sceneIds[i])->stageVar, GetCountySlotVar(RUSTBORO_COUNTY, 2));
+    }
+}
+
+TEST("Scene: Rival 2's Route 104 and Rustboro scenes on no fight nothing and leave the stage at 0")
+{
+    static const u16 sceneIds[] =
+    {
+        SCENE_ROUTE104_RIVAL_MAY, SCENE_ROUTE104_RIVAL_MAY_AGAIN, SCENE_ROUTE104_RIVAL_BRENDAN, SCENE_ROUTE104_RIVAL_BRENDAN_AGAIN,
+        SCENE_RUSTBORO_RIVAL_MAY, SCENE_RUSTBORO_RIVAL_MAY_AGAIN, SCENE_RUSTBORO_RIVAL_BRENDAN, SCENE_RUSTBORO_RIVAL_BRENDAN_AGAIN,
+    };
+    u32 i, numBattles;
+
+    for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
+    {
+        LoadTestMap();
+        VarSet(GetCountySlotVar(RUSTBORO_COUNTY, 2), 0);
+        StepLilycoveRival(sceneIds[i], FALSE, &numBattles);
+        EXPECT_EQ(numBattles, 0);
+        EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 2), 0);
+    }
+}
+
+TEST("Scene: Rival 2's first and repeated questions share their answers at each site")
+{
+    EXPECT(GetScene(SCENE_ROUTE104_RIVAL_MAY)->steps[0].branches == GetScene(SCENE_ROUTE104_RIVAL_MAY_AGAIN)->steps[0].branches);
+    EXPECT(GetScene(SCENE_ROUTE104_RIVAL_BRENDAN)->steps[0].branches == GetScene(SCENE_ROUTE104_RIVAL_BRENDAN_AGAIN)->steps[0].branches);
+    EXPECT(GetScene(SCENE_RUSTBORO_RIVAL_MAY)->steps[0].branches == GetScene(SCENE_RUSTBORO_RIVAL_MAY_AGAIN)->steps[0].branches);
+    EXPECT(GetScene(SCENE_RUSTBORO_RIVAL_BRENDAN)->steps[0].branches == GetScene(SCENE_RUSTBORO_RIVAL_BRENDAN_AGAIN)->steps[0].branches);
+    EXPECT(GetScene(SCENE_ROUTE104_RIVAL_MAY)->steps[0].text != GetScene(SCENE_ROUTE104_RIVAL_MAY_AGAIN)->steps[0].text);
+    EXPECT(GetScene(SCENE_RUSTBORO_RIVAL_BRENDAN)->steps[0].text != GetScene(SCENE_RUSTBORO_RIVAL_BRENDAN_AGAIN)->steps[0].text);
+}
+
+TEST("Rival: GetRivalTrainer picks the Rustboro trainers for each starter and gender")
+{
+    static const u16 may[] = {TRAINER_MAY_RUSTBORO_TREECKO, TRAINER_MAY_RUSTBORO_TORCHIC, TRAINER_MAY_RUSTBORO_MUDKIP};
+    static const u16 brendan[] = {TRAINER_BRENDAN_RUSTBORO_TREECKO, TRAINER_BRENDAN_RUSTBORO_TORCHIC, TRAINER_BRENDAN_RUSTBORO_MUDKIP};
+    u32 starter;
+
+    for (starter = 0; starter < 3; starter++)
+    {
+        VarSet(VAR_STARTER_MON, starter);
+        gSaveBlock2Ptr->playerGender = MALE;
+        EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_RUSTBORO), may[starter]);
+        gSaveBlock2Ptr->playerGender = FEMALE;
+        EXPECT_EQ(GetRivalTrainer(RIVAL_ENCOUNTER_RUSTBORO), brendan[starter]);
+    }
+}

@@ -111,11 +111,9 @@ Route104_EventScript_MayEncounter::
 	applymovement LOCALID_ROUTE104_RIVAL, Route104_Movement_RivalApproachPlayer
 	waitmovement 0
 	copyobjectxytoperm LOCALID_ROUTE104_RIVAL
-	msgbox Route104_Text_MayMinesDecentLetsBattle, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, Route104_EventScript_BattleMay
-	msgbox Route104_Text_MayHaventRaisedPokemon, MSGBOX_DEFAULT
-	call Route104_EventScript_RestoreMusic
-	releaseall
+	setvar VAR_0x8004, SCENE_ROUTE104_RIVAL_MAY
+	call Scene_EventScript_Run
+	goto Route104_EventScript_AfterFirstRivalScene
 	end
 
 Route104_Movement_RivalWalkSlowLeft:
@@ -133,18 +131,33 @@ Route104_Movement_PlayerFaceRival:
 	step_end
 
 Route104_EventScript_MayAskToBattle::
-	msgbox Route104_Text_MayLetsBattle, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, Route104_EventScript_BattleMay
-	msgbox Route104_Text_MayHaventRaisedPokemon, MSGBOX_DEFAULT
+	setvar VAR_0x8004, SCENE_ROUTE104_RIVAL_MAY_AGAIN
+	call Scene_EventScript_Run
+	goto Route104_EventScript_AfterRepeatRivalScene
+	end
+
+@ The question, the intro, the fight and the stage change are the scenes Route104Rival* (src/data/scenes.h). A decline
+@ leaves the trainer flag clear; the first-meeting decline also restores the music.
+Route104_EventScript_AfterFirstRivalScene::
+	setvar VAR_0x8004, RIVAL_ENCOUNTER_RUSTBORO
+	specialvar VAR_RESULT, ScriptHasRivalBeenDefeated
+	goto_if_eq VAR_RESULT, TRUE, Route104_EventScript_RivalWon
+	call Route104_EventScript_RestoreMusic
 	releaseall
 	end
 
-Route104_EventScript_BattleMay::
-	msgbox Route104_Text_MayIntro, MSGBOX_DEFAULT
-	switch VAR_STARTER_MON
-	case 0, Route104_EventScript_BattleMayTreecko
-	case 1, Route104_EventScript_BattleMayTorchic
-	case 2, Route104_EventScript_BattleMayMudkip
+Route104_EventScript_AfterRepeatRivalScene::
+	setvar VAR_0x8004, RIVAL_ENCOUNTER_RUSTBORO
+	specialvar VAR_RESULT, ScriptHasRivalBeenDefeated
+	goto_if_eq VAR_RESULT, TRUE, Route104_EventScript_RivalWon
+	releaseall
+	end
+
+Route104_EventScript_RivalWon::
+	setflag FLAG_DEFEATED_RIVAL_ROUTE_104
+	checkplayergender
+	goto_if_eq VAR_RESULT, MALE, Route104_EventScript_MayDefeated
+	goto Route104_EventScript_BrendanDefeated
 	end
 
 Route104_EventScript_MayDefeated::
@@ -157,24 +170,6 @@ Route104_EventScript_RestoreMusic::
 	savebgm MUS_DUMMY
 	fadedefaultbgm
 	return
-
-Route104_EventScript_BattleMayTreecko::
-	trainerbattle_no_intro TRAINER_MAY_RUSTBORO_TREECKO, Route104_Text_MayDefeat
-	setflag FLAG_DEFEATED_RIVAL_ROUTE_104
-	goto Route104_EventScript_MayDefeated
-	end
-
-Route104_EventScript_BattleMayTorchic::
-	trainerbattle_no_intro TRAINER_MAY_RUSTBORO_TORCHIC, Route104_Text_MayDefeat
-	setflag FLAG_DEFEATED_RIVAL_ROUTE_104
-	goto Route104_EventScript_MayDefeated
-	end
-
-Route104_EventScript_BattleMayMudkip::
-	trainerbattle_no_intro TRAINER_MAY_RUSTBORO_MUDKIP, Route104_Text_MayDefeat
-	setflag FLAG_DEFEATED_RIVAL_ROUTE_104
-	goto Route104_EventScript_MayDefeated
-	end
 
 Route104_EventScript_BrendanEncounter::
 	goto_if_set FLAG_DEFEATED_RIVAL_ROUTE_104, Route104_EventScript_BrendanDefeated
@@ -197,50 +192,21 @@ Route104_EventScript_BrendanEncounter::
 	applymovement LOCALID_ROUTE104_RIVAL, Route104_Movement_RivalApproachPlayer
 	waitmovement 0
 	copyobjectxytoperm LOCALID_ROUTE104_RIVAL
-	msgbox Route104_Text_BrendanDoingGreatLetsBattle, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, Route104_EventScript_BattleBrendan
-	msgbox Route104_Text_BrendanNoConfidence, MSGBOX_DEFAULT
-	call Route104_EventScript_RestoreMusic
-	releaseall
+	setvar VAR_0x8004, SCENE_ROUTE104_RIVAL_BRENDAN
+	call Scene_EventScript_Run
+	goto Route104_EventScript_AfterFirstRivalScene
 	end
 
 Route104_EventScript_BrendanAskToBattle::
-	msgbox Route104_Text_BrendanLetsBattle, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, Route104_EventScript_BattleBrendan
-	msgbox Route104_Text_BrendanNoConfidence, MSGBOX_DEFAULT
-	releaseall
-	end
-
-Route104_EventScript_BattleBrendan::
-	msgbox Route104_Text_BrendanIntro, MSGBOX_DEFAULT
-	switch VAR_STARTER_MON
-	case 0, Route104_EventScript_BattleBrendanTreecko
-	case 1, Route104_EventScript_BattleBrendanTorchic
-	case 2, Route104_EventScript_BattleBrendanMudkip
+	setvar VAR_0x8004, SCENE_ROUTE104_RIVAL_BRENDAN_AGAIN
+	call Scene_EventScript_Run
+	goto Route104_EventScript_AfterRepeatRivalScene
 	end
 
 Route104_EventScript_BrendanDefeated::
 	msgbox Route104_Text_BrendanPostBattle, MSGBOX_DEFAULT
 	call_if_eq VAR_0x8008, 0, Route104_EventScript_RestoreMusic
 	releaseall
-	end
-
-Route104_EventScript_BattleBrendanTreecko::
-	trainerbattle_no_intro TRAINER_BRENDAN_RUSTBORO_TREECKO, Route104_Text_BrendanDefeat
-	setflag FLAG_DEFEATED_RIVAL_ROUTE_104
-	goto Route104_EventScript_BrendanDefeated
-	end
-
-Route104_EventScript_BattleBrendanTorchic::
-	trainerbattle_no_intro TRAINER_BRENDAN_RUSTBORO_TORCHIC, Route104_Text_BrendanDefeat
-	setflag FLAG_DEFEATED_RIVAL_ROUTE_104
-	goto Route104_EventScript_BrendanDefeated
-	end
-
-Route104_EventScript_BattleBrendanMudkip::
-	trainerbattle_no_intro TRAINER_BRENDAN_RUSTBORO_MUDKIP, Route104_Text_BrendanDefeat
-	setflag FLAG_DEFEATED_RIVAL_ROUTE_104
-	goto Route104_EventScript_BrendanDefeated
 	end
 
 Route104_Movement_PlayerBackUp:
@@ -1092,26 +1058,26 @@ Route104_Text_MayHowsYourPokedex:
 	.string "MAY: Oh, by the way, {PLAYER}{KUN},\n"
 	.string "how's your POKéDEX coming along?$"
 
-Route104_Text_MayMinesDecentLetsBattle:
+Route104_Text_MayMinesDecentLetsBattle::
 	.string "Mine's looking pretty decent.\n"
 	.string "So…\l"
 	.string "How about a little battle?$"
 
-Route104_Text_MayHaventRaisedPokemon:
+Route104_Text_MayHaventRaisedPokemon::
 	.string "MAY: Oh, what's the matter?\p"
 	.string "Haven't you caught or raised your\n"
 	.string "POKéMON very much?\p"
 	.string "That's not very good for a TRAINER!$"
 
-Route104_Text_MayLetsBattle:
+Route104_Text_MayLetsBattle::
 	.string "MAY: So, what do you think?\n"
 	.string "How about a little battle here?$"
 
-Route104_Text_MayIntro:
+Route104_Text_MayIntro::
 	.string "MAY: You just became a TRAINER,\n"
 	.string "{PLAYER}{KUN}. I'm not going to lose!$"
 
-Route104_Text_MayDefeat:
+Route104_Text_MayDefeat::
 	.string "Yikes!\n"
 	.string "You're better than I expected!$"
 
@@ -1138,24 +1104,24 @@ Route104_Text_BrendanHowsYourPokedex:
 	.string "BRENDAN: {PLAYER}, how's your POKéDEX?\n"
 	.string "Have you filled in any pages yet?$"
 
-Route104_Text_BrendanDoingGreatLetsBattle:
+Route104_Text_BrendanDoingGreatLetsBattle::
 	.string "Me, I'm doing great!\p"
 	.string "Want to check out how good I am with\n"
 	.string "a battle?$"
 
-Route104_Text_BrendanNoConfidence:
+Route104_Text_BrendanNoConfidence::
 	.string "BRENDAN: What's the matter? Don't have\n"
 	.string "any confidence in your POKéMON?$"
 
-Route104_Text_BrendanLetsBattle:
+Route104_Text_BrendanLetsBattle::
 	.string "BRENDAN: What's up?\n"
 	.string "Want to have a battle with me?$"
 
-Route104_Text_BrendanIntro:
+Route104_Text_BrendanIntro::
 	.string "BRENDAN: I know you just became\n"
 	.string "a TRAINER, but I won't go easy!$"
 
-Route104_Text_BrendanDefeat:
+Route104_Text_BrendanDefeat::
 	.string "Hmm…\n"
 	.string "You're pretty good.$"
 

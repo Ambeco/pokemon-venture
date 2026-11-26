@@ -26,7 +26,15 @@
 #define SCENE_LILYCOVE_RIVAL_MAY_AGAIN      21
 #define SCENE_LILYCOVE_RIVAL_BRENDAN        22
 #define SCENE_LILYCOVE_RIVAL_BRENDAN_AGAIN  23
-#define SCENE_COUNT                  24
+#define SCENE_ROUTE104_RIVAL_MAY            24
+#define SCENE_ROUTE104_RIVAL_MAY_AGAIN      25
+#define SCENE_ROUTE104_RIVAL_BRENDAN        26
+#define SCENE_ROUTE104_RIVAL_BRENDAN_AGAIN  27
+#define SCENE_RUSTBORO_RIVAL_MAY            28
+#define SCENE_RUSTBORO_RIVAL_MAY_AGAIN      29
+#define SCENE_RUSTBORO_RIVAL_BRENDAN        30
+#define SCENE_RUSTBORO_RIVAL_BRENDAN_AGAIN  31
+#define SCENE_COUNT                  32
 
 // What the driver script does after a step (SceneNextStep leaves one in VAR_RESULT).
 #define SCENE_RESULT_NEXT          0 // nothing to do: ask for the next step
