@@ -918,6 +918,62 @@ TEST("Chapter: Rival and Pokedex is stored in Oldale's slot 0 and the Route 103 
     EXPECT_EQ(RIVAL_DEX_POKEDEX_GIVEN, RIVAL_DEX_RIVAL_AT_LAB + 1);
 }
 
+// Each get chapter is the get's own predicate (emerald_plot_gets.h) as a two-stage adapter, so the two tables must agree.
+TEST("Chapter: Every adapter chapter that supplies a main-plot get uses the get's own done predicate")
+{
+    u32 i, numHosts, checked = 0;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    for (i = 0; i < numHosts; i++)
+    {
+        const struct ChapterDesc *desc = hosts[i].desc;
+        struct PlotSlot slot;
+        struct PlotGetDesc gets[2];
+
+        if (desc->backend != CHAPTER_ADAPTER || !desc->producesMainGet || desc->numStages != 2)
+            continue;
+        slot = GetVanillaPlotSlot(desc->mainGet.kind, desc->mainGet.ordinal);
+        GetPlotSlotGetDescs(&slot, gets);
+        EXPECT_EQ(desc->stages[1].done.op, gets[0].done.op);
+        EXPECT_EQ(desc->stages[1].done.a, gets[0].done.a);
+        EXPECT_EQ(desc->stages[1].done.b, gets[0].done.b);
+        checked++;
+    }
+    EXPECT_GT(checked, 10);
+}
+
+TEST("Chapter: Rival 1, the Pokedex, the Poke Balls and the Running Shoes are views of the Oldale chapter's stages")
+{
+    const struct ChapterDesc *desc = GetCountyChapter(OLDALE, 0);
+    u32 stage;
+    bool32 rival, dex, balls, shoes;
+
+    ASSUME(desc != NULL);
+    for (stage = 0; stage < RIVAL_DEX_NUM_STAGES; stage++)
+    {
+        struct PlotSlot slot;
+        struct PlotGetDesc get[2];
+
+        VarSet(VAR_RIVAL_DEX_BEAT, stage);
+        slot = GetVanillaPlotSlot(PLOT_KIND_RIVAL, 1);
+        GetPlotSlotGetDescs(&slot, get);
+        rival = IsStoryPredicateTrue(&get[0].done);
+        slot = GetVanillaPlotSlot(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKEDEX);
+        GetPlotSlotGetDescs(&slot, get);
+        dex = IsStoryPredicateTrue(&get[0].done);
+        slot = GetVanillaPlotSlot(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKE_BALLS);
+        GetPlotSlotGetDescs(&slot, get);
+        balls = IsStoryPredicateTrue(&get[0].done);
+        slot = GetVanillaPlotSlot(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_RUNNING_SHOES);
+        GetPlotSlotGetDescs(&slot, get);
+        shoes = IsStoryPredicateTrue(&get[0].done);
+        EXPECT_EQ(rival, stage >= RIVAL_DEX_RIVAL_IN_OLDALE);
+        EXPECT_EQ(dex, stage >= RIVAL_DEX_POKEDEX_GIVEN);
+        EXPECT_EQ(balls, stage >= RIVAL_DEX_POKEDEX_GIVEN);
+        EXPECT_EQ(shoes, stage >= RIVAL_DEX_SHOES_GIVEN);
+    }
+}
+
 TEST("Chapter: The first chapter of the chain is available from the start")
 {
     EXPECT(IsCountySlotAvailable(LITTLEROOT, 0));
