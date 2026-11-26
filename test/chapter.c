@@ -900,17 +900,45 @@ TEST("Chapter: The Starter, Pokenav, Shipyard, Elite Four, Champion and League l
         const u8 *before, *after;
 
         ASSUME(desc != NULL);
-        ASSUME(desc->numStages == 2);
+        u32 last, stage;
+
+        ASSUME(desc != NULL);
+        ASSUME(desc->numStages >= 2);
+        last = desc->numStages - 1;
         before = GetChapterHint(desc, 0, CHAPTER_FAR, 0);
-        after = GetChapterHint(desc, 1, CHAPTER_FAR, 0);
+        after = GetChapterHint(desc, last, CHAPTER_FAR, 0);
         EXPECT(before != NULL && after != NULL && before != after);
         before = GetChapterHint(desc, 0, CHAPTER_CLOSE, 0);
-        after = GetChapterHint(desc, 1, CHAPTER_CLOSE, 0);
+        after = GetChapterHint(desc, last, CHAPTER_CLOSE, 0);
         EXPECT(before != NULL && after != NULL && before != after);
-        EXPECT_EQ(desc->stages[0].anchor.kind, desc->stages[1].anchor.kind);
-        EXPECT(desc->stages[0].anchor.role != 0 || desc->stages[0].anchor.locationKind != BEAT_LOCATION_NONE
-            || desc->stages[0].anchor.kind == BEAT_ANCHOR_ROUTE_ROUTE);
+        for (stage = 0; stage <= last; stage++)
+        {
+            EXPECT(GetChapterHint(desc, stage, CHAPTER_FAR, 0) != NULL && GetChapterHint(desc, stage, CHAPTER_CLOSE, 0) != NULL);
+            EXPECT(desc->stages[stage].anchor.role != 0 || desc->stages[stage].anchor.locationKind != BEAT_LOCATION_NONE
+                || desc->stages[stage].anchor.kind == BEAT_ANCHOR_ROUTE_ROUTE);
+        }
     }
+}
+
+TEST("Chapter: The Elite Four adapter advances one stage per flag and the Shipyard adapter skips the refusal when goods are delivered")
+{
+    const struct ChapterDesc *elite = FindStatelessAdapterByGet(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_ELITE_FOUR);
+    const struct ChapterDesc *yard = FindStatelessAdapterByGet(PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_SHIPYARD);
+
+    ASSUME(elite != NULL && yard != NULL);
+    EXPECT_EQ(GetChapterStage(LITTLEROOT, CHAPTER_SLOT_STATELESS, elite), 0);
+    FlagSet(FLAG_ENTERED_ELITE_FOUR);
+    EXPECT_EQ(GetChapterStage(LITTLEROOT, CHAPTER_SLOT_STATELESS, elite), 1);
+    FlagSet(FLAG_DEFEATED_ELITE_4_SIDNEY);
+    EXPECT_EQ(GetChapterStage(LITTLEROOT, CHAPTER_SLOT_STATELESS, elite), 2);
+    FlagSet(FLAG_DEFEATED_ELITE_4_DRAKE);
+    EXPECT_EQ(GetChapterStage(LITTLEROOT, CHAPTER_SLOT_STATELESS, elite), 5);
+
+    EXPECT_EQ(GetChapterStage(LITTLEROOT, CHAPTER_SLOT_STATELESS, yard), 0);
+    FlagSet(FLAG_DOCK_REJECTED_DEVON_GOODS);
+    EXPECT_EQ(GetChapterStage(LITTLEROOT, CHAPTER_SLOT_STATELESS, yard), 1);
+    FlagSet(FLAG_DELIVERED_DEVON_GOODS);
+    EXPECT_EQ(GetChapterStage(LITTLEROOT, CHAPTER_SLOT_STATELESS, yard), 2);
 }
 
 // The stage constants scripts use are the descriptor's stage indices.

@@ -738,8 +738,62 @@ PLOT_GET_HINTED_CHAPTER(sStarterChapter, Starter, PLOT_KIND_SCRIPTED, PLOT_SCRIP
 PLOT_GET_CHAPTER(sPokedexChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKEDEX, 0, STORY_PRED_VAR_GE, VAR_RIVAL_DEX_BEAT, RIVAL_DEX_POKEDEX_GIVEN);
 PLOT_GET_CHAPTER(sPokeBallsChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKE_BALLS, 0, STORY_PRED_VAR_GE, VAR_RIVAL_DEX_BEAT, RIVAL_DEX_POKEDEX_GIVEN);
 PLOT_GET_CHAPTER(sRunningShoesChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_RUNNING_SHOES, 0, STORY_PRED_VAR_GE, VAR_RIVAL_DEX_BEAT, RIVAL_DEX_SHOES_GIVEN);
-PLOT_GET_HINTED_CHAPTER(sShipyardChapter, Shipyard, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_SHIPYARD, 0, HARBOR_ANCHOR, STORY_PRED_ANY_FLAG, FLAG_DOCK_REJECTED_DEVON_GOODS, FLAG_DELIVERED_DEVON_GOODS);
-PLOT_GET_HINTED_CHAPTER(sEliteFourChapter, EliteFour, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_ELITE_FOUR, 0, LEAGUE_ANCHOR, STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0);
+// Stages follow vanilla flags only (no slot var): the dock's refusal, then the delivery, which can also happen without a
+// refusal. The Shipyard plot get is "refused or delivered" (emerald_plot_gets.h), i.e. stage 1 or later.
+static const struct ChapterStage sShipyardStages[] =
+{
+    {.anchor = HARBOR_ANCHOR},
+    {.anchor = HARBOR_ANCHOR, .done = {STORY_PRED_FLAG, FLAG_DOCK_REJECTED_DEVON_GOODS, 0}},
+    {.anchor = HARBOR_ANCHOR, .done = {STORY_PRED_FLAG, FLAG_DELIVERED_DEVON_GOODS, 0}},
+};
+
+static const struct ChapterHint sShipyardHints[] =
+{
+    {0, 0, TEXT_LIST(sShipyard0Far), TEXT_LIST(sShipyard0Close)},
+    {1, 1, TEXT_LIST(sShipyardRejectedFar), TEXT_LIST(sShipyardRejectedClose)},
+    {2, 2, TEXT_LIST(sShipyard1Far), TEXT_LIST(sShipyard1Close)},
+};
+
+static const struct ChapterDesc sShipyardChapter =
+{
+    .backend = CHAPTER_ADAPTER,
+    .numStages = ARRAY_COUNT(sShipyardStages),
+    .stages = sShipyardStages,
+    .numHints = ARRAY_COUNT(sShipyardHints),
+    .hints = sShipyardHints,
+    .producesMainGet = TRUE,
+    .mainGet = {PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_SHIPYARD},
+};
+
+// The Elite Four run, one stage per member beaten (vanilla's four defeat flags). The Elite Four plot get is stage 1 or later.
+static const struct ChapterStage sEliteFourStages[] =
+{
+    {.anchor = LEAGUE_ANCHOR},
+    {.anchor = LEAGUE_ANCHOR, .done = {STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0}},
+    {.anchor = LEAGUE_ANCHOR, .done = {STORY_PRED_FLAG, FLAG_DEFEATED_ELITE_4_SIDNEY, 0}},
+    {.anchor = LEAGUE_ANCHOR, .done = {STORY_PRED_FLAG, FLAG_DEFEATED_ELITE_4_PHOEBE, 0}},
+    {.anchor = LEAGUE_ANCHOR, .done = {STORY_PRED_FLAG, FLAG_DEFEATED_ELITE_4_GLACIA, 0}},
+    {.anchor = LEAGUE_ANCHOR, .done = {STORY_PRED_FLAG, FLAG_DEFEATED_ELITE_4_DRAKE, 0}},
+};
+
+static const struct ChapterHint sEliteFourHints[] =
+{
+    {0, 0, TEXT_LIST(sEliteFour0Far), TEXT_LIST(sEliteFour0Close)},
+    {1, 1, TEXT_LIST(sEliteFour1Far), TEXT_LIST(sEliteFour1Close)},
+    {2, 4, TEXT_LIST(sEliteFourMidFar), TEXT_LIST(sEliteFourMidClose)},
+    {5, 5, TEXT_LIST(sEliteFourLastFar), TEXT_LIST(sEliteFourLastClose)},
+};
+
+static const struct ChapterDesc sEliteFourChapter =
+{
+    .backend = CHAPTER_ADAPTER,
+    .numStages = ARRAY_COUNT(sEliteFourStages),
+    .stages = sEliteFourStages,
+    .numHints = ARRAY_COUNT(sEliteFourHints),
+    .hints = sEliteFourHints,
+    .producesMainGet = TRUE,
+    .mainGet = {PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_ELITE_FOUR},
+};
 PLOT_GET_HINTED_CHAPTER(sChampionChapter, Champion, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_CHAMPION, 0, LEAGUE_ANCHOR, STORY_PRED_FLAG, FLAG_SYS_GAME_CLEAR, 0);
 
 static const struct ChapterHost sEmeraldChapterHosts[] =
