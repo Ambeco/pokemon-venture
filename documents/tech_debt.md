@@ -3,7 +3,6 @@
 One line per item, roughly highest priority first. Delete an item when it is paid off.
 
 - `remaining_work.md` mixes milestone work with ~60 "open design questions" (many are design content, not work) and has multi-clause items that cannot be deleted whole; the 1a milestone is a grab bag.
-  - Step 6: break Milestone 1a into sub-headers (Planner/Flash, Chapter ports, Scene runner, Hinters and news, Placeholders and far references, County chain) so each group can be finished and deleted whole
   - Step 7: move per-item code pointers and "(done/exists)" status clauses (e.g. "exists and is tested", "already gate on stage writes") into `design_*.md` or `notes.md`, leaving only what is left to do on each line
   - Step 8: move the "Cross-cutting" and Milestone 0 "Routes" sub-bullets that are really design caveats (lock tile, cityless routes, outermost row) into `design_region.md`
   - Step 9: add a check (extend `tools/misc/` or a test) that every non-blank `remaining_work.md` line is a header or list item, and that no line exceeds ~400 characters
