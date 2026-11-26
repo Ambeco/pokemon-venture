@@ -1403,8 +1403,8 @@ extern const u8 LilycoveCity_Text_BrendanNoConfidence[];
 
 #define LILYCOVE_COUNTY COUNTY_ID(4, 0)
 
-// Steps a Lilycove rival scene by hand, answering its question `yes` (the battle counts as won).
-static void StepLilycoveRival(u32 sceneId, bool32 yes, u32 *numBattles)
+// Steps a one-question rival scene (Lilycove, Route 104, Rustboro) by hand, answering `yes` (the battle counts as won).
+static void StepYesNoRivalScene(u32 sceneId, bool32 yes, u32 *numBattles)
 {
     u32 i;
 
@@ -1441,7 +1441,7 @@ TEST("Scene: Lilycove's rival scenes on yes fight the Lilycove rival, say he is 
         LoadTestMap();
         FlagClear(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE);
         VarSet(GetCountySlotVar(LILYCOVE_COUNTY, 2), 0);
-        StepLilycoveRival(sceneIds[i], TRUE, &numBattles);
+        StepYesNoRivalScene(sceneIds[i], TRUE, &numBattles);
         EXPECT_EQ(numBattles, 1);
         EXPECT(!FlagGet(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE));
         EXPECT_EQ(GetCountySlotStage(LILYCOVE_COUNTY, 2), 1);
@@ -1462,7 +1462,7 @@ TEST("Scene: Lilycove's rival scenes on no set the declined flag, fight nothing 
         LoadTestMap();
         FlagClear(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE);
         VarSet(GetCountySlotVar(LILYCOVE_COUNTY, 2), 0);
-        StepLilycoveRival(sceneIds[i], FALSE, &numBattles);
+        StepYesNoRivalScene(sceneIds[i], FALSE, &numBattles);
         EXPECT_EQ(numBattles, 0);
         EXPECT(FlagGet(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE));
         EXPECT_EQ(GetCountySlotStage(LILYCOVE_COUNTY, 2), 0);
@@ -1511,7 +1511,7 @@ TEST("Scene: Rival 2's Route 104 and Rustboro scenes on yes fight the Rustboro t
     {
         LoadTestMap();
         VarSet(GetCountySlotVar(RUSTBORO_COUNTY, 2), 0);
-        StepLilycoveRival(sceneIds[i], TRUE, &numBattles);
+        StepYesNoRivalScene(sceneIds[i], TRUE, &numBattles);
         EXPECT_EQ(numBattles, 1);
         EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 2), 1);
         EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 0), 0);
@@ -1533,7 +1533,7 @@ TEST("Scene: Rival 2's Route 104 and Rustboro scenes on no fight nothing and lea
     {
         LoadTestMap();
         VarSet(GetCountySlotVar(RUSTBORO_COUNTY, 2), 0);
-        StepLilycoveRival(sceneIds[i], FALSE, &numBattles);
+        StepYesNoRivalScene(sceneIds[i], FALSE, &numBattles);
         EXPECT_EQ(numBattles, 0);
         EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 2), 0);
     }

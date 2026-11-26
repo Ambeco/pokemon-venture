@@ -294,7 +294,7 @@ static const struct ChapterHint sRival5ChapterHints[] =
 ROUTE_GET_CHAPTER(sRival5Chapter, PLOT_KIND_RIVAL, 5);
 
 // Rival 2 appears on Route 104 or in Rustboro (whichever the player reaches first); both sites' scenes write this slot,
-// and the scripts keep setting FLAG_DEFEATED_RIVAL_ROUTE_104 / FLAG_DEFEATED_RIVAL_RUSTBORO for the adapter predicate.
+// and the scripts keep setting FLAG_DEFEATED_RIVAL_ROUTE_104 / FLAG_DEFEATED_RIVAL_RUSTBORO for the plot get's predicate (emerald_plot_gets.h).
 static const struct ChapterStage sRival2ChapterStages[] = {[0 ... 1] = ROUTE_NPC_STAGE};
 static const struct ChapterHint sRival2ChapterHints[] =
 {
