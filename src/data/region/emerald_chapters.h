@@ -699,17 +699,48 @@ static const struct ChapterDesc name = \
     .mainGet = {getKind, getOrdinal}, \
 }
 
-PLOT_GET_CHAPTER(sEverGrandeLobbyChapter, PLOT_KIND_GYM, ELITE_FOUR_ORDINAL, BUILDING_LEAGUE, STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0);
+// PLOT_GET_CHAPTER with a pair of hints (before and after the get; texts `s<texts>0Far` ... `s<texts>1Close`) and one
+// anchor for both stages. No hinters are placed yet, so the hints are reached only through GetCountyStatelessHint.
+#define PLOT_GET_HINTED_CHAPTER(name, texts, getKind, getOrdinal, roles, anchorInit, ...) \
+static const struct ChapterStage name##Stages[] = \
+{ \
+    {.anchor = anchorInit}, \
+    {.anchor = anchorInit, .done = {__VA_ARGS__}}, \
+}; \
+static const struct ChapterHint name##Hints[] = \
+{ \
+    {0, 0, TEXT_LIST(s##texts##0Far), TEXT_LIST(s##texts##0Close)}, \
+    {1, 1, TEXT_LIST(s##texts##1Far), TEXT_LIST(s##texts##1Close)}, \
+}; \
+static const struct ChapterDesc name = \
+{ \
+    .backend = CHAPTER_ADAPTER, \
+    .numStages = ARRAY_COUNT(name##Stages), \
+    .stages = name##Stages, \
+    .numHints = ARRAY_COUNT(name##Hints), \
+    .hints = name##Hints, \
+    .requiredRoles = roles, \
+    .producesMainGet = TRUE, \
+    .mainGet = {getKind, getOrdinal}, \
+}
+
+#define OLDALE_ROAD_ANCHOR {BEAT_ANCHOR_ROUTE_ROUTE, COUNTY_ID(1, 3), COUNTY_ID(1, 2), BEAT_LOCATION_NONE, 0}
+#define DEVON_CORP_ANCHOR {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, TOWN_LOCATION_INSTITUTION, 0}
+#define HARBOR_ANCHOR {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, TOWN_LOCATION_HARBOR, 0}
+#define LEAGUE_ANCHOR {BEAT_ANCHOR_NPC, ROUTE_ID_NONE, ROUTE_ID_NONE, BEAT_LOCATION_NONE, BUILDING_LEAGUE}
+
+PLOT_GET_HINTED_CHAPTER(sEverGrandeLobbyChapter, Lobby, PLOT_KIND_GYM, ELITE_FOUR_ORDINAL, BUILDING_LEAGUE, LEAGUE_ANCHOR, STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0);
 // The four gets sRivalDexChapter's var covers are views of its stages (it is their only writer): the predicates read VAR_RIVAL_DEX_BEAT, not the flags the scripts also set.
 PLOT_GET_CHAPTER(sRival1Chapter, PLOT_KIND_RIVAL, 1, 0, STORY_PRED_VAR_GE, VAR_RIVAL_DEX_BEAT, RIVAL_DEX_RIVAL_IN_OLDALE);
-PLOT_GET_CHAPTER(sPokenavChapter, PLOT_KIND_UTILITY, PLOT_UTILITY_POKENAV, 0, STORY_PRED_FLAG, FLAG_RECEIVED_POKENAV, 0);
-PLOT_GET_CHAPTER(sStarterChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_STARTER, 0, STORY_PRED_FLAG, FLAG_SYS_POKEMON_GET, 0);
+PLOT_GET_HINTED_CHAPTER(sPokenavChapter, Pokenav, PLOT_KIND_UTILITY, PLOT_UTILITY_POKENAV, 0, DEVON_CORP_ANCHOR, STORY_PRED_FLAG, FLAG_RECEIVED_POKENAV, 0);
+// The Starter keeps its engine flag, which the debug menu sets without advancing Save Birch's stage (it would leave Birch hidden).
+PLOT_GET_HINTED_CHAPTER(sStarterChapter, Starter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_STARTER, 0, OLDALE_ROAD_ANCHOR, STORY_PRED_FLAG, FLAG_SYS_POKEMON_GET, 0);
 PLOT_GET_CHAPTER(sPokedexChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKEDEX, 0, STORY_PRED_VAR_GE, VAR_RIVAL_DEX_BEAT, RIVAL_DEX_POKEDEX_GIVEN);
 PLOT_GET_CHAPTER(sPokeBallsChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_POKE_BALLS, 0, STORY_PRED_VAR_GE, VAR_RIVAL_DEX_BEAT, RIVAL_DEX_POKEDEX_GIVEN);
 PLOT_GET_CHAPTER(sRunningShoesChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_RUNNING_SHOES, 0, STORY_PRED_VAR_GE, VAR_RIVAL_DEX_BEAT, RIVAL_DEX_SHOES_GIVEN);
-PLOT_GET_CHAPTER(sShipyardChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_SHIPYARD, 0, STORY_PRED_ANY_FLAG, FLAG_DOCK_REJECTED_DEVON_GOODS, FLAG_DELIVERED_DEVON_GOODS);
-PLOT_GET_CHAPTER(sEliteFourChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_ELITE_FOUR, 0, STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0);
-PLOT_GET_CHAPTER(sChampionChapter, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_CHAMPION, 0, STORY_PRED_FLAG, FLAG_SYS_GAME_CLEAR, 0);
+PLOT_GET_HINTED_CHAPTER(sShipyardChapter, Shipyard, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_SHIPYARD, 0, HARBOR_ANCHOR, STORY_PRED_ANY_FLAG, FLAG_DOCK_REJECTED_DEVON_GOODS, FLAG_DELIVERED_DEVON_GOODS);
+PLOT_GET_HINTED_CHAPTER(sEliteFourChapter, EliteFour, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_ELITE_FOUR, 0, LEAGUE_ANCHOR, STORY_PRED_FLAG, FLAG_ENTERED_ELITE_FOUR, 0);
+PLOT_GET_HINTED_CHAPTER(sChampionChapter, Champion, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_CHAMPION, 0, LEAGUE_ANCHOR, STORY_PRED_FLAG, FLAG_SYS_GAME_CLEAR, 0);
 
 static const struct ChapterHost sEmeraldChapterHosts[] =
 {

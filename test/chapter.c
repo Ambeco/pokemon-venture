@@ -866,6 +866,53 @@ TEST("Chapter: A stateless chapter's hints follow its stage and have both lists 
     EXPECT(GetCountyStatelessHint(MAUVILLE, index, CHAPTER_CLOSE, 0) != close);
 }
 
+static const struct ChapterDesc *FindStatelessAdapterByGet(u32 kind, u32 ordinal)
+{
+    u32 numHosts, i;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    for (i = 0; i < numHosts; i++)
+    {
+        if (hosts[i].slot == CHAPTER_SLOT_STATELESS && hosts[i].desc->backend == CHAPTER_ADAPTER
+         && DoesChapterProduce(hosts[i].desc, kind, ordinal))
+            return hosts[i].desc;
+    }
+    return NULL;
+}
+
+static const struct { u8 kind; u8 ordinal; } sHintedPlotGets[] =
+{
+    {PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_STARTER},
+    {PLOT_KIND_UTILITY, PLOT_UTILITY_POKENAV},
+    {PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_SHIPYARD},
+    {PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_ELITE_FOUR},
+    {PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_CHAMPION},
+    {PLOT_KIND_GYM, ELITE_FOUR_ORDINAL},
+};
+
+TEST("Chapter: The Starter, Pokenav, Shipyard, Elite Four, Champion and League lobby adapters hint before and after their get and anchor both stages")
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sHintedPlotGets); i++)
+    {
+        const struct ChapterDesc *desc = FindStatelessAdapterByGet(sHintedPlotGets[i].kind, sHintedPlotGets[i].ordinal);
+        const u8 *before, *after;
+
+        ASSUME(desc != NULL);
+        ASSUME(desc->numStages == 2);
+        before = GetChapterHint(desc, 0, CHAPTER_FAR, 0);
+        after = GetChapterHint(desc, 1, CHAPTER_FAR, 0);
+        EXPECT(before != NULL && after != NULL && before != after);
+        before = GetChapterHint(desc, 0, CHAPTER_CLOSE, 0);
+        after = GetChapterHint(desc, 1, CHAPTER_CLOSE, 0);
+        EXPECT(before != NULL && after != NULL && before != after);
+        EXPECT_EQ(desc->stages[0].anchor.kind, desc->stages[1].anchor.kind);
+        EXPECT(desc->stages[0].anchor.role != 0 || desc->stages[0].anchor.locationKind != BEAT_LOCATION_NONE
+            || desc->stages[0].anchor.kind == BEAT_ANCHOR_ROUTE_ROUTE);
+    }
+}
+
 // The stage constants scripts use are the descriptor's stage indices.
 static bool32 SaveBirchStageNamesMatch(void)
 {

@@ -281,6 +281,60 @@ static const u8 *const sMauvilleGen2Close[] = {gText_Mauville_Gen2CloseCurrent};
 static const u8 *const sMauvilleGen3Far[] = {gText_Mauville_Gen3FarCurrent};
 static const u8 *const sMauvilleGen3Close[] = {gText_Mauville_Gen3CloseCurrent};
 
+static const u8 gText_Starter0Far[] = _("I heard a POKéMON researcher in {HINT_CITY} got chased into the tall grass by a wild POKéMON.");
+static const u8 gText_Starter0Close[] = _("Someone is calling for help\n{HINT_ANCHOR}!");
+static const u8 gText_Starter1Far[] = _("A kid from {HINT_CITY} set off with a first POKéMON from the PROFESSOR, I heard.");
+static const u8 gText_Starter1Close[] = _("A kid {HINT_ANCHOR} came through with a brand-new POKéMON.");
+static const u8 *const sStarter0Far[] = {gText_Starter0Far};
+static const u8 *const sStarter0Close[] = {gText_Starter0Close};
+static const u8 *const sStarter1Far[] = {gText_Starter1Far};
+static const u8 *const sStarter1Close[] = {gText_Starter1Close};
+
+static const u8 gText_Pokenav0Far[] = _("I heard DEVON CORPORATION in {HINT_CITY} wants to hand a new gadget to a TRAINER.");
+static const u8 gText_Pokenav0Close[] = _("DEVON CORPORATION {HINT_ANCHOR} is looking for a TRAINER to try its new gadget.");
+static const u8 gText_Pokenav1Far[] = _("A TRAINER in {HINT_CITY} got a POKéNAV from DEVON CORPORATION, I heard.");
+static const u8 gText_Pokenav1Close[] = _("DEVON CORPORATION {HINT_ANCHOR} gave its POKéNAV to a TRAINER.");
+static const u8 *const sPokenav0Far[] = {gText_Pokenav0Far};
+static const u8 *const sPokenav0Close[] = {gText_Pokenav0Close};
+static const u8 *const sPokenav1Far[] = {gText_Pokenav1Far};
+static const u8 *const sPokenav1Close[] = {gText_Pokenav1Close};
+
+static const u8 gText_Shipyard0Far[] = _("I heard the SEASIDE CARGO dock in {HINT_CITY} is waiting on a delivery.");
+static const u8 gText_Shipyard0Close[] = _("The dock workers {HINT_ANCHOR} are waiting for a delivery.");
+static const u8 gText_Shipyard1Far[] = _("A TRAINER stopped by the dock in {HINT_CITY} with a delivery, I heard.");
+static const u8 gText_Shipyard1Close[] = _("The dock {HINT_ANCHOR} is busy again after that delivery.");
+static const u8 *const sShipyard0Far[] = {gText_Shipyard0Far};
+static const u8 *const sShipyard0Close[] = {gText_Shipyard0Close};
+static const u8 *const sShipyard1Far[] = {gText_Shipyard1Far};
+static const u8 *const sShipyard1Close[] = {gText_Shipyard1Close};
+
+static const u8 gText_EliteFour0Far[] = _("They say the POKéMON LEAGUE in {HINT_CITY} only lets in TRAINERS with eight BADGES.");
+static const u8 gText_EliteFour0Close[] = _("The guard {HINT_ANCHOR} only lets in TRAINERS with eight BADGES.");
+static const u8 gText_EliteFour1Far[] = _("A TRAINER from {HINT_CITY} is taking on the ELITE FOUR, I heard.");
+static const u8 gText_EliteFour1Close[] = _("A TRAINER went through {HINT_ANCHOR} to face the ELITE FOUR.");
+static const u8 *const sEliteFour0Far[] = {gText_EliteFour0Far};
+static const u8 *const sEliteFour0Close[] = {gText_EliteFour0Close};
+static const u8 *const sEliteFour1Far[] = {gText_EliteFour1Far};
+static const u8 *const sEliteFour1Close[] = {gText_EliteFour1Close};
+
+static const u8 gText_Champion0Far[] = _("They say the CHAMPION in {HINT_CITY} waits for whoever beats the ELITE FOUR.");
+static const u8 gText_Champion0Close[] = _("The CHAMPION waits {HINT_ANCHOR} for a challenger.");
+static const u8 gText_Champion1Far[] = _("Someone from {HINT_CITY} became the new CHAMPION, I heard.");
+static const u8 gText_Champion1Close[] = _("The HALL OF FAME {HINT_ANCHOR} has a brand-new entry.");
+static const u8 *const sChampion0Far[] = {gText_Champion0Far};
+static const u8 *const sChampion0Close[] = {gText_Champion0Close};
+static const u8 *const sChampion1Far[] = {gText_Champion1Far};
+static const u8 *const sChampion1Close[] = {gText_Champion1Close};
+
+static const u8 gText_Lobby0Far[] = _("I heard the road to the POKéMON LEAGUE in {HINT_CITY} ends at a lobby for TRAINERS.");
+static const u8 gText_Lobby0Close[] = _("The lobby {HINT_ANCHOR} is quiet. Few TRAINERS get this far.");
+static const u8 gText_Lobby1Far[] = _("A TRAINER from {HINT_CITY} walked through the LEAGUE lobby, I heard.");
+static const u8 gText_Lobby1Close[] = _("A TRAINER walked through the lobby {HINT_ANCHOR} to the ELITE FOUR.");
+static const u8 *const sLobby0Far[] = {gText_Lobby0Far};
+static const u8 *const sLobby0Close[] = {gText_Lobby0Close};
+static const u8 *const sLobby1Far[] = {gText_Lobby1Far};
+static const u8 *const sLobby1Close[] = {gText_Lobby1Close};
+
 #include "data/region/emerald_chapters.h"
 #include "data/region/emerald_subplots.h"
 
