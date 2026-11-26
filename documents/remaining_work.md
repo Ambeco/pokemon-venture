@@ -15,18 +15,18 @@
   - Use the pool ids (`GetCountyMcGuffinId`) when a county's chapter gates an inner location.
   - Intra-county routes exist only in counties with a city (Emerald's cityless counties with several specials get none); nothing routes a cityless county's locations to each other.
   - When generation exists, keep generated locations off a county's outermost row and column, by construction (not testable on Emerald's table).
-  - Add an accessor for the route id/MAPSEC between neighbors, for NPC text about adjacent cities (the city accessors already take any county id).
+  - Add an accessor for the route id/MAPSEC between neighbors, for NPC text about adjacent cities.
 - Landmark/detour/pitstop split (design_region.md, "Special locations"):
-  - Make the generator use the pitstop deal: `DealCountyPitstops` exists and is tested, but Emerald's table still assigns pitstops by hand and the tile accessors do not read the deal.
+  - Make the generator use the pitstop deal (`DealCountyPitstops`); Emerald's table assigns pitstops by hand and the tile accessors ignore the deal.
   - The stride deal leaves many counties with few or no pitstops, or reuses them, and the pool (17 entries for 24 counties) is small. Before turning it on, add stub landmarks, detours and pitstops reusing existing maps with no stateful content (houses with 1-2 babbling NPCs), then later pull in the FR/LG ones with their maps and chapters.
   - Cityless-county pitstop fallback: the test only flags a cityless county with no routed place; Emerald's Routes 119 and 117 were bumped to detours for it.
   - Pitstop capacity: the deal caps a county's pitstops by its free tiles; Emerald met it only by bumping Sealed Chamber, Mirage Tower and Desert Ruins to detours.
   - Show only landmarks on the region-map screen once the generated region replaces Emerald's map (`IsLocationOnMap`).
   - Review Emerald's class assignments (`emerald_tiles.h` comment lists them).
-- Extend the region dump (`src/region/region_dump.c`) as more data appears; Milestones 1 and 2 consume the city accessors, and the gym scripts and NPC text are untouched so far.
+- Extend the region dump (`src/region/region_dump.c`) as more data appears; Milestones 1 and 2 consume the city accessors.
 - Story state storage (design_story.md, "Story state storage"): the first 32 vars are temp and object-GFX, so reservations are named regions in `0x4020`-`0x40FF`, not Var0-31.
   - Count authored-chapter stage vars (after Milestone 1a's bucketing) and the optional inter-county stories; the slice is 4 vars per county, 3 used by the main line (`Emerald.md`, "Per-county storage needs").
-  - Retire Emerald vars as Milestones 1a, 2 and 3 land: the 44 legacy vars in `vars.h` shrink toward zero and county slices become usable (the first 21 are free now); trim `test/vars.c`'s table as they go. A removed var leaves its address unused until the block is renumbered (as `LEGACY_VARS_COUNT` shrinks, renumber the remaining offsets).
+  - Retire Emerald vars as Milestones 1a, 2 and 3 land: the 44 legacy vars in `vars.h` shrink toward zero and county slices become usable; trim `test/vars.c`'s table as they go. A removed var leaves its address unused until the block is renumbered (as `LEGACY_VARS_COUNT` shrinks, renumber the remaining offsets).
 
 ### Milestone 1a: Chapter abstraction groundwork
 
@@ -129,8 +129,8 @@
 - Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when chapters are ported.
 - Grow the text pools in `src/story/npc_talk.c` (two lines per theme and role, one thank-you pool, three gym shapes): more lines per pool, theme-specific lines per building role, thank-yous that depend on the arc state, and far references (see Milestone 1a). Check the pool lines in-game once.
 - Kanto text extraction (`Kanto.md`, "What the ROM can carry"): a build tool copies Kanto's generic texts out of `data/maps/*_Frlg/scripts.inc` into their own data file, which the pools above draw from alongside Hoenn's. City and island sign slogans (17) go into the city table as themes; building-role talk (fan club, name rater, school, bike shop, museum, ...) and generic NPC and sign texts need classifying by role and theme, which is this milestone's pool design. Only the Emerald-reusable roles are extracted; skip story texts and the deferred roles.
-- Replace fixed `msgbox` scripts in `data/maps/*/scripts.inc` with `generic_npc_talk role` (design_city_npcs.md, "NPC dialogue"), via a conversion tool rather than by hand; only the fallbacks of Lilycove's and Rustboro's four hinters are converted. The tool must work out each NPC's building role, and keep NPCs that carry story state (flags, items, battles) as they are.
-- Routes: hint NPCs there (cities already have an arc hinter in every four local ids); at map load for generated maps, bind hinters and make sure a map has at least four NPCs using the generic talk.
+- Replace fixed `msgbox` scripts in `data/maps/*/scripts.inc` with `generic_npc_talk role` (design_city_npcs.md, "NPC dialogue"), via a conversion tool rather than by hand. The tool must work out each NPC's building role, and keep NPCs that carry story state (flags, items, battles) as they are.
+- Routes: hint NPCs there; at map load for generated maps, bind hinters and make sure a map has at least four NPCs using the generic talk.
 - Done when: every arc state is hinted from every city (true for the planner's data once the msgbox conversion covers every city's NPCs), and a seed sweep finds no city without a hint.
 
 ### Milestone 2: Chapters shuffled randomly
@@ -144,7 +144,7 @@
 
 - Implement route-story-index and county-story-index lookups over the hardcoded region (design_region.md, "Route story indices").
 - Arc cutscene placement: main-story-index list (rival or arc items) to host county to route/city/building, without storing it; maintain the main-story-index and the per-county completion masks for the main arc.
-- Rival team (design_pokemon.md, "Rival teams"): the swap-rule engine `rival_team.c` exists and is tested; still to do: candidate extraction from a route's encounter table (final form, types, catch rate; exclude legendaries, babies, starters), twelve stored vars (Wally and the secondary rival; reserve in `vars.md` first, `vars.h` edits rebuild everything so run one full `make check` after), the route-entry hook (Wally's fold first, the secondary after it), the battle-size mask from rival wins, and feeding the stored team into the battle (dynamic party, `RANDOMIZE_TRAINERS`).
+- Rival team (design_pokemon.md, "Rival teams"): candidate extraction from a route's encounter table (final form, types, catch rate; exclude legendaries, babies, starters), twelve stored vars (Wally and the secondary rival; reserve in `vars.md` first, `vars.h` edits rebuild everything so run one full `make check` after), the route-entry hook (Wally's fold first, the secondary after it), the battle-size mask from rival wins, and feeding the stored team into the battle (dynamic party, `RANDOMIZE_TRAINERS`).
 - Replace Emerald's fixed rival and Wally encounters, and the Magma/Aqua beats, with generic cutscenes; preserve the text.
 - Done when: rival battles occur at the right gym positions on generated places, and arcs finish.
 
@@ -190,7 +190,7 @@
 ### Milestone 10: Cities and special locations randomized within each county
 
 - Layer-3 placement (city placement away from county edges, special location rules, themes, names, island formation) and layer-4 route generation; generated region-map display, fly points, and name popups.
-- Enclaves (design_region.md, "Enclaves"): generate Enclaves and Enclave-only counties in layers 2/3 (the hardcoded Emerald data, the route and tile rules and tests exist; still to do: the at-least-one-non-Enclave rule when generating, and the region-map screen showing mapped Enclaves once unlocked), the port destination menu that checks it (should fail loudly if the region has no port), and a more specific per-Enclave access mechanism later; the Emerald tables still list Southern Island, Mirage Island and the Battle Frontier as routed.
+- Enclaves (design_region.md, "Enclaves"): generate Enclaves and Enclave-only counties in layers 2/3, enforce the at-least-one-non-Enclave rule when generating, show mapped Enclaves on the region-map screen once unlocked, and add the port destination menu that checks it (should fail loudly if the region has no port), and a more specific per-Enclave access mechanism later; the Emerald tables still list Southern Island, Mirage Island and the Battle Frontier as routed.
 - Reserved legendary locations: write the separate algorithm that picks which reserved county is the solo post-Elite-Four one and ties the other 2-3 into the gym order (gym order need not follow county-story-index, and reserved counties hold the last indices, after the Elite Four's). Also decide how a county without an index is reached, since it lacks the usual lower neighbor route, and what step 5's "about 19" is exactly (24 counties = 20 indices 0-19, Elite Four, and 3 reserved).
 
 ### Milestone 11: Procedural county-story-indices
@@ -203,7 +203,7 @@
 
 ### Cross-cutting
 
-- Budget CPU and RAM for regeneration; decide what to cache (the route planner replans a county per lookup, with a one-county cache; a plan costs roughly 100k cycles by a rough estimate, from the test timeouts).
+- Budget CPU and RAM for regeneration; decide what to cache (a county's route plan costs roughly 100k cycles, a rough estimate from the test timeouts, and is replanned per lookup).
 - Convert the region invariant tests (`test/region_*.c`) to `FOR_EACH_SWEEP_SEED` once the generator reads the seed.
 - Rewrite `README.md` as the fork's own README.
 - End-to-end tests: once map generation exists, add an in-ROM test (`Test_LoadMap` on a generated map, fixed identity seed, check hinters bound from the plan) and a fixed-seed e2e recipe for a generated region; also cover `addobject` scripts in-ROM.
@@ -219,7 +219,7 @@
 - Implement battle damage estimates (design_pokemon.md, "Battle damage estimates"): move menu, in-battle summary moves page, and party-menu switch grades.
 - Implement the gym guide's party-specific advice (design_pokemon.md, "Gym guide advice"); depends on the encounter tables for the in-county species suggestions.
 - Debug menu entry showing the current route's encounter tables (every method, time of day and weather); needed once Milestone 5 generates them.
-- Turn on party-wide experience (`I_EXP_SHARE_FLAG`, always set) and add the underleveled bonus and overleveled penalty (design_pokemon.md, "Experience"); open: the bonus and penalty multipliers, and the exact boss-level estimate, which waits on Milestone 7's boss levels.
+- Add the underleveled bonus and overleveled penalty to experience (design_pokemon.md, "Experience"); open: the bonus and penalty multipliers, and the exact boss-level estimate, which waits on Milestone 7's boss levels.
 - Implement the PC team analyzer (design_pokemon.md, "Team analyzer"). Open: the hypothetical opponents' attacking stats (for the defensive part of the grade); the score of a Pokémon with no top grades (avg of an empty set, assumed 0, giving score 1).
 - Type-recolored sprites (design_pokemon.md, "Type-recolored sprites"):
   - Build tool for picked palette indices.
