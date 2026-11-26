@@ -42,7 +42,9 @@
   - Open: a host's candidates are filtered by roles, badges and pool, so a class's eligible members may have holes; keep it scan-free with fixed class sizes per slot or a per-county eligible list.
   - Add a static test that each id's class matches its block.
 - Lock NPCs (twin, Birch's chase, the Oldale sketch artist): all three already gate on stage writes (`VAR_SAVE_BIRCH_BEAT` written by the rival-meeting scripts; the artist on `FLAG_ADVENTURE_STARTED`, set when the Pokédex is given). `IsCurrentChapterAvailable` adds nothing until a chapter can be moved or reordered; wire it when the first one is. Also make the cutscene runner (Milestone 2) walk a stage's `extraRoles` buildings.
-- Location placeholders for plot strings: `{CUR_LOCATION}`, `{PREV_LOCATION}`, `{NEXT_LOCATION}` (city, landmark, detour or pitstop). Prev/next in another county must ask that county which location it picks, so resolve them through one county accessor. A remote county is always written "near X" with X its first city, landmark or detour (county names don't exist for cityless counties, and relative phrasing like "northeast of CERULEAN" is grammatically hard and not always adjacent to a city).
+- Location placeholders for plot strings: `{CUR_LOCATION}`, `{PREV_LOCATION}`, `{NEXT_LOCATION}` (city, landmark, detour or pitstop):
+  - Resolve prev/next in another county through one county accessor, since that county must say which location it picks.
+  - Write a remote county as "near X" with X its first city, landmark or detour (county names don't exist for cityless counties, and relative phrasing like "northeast of CERULEAN" is grammatically hard and not always adjacent to a city).
 - Direction hint placeholder ("north of RUSTBORO"): needs county adjacency via the route accessor in Milestone 0 and the hinter's county in `ExpandHintTemplate`; only far chapter hinters need it, and none exist yet (design_city_npcs.md, "City planning"). `{HINT_CITY}` and `{HINT_PLACE}` exist.
 - Far references (random NPC babble only, no story link): each county generates a few far-reference texts about its own places (e.g. the shopping center in Saffron), and an NPC may pull one from an adjacent county, so a Cerulean NPC can mention Saffron. Replaces referring to adjacent towns by gym leader, type or theme, which is hard to match.
 - Check the placeholder planner ranges in `Emerald.md` ("Planner inputs").
@@ -67,18 +69,36 @@
   - Add a Lilycove rival e2e (decline, ask again, then win; needs a `lilycove_city_below_rival` recipe with the strong-party helper): the Lilycove scenes are covered only by headless scene and chapter tests.
   - Give `give` a stage reward (a descriptor field) and `battle` a wild double or two-trainer form when a chapter needs them.
   - Route generation must guarantee the rescue's grass in view of the route entrance and an open 8-10 tile ring near it (design_scenes.md, "Scene runner") and keep the ring off the entrance-to-bag path.
-  - Add the remaining triggers: talk, enter a door, interact with an item (the proximity and door-tile triggers exist, but a map-edge door has no "on door", so scenes needing it must be refused at placement: design_scenes.md, "Door and off-screen approach rules"); the entrance/exit border classification (`SCENE_TRIGGER_EXIT` takes its edge from the table, not from route locks); per-map actor binding instead of local ids in each `struct Scene`; a stage-to-scenes field beside `actors` on `ChapterDesc` (triggers are still a hand-written table); the door's facing from the map instead of "south".
+  - Add the remaining triggers:
+    - Add talk, enter a door and interact with an item; the proximity and door-tile triggers exist, but a map-edge door has no "on door", so scenes needing it must be refused at placement (design_scenes.md, "Door and off-screen approach rules").
+    - Classify the entrance/exit border: `SCENE_TRIGGER_EXIT` takes its edge from the table, not from route locks.
+    - Bind actors per map instead of by local ids in each `struct Scene`.
+    - Add a stage-to-scenes field beside `actors` on `ChapterDesc` (triggers are still a hand-written table).
+    - Take the door's facing from the map instead of "south".
   - Add the off-screen approach (search from the end tile for an off-screen tile on the right edge, over about 10 steps, then through objects, then a teleport animation).
   - Add building features (chair, TV, center-stage) and transient-actor placement with its test.
   - Convert the rest of the Route 101 tutorial (stage 5) and the other two ported chapters' scripts.
   - Replace the Super Rod fisherman's talk script with a "talk" trigger once it exists (his script still checks the stage and calls the scene).
 - Scene arbitration (design_scenes.md, "Interleaving subplots"): when two subplots' scenes qualify for one trigger, run the chain entry before an off-chain one, then the lower chapter slot; nothing implements this yet.
 - Actor placement: enforce the per-screen and per-map object budgets in the layout step (check the engine's spawn margin and the player and follower overhead first).
-- County planning (design_chapters.md, "County planning and chapter placement"): the descriptor needs an attachment field (location, unique building or main beat) beside generic chapters; slot 0 as a county chain (stage position resolved to chapter and stage by cumulative stage counts); declarative triggers on anchors with a proximity radius; the fallback hint-then-give chapter; the unique-building and generic-chapter stride deals; the trigger list there is incomplete.
-- Hinter follow-ups (`city_hinters.h`): place hinters for Mossdeep's Super Rod chapter (`numHinters` is 0: Mossdeep binds no NPCs yet); bind hinters to NPCs for generated maps at map load (Emerald's Lilycove and Rustboro bind theirs by hand); give main-beat hints detail for non-gym kinds (`WriteMainBeatHint` names gym leader, type and HM, but only the first item's kind otherwise) and bind them with `ShowMainBeatHint` for generated maps; decide who places far hinters for chapters hosted in other counties.
+- County planning (design_chapters.md, "County planning and chapter placement"):
+  - Add an attachment field (location, unique building or main beat) to the descriptor beside generic chapters.
+  - Make slot 0 a county chain (stage position resolved to chapter and stage by cumulative stage counts).
+  - Add declarative triggers on anchors with a proximity radius; the trigger list in the design doc is incomplete.
+  - Add the fallback hint-then-give chapter.
+  - Add the unique-building and generic-chapter stride deals.
+- Hinter follow-ups (`city_hinters.h`):
+  - Place hinters for Mossdeep's Super Rod chapter (`numHinters` is 0: Mossdeep binds no NPCs yet).
+  - Bind hinters to NPCs for generated maps at map load (Emerald's Lilycove and Rustboro bind theirs by hand).
+  - Give main-beat hints detail for non-gym kinds (`WriteMainBeatHint` names gym leader, type and HM, but only the first item's kind otherwise) and bind them with `ShowMainBeatHint` for generated maps.
+  - Decide who places far hinters for chapters hosted in other counties.
 - Check what Emerald and FRLG use for path surfaces in villages, towns and cities, and settle the paving, dirt and grass rule (design_city_npcs.md, "City planning" step 4).
 - Place the hinters of the newest ports (Dewford's Old Rod, Mauville's Rock Smash and Coin Case, Slateport's Harbor Mail) once NPCs are bound for those cities; their e2e tests have no bag-full case, and Harbor Mail's does not buy through the Mart menu (the bag is pre-filled).
-- Pokémon Center news object (design_city_npcs.md, "City planning"): place the news NPC in Pokémon Centers (`ShowPokemonCenterNews` is bound by hand only to Lilycove's Pokémon Center Boy, via `Common_EventScript_PokemonCenterNews`, and not yet checked in-game; bind it in the other Emerald centers and for generated maps); mark ported chapters that give a main-plot get with `producesMainGet` and `mainGet` as they are ported (only Mossdeep's Super Rod does so far); give a county details to hint at for a step-3 unlock that is no blocker (the Letter), so the news in that county is more than a vague line; the generic news pool (`sGenericNews`) has only 2 lines, since Emerald has almost no standalone news text, so write more.
+- Pokémon Center news object (design_city_npcs.md, "City planning"):
+  - Place the news NPC in Pokémon Centers: `ShowPokemonCenterNews` is bound by hand only to Lilycove's Pokémon Center Boy, via `Common_EventScript_PokemonCenterNews`, and not yet checked in-game; bind it in the other Emerald centers and for generated maps.
+  - Mark ported chapters that give a main-plot get with `producesMainGet` and `mainGet` as they are ported (only Mossdeep's Super Rod does so far).
+  - Give a county details to hint at for a step-3 unlock that is no blocker (the Letter), so the news in that county is more than a vague line.
+  - Write more generic news lines: `sGenericNews` has only 2, since Emerald has almost no standalone news text.
 
 ### Milestone 1: NPC texts shuffled, still hinting the current arcs and chapter
 
@@ -200,4 +220,7 @@
 - Randomized starters (design_pokemon.md, "Randomized starters"): build the four tables and the bonus list, the stride roll and its saved stride (for the rivals), and the rolling bag.
 - New Game configuration menu and Nuzlocke mode (design_dev.md, "New Game configuration and Nuzlocke mode").
 - Pokédex habitat view and region-tile species view (design_pokemon.md, "Pokédex habitat view").
-- Building classification for chapters: three kinds, city-locations with actors (unique maps), generic-fill buildings with generic-fill NPCs (immutable, per chapter not per stage; a city asks a chapter for actors and for a count of them), and generic-fill buildings with actors. A later chapter refers back to an earlier chapter's building by (`chapter_id`, building index); the id is enough because each run uses a subset of chapters and never reuses one, and re-run `tools/building_audit.py` with only mutations (reads ignored), key items only, and TMs only for Secret Power (TM43).
+- Building classification for chapters:
+  - Classify buildings into three kinds: city-locations with actors (unique maps), generic-fill buildings with generic-fill NPCs (immutable, per chapter not per stage; a city asks a chapter for actors and for a count of them), and generic-fill buildings with actors.
+  - Let a later chapter refer back to an earlier chapter's building by (`chapter_id`, building index); the id is enough because each run uses a subset of chapters and never reuses one.
+  - Re-run `tools/building_audit.py` with only mutations (reads ignored), key items only, and TMs only for Secret Power (TM43).
