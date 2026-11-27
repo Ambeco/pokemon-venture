@@ -173,7 +173,7 @@ struct SceneTrigger
     u8 doorWarp; // index in the map's warps of the door that is the anchor
     u8 sceneId;
     u16 stageVar;
-    u16 stageValue; // the trigger holds while VarGet(stageVar) equals this
+    u16 stageValue; // the trigger holds while SceneGetStage(stageVar) equals this
     u8 edge;        // exit only: enum Direction of the map edge (radius is the depth from it; 0 is the edge row itself)
 };
 

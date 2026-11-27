@@ -1,6 +1,7 @@
 #include "global.h"
 #include "constants/flags.h"
 #include "constants/vars.h"
+#include "constants/species.h"
 #include "event_data.h"
 #include "chapter.h"
 #include "test/test.h"
@@ -24,6 +25,8 @@ STATIC_ASSERT(LEGACY_VARS_END <= RESERVED_VARS_END, legacyBlockPastReserve);
 // Named reserve vars are allocated downward from RESERVED_VARS_END, clear of the legacy block that fills the reserve's start.
 STATIC_ASSERT(LEGACY_VARS_END < VAR_MAIN_STORY_INDEX, mainStoryIndexInsideLegacyBlock);
 STATIC_ASSERT(VAR_MAIN_STORY_INDEX >= RESERVED_VARS_START && VAR_MAIN_STORY_INDEX <= RESERVED_VARS_END, mainStoryIndexOutsideReserve);
+// The rival-team vars hold one species id in their bottom 11 bits (design_pokemon.md, "Rival teams").
+STATIC_ASSERT(NUM_SPECIES < 1 << 11, speciesIdsOverflowRivalTeamVarBits);
 // Slateport is county 20: porting its chapters needs its slice clear of legacy vars.
 STATIC_ASSERT(COUNTY_VAR_SLICES_FREE >= 21, tooFewFreeCountySlices);
 
