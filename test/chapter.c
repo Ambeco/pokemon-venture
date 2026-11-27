@@ -13,6 +13,7 @@
 #include "scene.h"
 #include "region_city.h"
 #include "chapter.h"
+#include "county_position.h"
 #include "county_plan.h"
 #include "subplot.h"
 #include "string_util.h"
@@ -156,6 +157,23 @@ TEST("Chapter: County var slices are a permutation, and the tutorial counties' s
     EXPECT(COUNTY_VAR_SLICE_LITTLEROOT < COUNTY_VAR_SLICES_FREE);
     EXPECT(COUNTY_VAR_SLICE_OLDALE < COUNTY_VAR_SLICES_FREE);
     EXPECT_EQ(GetCountySlotVar(LITTLEROOT, 1), VAR_SAVE_BIRCH_BEAT);
+}
+
+TEST("Chapter: Whole-var masks for the tutorial chapters, handed out in declaration order, land on the addresses scripts use")
+{
+    struct CountyBitMask mask;
+    u32 cursor = 0;
+
+    ASSUME(AllocCountyBits(&cursor, COUNTY_MASK_BITS_PER_VAR, &mask));
+    EXPECT_EQ(COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + mask.var, VAR_MOVING_IN_BEAT);
+    EXPECT_EQ(mask.shift, 0);
+    ASSUME(AllocCountyBits(&cursor, COUNTY_MASK_BITS_PER_VAR, &mask));
+    EXPECT_EQ(COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + mask.var, VAR_SAVE_BIRCH_BEAT);
+    EXPECT_EQ(mask.shift, 0);
+    cursor = 0;
+    ASSUME(AllocCountyBits(&cursor, COUNTY_MASK_BITS_PER_VAR, &mask));
+    EXPECT_EQ(COUNTY_VARS_START + COUNTY_VAR_SLICE_OLDALE * VARS_PER_COUNTY + mask.var, VAR_RIVAL_DEX_BEAT);
+    EXPECT_EQ(mask.shift, 0);
 }
 
 TEST("Chapter: A stored chapter starts at stage 0 and keeps the stage set through its slot")
