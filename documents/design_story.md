@@ -60,7 +60,7 @@ Steps per county. County-story-index x owns four main-story-indices, `4x + s`, s
 | 4x+2 | County x gives a list of McGuffins |
 | 4x+3 | County x unlocks county x+1 (its first location, and so every route into it), via a McGuffin |
 
-A McGuffin is anything the player is given or achieves: an HM, a key item, a guaranteed utility item, a gym, a rival or arc beat. Main-story advancement is itself a McGuffin, so a list may be empty. An empty step is passed at once on the same advance, and when there is no callback steps 0 and 2 merge into one group. The gets within a list are unordered; the county decides in what order to do them, using its chapter var, several vars, or flags. A list is complete when every get in it is done, tracked by a completion mask in the county's reserved vars, and only then does the index move to the next step.
+A McGuffin is anything the player is given or achieves: an HM, a key item, a guaranteed utility item, a gym, a rival or arc beat. Main-story advancement is itself a McGuffin, so a list may be empty. An empty step is passed at once on the same advance, and when there is no callback steps 0 and 2 merge into one group. The gets within a list are unordered; the county decides in what order to do them, using its chapter var, several vars, or flags. A list is complete when every get in it is done, tracked by the host county's var 0 position (see "Story state storage"), and only then does the index move to the next step.
 
 Items and placement. Each item (a kind and an ordinal: the 8 gyms, the rival beats, the arc beats, the HMs, the utility items, the key items) has a hardcoded range of time blocks. Ranges of one kind are disjoint and ordered, so gym k precedes gym k+1, and each range must contain a valid block. Gym ranges are expressed relative to the Surf-lock county n (gyms 1-4 before it, gyms 6-8 between n and the Elite Four) and the Elite Four county's index (19 or 20, depending on the reserved county count). A per-kind mask records which blocks may take the kind (an arc beat only where the host has the special location it needs, a gym in any county except the Elite Four and the reserved ones (county 0's own block is the hardcoded tutorial, so it hosts a gym only as a callback, as Red/Blue's 8th gym is in county 1); a traversal item only where the routes into the next county can hold its obstacle; gym counties receive their settlements afterwards). From those, an item's placement is a pure function of the seed:
 
@@ -147,8 +147,15 @@ Regions (badge and HM flags stay as they are):
 
 - Main story: one var, the main-story-index, a position `4x + s` over the counties (under 100 values, plus the end game) that always advances by one (see "Main plot planner").
 - Optional inter-county stories: about 4 vars (`VAR_OPTIONAL_STORY_0..`), each a linear stage index, so optional stories run in parallel with the main story and with each other, and NPCs in other counties can hint at them. Only content with a real optional story takes one; the Trick House uses inner-county indexing.
-- List completion: a main-line get is done when its county's chain (the chapters' own stage vars) is past the stage that produces it, so no separate completion mask is stored. Nothing else about the main line is stored (see "County chain" (design_chapters.md)).
-- County-internal state: each county gets one contiguous slice of 4 whole vars, which no other county reads. Var 0 tracks the county's progress through its story (subplot, chapter and stage position); it holds no specific subplot. Each subplot owns a var plus a bit mask (usually 2-3 bits), not a whole var. Masks are handed out in order from vars 1-3 by a cursor at the end of the assigned bits: a subplot that does not fit in the rest of the current var starts at the next var (no repacking or other optimization, since lookups must be fast). Once every subplot has its range the cursor never moves again. The 24 slices are contiguous with each other, at the start of the range (`COUNTY_VARS_START`, 96 vars).
+- List completion: a list is done when the stored main-story-index has moved past it. Within the current list, a get is done when the hosting county's var 0 position (below) is past the chapter and stage that produces it. Nothing else about the main line is stored (see "County chain" (design_chapters.md)).
+- County-internal state: each county gets one contiguous slice of 4 whole vars, which no other county reads. The 24 slices are contiguous with each other, at the start of the range (`COUNTY_VARS_START`, 96 vars). This section is the only place the layout is specified; other documents and comments link here.
+  - Var 0 is the county's position in its current main-story slot, a bit field: bits 15-12 the chapter index (0-15, so at most 16 required chapters per slot), bits 11-8 the stage of that chapter (0-15, at most 16 stages), bits 7-0 chapter state, which the current chapter may use freely and which is cleared whenever the chapter index advances. A chapter's last stage does not mean "done": finishing the chapter advances the chapter index.
+  - The global main-story-index says which slot is current, so var 0 only tracks the county-required-chapter-order inside it. Whenever the main story advances, the county that hosts the new slot (a callback's host, not necessarily the previous host) has its var 0 reset to "the first required chapter, stage 0, state 0".
+  - Chapter order. The required chapters of a slot have a county-chosen order; a few chapters are optional and sit off the order. Bits 15-12 hold the chapter's index in the slot's unsorted list (declaration order), not its place in the order, so reads never need the sorted order in memory: the county sorts only when the chapter index advances, writing the unsorted index of the next chapter in order. The reset on a main-story advance is the same operation, so it writes the unsorted index of the order's first chapter (not necessarily 0).
+  - Skip-ahead. Chapters may request bits for state that is not the current position (see below). An early-completable chapter (Aqua can be fought before Magma, say) sets its bit when done. When the chain advances onto a chapter whose "already done" bit is set, it advances again, repeating until it reaches a chapter that is not done or the slot's end. So Magma then Aqua and Aqua then Magma both land after both, and the order only matters when the player follows it.
+  - Bit masks. A subplot (usually an optional one, very rarely a required chapter) may request N bits. A cursor over vars 1-3 hands out masks in order; a subplot that does not fit in the rest of the current var starts at the next var (no repacking or other optimization, since lookups must be fast). Once every subplot has its range the cursor never moves again. Vars 1-3 hold 48 bits, so a county's off-chain subplots are limited by bits, not by slot count.
+  - A finished slot's position is overwritten by the next reset, so nothing in var 0 outlives its slot. Anything a later list, hint or script needs stays in a flag, a requested mask or the main-story-index: "this beat is past" is answered by the index being past that slot.
+  - The main-story-index is stored (the first reserve var, `VAR_MAIN_STORY_INDEX`), because var 0 resets and so cannot be re-derived from it.
 - Minigames and facilities (Trick House, Battle Frontier, lottery, contests, size records, cycling records, Glass Workshop, ...; 59 vars): each gets its own hardcoded contiguous range in the minigame block, after the county slices and the reserve, since each appears at most once per run and has custom code. Their Emerald vars are scattered through `0x4020`-`0x40FF` today, so they are renumbered into this block.
   - What gets a dedicated range: content with a lot of non-script code (wanted in nearly every run, hard to fork), or many steps doable out of order (fits neither the main story nor a linear chapter). Repeatable content starts with a dedicated range; repeatable chapters may absorb it later. Fossils may be found in several counties but are revived in one place, biased toward the gym 5-8 timeline.
 - Flags for county-internal McGuffins come from per-county reserved pools (see "Main plot planner").
@@ -267,13 +274,26 @@ Cons:
 - A county's story would inject elements into foreign counties, which would have to be decided in the county headers and could not be deferred to private details, breaking independent county generation.
 - The story circles back to counties (Petalburg's tutorial and gym 5), which a single owner cannot express.
 
-### Packing chapter stages into 2-3 bits, or more vars per county
+### One whole var per chapter (var 0 reserved)
 
-Give each chapter a 2-3 bit field instead of a var, or raise `VARS_PER_COUNTY`.
+Each stateful chapter owns a slot var (vars 1-3, so 3 chapters per county), var 0 is unused, and chain position is modelled from the chapters' own stages and never stored.
 
 Pros:
-- More chapters per county without a chain.
+- Scripts compare a plain var against a stage number (`coord_event`, `map_script_2`, `call_if_eq`), with no accessor.
+- Chapters of one slot can be played in any order with no extra mechanism.
 
 Cons:
-- More vars needs the legacy vars retired first, so it blocks progress.
-- Bit packing complicates the accessor before the distribution of stage counts is known.
+- At most 3 stateful chapters per county, and a parallel errand costs a proxy chapter.
+- A main-story advance cannot reset anything, so "which beats are past" is re-derived from every chapter's stage forever, and the main-story-index has to be derived by a scan.
+- Stages need a whole var each, although most chapters have 2-8 stages.
+
+### More vars per county
+
+Raise `VARS_PER_COUNTY`.
+
+Pros:
+- More chapters per county.
+
+Cons:
+- Needs the legacy vars retired first, so it blocks progress.
+- The packed position makes it unnecessary.

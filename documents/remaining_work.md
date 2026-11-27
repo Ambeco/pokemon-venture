@@ -26,6 +26,11 @@
 - Extend the region dump (`src/region/region_dump.c`) as more data appears; Milestones 1 and 2 consume the city accessors.
 - Story state storage (design_story.md, "Story state storage"): the first 32 vars are temp and object-GFX, so reservations are named regions in `0x4020`-`0x40FF`, not Var0-31.
   - Count authored-chapter stage vars (after Milestone 1a's bucketing) and the optional inter-county stories; the slice is 4 vars per county, 3 used by the main line (`Emerald.md`, "Per-county storage needs").
+  - Migrate county storage to the packed var 0 (design_story.md, "Story state storage"); the code still has var 0 reserved and one whole var per chapter slot. Steps, in order:
+    - Store the main-story-index: allocate `VAR_MAIN_STORY_INDEX` as the first reserve var (the legacy block currently overlays the whole reserve, so retire one legacy var first), and make `GetMainStoryIndex()` read it instead of scanning predicates. Advance it where the scan found the next undone list.
+    - Pure pack/unpack and advance logic (chapter index, stage, state; reset to the order's first chapter; skip-ahead over done bits; the bit-mask cursor over vars 1-3) with tests, and static asserts for at most 16 chapters per slot and 16 stages per chapter.
+    - Replace `GetCountySlotVar` and `CHAPTERS_PER_COUNTY` with accessors, and move the `SCENE_*_BEAT_VAR` macros and `Scene::stageVar` behind them.
+    - About 30 `data/maps/*` scripts compare or set `VAR_MOVING_IN_BEAT`, `VAR_SAVE_BIRCH_BEAT` and `VAR_RIVAL_DEX_BEAT` as whole values (`coord_event`, `map_script_2`, `call_if_*`, `setvar`); they need accessor specials or a compare against the packed value. Then update the e2e recipes. `vars.h` changes, so run one full `make check`.
   - Retire Emerald vars as Milestones 1a, 2 and 3 land: the 44 legacy vars in `vars.h` shrink toward zero and county slices become usable; trim `test/vars.c`'s table as they go. A removed var leaves its address unused until the block is renumbered (as `LEGACY_VARS_COUNT` shrinks, renumber the remaining offsets).
 
 ### Milestone 1a: Chapter abstraction groundwork
