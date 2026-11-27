@@ -1516,7 +1516,7 @@ TEST("Scene: Rival 2's Route 104 and Rustboro scenes on yes fight the Rustboro t
         EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 2), 1);
         EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 0), 0);
         EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 1), 0);
-        EXPECT_EQ(GetScene(sceneIds[i])->stageVar, GetCountySlotVar(RUSTBORO_COUNTY, 2));
+        EXPECT_EQ(GetScene(sceneIds[i])->stageVar, SCENE_STAGE(RUSTBORO_COUNTY, 2));
     }
 }
 

@@ -4,6 +4,7 @@
 #include "list_menu.h"
 #include "malloc.h"
 #include "scene.h"
+#include "chapter.h"
 #include "event_data.h"
 #include "event_object_movement.h"
 #include "field_door.h"
@@ -42,25 +43,33 @@ STATIC_ASSERT(WINDOW_CELLS < 256, SceneQueueIndexFitsU8);
 
 extern const u8 Scene_EventScript_RunTriggered[];
 
-// Slot 0 of Mossdeep's county slice (GetCountySlotVar); test/chapter.c checks they agree.
-#define SCENE_MOSSDEEP_SUPER_ROD_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(5, 1) * VARS_PER_COUNTY + 1)
+// The stored chapter (county, slot) each scene's stage lives in; test/chapter.c checks a host exists there.
+#define SCENE_MOSSDEEP_SUPER_ROD_BEAT_VAR SCENE_STAGE(COUNTY_ID(5, 1), 0)
+#define SCENE_DEWFORD_OLD_ROD_BEAT_VAR SCENE_STAGE(COUNTY_ID(0, 3), 0)
+#define SCENE_ROUTE118_GOOD_ROD_BEAT_VAR SCENE_STAGE(COUNTY_ID(3, 0), 0) // the Weather Institute county
+#define SCENE_ROUTE110_RIVAL_BEAT_VAR SCENE_STAGE(COUNTY_ID(2, 2), 0)
+#define SCENE_ROUTE110_ITEMFINDER_BEAT_VAR SCENE_STAGE(COUNTY_ID(2, 2), 1)
+#define SCENE_ROUTE119_RIVAL_BEAT_VAR SCENE_STAGE(COUNTY_ID(3, 0), 1)
+#define SCENE_LILYCOVE_RIVAL_BEAT_VAR SCENE_STAGE(COUNTY_ID(4, 0), 2)
+#define SCENE_RUSTBORO_RIVAL_BEAT_VAR SCENE_STAGE(COUNTY_ID(0, 1), 2) // Route 104 and Rustboro both write it
+#define SCENE_MOVING_IN_BEAT_VAR SCENE_STAGE(COUNTY_ID(1, 3), 0) // Littleroot
+#define SCENE_SAVE_BIRCH_BEAT_VAR SCENE_STAGE(COUNTY_ID(1, 3), 1)
+#define SCENE_RIVAL_DEX_BEAT_VAR SCENE_STAGE(COUNTY_ID(1, 2), 0) // Oldale
 
-// Slot 0 of Dewford's county slice, likewise.
-#define SCENE_DEWFORD_OLD_ROD_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(0, 3) * VARS_PER_COUNTY + 1)
+u32 SceneGetStage(u16 stageVar)
+{
+    if (stageVar & SCENE_STAGE_CHAPTER_FLAG)
+        return GetCountySlotStage((stageVar >> 4) & 0xFF, stageVar & 0xF);
+    return VarGet(stageVar);
+}
 
-// Slot 0 of the Weather Institute county (3, 0), likewise.
-#define SCENE_ROUTE118_GOOD_ROD_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(3, 0) * VARS_PER_COUNTY + 1)
-
-// Slots 0 and 1 of the Route 110 county (2, 2), and slot 1 of the Weather Institute county, likewise.
-#define SCENE_ROUTE110_RIVAL_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(2, 2) * VARS_PER_COUNTY + 1)
-#define SCENE_ROUTE110_ITEMFINDER_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(2, 2) * VARS_PER_COUNTY + 2)
-#define SCENE_ROUTE119_RIVAL_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(3, 0) * VARS_PER_COUNTY + 2)
-
-// Slot 2 of Lilycove's county slice (4, 0), likewise.
-#define SCENE_LILYCOVE_RIVAL_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(4, 0) * VARS_PER_COUNTY + 3)
-
-// Slot 2 of Rustboro's county slice (0, 1), likewise; Route 104 and Rustboro both write it.
-#define SCENE_RUSTBORO_RIVAL_BEAT_VAR (COUNTY_VARS_START + COUNTY_ID(0, 1) * VARS_PER_COUNTY + 3)
+void SceneSetStage(u16 stageVar, u32 value)
+{
+    if (stageVar & SCENE_STAGE_CHAPTER_FLAG)
+        SetCountySlotStage((stageVar >> 4) & 0xFF, stageVar & 0xF, value);
+    else
+        VarSet(stageVar, value);
+}
 
 #include "data/scenes.h"
 
@@ -211,7 +220,7 @@ const struct SceneTrigger *SceneFindTrigger(const struct SceneTrigger *table, u3
         const struct MapEvents *events = gMapHeader.events;
         const struct WarpEvent *door;
 
-        if (trigger->mapGroup != mapGroup || trigger->mapNum != mapNum || VarGet(trigger->stageVar) != trigger->stageValue)
+        if (trigger->mapGroup != mapGroup || trigger->mapNum != mapNum || SceneGetStage(trigger->stageVar) != trigger->stageValue)
             continue;
         if (trigger->kind == SCENE_TRIGGER_ENTER_MAP)
         {
@@ -1052,7 +1061,7 @@ static u32 RunStep(const struct Scene *scene, const struct SceneStep *step)
         GetActorObject(scene, step->actor)->invisible = step->kind == SCENE_STEP_HIDE;
         return SCENE_RESULT_NEXT;
     case SCENE_STEP_ADVANCE:
-        VarSet(scene->stageVar, step->stage);
+        SceneSetStage(scene->stageVar, step->stage);
         return SCENE_RESULT_NEXT;
     case SCENE_STEP_SET_FLAG:
         FlagSet(step->flag);

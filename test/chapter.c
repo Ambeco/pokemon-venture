@@ -613,7 +613,7 @@ TEST("Chapter: Mossdeep's Super Rod chapter is stored, role-anchored, and its sc
     EXPECT_EQ(desc->numStages, 2);
     EXPECT_EQ(GetChapterNeededRoles(desc), BUILDING_HOUSE);
     EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
-    EXPECT_EQ(scene->stageVar, GetCountySlotVar(MOSSDEEP, 0));
+    EXPECT_EQ(scene->stageVar, SCENE_STAGE(MOSSDEEP, 0));
 }
 
 TEST("Chapter: Dewford's Old Rod chapter is stored, anchored outdoors, needs no role, and its scene writes the slot var")
@@ -626,7 +626,7 @@ TEST("Chapter: Dewford's Old Rod chapter is stored, anchored outdoors, needs no 
     EXPECT_EQ(desc->numStages, 2);
     EXPECT_EQ(GetChapterNeededRoles(desc), 0);
     EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
-    EXPECT_EQ(scene->stageVar, GetCountySlotVar(DEWFORD, 0));
+    EXPECT_EQ(scene->stageVar, SCENE_STAGE(DEWFORD, 0));
 }
 
 TEST("Chapter: Route 118's Good Rod chapter is stored, anchored outdoors, needs no role, reports the Good Rod get, and its scene writes the slot var")
@@ -642,7 +642,7 @@ TEST("Chapter: Route 118's Good Rod chapter is stored, anchored outdoors, needs 
     EXPECT(desc->producesMainGet);
     EXPECT_EQ(desc->mainGet.kind, PLOT_KIND_UTILITY);
     EXPECT_EQ(desc->mainGet.ordinal, PLOT_UTILITY_GOOD_ROD);
-    EXPECT_EQ(scene->stageVar, GetCountySlotVar(WEATHER, 0));
+    EXPECT_EQ(scene->stageVar, SCENE_STAGE(WEATHER, 0));
 }
 
 TEST("Chapter: Route 110's rival and Itemfinder chapters are stored in slots 0 and 1, report their gets, and their scenes write their own slot vars")
@@ -663,10 +663,10 @@ TEST("Chapter: Route 110's rival and Itemfinder chapters are stored in slots 0 a
     EXPECT_EQ(finder->mainGet.ordinal, PLOT_UTILITY_ITEMFINDER);
     EXPECT_EQ(GetChapterNeededRoles(rival), 0);
     EXPECT_EQ(GetChapterNeededRoles(finder), 0);
-    EXPECT_EQ(GetScene(SCENE_ROUTE110_RIVAL_MAY)->stageVar, GetCountySlotVar(ROUTE110_COUNTY, 0));
-    EXPECT_EQ(GetScene(SCENE_ROUTE110_RIVAL_BRENDAN)->stageVar, GetCountySlotVar(ROUTE110_COUNTY, 0));
-    EXPECT_EQ(GetScene(SCENE_ROUTE110_ITEMFINDER_MAY)->stageVar, GetCountySlotVar(ROUTE110_COUNTY, 1));
-    EXPECT_EQ(GetScene(SCENE_ROUTE110_ITEMFINDER_BRENDAN)->stageVar, GetCountySlotVar(ROUTE110_COUNTY, 1));
+    EXPECT_EQ(GetScene(SCENE_ROUTE110_RIVAL_MAY)->stageVar, SCENE_STAGE(ROUTE110_COUNTY, 0));
+    EXPECT_EQ(GetScene(SCENE_ROUTE110_RIVAL_BRENDAN)->stageVar, SCENE_STAGE(ROUTE110_COUNTY, 0));
+    EXPECT_EQ(GetScene(SCENE_ROUTE110_ITEMFINDER_MAY)->stageVar, SCENE_STAGE(ROUTE110_COUNTY, 1));
+    EXPECT_EQ(GetScene(SCENE_ROUTE110_ITEMFINDER_BRENDAN)->stageVar, SCENE_STAGE(ROUTE110_COUNTY, 1));
 }
 
 TEST("Chapter: Route 119's rival chapter is stored in the Weather Institute county's slot 1 with three stages, and all four of its scenes write that slot var")
@@ -683,7 +683,7 @@ TEST("Chapter: Route 119's rival chapter is stored in the Weather Institute coun
     EXPECT_EQ(desc->mainGet.ordinal, 4);
     EXPECT_EQ(GetCountySlotVar(WEATHER, 1) == GetCountySlotVar(WEATHER, 0), FALSE);
     for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
-        EXPECT_EQ(GetScene(sceneIds[i])->stageVar, GetCountySlotVar(WEATHER, 1));
+        EXPECT_EQ(GetScene(sceneIds[i])->stageVar, SCENE_STAGE(WEATHER, 1));
 }
 
 TEST("Chapter: Lilycove's rival chapter is stored in slot 2 with two stages, reports the fifth rival get and all four of its scenes write that slot var")
@@ -700,7 +700,7 @@ TEST("Chapter: Lilycove's rival chapter is stored in slot 2 with two stages, rep
     EXPECT_EQ(desc->mainGet.ordinal, 5);
     EXPECT_EQ(GetChapterNeededRoles(desc), 0);
     for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
-        EXPECT_EQ(GetScene(sceneIds[i])->stageVar, GetCountySlotVar(LILYCOVE, 2));
+        EXPECT_EQ(GetScene(sceneIds[i])->stageVar, SCENE_STAGE(LILYCOVE, 2));
 }
 
 TEST("Chapter: Rival 2's chapter is stored in Rustboro's slot 2 with two stages and reports the second rival get")
@@ -957,8 +957,8 @@ TEST("Chapter: Save Birch is stored in Littleroot's slot 1 and its scenes run on
     EXPECT_EQ(desc->backend, CHAPTER_STORED);
     EXPECT_EQ(desc->numStages, SAVE_BIRCH_NUM_STAGES);
     EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
-    EXPECT_EQ(GetScene(SCENE_ROUTE101_RESCUE)->stageVar, GetCountySlotVar(LITTLEROOT, 1));
-    EXPECT_EQ(GetScene(SCENE_LITTLEROOT_NEED_POKEMON)->stageVar, GetCountySlotVar(LITTLEROOT, 1));
+    EXPECT_EQ(GetScene(SCENE_ROUTE101_RESCUE)->stageVar, SCENE_STAGE(LITTLEROOT, 1));
+    EXPECT_EQ(GetScene(SCENE_LITTLEROOT_NEED_POKEMON)->stageVar, SCENE_STAGE(LITTLEROOT, 1));
     EXPECT(SaveBirchStageNamesMatch());
 }
 
@@ -971,8 +971,8 @@ TEST("Chapter: Moving in is stored in Littleroot's slot 0 and its scenes run on 
     EXPECT_EQ(desc->numStages, MOVING_IN_NUM_STAGES);
     EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
     EXPECT_EQ(GetCountySlotVar(LITTLEROOT, 0), VAR_MOVING_IN_BEAT);
-    EXPECT_EQ(GetScene(SCENE_LITTLEROOT_ARRIVE_MALE)->stageVar, VAR_MOVING_IN_BEAT);
-    EXPECT_EQ(GetScene(SCENE_LITTLEROOT_ARRIVE_FEMALE)->stageVar, VAR_MOVING_IN_BEAT);
+    EXPECT_EQ(GetScene(SCENE_LITTLEROOT_ARRIVE_MALE)->stageVar, SCENE_STAGE(LITTLEROOT, 0));
+    EXPECT_EQ(GetScene(SCENE_LITTLEROOT_ARRIVE_FEMALE)->stageVar, SCENE_STAGE(LITTLEROOT, 0));
     EXPECT_EQ(MOVING_IN_TRUCK_MALE, 1);
     EXPECT_EQ(MOVING_IN_TRUCK_FEMALE, 2);
     EXPECT_EQ(MOVING_IN_MEET_RIVAL, MOVING_IN_NUM_STAGES - 1);
@@ -986,8 +986,8 @@ TEST("Chapter: Rival and Pokedex is stored in Oldale's slot 0 and the Route 103 
     EXPECT_EQ(desc->backend, CHAPTER_STORED);
     EXPECT_EQ(desc->numStages, RIVAL_DEX_NUM_STAGES);
     EXPECT_EQ(GetCountySlotVar(OLDALE, 0), VAR_RIVAL_DEX_BEAT);
-    EXPECT_EQ(GetScene(SCENE_ROUTE103_RIVAL_MAY)->stageVar, VAR_RIVAL_DEX_BEAT);
-    EXPECT_EQ(GetScene(SCENE_ROUTE103_RIVAL_BRENDAN)->stageVar, VAR_RIVAL_DEX_BEAT);
+    EXPECT_EQ(GetScene(SCENE_ROUTE103_RIVAL_MAY)->stageVar, SCENE_STAGE(OLDALE, 0));
+    EXPECT_EQ(GetScene(SCENE_ROUTE103_RIVAL_BRENDAN)->stageVar, SCENE_STAGE(OLDALE, 0));
     EXPECT_EQ(RIVAL_DEX_SHOES_GIVEN, RIVAL_DEX_NUM_STAGES - 1);
     EXPECT_EQ(RIVAL_DEX_RIVAL_AT_LAB, RIVAL_DEX_RIVAL_IN_OLDALE + 1);
     EXPECT_EQ(RIVAL_DEX_POKEDEX_GIVEN, RIVAL_DEX_RIVAL_AT_LAB + 1);

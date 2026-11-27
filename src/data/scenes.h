@@ -30,7 +30,7 @@ static const struct Scene sLittlerootNeedPokemon =
     .name = "LittlerootNeedPokemon",
     .actors = {LOCALID_PLAYER, LOCALID_LITTLEROOT_TWIN},
     .numActors = 2,
-    .stageVar = VAR_SAVE_BIRCH_BEAT,
+    .stageVar = SCENE_SAVE_BIRCH_BEAT_VAR,
     .numSteps = ARRAY_COUNT(sLittlerootNeedPokemonSteps),
     .steps = sLittlerootNeedPokemonSteps,
 };
@@ -56,7 +56,7 @@ static const struct Scene sLittlerootTwinAsks =
     .name = "LittlerootTwinAsks",
     .actors = {LOCALID_PLAYER, LOCALID_LITTLEROOT_TWIN},
     .numActors = 2,
-    .stageVar = VAR_SAVE_BIRCH_BEAT,
+    .stageVar = SCENE_SAVE_BIRCH_BEAT_VAR,
     .numSteps = ARRAY_COUNT(sLittlerootTwinAsksSteps),
     .steps = sLittlerootTwinAsksSteps,
 };
@@ -109,7 +109,7 @@ static const struct Scene sLittlerootArriveMale =
     .name = "LittlerootArriveMale",
     .actors = {LOCALID_PLAYER, LOCALID_LITTLEROOT_MOM},
     .numActors = 2,
-    .stageVar = VAR_MOVING_IN_BEAT,
+    .stageVar = SCENE_MOVING_IN_BEAT_VAR,
     .numSteps = ARRAY_COUNT(sLittlerootArriveMaleSteps),
     .steps = sLittlerootArriveMaleSteps,
 };
@@ -119,7 +119,7 @@ static const struct Scene sLittlerootArriveFemale =
     .name = "LittlerootArriveFemale",
     .actors = {LOCALID_PLAYER, LOCALID_LITTLEROOT_MOM},
     .numActors = 2,
-    .stageVar = VAR_MOVING_IN_BEAT,
+    .stageVar = SCENE_MOVING_IN_BEAT_VAR,
     .numSteps = ARRAY_COUNT(sLittlerootArriveFemaleSteps),
     .steps = sLittlerootArriveFemaleSteps,
 };
@@ -153,7 +153,7 @@ static const struct Scene sRoute101Rescue =
     .name = "Route101Rescue",
     .actors = {LOCALID_PLAYER, LOCALID_ROUTE101_BIRCH, LOCALID_ROUTE101_ZIGZAGOON},
     .numActors = 3,
-    .stageVar = VAR_SAVE_BIRCH_BEAT,
+    .stageVar = SCENE_SAVE_BIRCH_BEAT_VAR,
     .numSteps = ARRAY_COUNT(sRoute101RescueSteps),
     .steps = sRoute101RescueSteps,
 };
@@ -192,7 +192,7 @@ static const struct Scene sRoute101Bag =
     .name = "Route101Bag",
     .actors = {LOCALID_PLAYER, LOCALID_ROUTE101_BIRCH, LOCALID_ROUTE101_ZIGZAGOON},
     .numActors = 3,
-    .stageVar = VAR_SAVE_BIRCH_BEAT,
+    .stageVar = SCENE_SAVE_BIRCH_BEAT_VAR,
     .numSteps = ARRAY_COUNT(sRoute101BagSteps),
     .steps = sRoute101BagSteps,
 };
@@ -247,7 +247,7 @@ static const struct Scene sLabStarter =
     .name = "LabStarter",
     .actors = {LOCALID_PLAYER},
     .numActors = 1,
-    .stageVar = VAR_SAVE_BIRCH_BEAT,
+    .stageVar = SCENE_SAVE_BIRCH_BEAT_VAR,
     .numSteps = ARRAY_COUNT(sLabStarterSteps),
     .steps = sLabStarterSteps,
 };
@@ -331,7 +331,7 @@ static const struct Scene sceneName = \
     .name = #sceneName, \
     .actors = {LOCALID_PLAYER}, \
     .numActors = 1, \
-    .stageVar = VAR_RIVAL_DEX_BEAT, \
+    .stageVar = SCENE_RIVAL_DEX_BEAT_VAR, \
     .numSteps = ARRAY_COUNT(sceneName##Steps), \
     .steps = sceneName##Steps, \
 }
@@ -690,9 +690,9 @@ static const struct Scene *const sScenes[SCENE_COUNT] =
 // The truck drops the player within 4 tiles of the door in both houses. Door warp 1 is Brendan's house, 0 is May's.
 static const struct SceneTrigger sSceneTriggers[] =
 {
-    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 1, SCENE_LITTLEROOT_ARRIVE_MALE, VAR_MOVING_IN_BEAT, 1},
-    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 0, SCENE_LITTLEROOT_ARRIVE_FEMALE, VAR_MOVING_IN_BEAT, 2},
-    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_EXIT, 1, 0, SCENE_LITTLEROOT_NEED_POKEMON, VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_GUARDS, DIR_NORTH},
-    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_EXIT, 1, 0, SCENE_LITTLEROOT_TWIN_ASKS, VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_TWIN_ASKS, DIR_NORTH},
-    {MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), SCENE_TRIGGER_ENTER_MAP, 0, 0, SCENE_ROUTE101_RESCUE, VAR_SAVE_BIRCH_BEAT, SAVE_BIRCH_BIRCH_IN_GRASS},
+    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 1, SCENE_LITTLEROOT_ARRIVE_MALE, SCENE_MOVING_IN_BEAT_VAR, 1},
+    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_PROXIMITY, 5, 0, SCENE_LITTLEROOT_ARRIVE_FEMALE, SCENE_MOVING_IN_BEAT_VAR, 2},
+    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_EXIT, 1, 0, SCENE_LITTLEROOT_NEED_POKEMON, SCENE_SAVE_BIRCH_BEAT_VAR, SAVE_BIRCH_TWIN_GUARDS, DIR_NORTH},
+    {MAP_GROUP(MAP_LITTLEROOT_TOWN), MAP_NUM(MAP_LITTLEROOT_TOWN), SCENE_TRIGGER_EXIT, 1, 0, SCENE_LITTLEROOT_TWIN_ASKS, SCENE_SAVE_BIRCH_BEAT_VAR, SAVE_BIRCH_TWIN_ASKS, DIR_NORTH},
+    {MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), SCENE_TRIGGER_ENTER_MAP, 0, 0, SCENE_ROUTE101_RESCUE, SCENE_SAVE_BIRCH_BEAT_VAR, SAVE_BIRCH_BIRCH_IN_GRASS},
 };

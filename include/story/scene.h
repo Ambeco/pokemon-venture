@@ -156,6 +156,14 @@ enum SceneTriggerKind
     SCENE_TRIGGER_EXIT,             // radius tiles inside the map edge `edge`, with a walkable tile on the edge straight ahead; no anchor
 };
 
+// A scene's stage is either a raw var id (tests use temp vars) or a stored chapter's (county, slot), which the
+// chapter accessors resolve so the county var layout can change. Var ids start at 0x4000, so the flag never clashes.
+#define SCENE_STAGE_CHAPTER_FLAG 0x2000
+#define SCENE_STAGE(county, slot) (SCENE_STAGE_CHAPTER_FLAG | ((county) << 4) | (slot))
+
+u32 SceneGetStage(u16 stageVar);
+void SceneSetStage(u16 stageVar, u32 value);
+
 struct SceneTrigger
 {
     u8 mapGroup;
