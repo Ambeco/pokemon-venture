@@ -135,16 +135,26 @@ bool32 GetFirstUndonePlotSlot(u32 index, struct PlotSlot *out)
     return FALSE;
 }
 
+void AdvanceMainStoryIndex(void)
+{
+    u32 index = VarGet(VAR_MAIN_STORY_INDEX);
+
+    if (index < MAIN_STORY_INDEX_POSTGAME)
+        VarSet(VAR_MAIN_STORY_INDEX, index + 1);
+}
+
 u32 GetMainStoryIndex(void)
 {
-    u32 index;
+    u32 index = VarGet(VAR_MAIN_STORY_INDEX);
 
-    for (index = 0; index < MAIN_STORY_INDEX_POSTGAME; index++)
+    while (index < MAIN_STORY_INDEX_POSTGAME)
     {
         struct PlotListStage stage = GetPlotListStage(index);
 
         if (!IsPlotListDone(&stage))
-            return index;
+            break;
+        AdvanceMainStoryIndex();
+        index = VarGet(VAR_MAIN_STORY_INDEX);
     }
-    return MAIN_STORY_INDEX_POSTGAME;
+    return index;
 }

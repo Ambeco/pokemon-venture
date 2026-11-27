@@ -102,6 +102,45 @@ TEST("RegionPlotStage: A vanilla walkthrough advances the index to the expected 
     }
 }
 
+TEST("RegionPlotStage: The index is stored in VAR_MAIN_STORY_INDEX as it catches up")
+{
+    u32 i;
+
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), 0);
+    for (i = 0; i < ARRAY_COUNT(sWalkthrough) && sWalkthrough[i].expected < 30; i++)
+        Apply(&sWalkthrough[i]);
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), 0); // nothing writes it before the first query
+    EXPECT_EQ(GetMainStoryIndex(), sWalkthrough[i - 1].expected);
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), sWalkthrough[i - 1].expected);
+}
+
+TEST("RegionPlotStage: The catch-up starts from the stored index")
+{
+    VarSet(VAR_MAIN_STORY_INDEX, 30);
+    EXPECT_EQ(GetMainStoryIndex(), 30); // lists 0-29 are not done, but the stored index is already past them
+}
+
+TEST("RegionPlotStage: The index never goes back when a flag is cleared")
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sWalkthrough); i++)
+        Apply(&sWalkthrough[i]);
+    EXPECT_EQ(GetMainStoryIndex(), MAIN_STORY_INDEX_POSTGAME);
+    FlagClear(FLAG_BADGE01_GET);
+    FlagClear(FLAG_RECEIVED_HM_SURF);
+    EXPECT_EQ(GetMainStoryIndex(), MAIN_STORY_INDEX_POSTGAME);
+}
+
+TEST("RegionPlotStage: AdvanceMainStoryIndex moves one step and stops at the post-game")
+{
+    AdvanceMainStoryIndex();
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), 1);
+    VarSet(VAR_MAIN_STORY_INDEX, MAIN_STORY_INDEX_POSTGAME);
+    AdvanceMainStoryIndex();
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), MAIN_STORY_INDEX_POSTGAME);
+}
+
 TEST("RegionPlotStage: Reported-only gets never hold or move the index")
 {
     u32 i;

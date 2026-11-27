@@ -21,6 +21,9 @@ STATIC_ASSERT(COUNTY_VARS_COUNT + RESERVED_VARS_COUNT + MINIGAME_VARS_COUNT + EN
 STATIC_ASSERT(LEGACY_VARS_START > COUNTY_VARS_START, legacyBlockStartsBeforeCountyBlock);
 STATIC_ASSERT(LEGACY_VARS_START <= COUNTY_VARS_END, legacyBlockDoesNotReachCountyBlock);
 STATIC_ASSERT(LEGACY_VARS_END <= RESERVED_VARS_END, legacyBlockPastReserve);
+// Named reserve vars are allocated downward from RESERVED_VARS_END, clear of the legacy block that fills the reserve's start.
+STATIC_ASSERT(LEGACY_VARS_END < VAR_MAIN_STORY_INDEX, mainStoryIndexInsideLegacyBlock);
+STATIC_ASSERT(VAR_MAIN_STORY_INDEX >= RESERVED_VARS_START && VAR_MAIN_STORY_INDEX <= RESERVED_VARS_END, mainStoryIndexOutsideReserve);
 // Slateport is county 20: porting its chapters needs its slice clear of legacy vars.
 STATIC_ASSERT(COUNTY_VAR_SLICES_FREE >= 21, tooFewFreeCountySlices);
 
@@ -162,7 +165,6 @@ static const struct VarEntry sVars[] =
     V(LEGACY, VAR_ROUTE118_STATE),
     V(LEGACY, VAR_ROUTE119_STATE),
     V(LEGACY, VAR_ROUTE121_STATE),
-    V(LEGACY, VAR_ROUTE128_STATE),
     V(LEGACY, VAR_LITTLEROOT_HOUSES_STATE_MAY),
     V(LEGACY, VAR_PETALBURG_GYM_STATE),
     V(LEGACY, VAR_LITTLEROOT_HOUSES_STATE_BRENDAN),
@@ -292,6 +294,7 @@ TEST("Persistent vars: the flags that replaced two-state vars are distinct and s
         FLAG_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT,
         FLAG_HAS_ENTERED_BATTLE_FRONTIER,
         FLAG_ROAMER_IS_LATIOS,
+        FLAG_KYOGRE_AWAKENED_SCENE,
     };
     u32 i, j;
     for (i = 0; i < ARRAY_COUNT(flags); i++)

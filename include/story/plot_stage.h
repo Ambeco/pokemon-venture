@@ -20,10 +20,13 @@
  * because a BLOCKING get that the player may skip freezes GetMainStoryIndex() for good; when in doubt
  * it is REPORTED. This differs from the planner, where the Good Rod, for example, is mandatory.
  *
- * GetMainStoryIndex() scans from 0 and returns the first list that is not done, not the highest
- * true predicate, because Emerald lets some gets happen early (Fly with RB4, Strength at Rusturf).
- * Predicates must be monotone (never cleared again by the game): FLAG_DEFEATED_MAGMA_SPACE_CENTER is
- * not, so the Space Center beat reads a var instead. Once every list is done it returns
+ * The index is stored in VAR_MAIN_STORY_INDEX and only moves forward. GetMainStoryIndex() catches it up
+ * from the stored value, advancing through every list that is done and stopping at the first that is
+ * not (not at the highest true predicate, because Emerald lets some gets happen early: Fly with RB4,
+ * Strength at Rusturf), and it writes the var as it goes. Most gets are still vanilla flags with no
+ * hook, so that catch-up is the only thing that advances the index; AdvanceMainStoryIndex() is the one
+ * place it moves. Predicates must still be monotone while the catch-up runs: FLAG_DEFEATED_MAGMA_SPACE_CENTER
+ * is not, so the Space Center beat reads a var instead. Once every list is done it returns
  * MAIN_STORY_INDEX_POSTGAME.
  */
 
@@ -92,5 +95,6 @@ static inline bool32 IsPlotListDone(const struct PlotListStage *stage)
 }
 
 u32 GetMainStoryIndex(void);
+void AdvanceMainStoryIndex(void);
 
 #endif // GUARD_PLOT_STAGE_H

@@ -62,7 +62,7 @@
 #define FLAG_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT 0x28 // The entrance grunt gives the short speech from now on
 #define FLAG_HAS_ENTERED_BATTLE_FRONTIER 0x29 // The reception greeter has welcomed the player
 #define FLAG_ROAMER_IS_LATIOS 0x2A // The Lati roamer is Latios (else Latias); Southern Island holds the other one
-#define FLAG_UNUSED_0x02B    0x2B // Unused Flag
+#define FLAG_KYOGRE_AWAKENED_SCENE 0x2B // Kyogre escaped the Seafloor Cavern: Route 128 plays the Archie, Maxie and Steven scene on entry
 #define FLAG_UNUSED_0x02C    0x2C // Unused Flag
 #define FLAG_UNUSED_0x02D    0x2D // Unused Flag
 #define FLAG_UNUSED_0x02E    0x2E // Unused Flag

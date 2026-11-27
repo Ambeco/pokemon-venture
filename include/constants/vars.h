@@ -116,11 +116,16 @@
 #define ENGINE_VARS_COUNT          37
 #define ENGINE_VARS_END            (ENGINE_VARS_START + ENGINE_VARS_COUNT - 1)
 
-// legacy: Emerald story vars not yet retired. They overlay the last county slices and the reserve
-// until the main arc and chapters are ported; retiring one frees its address for county use.
-#define LEGACY_VARS_COUNT          44
-#define LEGACY_VARS_START          (RESERVED_VARS_END + 1 - LEGACY_VARS_COUNT)
-#define LEGACY_VARS_END            RESERVED_VARS_END
+// legacy: Emerald story vars not yet retired. They overlay the last county slices and the start of the reserve
+// until the main arc and chapters are ported. The block is anchored at the first var of slice 21, so retiring a var
+// (and renumbering the offsets above it) frees the top of the reserve, where the named reserve vars are allocated
+// downward from RESERVED_VARS_END.
+#define LEGACY_VARS_COUNT          43
+#define LEGACY_VARS_START          (COUNTY_VARS_START + 21 * VARS_PER_COUNTY)
+#define LEGACY_VARS_END            (LEGACY_VARS_START + LEGACY_VARS_COUNT - 1)
+
+// reserve vars
+#define VAR_MAIN_STORY_INDEX       RESERVED_VARS_END // the main-story-index (design_story.md, "Story state storage")
 
 // minigame and facility vars
 #define VAR_FRONTIER_MANIAC_FACILITY                     (MINIGAME_VARS_START + 0x0)
@@ -258,39 +263,39 @@
 #define VAR_ROUTE118_STATE                               (LEGACY_VARS_START + 0xB)
 #define VAR_ROUTE119_STATE                               (LEGACY_VARS_START + 0xC)
 #define VAR_ROUTE121_STATE                               (LEGACY_VARS_START + 0xD)
-#define VAR_ROUTE128_STATE                               (LEGACY_VARS_START + 0xE)
-#define VAR_LITTLEROOT_HOUSES_STATE_MAY                  (LEGACY_VARS_START + 0xF)
+// retired: VAR_ROUTE128_STATE, retired into FLAG_KYOGRE_AWAKENED_SCENE
+#define VAR_LITTLEROOT_HOUSES_STATE_MAY                  (LEGACY_VARS_START + 0xE)
 // retired: VAR_BIRCH_LAB_STATE, retired into VAR_SAVE_BIRCH_BEAT and VAR_RIVAL_DEX_BEAT
-#define VAR_PETALBURG_GYM_STATE                          (LEGACY_VARS_START + 0x10) // 0-1: Wally tutorial, 2-6: 0-4 badges, 7: Defeated Norman, 8: Rematch Norman
-#define VAR_LITTLEROOT_HOUSES_STATE_BRENDAN              (LEGACY_VARS_START + 0x11)
-#define VAR_LITTLEROOT_RIVAL_STATE                       (LEGACY_VARS_START + 0x12)
-#define VAR_BOARD_BRINEY_BOAT_STATE                      (LEGACY_VARS_START + 0x13)
-#define VAR_DEVON_CORP_3F_STATE                          (LEGACY_VARS_START + 0x14)
+#define VAR_PETALBURG_GYM_STATE                          (LEGACY_VARS_START + 0xF) // 0-1: Wally tutorial, 2-6: 0-4 badges, 7: Defeated Norman, 8: Rematch Norman
+#define VAR_LITTLEROOT_HOUSES_STATE_BRENDAN              (LEGACY_VARS_START + 0x10)
+#define VAR_LITTLEROOT_RIVAL_STATE                       (LEGACY_VARS_START + 0x11)
+#define VAR_BOARD_BRINEY_BOAT_STATE                      (LEGACY_VARS_START + 0x12)
+#define VAR_DEVON_CORP_3F_STATE                          (LEGACY_VARS_START + 0x13)
 // retired: VAR_LITTLEROOT_INTRO_STATE, retired into VAR_MOVING_IN_BEAT
-#define VAR_MAUVILLE_GYM_STATE                           (LEGACY_VARS_START + 0x15)
-#define VAR_BRINEY_LOCATION                              (LEGACY_VARS_START + 0x16)
-#define VAR_PETALBURG_WOODS_STATE                        (LEGACY_VARS_START + 0x17)
-#define VAR_RUSTURF_TUNNEL_STATE                         (LEGACY_VARS_START + 0x18)
-#define VAR_ELITE_4_STATE                                (LEGACY_VARS_START + 0x19)
-#define VAR_MOSSDEEP_SPACE_CENTER_STAIR_GUARD_STATE      (LEGACY_VARS_START + 0x1A)
-#define VAR_MOSSDEEP_SPACE_CENTER_STATE                  (LEGACY_VARS_START + 0x1B)
-#define VAR_SLATEPORT_HARBOR_STATE                       (LEGACY_VARS_START + 0x1C)
-#define VAR_SEAFLOOR_CAVERN_STATE                        (LEGACY_VARS_START + 0x1D)
-#define VAR_SLATEPORT_MUSEUM_1F_STATE                    (LEGACY_VARS_START + 0x1E)
-#define VAR_MT_PYRE_STATE                                (LEGACY_VARS_START + 0x1F)
-#define VAR_NEW_MAUVILLE_STATE                           (LEGACY_VARS_START + 0x20)
-#define VAR_METEOR_FALLS_STATE                           (LEGACY_VARS_START + 0x21)
-#define VAR_SOOTOPOLIS_MYSTERY_EVENTS_STATE              (LEGACY_VARS_START + 0x22)
-#define VAR_VICTORY_ROAD_1F_STATE                        (LEGACY_VARS_START + 0x23)
-#define VAR_STEVENS_HOUSE_STATE                          (LEGACY_VARS_START + 0x24)
+#define VAR_MAUVILLE_GYM_STATE                           (LEGACY_VARS_START + 0x14)
+#define VAR_BRINEY_LOCATION                              (LEGACY_VARS_START + 0x15)
+#define VAR_PETALBURG_WOODS_STATE                        (LEGACY_VARS_START + 0x16)
+#define VAR_RUSTURF_TUNNEL_STATE                         (LEGACY_VARS_START + 0x17)
+#define VAR_ELITE_4_STATE                                (LEGACY_VARS_START + 0x18)
+#define VAR_MOSSDEEP_SPACE_CENTER_STAIR_GUARD_STATE      (LEGACY_VARS_START + 0x19)
+#define VAR_MOSSDEEP_SPACE_CENTER_STATE                  (LEGACY_VARS_START + 0x1A)
+#define VAR_SLATEPORT_HARBOR_STATE                       (LEGACY_VARS_START + 0x1B)
+#define VAR_SEAFLOOR_CAVERN_STATE                        (LEGACY_VARS_START + 0x1C)
+#define VAR_SLATEPORT_MUSEUM_1F_STATE                    (LEGACY_VARS_START + 0x1D)
+#define VAR_MT_PYRE_STATE                                (LEGACY_VARS_START + 0x1E)
+#define VAR_NEW_MAUVILLE_STATE                           (LEGACY_VARS_START + 0x1F)
+#define VAR_METEOR_FALLS_STATE                           (LEGACY_VARS_START + 0x20)
+#define VAR_SOOTOPOLIS_MYSTERY_EVENTS_STATE              (LEGACY_VARS_START + 0x21)
+#define VAR_VICTORY_ROAD_1F_STATE                        (LEGACY_VARS_START + 0x22)
+#define VAR_STEVENS_HOUSE_STATE                          (LEGACY_VARS_START + 0x23)
 // retired: VAR_OLDALE_RIVAL_STATE, retired into VAR_RIVAL_DEX_BEAT
-#define VAR_JAGGED_PASS_STATE                            (LEGACY_VARS_START + 0x25)
-#define VAR_SCOTT_PETALBURG_ENCOUNTER                    (LEGACY_VARS_START + 0x26)
-#define VAR_SKY_PILLAR_STATE                             (LEGACY_VARS_START + 0x27)
-#define VAR_SCOTT_STATE                                  (LEGACY_VARS_START + 0x28)
-#define VAR_SLATEPORT_OUTSIDE_MUSEUM_STATE               (LEGACY_VARS_START + 0x29)
-#define VAR_SKY_PILLAR_RAYQUAZA_CRY_DONE                 (LEGACY_VARS_START + 0x2A)
-#define VAR_SOOTOPOLIS_WALLACE_STATE                     (LEGACY_VARS_START + 0x2B)
+#define VAR_JAGGED_PASS_STATE                            (LEGACY_VARS_START + 0x24)
+#define VAR_SCOTT_PETALBURG_ENCOUNTER                    (LEGACY_VARS_START + 0x25)
+#define VAR_SKY_PILLAR_STATE                             (LEGACY_VARS_START + 0x26)
+#define VAR_SCOTT_STATE                                  (LEGACY_VARS_START + 0x27)
+#define VAR_SLATEPORT_OUTSIDE_MUSEUM_STATE               (LEGACY_VARS_START + 0x28)
+#define VAR_SKY_PILLAR_RAYQUAZA_CRY_DONE                 (LEGACY_VARS_START + 0x29)
+#define VAR_SOOTOPOLIS_WALLACE_STATE                     (LEGACY_VARS_START + 0x2A)
 
 #define VARS_END                                         0x40FF
 #define VARS_COUNT                                       (VARS_END - VARS_START + 1)

@@ -5,10 +5,16 @@ Route128_MapScripts::
 
 Route128_OnTransition:
 	call_if_set FLAG_SYS_WEATHER_CTRL, Common_EventScript_SetAbnormalWeather
+	call_if_set FLAG_KYOGRE_AWAKENED_SCENE, Route128_EventScript_ArmKyogreAwakenedScene
 	end
 
+@ map_script_2 can test only a var, so the on-transition script copies the flag into a temp var
+Route128_EventScript_ArmKyogreAwakenedScene::
+	setvar VAR_TEMP_0, 1
+	return
+
 Route128_OnFrame:
-	map_script_2 VAR_ROUTE128_STATE, 1, Route128_EventScript_KyogreAwakenedScene
+	map_script_2 VAR_TEMP_0, 1, Route128_EventScript_KyogreAwakenedScene
 	.2byte 0
 
 Route128_EventScript_KyogreAwakenedScene::
@@ -74,7 +80,8 @@ Route128_EventScript_KyogreAwakenedScene::
 	removeobject LOCALID_ROUTE128_STEVEN
 	waitfieldeffect FLDEFF_NPCFLY_OUT
 	clearflag FLAG_HIDE_MAP_NAME_POPUP
-	setvar VAR_ROUTE128_STATE, 2
+	clearflag FLAG_KYOGRE_AWAKENED_SCENE
+	setvar VAR_TEMP_0, 0
 	releaseall
 	end
 
