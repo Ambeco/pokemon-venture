@@ -11,10 +11,10 @@
 - Add salt constants (map, NPC, ...) to `include/constants/identity_salts.h` and `test/identity_salts.c` as callers appear; `IdentityRng` takes bare numbers.
 - Routes (`region_route.c` gives each county its default half of every inter-county route):
   - Feed tile ownership to route-story-indices.
-  - Emerald's Fallarbor unlock has no lock tile (`GetRouteLock` finds none), so its implicit key is unreachable from a lock.
+  - Give Emerald's Fallarbor unlock a reachable key (design_region.md, "Open questions": lock tiles).
   - Use the pool ids (`GetCountyMcGuffinId`) when a county's chapter gates an inner location.
-  - Intra-county routes exist only in counties with a city (Emerald's cityless counties with several specials get none); nothing routes a cityless county's locations to each other.
-  - When generation exists, keep generated locations off a county's outermost row and column, by construction (not testable on Emerald's table).
+  - Route a cityless county's locations to each other, or decide they need none (design_region.md, "Open questions": cityless counties).
+  - When generation exists, keep generated locations off a county's outermost row and column, by construction (design_region.md, "Route generation"; not testable on Emerald's table).
   - Add an accessor for the route id/MAPSEC between neighbors, for NPC text about adjacent cities.
 - Landmark/detour/pitstop split (design_region.md, "Special locations"):
   - Make the generator use the pitstop deal (`DealCountyPitstops`); Emerald's table assigns pitstops by hand and the tile accessors ignore the deal.

@@ -237,6 +237,8 @@ Undecided points; none blocks the generator work in progress.
 - Region generation details still open: terrain, biome, population and special-location types, the story-order algorithm, key/lock rules, capital selection, and how generated data maps onto pokeemerald maps, warps and encounters.
 - Whether a city's count of inside-city special locations equals its population (1-3); Emerald averages about 0.6 per city (about 1.2 counting gyms), see `Emerald.md`.
 - Route rules: tie-breaking and duplicate-route handling when several adjacency rules apply to the same county pair.
+- Cityless counties: intra-county routes exist only in counties with a city (Emerald's cityless counties with several special locations get none), so nothing routes such a county's locations to each other; whether they need routes, or the generator keeps them to one location.
+- Lock tiles: `GetRouteLock` places a McGuffin lock on a route tile, but Emerald's Fallarbor unlock has none, so its implicit key cannot be reached from a lock; whether the unlock gets a lock tile or another reachable key.
 - The special-location catalog: inside-city vs outside-city lists, how a location is chosen for a county, and its relation to terrain, biome and story order.
 - How the underground tunnels around Saffron (Underground Path) fit the region model; Red/Blue map reproducibility is a design check.
 - The 5x5 biome grid's axis values and which 12 biomes each 4x3 subset yields; the meaning of each 2-bit population level (0 = none, 1 = village, 2 = town, 3 = city) and how it relates to terrain and biome; whether the region is regenerated on demand or cached in RAM (cost of regeneration).

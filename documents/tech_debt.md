@@ -3,7 +3,6 @@
 One line per item, roughly highest priority first. Delete an item when it is paid off.
 
 - `remaining_work.md` mixes milestone work with ~60 "open design questions" (many are design content, not work) and has multi-clause items that cannot be deleted whole; the 1a milestone is a grab bag.
-  - Step 8: move the "Cross-cutting" and Milestone 0 "Routes" sub-bullets that are really design caveats (lock tile, cityless routes, outermost row) into `design_region.md`
   - Step 9: add a check (extend `tools/misc/` or a test) that every non-blank `remaining_work.md` line is a header or list item, and that no line exceeds ~400 characters
 - `src/story/scene.c` (~1100 lines) holds the step interpreter, path search, triggers and the scene table; split by responsibility.
 - Scenes bind actors by raw local ids per `struct Scene`, door facing is hardcoded "south", and the trigger table is hand-written; ids are bare u8/u16 with no types.
