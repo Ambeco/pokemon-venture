@@ -38,7 +38,8 @@
   - Add the pool module (16 location ids, the extra expired id, 16 blocks of 32 flags) and its saved fields, and route `TRAINER_FLAGS_START + trainerId` reads and writes in `battle_setup.c` and the trainer-sight code through it.
   - Give each battleable location a place id `county_index * 10 + local`, with a test that no Emerald county has more than 10; decide the local index order.
   - Show the Vs. Seeker rematch notice when entering a city or route with a valid extra id.
-  - Settle the Battle Frontier, Trick House and Mirage Tower (more than 32 trainers or their own trainer logic), and move any story trainer that reads a trainer flag onto chapter state first.
+  - Give the Trick House one location id for all eight puzzle maps (24 trainer objects, so the 32 flags suffice; assign local trainer indices across the puzzles), and check how its puzzle 7 reaches 6 trainers.
+  - Move any story trainer that reads a trainer flag onto chapter state first.
 
 ### Milestone 1a: Chapter abstraction groundwork
 
