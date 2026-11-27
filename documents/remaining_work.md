@@ -34,6 +34,12 @@
   - Allocate the reserve's other named vars downward from `VAR_MAIN_STORY_INDEX` (the story-arc stage, the twelve rival-team vars (species in bits 10-0, rival story in bits 15-11); design_story.md, "Arc vars") once enough legacy vars are retired to free reserve addresses, and add them to `test/vars.c`.
   - Retire Emerald vars as Milestones 1a, 2 and 3 land: the 43 legacy vars in `vars.h` shrink toward zero and county slices become usable; trim `test/vars.c`'s table as they go. A removed var leaves its address unused until the block is renumbered (as `LEGACY_VARS_COUNT` shrinks, renumber the remaining offsets).
 
+- Trainer memory (design_story.md, "Story state storage", "Trainer memory"):
+  - Add the pool module (16 location ids, the extra expired id, 16 blocks of 32 flags) and its saved fields, and route `TRAINER_FLAGS_START + trainerId` reads and writes in `battle_setup.c` and the trainer-sight code through it.
+  - Give each battleable location a place id `county_index * 10 + local`, with a test that no Emerald county has more than 10; decide the local index order.
+  - Show the Vs. Seeker rematch notice when entering a city or route with a valid extra id.
+  - Settle the Battle Frontier, Trick House and Mirage Tower (more than 32 trainers or their own trainer logic), and move any story trainer that reads a trainer flag onto chapter state first.
+
 ### Milestone 1a: Chapter abstraction groundwork
 
 - Unblocks Milestone 2 and fixes the interfaces Milestone 1 builds on (design_chapters.md, "Chapter abstraction").

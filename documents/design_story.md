@@ -165,7 +165,19 @@ Regions (badge and HM flags stay as they are):
 - `VARS_END` does not grow: 224 vars = 96 county + 32 reserve + 59 minigame + 37 engine. Five per county would fit (224 - 96 keep - 5 story = 123 >= 120), but is not planned.
 - Legacy block: Emerald vars not yet retired (43: the main-arc and chapter vars) start at the first var of slice 21, so they fill the last 12 county vars and the start of the reserve. Retiring one renumbers the offsets above it and frees the top of the reserve, where the named reserve vars are allocated downward from the reserve's last var (`VAR_MAIN_STORY_INDEX` first). Their slices are unusable until the vars are retired, so only the first 21 county slices are free at first. A county's slice is its id except that Littleroot and Oldale (ids 19 and 14) swap slices with counties 0 and 1 (`GetCountyVarSlice`), so the tutorial chapters can be stored before the legacy block shrinks that far; the swap goes away once the slices are free. A test checks that the blocks do not overlap and that the legacy block stays inside the county tail and reserve.
 
-Supply: Emerald left 56 vars unreferenced, and 20 more were removed or moved to flags (`vars.md`, "Moved to flags or removed"), so the regions are allocated before any Emerald var is retired. Emerald's main-arc vars (about 40) are retired when the main arc is ported, and city and special-location vars (about 25) one chapter at a time, each leaving `make check` green. A test checks that regions do not overlap and stay in range.
+Supply: Emerald left 56 vars unreferenced, and 21 more were removed or moved to flags (`vars.md`, "Moved to flags or removed"), so the regions are allocated before any Emerald var is retired. Emerald's main-arc vars (about 40) are retired when the main arc is ported, and city and special-location vars (about 25) one chapter at a time, each leaving `make check` green. A test checks that regions do not overlap and stay in range.
+
+### Trainer memory
+
+Which non-actor trainers the player has beaten is remembered for only the last 16 locations that had a battle, not for all 864 of Emerald's trainer ids. This follows the locality rule (design.md, "Resource budget"): only the neighborhood the player is in needs memory, and generated routes then place up to 32 trainers with no shared id table.
+
+- Location id: one byte, `county_index * 10 + local` (24 counties give 240 values; 255 is invalid). A county's local index is fixed by layer data (the city, then the routes, then the special locations, in a fixed order), never by placement order, so it is stable under generation. A county may have at most 10 battleable locations (city, 4 inter-county routes, 2 inner routes, and up to 4 landmarks, detours or pitstops); a test over the Emerald tables checks it. The id is a general place id, not specific to trainers. Buildings use a separate building id relative to their location.
+- Storage: a list of 16 location ids in order of last battle, plus one extra id (the last evicted), and 16 blocks of 32 flags (512 flags). A trainer's flag is `block(location) * 32 + localTrainerIndex`, where the local index is its placement order within the location (at most 32 trainers per location).
+- Lookup: a location that is not in the list reads as "no trainer fought", so nothing is cleared until a battle at a new location allocates a block. Allocation clears and reuses the oldest block and moves its location id to the extra slot; a battle at a listed location moves it to the front. The list is scanned linearly (16 bytes).
+- Eviction happens only when a battle at a new location starts, never on entering one, so the player cannot lose progress in the location they are standing in. Trainers at a location that was evicted battle again when the player returns, which is intended.
+- Vs. Seeker: when the player enters a city or route and the extra slot holds a valid id, a rematch notice for that location is shown and the slot is set to 255, so it is not shown twice. Two evictions before the next city or route overwrite the first notice, which is accepted.
+- Actors (rivals, gym leaders, team grunts, the Elite Four) never use this pool: their state is in chapter stages and flags, and they are the only characters that give gifts, so a re-battle never repeats a reward. Content with more than 32 trainers or its own trainer logic (Battle Frontier, Trick House, Mirage Tower) needs separate handling.
+- Emerald's 864-flag range is not shrunk: the freed ids stay available for other flags. The saved flag size does not change.
 
 ## McGuffins
 
@@ -298,3 +310,25 @@ Pros:
 Cons:
 - Needs the legacy vars retired first, so it blocks progress.
 - The packed position makes it unnecessary.
+
+### One defeated flag per trainer id
+
+Keep Emerald's `TRAINER_FLAGS_START + trainerId` flags (864 of them).
+
+Pros:
+- Unchanged engine code, and every trainer is remembered forever.
+
+Cons:
+- Generated routes have no fixed trainer ids, so each would need a shared id table and coordination between routes.
+- 108 bytes of flags that are almost all irrelevant to the player's current neighborhood.
+
+### Trainer memory by county tile
+
+Remember defeated trainers per county, or per region tile, instead of per location.
+
+Pros:
+- No location ids are needed.
+
+Cons:
+- A county holds many locations, so the block would have to cover the largest county's trainers, and a county's block would be much bigger than 32 flags.
+- Leaving a county would forget all of it at once, instead of the oldest location first.
