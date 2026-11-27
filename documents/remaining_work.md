@@ -31,7 +31,7 @@
     - Wire `county_position.h` (pack/unpack, start/advance with skip-ahead, bit-mask cursor; done, tested) into the accessors: hosts need a per-slot unsorted chapter list, required order and done-bit lookup; assert each stored chapter has at most 16 stages.
     - Replace `GetCountySlotVar` and `CHAPTERS_PER_COUNTY` with accessors, and move the `SCENE_*_BEAT_VAR` macros and `Scene::stageVar` behind them.
     - About 30 `data/maps/*` scripts compare or set `VAR_MOVING_IN_BEAT`, `VAR_SAVE_BIRCH_BEAT` and `VAR_RIVAL_DEX_BEAT` as whole values (`coord_event`, `map_script_2`, `call_if_*`, `setvar`); they need accessor specials or a compare against the packed value. Then update the e2e recipes. `vars.h` changes, so run one full `make check`.
-  - Decide how many rival-arc vars the two rival teams need (design_story.md, "Arc vars"), and allocate them with `VAR_MAIN_STORY_INDEX`.
+  - Allocate the reserve's named vars (`VAR_MAIN_STORY_INDEX`, the story-arc and rival-arc stages, the twelve rival-team vars; design_story.md, "Arc vars") once enough legacy vars are retired to free reserve addresses, and add them to `test/vars.c`.
   - Retire Emerald vars as Milestones 1a, 2 and 3 land: the 44 legacy vars in `vars.h` shrink toward zero and county slices become usable; trim `test/vars.c`'s table as they go. A removed var leaves its address unused until the block is renumbered (as `LEGACY_VARS_COUNT` shrinks, renumber the remaining offsets).
 
 ### Milestone 1a: Chapter abstraction groundwork
