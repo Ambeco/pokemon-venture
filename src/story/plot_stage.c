@@ -80,20 +80,22 @@ static void AddGet(struct PlotListStage *stage, const struct PlotGetDesc *desc)
     stage->numGets++;
 }
 
-struct PlotListStage GetPlotListStage(u32 index)
+u32 GetPlotListGetDescs(u32 index, struct PlotGetDesc out[MAX_GETS_PER_LIST])
 {
     struct PlotSlot slots[MAX_GETS_PER_LIST];
-    struct PlotListStage stage = {0};
-    u32 count, i;
+    u32 count, i, total = 0;
 
     if ((index & 3) == 3)
     {
         for (i = 0; i < ARRAY_COUNT(sEmeraldPlotUnlocks); i++)
         {
             if (sEmeraldPlotUnlocks[i].index == index)
-                AddGet(&stage, &sEmeraldPlotUnlocks[i].desc);
+            {
+                AGB_ASSERT(total < MAX_GETS_PER_LIST);
+                out[total++] = sEmeraldPlotUnlocks[i].desc;
+            }
         }
-        return stage;
+        return total;
     }
     count = ResolveVanillaPlotList(index, slots, ARRAY_COUNT(slots));
     for (i = 0; i < count; i++)
@@ -103,8 +105,23 @@ struct PlotListStage GetPlotListStage(u32 index)
         u32 j;
 
         for (j = 0; j < numDescs; j++)
-            AddGet(&stage, &descs[j]);
+        {
+            AGB_ASSERT(total < MAX_GETS_PER_LIST);
+            out[total++] = descs[j];
+        }
     }
+    return total;
+}
+
+struct PlotListStage GetPlotListStage(u32 index)
+{
+    struct PlotGetDesc descs[MAX_GETS_PER_LIST];
+    struct PlotListStage stage = {0};
+    u32 count = GetPlotListGetDescs(index, descs);
+    u32 i;
+
+    for (i = 0; i < count; i++)
+        AddGet(&stage, &descs[i]);
     return stage;
 }
 

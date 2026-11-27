@@ -176,6 +176,47 @@ TEST("Chapter: Whole-var masks for the tutorial chapters, handed out in declarat
     EXPECT_EQ(mask.shift, 0);
 }
 
+static bool32 IsWholeVarMask(u32 var)
+{
+    return var == VAR_MOVING_IN_BEAT || var == VAR_SAVE_BIRCH_BEAT || var == VAR_RIVAL_DEX_BEAT;
+}
+
+// A var inside a free county slice may be packed (var 0) or shared bits (vars 1-3), so a >= compare is meaningful only on a whole-var mask.
+static void ExpectPredicateAvoidsPackedVars(const struct StoryPredicate *pred, const char *where)
+{
+    if (pred->op != STORY_PRED_VAR_GE)
+        return;
+    if (pred->a >= COUNTY_VARS_START && pred->a < COUNTY_VARS_START + COUNTY_VAR_SLICES_FREE * VARS_PER_COUNTY)
+    {
+        if (!IsWholeVarMask(pred->a))
+            Test_ExitWithResult(TEST_RESULT_FAIL, __LINE__, ":L%s:%d: %s compares county slice var %d (offset from COUNTY_VARS_START) with >=; a packed or shared var cannot be compared whole, so read it through a chapter accessor or give it a whole-var mask", gTestRunnerState.test->filename, __LINE__, where, pred->a - COUNTY_VARS_START);
+    }
+}
+
+TEST("Chapter: No >= predicate on a county slice var unless it is a whole-var mask")
+{
+    struct PlotGetDesc descs[MAX_GETS_PER_LIST];
+    const struct ChapterHost *hosts;
+    u32 index, i, s, numHosts, count;
+
+    for (index = 0; index < MAIN_STORY_INDEX_POSTGAME; index++)
+    {
+        count = GetPlotListGetDescs(index, descs);
+        for (i = 0; i < count; i++)
+            ExpectPredicateAvoidsPackedVars(&descs[i].done, "a plot-list get");
+    }
+    hosts = GetChapterHosts(&numHosts);
+    for (i = 0; i < numHosts; i++)
+    {
+        const struct ChapterDesc *desc = hosts[i].desc;
+
+        if (desc->backend != CHAPTER_ADAPTER)
+            continue;
+        for (s = 1; s < desc->numStages; s++)
+            ExpectPredicateAvoidsPackedVars(&desc->stages[s].done, "an adapter chapter stage");
+    }
+}
+
 TEST("Chapter: A stored chapter starts at stage 0 and keeps the stage set through its slot")
 {
     EXPECT_EQ(GetCountySlotStage(LILYCOVE, 0), 0);

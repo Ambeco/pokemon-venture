@@ -83,6 +83,9 @@ u32 GetPlotSlotGetDescs(const struct PlotSlot *slot, struct PlotGetDesc out[2]);
 // Number of non-gym vanilla items with a descriptor, for coverage checks.
 u32 GetVanillaPlotGetEntryCount(void);
 
+// Every get's descriptor of list `index` (a step-3 list's unlocks too), in the bit order of GetPlotListStage's masks; returns the count.
+u32 GetPlotListGetDescs(u32 index, struct PlotGetDesc out[MAX_GETS_PER_LIST]);
+
 struct PlotListStage GetPlotListStage(u32 index);
 
 // The first placed item of the list with a get that is blocking and not done, else FALSE. A step-3 list
