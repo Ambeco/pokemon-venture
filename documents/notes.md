@@ -16,6 +16,7 @@
 
 - `design.md` is an index plus principles; detail is in `design_*.md`, each with its own "Alternatives considered". Cite sections as file plus heading (`design_story.md, "Main plot planner"`); a quoted heading that lives in another file carries the file name.
 - `Emerald.md` is one entry per county (city, gym, theme, places, planner steps with done-when predicates, storage); the old separate county, theme, gym, city-data, kinds, step-table and predicate tables were merged into it. The McGuffin chain, buckets and levels live in `Emerald_walkthrough.md`.
+- `remaining_work.md` holds only open work: design-only questions live in each `design_*.md` "Open questions" section, and `tools/misc/check_remaining_work.py` (run by `make check`) fails on prose lines or lines over 400 characters, so every item can be deleted whole.
 
 ## Codebase layout
 

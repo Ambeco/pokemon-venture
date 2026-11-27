@@ -30,8 +30,14 @@
     - Give `AdvanceMainStoryIndex()` real callers: it is reached only through `GetMainStoryIndex()`'s catch-up over vanilla flags; a chain that finishes its main slot (`DidChainJustFinishMainSlot`) should call it and reset the new host's var 0.
     - Wire `county_position.h` (pack/unpack, start/advance with skip-ahead, bit-mask cursor; done, tested) into the accessors: hosts need a per-slot unsorted chapter list, required order and done-bit lookup; assert each stored chapter has at most 16 stages.
     - Replace `GetCountySlotVar` and `CHAPTERS_PER_COUNTY` with accessors, and move the `SCENE_*_BEAT_VAR` macros and `Scene::stageVar` behind them.
-    - Give the three tutorial chapters a requested bit width (16) on their hosts, and make the real per-county allocator (walking the host table in declaration order) produce `VAR_MOVING_IN_BEAT`, `VAR_SAVE_BIRCH_BEAT` and `VAR_RIVAL_DEX_BEAT`; the test in `test/chapter.c` that pins the addresses calls `AllocCountyBits` by hand and must switch to it. Note vars.h declares Save Birch before Moving in, but the addresses need Moving in first.
-    - Add a per-host `parallel` flag (default ordered; parallel = mask-backed, sized by `numStages`) and have `GetChapterStage` branch on it: parallel reads its mask; ordered returns 0 if its slot is not reached or it is later in the order, `numStages - 1` if the index is past it or it is earlier in the order, else the stage bits of var 0. `IsCountyMainSlotDone` must then mean "ordered chain finished and every parallel entry at its last stage". Existing Emerald slots that are played in any order (`county_plan.h`) become parallel until the flag is chosen by generation. Convert `test/scene.c`, `test/county_plan.c` and `test/chapter.c` (they set non-current slots directly) to a helper that sets the main-story-index and clears the slice. Read the index with raw `VarGet(VAR_MAIN_STORY_INDEX)` inside `GetChapterStage`, not `GetMainStoryIndex()`.
+    - Give the three tutorial chapters a requested bit width (16) on their hosts, and make the real per-county allocator (walking the host table in declaration order) produce `VAR_MOVING_IN_BEAT`, `VAR_SAVE_BIRCH_BEAT` and `VAR_RIVAL_DEX_BEAT`; the test in `test/chapter.c` that pins the addresses calls `AllocCountyBits` by hand and must switch to it.
+      - Note vars.h declares Save Birch before Moving in, but the addresses need Moving in first.
+    - Add a per-host `parallel` flag (default ordered; parallel = mask-backed, sized by `numStages`) and have `GetChapterStage` branch on it:
+      - Parallel reads its mask; ordered returns 0 if its slot is not reached or it is later in the order, `numStages - 1` if the index is past it or it is earlier in the order, else the stage bits of var 0.
+      - `IsCountyMainSlotDone` must then mean "ordered chain finished and every parallel entry at its last stage".
+      - Existing Emerald slots that are played in any order (`county_plan.h`) become parallel until the flag is chosen by generation.
+      - Convert `test/scene.c`, `test/county_plan.c` and `test/chapter.c` (they set non-current slots directly) to a helper that sets the main-story-index and clears the slice.
+      - Read the index with raw `VarGet(VAR_MAIN_STORY_INDEX)` inside `GetChapterStage`, not `GetMainStoryIndex()`.
   - Allocate the reserve's other named vars downward from `VAR_MAIN_STORY_INDEX` (the story-arc stage, the twelve rival-team vars (species in bits 10-0, rival story in bits 15-11); design_story.md, "Arc vars") once enough legacy vars are retired to free reserve addresses, and add them to `test/vars.c`.
   - Retire Emerald vars as Milestones 1a, 2 and 3 land: the 43 legacy vars in `vars.h` shrink toward zero and county slices become usable; trim `test/vars.c`'s table as they go. A removed var leaves its address unused until the block is renumbered (as `LEGACY_VARS_COUNT` shrinks, renumber the remaining offsets).
 
@@ -57,7 +63,10 @@
 
 - Port the remaining special-location chapters to the descriptor (`Emerald_walkthrough.md`): Abandoned Ship, Trick House, Petalburg Woods and the flower shop. Briney's Wingull is main arc (Route 104, Rustboro and the Rusturf tunnel on the Devon Goods vars).
 - Bind Mauville NPCs as hinters for New Mauville (`sNewMauvilleChapter`; no main-plot get, so the news never mentions it), and give the other stateless chapters (gyms, Rydel's proxy) hints only if they need them.
-- Re-analyze city locations vs building roles, then refactor: `BuildingRole` is a per-city bit mask (all 16 `u16` bits used); consider a role enum plus subroles, with a wider set type for `.roles`/`requiredRoles`. Anchors that are really locations should use `TownLocationKind`: the fossil revival (Devon Corp = Rustboro's `TOWN_LOCATION_INSTITUTION`, currently anchored on `BUILDING_SERVICE`) and the Lilycove contest hall (`BUILDING_CONTEST_HALL`; not a special location of Lilycove's tile yet). `BUILDING_SERVICE` lumps name rater, tutor, reminder, deleter.
+- Re-analyze city locations vs building roles, then refactor:
+  - `BuildingRole` is a per-city bit mask (all 16 `u16` bits used); consider a role enum plus subroles, with a wider set type for `.roles`/`requiredRoles`.
+  - Anchors that are really locations should use `TownLocationKind`: the fossil revival (Devon Corp = Rustboro's `TOWN_LOCATION_INSTITUTION`, currently anchored on `BUILDING_SERVICE`) and the Lilycove contest hall (`BUILDING_CONTEST_HALL`; not a special location of Lilycove's tile yet).
+  - `BUILDING_SERVICE` lumps name rater, tutor, reminder, deleter.
 - Save Birch: Birch's Lab is not a special location of Littleroot's tile entry, so every stage is anchored to the Oldale road; anchor the lab stages there once it is.
 - Lock NPCs (twin, Birch's chase, the Oldale sketch artist): wire `IsCurrentChapterAvailable` in when the first chapter can be moved or reordered (it adds nothing before). Also make the cutscene runner (Milestone 2) walk a stage's `extraRoles` buildings.
 - Once the descriptor and McGuffin abstraction exist, also abstract Kanto's chapters and McGuffins (`data/maps/*_Frlg` scripts, `src/data/trainers_frlg.*`; notes.md) and add them to the chapter and McGuffin lists.
@@ -86,10 +95,16 @@
   - Add a static test that each id's class matches its block.
 - County chain (design_chapters.md, "County chain"; `county_chain.h` is unused by game code yet):
   - Convert other independent errands on a shared chain to parallel subplots with a stateless proxy, as Mauville's Rydel is (design_chapters.md, "Parallel subplots (proxy entries)").
-    - Move county chapter storage to var+mask (design_story.md, "Story state storage"): var 0 of each slice tracks county progress (currently unused), vars 1-3 are a bit pool filled in order by a cursor, skipping to the next var when a range will not fit. `GetCountySlotVar`, `GetChapterStage`/`SetChapterStage`, `SCENE_*_BEAT_VAR` in `scene.c`, scene `stageVar`, scripts and map.json that read stage vars whole all change (masked get/set script commands needed; the tutorial chapters on legacy-named vars may stay whole-var). Decide what exactly var 0 holds (chain position?).
+  - Move county chapter storage to var+mask (design_story.md, "Story state storage"): var 0 of each slice tracks county progress (currently unused), vars 1-3 are a bit pool filled in order by a cursor, skipping to the next var when a range will not fit.
+    - `GetCountySlotVar`, `GetChapterStage`/`SetChapterStage`, `SCENE_*_BEAT_VAR` in `scene.c`, scene `stageVar`, scripts and map.json that read stage vars whole all change (masked get/set script commands needed; the tutorial chapters on legacy-named vars may stay whole-var).
+    - Decide what exactly var 0 holds (chain position?).
   - Use `IsCountyMainSlotDone` where main-slot completion is needed (gym chapters, the main-story-index advance); adapter chapters on a chain read legacy vars, so a county with one still needs it ported.
   - Port the other gyms (`GYM_CHAPTER` in `emerald_chapters.h`): the gym scripts and hints are still vanilla; Sootopolis's block-20 callback (Victory Road, Wally 2) hosts no chapter.
-  - Convert the six hinted adapter get chapters (Pokénav, the Starter, Shipyard, the Elite Four, the Champion and the Ever Grande lobby) to stored chapters with scenes: they are stateless adapters with anchors and hints, and stages only from vanilla flags (Elite Four 6 stages, Shipyard 3, the rest 2; the Starter reads `FLAG_SYS_POKEMON_GET`), their vanilla scripts are untouched, and no hinters are bound. Scenes need e2e coverage first (the league battles cannot run headless). Rival 1, the Pokédex, Poké Balls and Running Shoes are views of `sRivalDexChapter`'s var; give them hints and anchors through its stages. The Starter should read Save Birch's stage once the debug menu writes it.
+  - Convert the six hinted adapter get chapters (Pokénav, the Starter, Shipyard, the Elite Four, the Champion and the Ever Grande lobby) to stored chapters with scenes:
+    - They are stateless adapters with anchors and hints, and stages only from vanilla flags (Elite Four 6 stages, Shipyard 3, the rest 2; the Starter reads `FLAG_SYS_POKEMON_GET`), their vanilla scripts are untouched, and no hinters are bound.
+    - Scenes need e2e coverage first (the league battles cannot run headless).
+    - Rival 1, the Pokédex, Poké Balls and Running Shoes are views of `sRivalDexChapter`'s var; give them hints and anchors through its stages.
+    - The Starter should read Save Birch's stage once the debug menu writes it.
   - Petalburg's gym (`sPetalburgGymChapter`) anchors its Surf stage on the gym: Emerald hands Surf over in Wally's house, so give Petalburg a house role and anchor stages 3-5 of `VAR_PETALBURG_CITY_STATE` there (design_chapters.md, "One chapter, several buildings"). A callback list has no slot rules, so a blocking callback get with no chapter does not underfill its host's plan.
   - A chapter that supplies a get (`mainGet`, `mainHm`) but whose get is in another county's block or a slot without room asserts (`SUBPLOT_PLAN_BOUND_ELSEWHERE`); untested, since an `assertf` makes a test invalid. The tutorial chapters (Moving in, Save Birch, Rival and Pokédex) still declare no get, so they are first-fit.
   - Advance the global main-story-index when `DidChainJustFinishMainSlot` fires (no stored index exists until Milestone 3; `GetMainStoryIndex` is computed by the adapter).
@@ -142,7 +157,10 @@
 
 - Builds on Milestone 1a's accessor and descriptor, so it needs no redesign when chapters are ported.
 - Grow the text pools in `src/story/npc_talk.c` (two lines per theme and role, one thank-you pool, three gym shapes): more lines per pool, theme-specific lines per building role, thank-yous that depend on the arc state, and far references (see Milestone 1a). Check the pool lines in-game once.
-- Kanto text extraction (`Kanto.md`, "What the ROM can carry"): a build tool copies Kanto's generic texts out of `data/maps/*_Frlg/scripts.inc` into their own data file, which the pools above draw from alongside Hoenn's. City and island sign slogans (17) go into the city table as themes; building-role talk (fan club, name rater, school, bike shop, museum, ...) and generic NPC and sign texts need classifying by role and theme, which is this milestone's pool design. Only the Emerald-reusable roles are extracted; skip story texts and the deferred roles.
+- Kanto text extraction (`Kanto.md`, "What the ROM can carry"): a build tool copies Kanto's generic texts out of `data/maps/*_Frlg/scripts.inc` into their own data file, which the pools above draw from alongside Hoenn's.
+  - City and island sign slogans (17) go into the city table as themes.
+  - Building-role talk (fan club, name rater, school, bike shop, museum, ...) and generic NPC and sign texts need classifying by role and theme, which is this milestone's pool design.
+  - Only the Emerald-reusable roles are extracted; skip story texts and the deferred roles.
 - Replace fixed `msgbox` scripts in `data/maps/*/scripts.inc` with `generic_npc_talk role` (design_city_npcs.md, "NPC dialogue"), via a conversion tool rather than by hand. The tool must work out each NPC's building role, and keep NPCs that carry story state (flags, items, battles) as they are.
 - Routes: hint NPCs there; at map load for generated maps, bind hinters and make sure a map has at least four NPCs using the generic talk.
 - Done when: every arc state is hinted from every city (true for the planner's data once the msgbox conversion covers every city's NPCs), and a seed sweep finds no city without a hint.
@@ -152,13 +170,19 @@
 - Chapter data format (linear stages, hint texts, state texts, trigger place, rewards).
 - Generic cutscene runner (NPC runs up, text, optional battle/item, runs off) implemented once as a parameterized script/special, using map-script hooks for "finished route" and "left building" triggers.
 - Convert the remaining first Emerald chapters (Captain Stern; Devon Goods, Briney's Wingull and Flash are main arc or gates, see design_chapters.md, "Interface rules from paper tests") to the data format; assign a chapter per city at the region layer.
-- Done when: for some seed, two city-bucket chapters whose role and progression requirements both hosts meet are swapped, both are completable, and NPCs in both cities hint correctly; and the same city gets different chapters for different seeds, each completable. After bucketing out main arc, gyms and gates, Emerald may not contain two qualifying city chapters; if so, author one small extra chapter for the test.
+- Done when: for some seed, two city-bucket chapters whose role and progression requirements both hosts meet are swapped, both are completable, and NPCs in both cities hint correctly; and the same city gets different chapters for different seeds, each completable.
+  - After bucketing out main arc, gyms and gates, Emerald may not contain two qualifying city chapters; if so, author one small extra chapter for the test.
 
 ### Milestone 3: Rival and story-arc cutscenes no longer at fixed locations
 
 - Implement route-story-index and county-story-index lookups over the hardcoded region (design_region.md, "Route story indices").
 - Arc cutscene placement: main-story-index list (rival or arc items) to host county to route/city/building, without storing it; maintain the main-story-index and the per-county completion masks for the main arc.
-- Rival team (design_pokemon.md, "Rival teams"): candidate extraction from a route's encounter table (final form, types, catch rate; exclude legendaries, babies, starters), twelve stored vars (Wally and the secondary rival; reserve in `vars.md` first, `vars.h` edits rebuild everything so run one full `make check` after), the route-entry hook (Wally's fold first, the secondary after it), the battle-size mask from rival wins, and feeding the stored team into the battle (dynamic party, `RANDOMIZE_TRAINERS`).
+- Rival team (design_pokemon.md, "Rival teams"):
+  - Candidate extraction from a route's encounter table (final form, types, catch rate; exclude legendaries, babies, starters).
+  - Twelve stored vars (Wally and the secondary rival; reserve in `vars.md` first, `vars.h` edits rebuild everything so run one full `make check` after).
+  - The route-entry hook (Wally's fold first, the secondary after it).
+  - The battle-size mask from rival wins.
+  - Feeding the stored team into the battle (dynamic party, `RANDOMIZE_TRAINERS`).
 - Replace Emerald's fixed rival and Wally encounters, and the Magma/Aqua beats, with generic cutscenes; preserve the text.
 - Done when: rival battles occur at the right gym positions on generated places, and arcs finish.
 
@@ -166,7 +190,11 @@
 
 - Species metadata tool: base-evolution table, sprite-implied element overrides, and the biome type-affinity tables.
 - Fixed-type exceptions to the stride mapping: the Eevee line (Eevee pure Normal, each Eeveelution its own single type), plus the sprite-implied element list. The "evolutions share the base's mapping" invariant needs these exempted.
-- Stone evolutions (decided; sprite-implied species are locked first, as above): any remaining base species that evolves with an elemental stone has its type drawn only from the types that have a stone, and evolves with the matching stone. For multi-stone lines (Gloom, Poliwhirl, Eevee), use the union of the stone types and choose the evolution by the stone used. Still to list: which types have stones (Fire, Water, Electric, Grass, Ice, Dark via Dusk, Fairy via Shiny, possibly Psychic via Dawn), and the leftover species this applies to. Evolved forms still gain an unrestricted second type.
+- Stone evolutions (decided; sprite-implied species are locked first, as above):
+  - Any remaining base species that evolves with an elemental stone has its type drawn only from the types that have a stone, and evolves with the matching stone.
+  - For multi-stone lines (Gloom, Poliwhirl, Eevee), use the union of the stone types and choose the evolution by the stone used.
+  - Still to list: which types have stones (Fire, Water, Electric, Grass, Ice, Dark via Dusk, Fairy via Shiny, possibly Psychic via Dawn), and the leftover species this applies to.
+  - Evolved forms still gain an unrestricted second type.
 - Stride mapping (mod 12, over the region's 4x3 biome subset) and seeded type selection; route every type read through the single accessor `GetSpeciesType` (`include/pokemon/pokemon.h:824`), and check every direct read of `types` in battle, Pokédex, AI, and the summary screens.
 - Type icons before names (check existing icons first).
 - Ability interactions; decide on form changes, Mega/Tera types.
@@ -204,8 +232,15 @@
 ### Milestone 10: Cities and special locations randomized within each county
 
 - Layer-3 placement (city placement away from county edges, special location rules, themes, names, island formation) and layer-4 route generation; generated region-map display, fly points, and name popups.
-- Enclaves (design_region.md, "Enclaves"): generate Enclaves and Enclave-only counties in layers 2/3, enforce the at-least-one-non-Enclave rule when generating, show mapped Enclaves on the region-map screen once unlocked, and add the port destination menu that checks it (should fail loudly if the region has no port), and a more specific per-Enclave access mechanism later; the Emerald tables still list Southern Island, Mirage Island and the Battle Frontier as routed.
-- Reserved legendary locations: write the separate algorithm that picks which reserved county is the solo post-Elite-Four one and ties the other 2-3 into the gym order (gym order need not follow county-story-index, and reserved counties hold the last indices, after the Elite Four's). Also decide how a county without an index is reached, since it lacks the usual lower neighbor route, and what step 5's "about 19" is exactly (24 counties = 20 indices 0-19, Elite Four, and 3 reserved).
+- Enclaves (design_region.md, "Enclaves"):
+  - Generate Enclaves and Enclave-only counties in layers 2/3, and enforce the at-least-one-non-Enclave rule when generating.
+  - Show mapped Enclaves on the region-map screen once unlocked.
+  - Add the port destination menu that checks it (should fail loudly if the region has no port), and a more specific per-Enclave access mechanism later.
+  - The Emerald tables still list Southern Island, Mirage Island and the Battle Frontier as routed.
+- Reserved legendary locations:
+  - Write the separate algorithm that picks which reserved county is the solo post-Elite-Four one and ties the other 2-3 into the gym order (gym order need not follow county-story-index, and reserved counties hold the last indices, after the Elite Four's).
+  - Decide how a county without an index is reached, since it lacks the usual lower neighbor route.
+  - Decide what step 5's "about 19" is exactly (24 counties = 20 indices 0-19, Elite Four, and 3 reserved).
 
 ### Milestone 11: Procedural county-story-indices
 
