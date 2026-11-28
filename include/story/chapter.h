@@ -4,10 +4,10 @@
 /**
  * Chapter descriptor, stage accessor and NPC-talk query (design_chapters.md, "Chapter abstraction").
  *
- * A chapter is a linear list of stages. A county hosts up to CHAPTERS_PER_COUNTY chapters, each in a
+ * A chapter is a linear list of stages. A county hosts up to GetCountyChapterSlotCount() chapters, each in a
  * numbered slot; callers address a chapter by (county, slot) and never by identity, so moving a chapter to
- * another host moves no state. A stored chapter keeps its stage in the host county's slice var for that
- * slot (a county's var 0 is reserved and unused). An adapter chapter has no state of its own:
+ * another host moves no state. A stored chapter keeps its stage in a mask of the host county's slice
+ * (GetChapterMaskVar; a county's var 0 is reserved). An adapter chapter has no state of its own:
  * its stage is the highest stage whose done-predicate is true, over Emerald's old flags and vars, and it
  * cannot be set. The query functions cannot tell the two apart.
  *
@@ -30,7 +30,8 @@
 #include "region_route.h"
 #include "region_unlock.h"
 
-#define CHAPTERS_PER_COUNTY (VARS_PER_COUNTY - 1)
+// Array bound only: loops and asserts use GetCountyChapterSlotCount(), so the slot count can stop being derived from the var layout.
+#define COUNTY_MAX_CHAPTER_SLOTS 3
 #define COUNTY_VAR_SLICES_FREE ((LEGACY_VARS_START - COUNTY_VARS_START) / VARS_PER_COUNTY)
 
 enum ChapterBackend
@@ -204,7 +205,13 @@ const struct ChapterDesc *GetCountyChapter(u32 countyId, u32 slot);
 // The index-th chapter the county hosts stateless (gym, proxy or adapter, in host-table order); NULL past the last.
 const struct ChapterDesc *GetCountyStatelessChapter(u32 countyId, u32 index);
 
-u16 GetCountySlotVar(u32 countyId, u32 slot);
+u32 GetCountyChapterSlotCount(void);
+
+// The var holding the stage mask of the stored chapter hosted in the slot (asserts if the slot is not a hosted stored chapter).
+u16 GetChapterMaskVar(u32 countyId, u32 slot);
+
+// Clears every var of the county's slice: the chapters' stages and the position in var 0.
+void ResetCountyChapterStages(u32 countyId);
 
 // Adapter chapters are read-only.
 u32 GetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc);

@@ -367,7 +367,7 @@ const struct ChapterDesc *GetCountyChapter(u32 countyId, u32 slot)
 {
     u32 i;
 
-    assertf(slot < CHAPTERS_PER_COUNTY, "chapter slot %d >= %d; var 0 of a county slice is reserved", slot, CHAPTERS_PER_COUNTY)
+    assertf(slot < GetCountyChapterSlotCount(), "chapter slot %d >= %d; var 0 of a county slice is reserved", slot, GetCountyChapterSlotCount())
     {
         return NULL;
     }
@@ -432,19 +432,9 @@ bool32 GetChapterMask(u32 countyId, u32 slot, struct CountyBitMask *out)
     return FALSE;
 }
 
-u16 GetCountySlotVar(u32 countyId, u32 slot)
+u32 GetCountyChapterSlotCount(void)
 {
-    u32 slice = GetCountyVarSlice(countyId);
-
-    assertf(slice < COUNTY_VAR_SLICES_FREE, "county %d uses var slice %d, which overlaps legacy vars (only slices 0-%d are free); retire legacy vars first", countyId, slice, COUNTY_VAR_SLICES_FREE - 1)
-    {
-        return 0;
-    }
-    assertf(slot < CHAPTERS_PER_COUNTY, "chapter slot %d >= %d", slot, CHAPTERS_PER_COUNTY)
-    {
-        return 0;
-    }
-    return COUNTY_VARS_START + slice * VARS_PER_COUNTY + 1 + slot;
+    return COUNTY_MAX_CHAPTER_SLOTS;
 }
 
 static u32 GetCountyMaskVar(u32 countyId, const struct CountyBitMask *mask)
@@ -456,6 +446,29 @@ static u32 GetCountyMaskVar(u32 countyId, const struct CountyBitMask *mask)
         return COUNTY_VARS_START;
     }
     return COUNTY_VARS_START + slice * VARS_PER_COUNTY + mask->var;
+}
+
+u16 GetChapterMaskVar(u32 countyId, u32 slot)
+{
+    struct CountyBitMask mask;
+
+    assertf(GetChapterMask(countyId, slot, &mask), "county %d slot %d has no mask", countyId, slot)
+    {
+        return COUNTY_VARS_START;
+    }
+    return GetCountyMaskVar(countyId, &mask);
+}
+
+void ResetCountyChapterStages(u32 countyId)
+{
+    u32 slice = GetCountyVarSlice(countyId), i;
+
+    assertf(slice < COUNTY_VAR_SLICES_FREE, "county %d uses var slice %d, which overlaps legacy vars (only slices 0-%d are free); retire legacy vars first", countyId, slice, COUNTY_VAR_SLICES_FREE - 1)
+    {
+        return;
+    }
+    for (i = 0; i < VARS_PER_COUNTY; i++)
+        VarSet(COUNTY_VARS_START + slice * VARS_PER_COUNTY + i, 0);
 }
 
 u32 GetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc)

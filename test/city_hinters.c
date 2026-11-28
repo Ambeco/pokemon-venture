@@ -287,7 +287,7 @@ TEST("CityHinters: Every line of every chapter hint, with its anchor expanded, f
 
     for (county = 0; county < NUM_COUNTIES; county++)
     {
-        for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
+        for (slot = 0; slot < GetCountyChapterSlotCount(); slot++)
         {
             const struct ChapterDesc *desc = GetCountyChapter(county, slot);
 

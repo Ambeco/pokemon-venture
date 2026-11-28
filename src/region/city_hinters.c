@@ -128,7 +128,7 @@ u32 PlanCountyHinters(u32 countyId, struct HinterPlacement *out, u32 maxOut)
     u32 total = 0, slot, stage, i, index, next, host;
 
     InitRoom(&room, countyId);
-    for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
+    for (slot = 0; slot < GetCountyChapterSlotCount(); slot++)
     {
         const struct ChapterDesc *desc = GetCountyChapter(countyId, slot);
 
@@ -316,7 +316,7 @@ static bool32 FindProducingChapter(u32 county, const struct PlotSlot *item, u32 
 {
     u32 s;
 
-    for (s = 0; s < CHAPTERS_PER_COUNTY; s++)
+    for (s = 0; s < GetCountyChapterSlotCount(); s++)
     {
         const struct ChapterDesc *desc = GetCountyChapter(county, s);
 

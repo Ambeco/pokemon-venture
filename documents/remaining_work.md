@@ -34,10 +34,8 @@
       - `IsCountyMainSlotDone` must mean "ordered chain finished and every parallel entry at its last stage".
       - Chapter-count and stage-count asserts: at most 16 ordered chapters per slot and 16 stages.
     - Once var 0 holds the position, replace the `SetChapterStage` done-transition hook (`AdvanceMainStoryIndexPast`) with `AdvanceCountyPosition`'s FALSE return and `DidChainJustFinishMainSlot`.
-    - Replace `GetCountySlotVar` and `CHAPTERS_PER_COUNTY` with accessors:
-      - Move the `SCENE_*_BEAT_VAR` macros and `Scene::stageVar` behind them.
-      - Tests that write `GetCountySlotVar` directly (`test/scene.c`, `test/county_plan.c`, `test/chapter.c`) move to a helper that sets the main-story-index and clears the slice.
-      - Tests with synthetic hosts must use a slot hosted in `sEmeraldChapterHosts` (the mask comes from that table).
+    - Tests with synthetic hosts must use a slot hosted in `sEmeraldChapterHosts` (the mask comes from that table).
+    - `COUNTY_MAX_CHAPTER_SLOTS` (3) is still a literal array bound; derive it from the mask bits once ordered chapters land and the slot count stops matching the var count.
   - Allocate the reserve's other named vars downward from `VAR_MAIN_STORY_INDEX` (the story-arc stage, the twelve rival-team vars (species in bits 10-0, rival story in bits 15-11); design_story.md, "Arc vars") once enough legacy vars are retired to free reserve addresses, and add them to `test/vars.c`.
   - Retire Emerald vars as Milestones 1a, 2 and 3 land: the 43 legacy vars in `vars.h` shrink toward zero and county slices become usable; trim `test/vars.c`'s table as they go. A removed var leaves its address unused until the block is renumbered (as `LEGACY_VARS_COUNT` shrinks, renumber the remaining offsets).
 
@@ -96,7 +94,7 @@
 - County chain (design_chapters.md, "County chain"; `county_chain.h` is unused by game code yet):
   - Convert other independent errands on a shared chain to parallel subplots with a stateless proxy, as Mauville's Rydel is (design_chapters.md, "Parallel subplots (proxy entries)").
   - Move county chapter storage to var+mask (design_story.md, "Story state storage"): var 0 of each slice tracks county progress (currently unused), vars 1-3 are a bit pool filled in order by a cursor, skipping to the next var when a range will not fit.
-    - `GetCountySlotVar`, `GetChapterStage`/`SetChapterStage`, `SCENE_*_BEAT_VAR` in `scene.c`, scene `stageVar`, scripts and map.json that read stage vars whole all change (masked get/set script commands needed; the tutorial chapters on legacy-named vars may stay whole-var).
+    - `GetChapterMaskVar`, `GetChapterStage`/`SetChapterStage`, `SCENE_*_BEAT_VAR` in `scene.c`, scene `stageVar`, scripts and map.json that read stage vars whole all change (masked get/set script commands needed; the tutorial chapters on legacy-named vars may stay whole-var).
     - Decide what exactly var 0 holds (chain position?).
   - Use `IsCountyMainSlotDone` where main-slot completion is needed (gym chapters, the main-story-index advance); adapter chapters on a chain read legacy vars, so a county with one still needs it ported.
   - Port the other gyms (`GYM_CHAPTER` in `emerald_chapters.h`): the gym scripts and hints are still vanilla; Sootopolis's block-20 callback (Victory Road, Wally 2) hosts no chapter.

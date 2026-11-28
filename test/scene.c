@@ -1097,7 +1097,7 @@ TEST("Scene: Mossdeep's Super Rod scene gives the rod on yes, sets the flag and 
 
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_SUPER_ROD);
-    VarSet(GetCountySlotVar(COUNTY_ID(5, 1), 0), 0);
+    VarSet(GetChapterMaskVar(COUNTY_ID(5, 1), 0), 0);
     StepGiveScene(SCENE_MOSSDEEP_SUPER_ROD, TRUE, TRUE, &item, &quantity);
     EXPECT_EQ(item, ITEM_SUPER_ROD);
     EXPECT_EQ(quantity, 1);
@@ -1112,7 +1112,7 @@ TEST("Scene: Mossdeep's Super Rod scene with a full bag keeps the flag clear and
 
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_SUPER_ROD);
-    VarSet(GetCountySlotVar(COUNTY_ID(5, 1), 0), 0);
+    VarSet(GetChapterMaskVar(COUNTY_ID(5, 1), 0), 0);
     StepGiveScene(SCENE_MOSSDEEP_SUPER_ROD, TRUE, FALSE, &item, &quantity);
     EXPECT_EQ(item, ITEM_SUPER_ROD);
     EXPECT(!FlagGet(FLAG_RECEIVED_SUPER_ROD));
@@ -1125,7 +1125,7 @@ TEST("Scene: Mossdeep's Super Rod scene on no gives nothing and changes nothing"
 
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_SUPER_ROD);
-    VarSet(GetCountySlotVar(COUNTY_ID(5, 1), 0), 0);
+    VarSet(GetChapterMaskVar(COUNTY_ID(5, 1), 0), 0);
     StepGiveScene(SCENE_MOSSDEEP_SUPER_ROD, FALSE, TRUE, &item, &quantity);
     EXPECT_EQ(item, 0);
     EXPECT(!FlagGet(FLAG_RECEIVED_SUPER_ROD));
@@ -1144,7 +1144,7 @@ TEST("Scene: Dewford's Old Rod scene gives the rod on yes, sets the flag and the
 
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_OLD_ROD);
-    VarSet(GetCountySlotVar(DEWFORD, 0), 0);
+    ResetCountyChapterStages(DEWFORD);
     StepGiveScene(SCENE_DEWFORD_OLD_ROD, TRUE, TRUE, &item, &quantity);
     EXPECT_EQ(item, ITEM_OLD_ROD);
     EXPECT_EQ(quantity, 1);
@@ -1159,7 +1159,7 @@ TEST("Scene: Dewford's Old Rod scene with a full bag keeps the flag clear and th
 
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_OLD_ROD);
-    VarSet(GetCountySlotVar(DEWFORD, 0), 0);
+    ResetCountyChapterStages(DEWFORD);
     StepGiveScene(SCENE_DEWFORD_OLD_ROD, TRUE, FALSE, &item, &quantity);
     EXPECT_EQ(item, ITEM_OLD_ROD);
     EXPECT(!FlagGet(FLAG_RECEIVED_OLD_ROD));
@@ -1172,7 +1172,7 @@ TEST("Scene: Dewford's Old Rod scene on no gives nothing and changes nothing")
 
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_OLD_ROD);
-    VarSet(GetCountySlotVar(DEWFORD, 0), 0);
+    ResetCountyChapterStages(DEWFORD);
     StepGiveScene(SCENE_DEWFORD_OLD_ROD, FALSE, TRUE, &item, &quantity);
     EXPECT_EQ(item, 0);
     EXPECT(!FlagGet(FLAG_RECEIVED_OLD_ROD));
@@ -1191,7 +1191,7 @@ TEST("Scene: Route 118's Good Rod scene gives the rod on yes, sets the flag and 
 
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_GOOD_ROD);
-    VarSet(GetCountySlotVar(WEATHER_COUNTY, 0), 0);
+    ResetCountyChapterStages(WEATHER_COUNTY);
     StepGiveScene(SCENE_ROUTE118_GOOD_ROD, TRUE, TRUE, &item, &quantity);
     EXPECT_EQ(item, ITEM_GOOD_ROD);
     EXPECT_EQ(quantity, 1);
@@ -1206,7 +1206,7 @@ TEST("Scene: Route 118's Good Rod scene with a full bag keeps the flag clear and
 
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_GOOD_ROD);
-    VarSet(GetCountySlotVar(WEATHER_COUNTY, 0), 0);
+    ResetCountyChapterStages(WEATHER_COUNTY);
     StepGiveScene(SCENE_ROUTE118_GOOD_ROD, TRUE, FALSE, &item, &quantity);
     EXPECT_EQ(item, ITEM_GOOD_ROD);
     EXPECT(!FlagGet(FLAG_RECEIVED_GOOD_ROD));
@@ -1219,7 +1219,7 @@ TEST("Scene: Route 118's Good Rod scene on no gives nothing and changes nothing"
 
     LoadTestMap();
     FlagClear(FLAG_RECEIVED_GOOD_ROD);
-    VarSet(GetCountySlotVar(WEATHER_COUNTY, 0), 0);
+    ResetCountyChapterStages(WEATHER_COUNTY);
     StepGiveScene(SCENE_ROUTE118_GOOD_ROD, FALSE, TRUE, &item, &quantity);
     EXPECT_EQ(item, 0);
     EXPECT(!FlagGet(FLAG_RECEIVED_GOOD_ROD));
@@ -1273,8 +1273,7 @@ TEST("Scene: Route 110's rival scenes say the challenge, fight the Route 110 riv
         const struct Scene *scene = GetScene(sceneIds[i]);
 
         LoadTestMap();
-        VarSet(GetCountySlotVar(ROUTE110_COUNTY, 0), 0);
-        VarSet(GetCountySlotVar(ROUTE110_COUNTY, 1), 0);
+        ResetCountyChapterStages(ROUTE110_COUNTY);
         ASSUME(scene->numSteps == 3);
         EXPECT_EQ(scene->steps[1].kind, SCENE_STEP_BATTLE);
         EXPECT(scene->steps[1].rival);
@@ -1296,8 +1295,7 @@ TEST("Scene: Route 110's Itemfinder scenes give the Itemfinder, advance the Item
     for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
     {
         LoadTestMap();
-        VarSet(GetCountySlotVar(ROUTE110_COUNTY, 0), 0);
-        VarSet(GetCountySlotVar(ROUTE110_COUNTY, 1), 0);
+        ResetCountyChapterStages(ROUTE110_COUNTY);
         StepRivalScene(sceneIds[i], TRUE, &numBattles, &item);
         EXPECT_EQ(numBattles, 0);
         EXPECT_EQ(item, ITEM_DOWSING_MACHINE);
@@ -1315,7 +1313,7 @@ TEST("Scene: Route 110's Itemfinder scenes with a full bag keep the Itemfinder s
     for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
     {
         LoadTestMap();
-        VarSet(GetCountySlotVar(ROUTE110_COUNTY, 1), 0);
+        ResetCountyChapterStages(ROUTE110_COUNTY);
         StepRivalScene(sceneIds[i], FALSE, &numBattles, &item);
         EXPECT_EQ(item, ITEM_DOWSING_MACHINE);
         EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 1), 0);
@@ -1332,8 +1330,7 @@ TEST("Scene: Route 119's rival scenes fight, advance to 1 after the fight and to
     {
         LoadTestMap();
         FlagClear(FLAG_RECEIVED_HM_FLY);
-        VarSet(GetCountySlotVar(WEATHER_COUNTY, 1), 0);
-        VarSet(GetCountySlotVar(WEATHER_COUNTY, 0), 0);
+        ResetCountyChapterStages(WEATHER_COUNTY);
         StepRivalScene(sceneIds[i], TRUE, &numBattles, &item);
         EXPECT_EQ(numBattles, 1);
         EXPECT_EQ(GetScene(sceneIds[i])->steps[1].trainer, RIVAL_ENCOUNTER_ROUTE_119);
@@ -1355,7 +1352,7 @@ TEST("Scene: Route 119's rival scenes with a full bag stop at stage 1 with the H
     {
         LoadTestMap();
         FlagClear(FLAG_RECEIVED_HM_FLY);
-        VarSet(GetCountySlotVar(WEATHER_COUNTY, 1), 0);
+        ResetCountyChapterStages(WEATHER_COUNTY);
         StepRivalScene(rivalIds[i], FALSE, &numBattles, &item);
         EXPECT_EQ(numBattles, 1);
         EXPECT(!FlagGet(FLAG_RECEIVED_HM_FLY));
@@ -1440,7 +1437,7 @@ TEST("Scene: Lilycove's rival scenes on yes fight the Lilycove rival, say he is 
     {
         LoadTestMap();
         FlagClear(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE);
-        VarSet(GetCountySlotVar(LILYCOVE_COUNTY, 2), 0);
+        ResetCountyChapterStages(LILYCOVE_COUNTY);
         StepYesNoRivalScene(sceneIds[i], TRUE, &numBattles);
         EXPECT_EQ(numBattles, 1);
         EXPECT(!FlagGet(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE));
@@ -1461,7 +1458,7 @@ TEST("Scene: Lilycove's rival scenes on no set the declined flag, fight nothing 
     {
         LoadTestMap();
         FlagClear(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE);
-        VarSet(GetCountySlotVar(LILYCOVE_COUNTY, 2), 0);
+        ResetCountyChapterStages(LILYCOVE_COUNTY);
         StepYesNoRivalScene(sceneIds[i], FALSE, &numBattles);
         EXPECT_EQ(numBattles, 0);
         EXPECT(FlagGet(FLAG_DECLINED_RIVAL_BATTLE_LILYCOVE));
@@ -1510,7 +1507,7 @@ TEST("Scene: Rival 2's Route 104 and Rustboro scenes on yes fight the Rustboro t
     for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
     {
         LoadTestMap();
-        VarSet(GetCountySlotVar(RUSTBORO_COUNTY, 2), 0);
+        ResetCountyChapterStages(RUSTBORO_COUNTY);
         StepYesNoRivalScene(sceneIds[i], TRUE, &numBattles);
         EXPECT_EQ(numBattles, 1);
         EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 2), 1);
@@ -1532,7 +1529,7 @@ TEST("Scene: Rival 2's Route 104 and Rustboro scenes on no fight nothing and lea
     for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
     {
         LoadTestMap();
-        VarSet(GetCountySlotVar(RUSTBORO_COUNTY, 2), 0);
+        ResetCountyChapterStages(RUSTBORO_COUNTY);
         StepYesNoRivalScene(sceneIds[i], FALSE, &numBattles);
         EXPECT_EQ(numBattles, 0);
         EXPECT_EQ(GetCountySlotStage(RUSTBORO_COUNTY, 2), 0);

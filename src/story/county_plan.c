@@ -37,7 +37,7 @@ static void GetListRule(u32 index, struct SubplotSlotRule *rule)
         numDescs = GetPlotSlotGetDescs(&items[i], descs);
         for (j = 0; j < numDescs; j++)
         {
-            rule->max = CHAPTERS_PER_COUNTY;
+            rule->max = GetCountyChapterSlotCount();
             if (descs[j].getClass == PLOT_GET_BLOCKING)
                 rule->min = 1;
         }
@@ -158,14 +158,14 @@ bool32 PlanCountyChain(u32 county, const struct SubplotHost *subplots, u32 numSu
                 return FALSE;
             }
             // A proxy has no stage var, so only stateful chapters count against the county's slot vars.
-            assertf(numSeen < CHAPTERS_PER_COUNTY || slot == CHAPTER_SLOT_STATELESS, "county %d subplots list more than %d stateful entries; did you list one chapter in two subplots?", county, CHAPTERS_PER_COUNTY)
+            assertf(numSeen < GetCountyChapterSlotCount() || slot == CHAPTER_SLOT_STATELESS, "county %d subplots list more than %d stateful entries; did you list one chapter in two subplots?", county, GetCountyChapterSlotCount())
             {
                 out->problem = SUBPLOT_PLAN_NO_ROOM;
                 out->problemSubplot = subplotIndex;
                 out->problemIndex = e;
                 return FALSE;
             }
-            assertf(slot == CHAPTER_SLOT_STATELESS || slot < CHAPTERS_PER_COUNTY, "subplot %d entry %d is hosted in slot %d, but a county has slots 0-%d or CHAPTER_SLOT_STATELESS", subplotIndex, e, slot, CHAPTERS_PER_COUNTY - 1)
+            assertf(slot == CHAPTER_SLOT_STATELESS || slot < GetCountyChapterSlotCount(), "subplot %d entry %d is hosted in slot %d, but a county has slots 0-%d or CHAPTER_SLOT_STATELESS", subplotIndex, e, slot, GetCountyChapterSlotCount() - 1)
             {
                 out->problem = SUBPLOT_PLAN_NO_ROOM;
                 out->problemSubplot = subplotIndex;

@@ -144,7 +144,7 @@ TEST("Subplot: Mauville's three ported chapters plan into the slots with their r
     EXPECT_EQ(n, GetSubplotPlacedCount(&subplot, &plan));
     EXPECT(GetChainLength(chain, n) <= stages);
     for (i = 0; i < n; i++)
-        EXPECT(chain[i].chapterSlot < CHAPTERS_PER_COUNTY);
+        EXPECT(chain[i].chapterSlot < GetCountyChapterSlotCount());
 }
 
 TEST("Subplot: A full subplot of seven optional entries and a required last one keeps the last in slot 2")

@@ -91,7 +91,7 @@ u32 GetSubplotPlacedCount(const struct SubplotDesc *subplot, const struct Subplo
 
 // Fills `out` (room for SUBPLOT_MAX_ENTRIES) with a chain entry per placed chapter: its main-story slot, the county
 // chapter slot `firstChapterSlot` + its placed index, and its stage count. Returns the number of entries; asserts if
-// the plan failed or the chapter slots would run past CHAPTERS_PER_COUNTY.
+// the plan failed or the chapter slots would run past GetCountyChapterSlotCount().
 u32 BuildSubplotChain(const struct SubplotDesc *subplot, const struct SubplotPlan *plan, u32 firstChapterSlot, struct CountyChainEntry *out);
 
 #endif // GUARD_SUBPLOT_H

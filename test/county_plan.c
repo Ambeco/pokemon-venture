@@ -37,7 +37,7 @@ TEST("CountyPlan: Every Emerald county plans, and its chain and off-chain slots 
     for (county = 0; county < NUM_COUNTIES; county++)
     {
         struct CountyChainPlan plan;
-        bool8 seen[CHAPTERS_PER_COUNTY] = {FALSE};
+        bool8 seen[COUNTY_MAX_CHAPTER_SLOTS] = {FALSE};
 
         hosted = 0;
         for (i = 0; i < numHosts; i++)
@@ -259,7 +259,7 @@ TEST("CountyPlan: An entry supplying a get is bound to the get's slot, whether i
     }
 }
 
-static const struct ChapterDesc sParallelChapters[CHAPTERS_PER_COUNTY + 1] = {[0 ... CHAPTERS_PER_COUNTY] = {.numStages = 2}};
+static const struct ChapterDesc sParallelChapters[COUNTY_MAX_CHAPTER_SLOTS + 1] = {[0 ... COUNTY_MAX_CHAPTER_SLOTS] = {.numStages = 2}};
 
 #define PARALLEL_ENTRY(i) static const struct SubplotEntry sParallelEntries##i[] = {{&sParallelChapters[i], FALSE}};
 PARALLEL_ENTRY(0)
@@ -298,7 +298,7 @@ TEST("CountyPlan: Slot capacity is per subplot: more subplots than the slot's ma
             break;
     }
     ASSUME(firstSlot != COUNTY_MAIN_SLOTS);
-    EXPECT_GT(ARRAY_COUNT(subplots), CHAPTERS_PER_COUNTY);
+    EXPECT_GT(ARRAY_COUNT(subplots), GetCountyChapterSlotCount());
     for (i = 0; i < ARRAY_COUNT(subplots); i++)
     {
         hosts[i] = (struct ChapterHost){county, CHAPTER_SLOT_STATELESS, &sParallelChapters[i]};

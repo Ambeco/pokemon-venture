@@ -7,7 +7,7 @@
  *
  * GetCountySlotRules reads the planner's lists for the county's block: a slot with no get a chapter can supply (gym badge, HM,
  * utility item, scripted get, rival beat; not Wally, arc, Devon or special item), a step-3 unlock, or a
- * callback hosted by another county takes no chapters ({0, 0}); every other slot takes up to CHAPTERS_PER_COUNTY and
+ * callback hosted by another county takes no chapters ({0, 0}); every other slot takes up to COUNTY_MAX_CHAPTER_SLOTS and
  * needs one chapter when one of those gets is blocking.
  *
  * PlanCountyChain plans each hosted subplot in declaration order with PlanSubplotBound. A slot's max is per subplot (every
@@ -28,7 +28,7 @@
 #include "subplot.h"
 
 // Entries a county's chain can hold: its stateful chapters plus a proxy for each parallel subplot.
-#define COUNTY_PLAN_MAX_ENTRIES (CHAPTERS_PER_COUNTY * 2)
+#define COUNTY_PLAN_MAX_ENTRIES (COUNTY_MAX_CHAPTER_SLOTS * 2)
 
 struct CountyChainPlan
 {

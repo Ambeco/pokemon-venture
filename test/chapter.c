@@ -109,7 +109,7 @@ TEST("Chapter: Mossdeep, Dewford and Slateport host one chapter in slot 0, the W
 
     for (county = 0; county < NUM_COUNTIES; county++)
     {
-        for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
+        for (slot = 0; slot < GetCountyChapterSlotCount(); slot++)
         {
             if (((county == MOSSDEEP || county == DEWFORD || county == SLATEPORT) && slot == 0)
              || ((county == WEATHER || county == ROUTE110_COUNTY) && slot <= 1)
@@ -122,7 +122,7 @@ TEST("Chapter: Mossdeep, Dewford and Slateport host one chapter in slot 0, the W
     }
 }
 
-TEST("Chapter: Slot vars lie in the county's own slice after its chain var")
+TEST("Chapter: Mask vars of stored chapters lie in the county's own slice after its position var")
 {
     u32 county, slot;
 
@@ -132,10 +132,14 @@ TEST("Chapter: Slot vars lie in the county's own slice after its chain var")
 
         if (GetCountyVarSlice(county) >= COUNTY_VAR_SLICES_FREE)
             continue;
-        for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
+        for (slot = 0; slot < GetCountyChapterSlotCount(); slot++)
         {
-            EXPECT_EQ(GetCountySlotVar(county, slot), start + 1 + slot);
-            EXPECT(GetCountySlotVar(county, slot) < start + VARS_PER_COUNTY);
+            const struct ChapterDesc *desc = GetCountyChapter(county, slot);
+
+            if (desc == NULL || desc->backend != CHAPTER_STORED)
+                continue;
+            EXPECT(GetChapterMaskVar(county, slot) > start);
+            EXPECT(GetChapterMaskVar(county, slot) < start + VARS_PER_COUNTY);
         }
     }
     EXPECT(GetCountyVarSlice(LILYCOVE) < COUNTY_VAR_SLICES_FREE);
@@ -156,7 +160,7 @@ TEST("Chapter: County var slices are a permutation, and the tutorial counties' s
     EXPECT_EQ(GetCountyVarSlice(OLDALE), COUNTY_VAR_SLICE_OLDALE);
     EXPECT(COUNTY_VAR_SLICE_LITTLEROOT < COUNTY_VAR_SLICES_FREE);
     EXPECT(COUNTY_VAR_SLICE_OLDALE < COUNTY_VAR_SLICES_FREE);
-    EXPECT_EQ(GetCountySlotVar(LITTLEROOT, 1), VAR_SAVE_BIRCH_BEAT);
+    EXPECT_EQ(GetChapterMaskVar(LITTLEROOT, 1), VAR_SAVE_BIRCH_BEAT);
 }
 
 TEST("Chapter: Whole-var masks for the tutorial chapters, handed out in declaration order, land on the addresses scripts use")
@@ -221,7 +225,7 @@ TEST("Chapter: A stored chapter starts at stage 0 and keeps the stage set throug
     EXPECT_EQ(GetCountySlotStage(LILYCOVE, 0), 0);
     SetCountySlotStage(LILYCOVE, 0, 1);
     EXPECT_EQ(GetCountySlotStage(LILYCOVE, 0), 1);
-    EXPECT_EQ(VarGet(GetCountySlotVar(LILYCOVE, 0)), 1);
+    EXPECT_EQ(VarGet(GetChapterMaskVar(LILYCOVE, 0)), 1);
 }
 
 TEST("Chapter: Setting one county's slot leaves other slices untouched")
@@ -231,7 +235,7 @@ TEST("Chapter: Setting one county's slot leaves other slices untouched")
     SetCountySlotStage(LILYCOVE, 0, 1);
     for (var = COUNTY_VARS_START; var < COUNTY_VARS_START + COUNTY_VAR_SLICES_FREE * VARS_PER_COUNTY; var++)
     {
-        if (var != GetCountySlotVar(LILYCOVE, 0))
+        if (var != GetChapterMaskVar(LILYCOVE, 0))
             EXPECT_EQ(VarGet(var), 0);
     }
 }
@@ -308,7 +312,7 @@ TEST("Chapter: Each ported chapter's hint ranges cover every stage once and have
 
     for (county = 0; county < NUM_COUNTIES; county++)
     {
-        for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
+        for (slot = 0; slot < GetCountyChapterSlotCount(); slot++)
         {
             const struct ChapterDesc *desc = GetCountyChapter(county, slot);
 
@@ -412,7 +416,7 @@ TEST("Chapter: Ported chapters anchor every stage to a real place")
 
     for (county = 0; county < NUM_COUNTIES; county++)
     {
-        for (slot = 0; slot < CHAPTERS_PER_COUNTY; slot++)
+        for (slot = 0; slot < GetCountyChapterSlotCount(); slot++)
         {
             const struct ChapterDesc *desc = GetCountyChapter(county, slot);
 
@@ -592,7 +596,7 @@ TEST("Chapter: The Cutter chapter keeps its stage in Rustboro's slice and not Li
     EXPECT_EQ(GetCountySlotStage(RUSTBORO, 0), 0);
     SetCountySlotStage(RUSTBORO, 0, 1);
     EXPECT_EQ(GetCountySlotStage(RUSTBORO, 0), 1);
-    EXPECT_EQ(VarGet(GetCountySlotVar(RUSTBORO, 0)), 1);
+    EXPECT_EQ(VarGet(GetChapterMaskVar(RUSTBORO, 0)), 1);
     EXPECT_EQ(GetCountySlotStage(LILYCOVE, 0), 0);
 }
 
@@ -739,7 +743,9 @@ TEST("Chapter: Route 119's rival chapter is stored in the Weather Institute coun
     EXPECT(desc->producesMainGet);
     EXPECT_EQ(desc->mainGet.kind, PLOT_KIND_RIVAL);
     EXPECT_EQ(desc->mainGet.ordinal, 4);
-    EXPECT_EQ(GetCountySlotVar(WEATHER, 1) == GetCountySlotVar(WEATHER, 0), FALSE);
+    SetCountySlotStage(WEATHER, 1, 2);
+    EXPECT_EQ(GetCountySlotStage(WEATHER, 0), 0);
+    EXPECT_EQ(GetCountySlotStage(WEATHER, 1), 2);
     for (i = 0; i < ARRAY_COUNT(sceneIds); i++)
         EXPECT_EQ(GetScene(sceneIds[i])->stageVar, SCENE_STAGE(WEATHER, 1));
 }
@@ -785,7 +791,7 @@ TEST("Chapter: Mauville's Rock Smash chapter is stored, house-anchored, produces
     EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
     EXPECT_EQ(GetCountySlotStage(MAUVILLE, 0), 0);
     SetCountySlotStage(MAUVILLE, 0, 1);
-    EXPECT_EQ(VarGet(GetCountySlotVar(MAUVILLE, 0)), 1);
+    EXPECT_EQ(VarGet(GetChapterMaskVar(MAUVILLE, 0)), 1);
     EXPECT_EQ(GetCountySlotStage(MOSSDEEP, 0), 0);
 }
 
@@ -1028,7 +1034,7 @@ TEST("Chapter: Moving in is stored in Littleroot's slot 0 and its scenes run on 
     EXPECT_EQ(desc->backend, CHAPTER_STORED);
     EXPECT_EQ(desc->numStages, MOVING_IN_NUM_STAGES);
     EXPECT_EQ(desc->producedKey.type, CHAPTER_KEY_NONE);
-    EXPECT_EQ(GetCountySlotVar(LITTLEROOT, 0), VAR_MOVING_IN_BEAT);
+    EXPECT_EQ(GetChapterMaskVar(LITTLEROOT, 0), VAR_MOVING_IN_BEAT);
     EXPECT_EQ(GetScene(SCENE_LITTLEROOT_ARRIVE_MALE)->stageVar, SCENE_STAGE(LITTLEROOT, 0));
     EXPECT_EQ(GetScene(SCENE_LITTLEROOT_ARRIVE_FEMALE)->stageVar, SCENE_STAGE(LITTLEROOT, 0));
     EXPECT_EQ(MOVING_IN_TRUCK_MALE, 1);
@@ -1043,7 +1049,7 @@ TEST("Chapter: Rival and Pokedex is stored in Oldale's slot 0 and the Route 103 
     ASSUME(desc != NULL);
     EXPECT_EQ(desc->backend, CHAPTER_STORED);
     EXPECT_EQ(desc->numStages, RIVAL_DEX_NUM_STAGES);
-    EXPECT_EQ(GetCountySlotVar(OLDALE, 0), VAR_RIVAL_DEX_BEAT);
+    EXPECT_EQ(GetChapterMaskVar(OLDALE, 0), VAR_RIVAL_DEX_BEAT);
     EXPECT_EQ(GetScene(SCENE_ROUTE103_RIVAL_MAY)->stageVar, SCENE_STAGE(OLDALE, 0));
     EXPECT_EQ(GetScene(SCENE_ROUTE103_RIVAL_BRENDAN)->stageVar, SCENE_STAGE(OLDALE, 0));
     EXPECT_EQ(RIVAL_DEX_SHOES_GIVEN, RIVAL_DEX_NUM_STAGES - 1);

@@ -181,7 +181,7 @@ u32 BuildSubplotChain(const struct SubplotDesc *subplot, const struct SubplotPla
     {
         return 0;
     }
-    assertf(firstChapterSlot + GetSubplotPlacedCount(subplot, plan) <= CHAPTERS_PER_COUNTY, "subplot needs chapter slots %d to %d but a county has %d", firstChapterSlot, firstChapterSlot + GetSubplotPlacedCount(subplot, plan) - 1, CHAPTERS_PER_COUNTY)
+    assertf(firstChapterSlot + GetSubplotPlacedCount(subplot, plan) <= GetCountyChapterSlotCount(), "subplot needs chapter slots %d to %d but a county has %d", firstChapterSlot, firstChapterSlot + GetSubplotPlacedCount(subplot, plan) - 1, GetCountyChapterSlotCount())
     {
         return 0;
     }
