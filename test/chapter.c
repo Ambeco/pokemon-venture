@@ -162,16 +162,15 @@ TEST("Chapter: County var slices are a permutation, and the tutorial counties' s
 TEST("Chapter: Whole-var masks for the tutorial chapters, handed out in declaration order, land on the addresses scripts use")
 {
     struct CountyBitMask mask;
-    u32 cursor = 0;
 
-    ASSUME(AllocCountyBits(&cursor, COUNTY_MASK_BITS_PER_VAR, &mask));
+    ASSUME(GetChapterMask(LITTLEROOT, 0, &mask));
     EXPECT_EQ(COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + mask.var, VAR_MOVING_IN_BEAT);
     EXPECT_EQ(mask.shift, 0);
-    ASSUME(AllocCountyBits(&cursor, COUNTY_MASK_BITS_PER_VAR, &mask));
+    EXPECT_EQ(mask.width, COUNTY_MASK_BITS_PER_VAR);
+    ASSUME(GetChapterMask(LITTLEROOT, 1, &mask));
     EXPECT_EQ(COUNTY_VARS_START + COUNTY_VAR_SLICE_LITTLEROOT * VARS_PER_COUNTY + mask.var, VAR_SAVE_BIRCH_BEAT);
     EXPECT_EQ(mask.shift, 0);
-    cursor = 0;
-    ASSUME(AllocCountyBits(&cursor, COUNTY_MASK_BITS_PER_VAR, &mask));
+    ASSUME(GetChapterMask(OLDALE, 0, &mask));
     EXPECT_EQ(COUNTY_VARS_START + COUNTY_VAR_SLICE_OLDALE * VARS_PER_COUNTY + mask.var, VAR_RIVAL_DEX_BEAT);
     EXPECT_EQ(mask.shift, 0);
 }

@@ -390,6 +390,34 @@ const struct ChapterDesc *GetCountyStatelessChapter(u32 countyId, u32 index)
     return NULL;
 }
 
+bool32 GetChapterMask(u32 countyId, u32 slot, struct CountyBitMask *out)
+{
+    u32 i, cursor = 0;
+
+    for (i = 0; i < ARRAY_COUNT(sEmeraldChapterHosts); i++)
+    {
+        const struct ChapterHost *host = &sEmeraldChapterHosts[i];
+
+        if (host->county != countyId || host->bits == 0)
+            continue;
+        assertf(host->desc->numStages <= (1u << host->bits), "county %d slot %d asks for %d bits but has %d stages; did you mean a wider mask?", countyId, host->slot, host->bits, host->desc->numStages)
+        {
+            return FALSE;
+        }
+        assertf(AllocCountyBits(&cursor, host->bits, out), "county %d runs out of mask bits at slot %d; did you mean to make a chapter ordered (bits 0)?", countyId, host->slot)
+        {
+            return FALSE;
+        }
+        if (host->slot == slot)
+            return TRUE;
+    }
+    assertf(FALSE, "county %d slot %d is not hosted as a mask-backed chapter; did you mean to set its host's bits?", countyId, slot)
+    {
+        return FALSE;
+    }
+    return FALSE;
+}
+
 u16 GetCountySlotVar(u32 countyId, u32 slot)
 {
     u32 slice = GetCountyVarSlice(countyId);

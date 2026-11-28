@@ -798,9 +798,9 @@ PLOT_GET_HINTED_CHAPTER(sChampionChapter, Champion, PLOT_KIND_SCRIPTED, PLOT_SCR
 
 static const struct ChapterHost sEmeraldChapterHosts[] =
 {
-    {COUNTY_ID(1, 2), 0, &sRivalDexChapter}, // Oldale, county-story-index 1
-    {COUNTY_ID(1, 3), 0, &sMovingInChapter}, // Littleroot, county-story-index 0
-    {COUNTY_ID(1, 3), 1, &sSaveBirchChapter}, // Littleroot, county-story-index 0
+    {COUNTY_ID(1, 2), 0, &sRivalDexChapter, 0, COUNTY_MASK_BITS_PER_VAR}, // Oldale, county-story-index 1
+    {COUNTY_ID(1, 3), 0, &sMovingInChapter, 0, COUNTY_MASK_BITS_PER_VAR}, // Littleroot, county-story-index 0
+    {COUNTY_ID(1, 3), 1, &sSaveBirchChapter, 0, COUNTY_MASK_BITS_PER_VAR}, // Littleroot, county-story-index 0
     {COUNTY_ID(0, 1), 0, &sRustboroCutterChapter}, // Rustboro, county-story-index 3
     {COUNTY_ID(0, 1), 1, &sRustboroFossilChapter}, // Rustboro, county-story-index 3
     {COUNTY_ID(0, 1), 2, &sRival2Chapter}, // Rival 2, met on Route 104 or in Rustboro

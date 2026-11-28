@@ -30,8 +30,7 @@
     - Give `AdvanceMainStoryIndex()` real callers: it is reached only through `GetMainStoryIndex()`'s catch-up over vanilla flags; a chain that finishes its main slot (`DidChainJustFinishMainSlot`) should call it and reset the new host's var 0.
     - Wire `county_position.h` (pack/unpack, start/advance with skip-ahead, bit-mask cursor; done, tested) into the accessors: hosts need a per-slot unsorted chapter list, required order and done-bit lookup; assert each stored chapter has at most 16 stages.
     - Replace `GetCountySlotVar` and `CHAPTERS_PER_COUNTY` with accessors, and move the `SCENE_*_BEAT_VAR` macros and `Scene::stageVar` behind them.
-    - Give the three tutorial chapters a requested bit width (16) on their hosts, and make the real per-county allocator (walking the host table in declaration order) produce `VAR_MOVING_IN_BEAT`, `VAR_SAVE_BIRCH_BEAT` and `VAR_RIVAL_DEX_BEAT`; the test in `test/chapter.c` that pins the addresses calls `AllocCountyBits` by hand and must switch to it.
-      - Note vars.h declares Save Birch before Moving in, but the addresses need Moving in first.
+    - `GetChapterMask` (host `bits`, tutorial chapters 16) now yields the tutorial vars but nothing reads it: make `GetChapterStage`/`SetChapterStage` use it for mask-backed hosts and drop their slot-var mapping.
     - Add a per-host `parallel` flag (default ordered; parallel = mask-backed, sized by `numStages`) and have `GetChapterStage` branch on it:
       - Parallel reads its mask; ordered returns 0 if its slot is not reached or it is later in the order, `numStages - 1` if the index is past it or it is earlier in the order, else the stage bits of var 0.
       - `IsCountyMainSlotDone` must then mean "ordered chain finished and every parallel entry at its last stage".
