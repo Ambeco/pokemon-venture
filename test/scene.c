@@ -1330,7 +1330,7 @@ TEST("Scene: Route 119's rival scenes fight, advance to 1 after the fight and to
     {
         LoadTestMap();
         FlagClear(FLAG_RECEIVED_HM_FLY);
-        ResetCountyChapterStages(WEATHER_COUNTY);
+        JumpToCountyMainSlot(WEATHER_COUNTY, 2); // Rival 4 is an ordered chapter
         StepRivalScene(sceneIds[i], TRUE, &numBattles, &item);
         EXPECT_EQ(numBattles, 1);
         EXPECT_EQ(GetScene(sceneIds[i])->steps[1].trainer, RIVAL_ENCOUNTER_ROUTE_119);
@@ -1352,7 +1352,7 @@ TEST("Scene: Route 119's rival scenes with a full bag stop at stage 1 with the H
     {
         LoadTestMap();
         FlagClear(FLAG_RECEIVED_HM_FLY);
-        ResetCountyChapterStages(WEATHER_COUNTY);
+        JumpToCountyMainSlot(WEATHER_COUNTY, 2); // Rival 4 is an ordered chapter
         StepRivalScene(rivalIds[i], FALSE, &numBattles, &item);
         EXPECT_EQ(numBattles, 1);
         EXPECT(!FlagGet(FLAG_RECEIVED_HM_FLY));

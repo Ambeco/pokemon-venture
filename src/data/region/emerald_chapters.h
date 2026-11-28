@@ -814,7 +814,7 @@ static const struct ChapterHost sEmeraldChapterHosts[] =
     {COUNTY_ID(5, 1), 0, &sMossdeepSuperRodChapter, .parallel = TRUE}, // Mossdeep
     {COUNTY_ID(0, 3), 0, &sDewfordOldRodChapter, .parallel = TRUE}, // Dewford, county-story-index 4
     {COUNTY_ID(3, 0), 0, &sGoodRodChapter, .parallel = TRUE}, // Weather Institute county: Route 118's fisherman
-    {COUNTY_ID(3, 0), 1, &sRival4Chapter, .parallel = TRUE}, // Route 119
+    {COUNTY_ID(3, 0), 1, &sRival4Chapter, 2}, // Route 119, main-story step 2 (index 50)
     {COUNTY_ID(2, 2), 0, &sRival3Chapter}, // Route 110
     {COUNTY_ID(2, 2), 1, &sItemfinderChapter, .parallel = TRUE},
     {COUNTY_ID(2, 1), 0, &sMauvilleRockSmashChapter, .parallel = TRUE}, // Mauville, county-story-index 7

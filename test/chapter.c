@@ -749,6 +749,7 @@ TEST("Chapter: Route 119's rival chapter is stored in the Weather Institute coun
     EXPECT(desc->producesMainGet);
     EXPECT_EQ(desc->mainGet.kind, PLOT_KIND_RIVAL);
     EXPECT_EQ(desc->mainGet.ordinal, 4);
+    JumpToCountyMainSlot(WEATHER, 2); // an ordered chapter is written only while its main-story slot is current
     SetCountySlotStage(WEATHER, 1, 2);
     EXPECT_EQ(GetCountySlotStage(WEATHER, 0), 0);
     EXPECT_EQ(GetCountySlotStage(WEATHER, 1), 2);
