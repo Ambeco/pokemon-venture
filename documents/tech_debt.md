@@ -56,3 +56,6 @@ One line per item, roughly highest priority first. Delete an item when it is pai
 - Route110/Route119 scripts: legacy var/flag/bag-check proxies for chapter stage (route scripts cannot read their county slot); Rival 3/Itemfinder/Rival 4 approach+exit still hand-written movement
 - test/scene.c: StepGiveScene, StepGiveSceneByHand, StepRivalScene and StepYesNoRivalScene are near-duplicate headless scene steppers
 - chapter.c SetChapterStage: plans the county chain three times per stage write (GetCountyChapterMainSlot, IsCountyMainSlotDone x2); move to AdvanceCountyPosition once var 0 holds the position
+- `GetChapterMask` (`src/story/chapter.c`) hands out masks per county in `sEmeraldChapterHosts` order, widths from `numStages`: reordering rows, inserting a stored host or adding a stage that widens a mask silently moves every later chapter's bits in old saves; only the three tutorial addresses are pinned by a test.
+- `ResetCountyChapterStages` (`src/story/chapter.c`) is only called from `test/scene.c` but ships in the ROM; move it to a test helper.
+- `test/chapter.c` "A key is produced once the producer reaches its production stage": stages are stored through the real host's mask (width from the hosted chapter, not the passed desc), so the test now uses stage 1 and no longer checks a nonzero stage below the production stage.

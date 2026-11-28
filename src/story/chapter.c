@@ -443,7 +443,7 @@ static u32 GetCountyMaskVar(u32 countyId, const struct CountyBitMask *mask)
 
     assertf(slice < COUNTY_VAR_SLICES_FREE, "county %d uses var slice %d, which overlaps legacy vars (only slices 0-%d are free); retire legacy vars first", countyId, slice, COUNTY_VAR_SLICES_FREE - 1)
     {
-        return COUNTY_VARS_START;
+        return 0; // VarSet ignores 0; COUNTY_VARS_START would overwrite a position var
     }
     return COUNTY_VARS_START + slice * VARS_PER_COUNTY + mask->var;
 }
@@ -454,7 +454,7 @@ u16 GetChapterMaskVar(u32 countyId, u32 slot)
 
     assertf(GetChapterMask(countyId, slot, &mask), "county %d slot %d has no mask", countyId, slot)
     {
-        return COUNTY_VARS_START;
+        return 0;
     }
     return GetCountyMaskVar(countyId, &mask);
 }
