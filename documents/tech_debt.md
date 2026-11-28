@@ -2,7 +2,7 @@
 
 One line per item, roughly highest priority first. Delete an item when it is paid off.
 
-- `src/story/scene.c` (~920 lines) still holds the step interpreter, triggers, stage vars and the scene table; next extract triggers (`SceneTriggerFires`..`SceneTryStartTrigger`) into `scene_trigger.c`. `AbsDiff` is duplicated static in `scene.c` and `scene_path.c`.
+- `src/story/scene.c` (~815 lines) still holds the step interpreter, stage vars, the scene table (`SceneFindTriggerAt` and `SceneTryStartTrigger` stay: they need the `data/scenes.h` table and the interpreter's `sNextAnchor*`/`sArrivalPending` statics); next split the stage vars (`SceneGetStage`, `SCENE_*_BEAT_VAR`) from the interpreter. `AbsDiff` is duplicated static in `scene.c` and `scene_path.c`.
 - Scenes bind actors by raw local ids per `struct Scene`, door facing is hardcoded "south", and the trigger table is hand-written; ids are bare u8/u16 with no types.
 - County var slices: `GetCountyVarSlice(county)` swaps Littleroot/Oldale with slices 0/1, so "county id" and "slice" silently differ; legacy var block cannot shrink from the middle.
 - `IdentityRng` and salts take bare numbers (`include/constants/identity_salts.h`); easy to pass the wrong kind of id.
