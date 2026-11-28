@@ -136,7 +136,13 @@ TEST("Chapter: Mask vars of stored chapters lie in the county's own slice after 
         {
             const struct ChapterDesc *desc = GetCountyChapter(county, slot);
 
-            if (desc == NULL || desc->backend != CHAPTER_STORED)
+            u32 numHosts, h;
+            const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+            bool32 ordered = FALSE;
+
+            for (h = 0; h < numHosts; h++)
+                ordered |= hosts[h].county == county && hosts[h].slot == slot && IsChapterHostOrdered(&hosts[h]);
+            if (desc == NULL || desc->backend != CHAPTER_STORED || ordered)
                 continue;
             EXPECT(GetChapterMaskVar(county, slot) > start);
             EXPECT(GetChapterMaskVar(county, slot) < start + VARS_PER_COUNTY);
@@ -1773,4 +1779,78 @@ TEST("Chapter: Direction names are diagonal when the offset is more diagonal tha
     EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(0, 0), COUNTY_ID(3, 1)), COMPOUND_STRING("east")), 0);
     EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(0, 0), COUNTY_ID(3, 2)), COMPOUND_STRING("southeast")), 0);
     EXPECT_EQ(StringCompare(GetCountyDirectionName(COUNTY_ID(3, 3), COUNTY_ID(0, 0)), COMPOUND_STRING("northwest")), 0);
+}
+
+#define GetCountyPosVar(county) (COUNTY_VARS_START + GetCountyVarSlice(county) * VARS_PER_COUNTY)
+
+TEST("Chapter: Every ordered host sits on its chain at its planned slot, within the position var's limits")
+{
+    struct ChapterHost planned[48];
+    u32 numHosts, numPlanned = GetPlannedChapterHosts(planned, ARRAY_COUNT(planned)), i, j, ordered = 0;
+    const struct ChapterHost *hosts = GetChapterHosts(&numHosts);
+
+    ASSUME(numPlanned == numHosts);
+    for (i = 0; i < numHosts; i++)
+    {
+        u32 sameSlot = 0;
+
+        if (!IsChapterHostOrdered(&hosts[i]))
+            continue;
+        ordered++;
+        EXPECT_EQ(planned[i].mainSlot == CHAPTER_MAIN_SLOT_OFF_CHAIN, FALSE);
+        EXPECT_EQ(planned[i].mainSlot, hosts[i].mainSlot);
+        EXPECT_EQ(hosts[i].bits, 0);
+        EXPECT(hosts[i].desc->numStages <= COUNTY_POS_MAX_STAGES);
+        for (j = 0; j < numHosts; j++)
+            sameSlot += IsChapterHostOrdered(&hosts[j]) && hosts[j].county == hosts[i].county && hosts[j].mainSlot == hosts[i].mainSlot;
+        EXPECT(sameSlot <= COUNTY_POS_MAX_CHAPTERS);
+    }
+    EXPECT(ordered > 0);
+}
+
+TEST("Chapter: An ordered chapter reads 0 before its slot, its var 0 stage while current and its last stage once passed")
+{
+    u32 slot = GetMainStoryIndexOfSlot(ROUTE110_COUNTY, 0);
+
+    VarSet(VAR_MAIN_STORY_INDEX, slot - 1);
+    EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 0), 0);
+    JumpToCountyMainSlot(ROUTE110_COUNTY, 0);
+    EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 0), 0);
+    VarSet(VAR_MAIN_STORY_INDEX, slot + 1);
+    EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 0), GetCountyChapter(ROUTE110_COUNTY, 0)->numStages - 1);
+}
+
+TEST("Chapter: Finishing the ordered chapter keeps it done, leaves the parallel ones in their own mask and advances the story with them")
+{
+    u32 slot = GetMainStoryIndexOfSlot(ROUTE110_COUNTY, 0);
+
+    JumpToCountyMainSlot(ROUTE110_COUNTY, 0);
+    EXPECT_EQ(GetChapterMaskVar(ROUTE110_COUNTY, 1) != GetCountyPosVar(ROUTE110_COUNTY), TRUE);
+    SetCountySlotStage(ROUTE110_COUNTY, 0, 1);
+    EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 0), 1);
+    EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 1), 0);
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), slot);
+    SetCountySlotStage(ROUTE110_COUNTY, 1, 1);
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), slot + 1);
+    EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 0), 1);
+}
+
+TEST("Chapter: JumpToCountyMainSlot clears the slice and makes the slot current")
+{
+    JumpToCountyMainSlot(ROUTE110_COUNTY, 0);
+    SetCountySlotStage(ROUTE110_COUNTY, 1, 1);
+    JumpToCountyMainSlot(ROUTE110_COUNTY, 0);
+    EXPECT_EQ(GetCountySlotStage(ROUTE110_COUNTY, 1), 0);
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), GetMainStoryIndexOfSlot(ROUTE110_COUNTY, 0));
+}
+
+TEST("Chapter: An ordered chapter's main-story slot is reached through AdvanceMainStoryIndex, which starts its position")
+{
+    u32 slot = GetMainStoryIndexOfSlot(ROUTE110_COUNTY, 0);
+
+    VarSet(VAR_MAIN_STORY_INDEX, slot - 1);
+    VarSet(GetCountyPosVar(ROUTE110_COUNTY), 0xFFFF);
+    AdvanceMainStoryIndex();
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), slot);
+    EXPECT_EQ(VarGet(GetCountyPosVar(ROUTE110_COUNTY)), PackCountyPosition(0, 0, 0));
 }

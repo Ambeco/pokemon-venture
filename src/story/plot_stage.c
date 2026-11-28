@@ -157,17 +157,13 @@ bool32 GetFirstUndonePlotSlot(u32 index, struct PlotSlot *out)
     return FALSE;
 }
 
-// A county whose slice overlaps legacy vars has no var 0 to reset yet.
 static void ResetHostPosition(u32 index)
 {
-    u32 block = index / COUNTY_MAIN_SLOTS, host = (index % COUNTY_MAIN_SLOTS) == 1 ? GetPlotCallbackHost(block) : block;
-    u32 slice;
+    u32 block = index / COUNTY_MAIN_SLOTS, step = index % COUNTY_MAIN_SLOTS, host = step == 1 ? GetPlotCallbackHost(block) : block;
 
     if (index >= MAIN_STORY_INDEX_POSTGAME || host == PLOT_NO_CALLBACK)
         return;
-    slice = GetCountyVarSlice(GetCountyByStoryIdx(host));
-    if (slice < COUNTY_VAR_SLICES_FREE)
-        VarSet(COUNTY_VARS_START + slice * VARS_PER_COUNTY, PackCountyPosition(0, 0, 0)); // no ordered chapter exists yet, so chapter 0 is the first
+    StartCountyMainSlot(GetCountyByStoryIdx(host), step == 1 ? CHAPTER_MAIN_SLOT_CALLBACK(block) : step);
 }
 
 void AdvanceMainStoryIndex(void)

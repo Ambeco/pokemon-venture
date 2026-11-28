@@ -182,8 +182,19 @@ struct ChapterHost
     u8 slot;
     const struct ChapterDesc *desc;
     u8 mainSlot; // planned main-story slot (0-3), CHAPTER_MAIN_SLOT_CALLBACK(block) or CHAPTER_MAIN_SLOT_OFF_CHAIN; the static host tables leave it 0, GetPlannedChapterHosts fills it
-    u8 bits;     // mask width in vars 1-3 of a stored chapter, handed out in host-table order (GetChapterMask); 0 = just enough bits for numStages. Ordered chapters (var 0) do not exist yet
+    u8 bits;     // mask width in vars 1-3 of a parallel stored chapter, handed out in host-table order (GetChapterMask); 0 = just enough bits for numStages
+    u8 parallel; // stored chapters are ordered by default: they share the county's var 0 and play one after another in their main-story slot. Set it for off-chain chapters, whole-var tutorial chapters and any chapter that must be doable in any order
 };
+
+// An ordered host must be on the chain: its static `mainSlot` has to equal its planned slot (a test checks the Emerald table).
+bool32 IsChapterHostOrdered(const struct ChapterHost *host);
+
+// Writes the var 0 position of the first ordered chapter of `mainSlot` (chapter 0, stage 0 when it has none). Does nothing
+// for a county whose slice still overlaps legacy vars. AdvanceMainStoryIndex calls it for the host of the new slot.
+void StartCountyMainSlot(u32 countyId, u32 mainSlot);
+
+// Makes `mainSlot` of the county the current main-story slot with its slice cleared and its first ordered chapter current.
+void JumpToCountyMainSlot(u32 countyId, u32 mainSlot);
 
 // Where the (county, slot) chapter's mask lies in its slice (var 1-3); asserts the chapter is hosted, is mask-backed and fits.
 bool32 GetChapterMask(u32 countyId, u32 slot, struct CountyBitMask *out);

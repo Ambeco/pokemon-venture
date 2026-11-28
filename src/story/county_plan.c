@@ -326,18 +326,23 @@ u32 GetCountyChapterMainSlot(u32 county, u32 chapterSlot)
     return CHAPTER_MAIN_SLOT_OFF_CHAIN;
 }
 
+u32 GetMainStoryIndexOfSlot(u32 county, u32 mainSlot)
+{
+    assertf(mainSlot != CHAPTER_MAIN_SLOT_OFF_CHAIN, "county %d: an off-chain chapter holds no main-story slot; did you mean a planned slot?", county)
+    {
+        return 0;
+    }
+    if (mainSlot >= CHAPTER_MAIN_SLOT_CALLBACK_BASE)
+        return (mainSlot - CHAPTER_MAIN_SLOT_CALLBACK_BASE) * COUNTY_MAIN_SLOTS + 1; // callbacks are step 1 of their block
+    return GetCountyHeader(county)->storyIdx * COUNTY_MAIN_SLOTS + mainSlot;
+}
+
 void AdvanceMainStoryIndexPast(u32 county, u32 mainSlot)
 {
-    u32 index;
-
     if (mainSlot == CHAPTER_MAIN_SLOT_OFF_CHAIN)
         return;
-    if (mainSlot >= CHAPTER_MAIN_SLOT_CALLBACK_BASE)
-        index = (mainSlot - CHAPTER_MAIN_SLOT_CALLBACK_BASE) * COUNTY_MAIN_SLOTS + 1; // callbacks are step 1 of their block
-    else
-        index = GetCountyHeader(county)->storyIdx * COUNTY_MAIN_SLOTS + mainSlot;
     // Raw read: GetMainStoryIndex()'s catch-up would advance first and then this would skip a slot.
-    if (VarGet(VAR_MAIN_STORY_INDEX) == index)
+    if (VarGet(VAR_MAIN_STORY_INDEX) == GetMainStoryIndexOfSlot(county, mainSlot))
         AdvanceMainStoryIndex();
 }
 

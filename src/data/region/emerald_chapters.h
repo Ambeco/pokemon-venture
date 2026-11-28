@@ -796,28 +796,32 @@ static const struct ChapterDesc sEliteFourChapter =
 };
 PLOT_GET_HINTED_CHAPTER(sChampionChapter, Champion, PLOT_KIND_SCRIPTED, PLOT_SCRIPTED_CHAMPION, 0, LEAGUE_ANCHOR, STORY_PRED_FLAG, FLAG_SYS_GAME_CLEAR, 0);
 
+// Stored chapters are ordered unless marked parallel. Only Rival 3 qualifies so far: it is on the chain with a blocking
+// get that flips at its last stage. The others are parallel because they are off-chain or whole-var tutorial chapters,
+// or because their get is reported-only or flips before their last stage, so the slot could advance past them unfinished
+// (a passed slot reads as finished). An ordered host's static mainSlot must equal its planned slot (0 here).
 static const struct ChapterHost sEmeraldChapterHosts[] =
 {
-    {COUNTY_ID(1, 2), 0, &sRivalDexChapter, 0, COUNTY_MASK_BITS_PER_VAR}, // Oldale, county-story-index 1
-    {COUNTY_ID(1, 3), 0, &sMovingInChapter, 0, COUNTY_MASK_BITS_PER_VAR}, // Littleroot, county-story-index 0
-    {COUNTY_ID(1, 3), 1, &sSaveBirchChapter, 0, COUNTY_MASK_BITS_PER_VAR}, // Littleroot, county-story-index 0
-    {COUNTY_ID(0, 1), 0, &sRustboroCutterChapter}, // Rustboro, county-story-index 3
-    {COUNTY_ID(0, 1), 1, &sRustboroFossilChapter}, // Rustboro, county-story-index 3
-    {COUNTY_ID(0, 1), 2, &sRival2Chapter}, // Rival 2, met on Route 104 or in Rustboro
-    {COUNTY_ID(4, 0), 0, &sLilycoveMuseumChapter}, // Lilycove, county-story-index 15
-    {COUNTY_ID(4, 0), 1, &sLilycoveCaseChapter}, // Lilycove, county-story-index 15
-    {COUNTY_ID(4, 0), 2, &sRival5Chapter}, // Lilycove's rival
-    {COUNTY_ID(5, 1), 0, &sMossdeepSuperRodChapter}, // Mossdeep
-    {COUNTY_ID(0, 3), 0, &sDewfordOldRodChapter}, // Dewford, county-story-index 4
-    {COUNTY_ID(3, 0), 0, &sGoodRodChapter}, // Weather Institute county: Route 118's fisherman
-    {COUNTY_ID(3, 0), 1, &sRival4Chapter}, // Route 119
+    {COUNTY_ID(1, 2), 0, &sRivalDexChapter, 0, COUNTY_MASK_BITS_PER_VAR, .parallel = TRUE}, // Oldale, county-story-index 1
+    {COUNTY_ID(1, 3), 0, &sMovingInChapter, 0, COUNTY_MASK_BITS_PER_VAR, .parallel = TRUE}, // Littleroot, county-story-index 0
+    {COUNTY_ID(1, 3), 1, &sSaveBirchChapter, 0, COUNTY_MASK_BITS_PER_VAR, .parallel = TRUE}, // Littleroot, county-story-index 0
+    {COUNTY_ID(0, 1), 0, &sRustboroCutterChapter, .parallel = TRUE}, // Rustboro, county-story-index 3
+    {COUNTY_ID(0, 1), 1, &sRustboroFossilChapter, .parallel = TRUE}, // Rustboro, county-story-index 3
+    {COUNTY_ID(0, 1), 2, &sRival2Chapter, .parallel = TRUE}, // Rival 2, met on Route 104 or in Rustboro
+    {COUNTY_ID(4, 0), 0, &sLilycoveMuseumChapter, .parallel = TRUE}, // Lilycove, county-story-index 15
+    {COUNTY_ID(4, 0), 1, &sLilycoveCaseChapter, .parallel = TRUE}, // Lilycove, county-story-index 15
+    {COUNTY_ID(4, 0), 2, &sRival5Chapter, .parallel = TRUE}, // Lilycove's rival
+    {COUNTY_ID(5, 1), 0, &sMossdeepSuperRodChapter, .parallel = TRUE}, // Mossdeep
+    {COUNTY_ID(0, 3), 0, &sDewfordOldRodChapter, .parallel = TRUE}, // Dewford, county-story-index 4
+    {COUNTY_ID(3, 0), 0, &sGoodRodChapter, .parallel = TRUE}, // Weather Institute county: Route 118's fisherman
+    {COUNTY_ID(3, 0), 1, &sRival4Chapter, .parallel = TRUE}, // Route 119
     {COUNTY_ID(2, 2), 0, &sRival3Chapter}, // Route 110
-    {COUNTY_ID(2, 2), 1, &sItemfinderChapter},
-    {COUNTY_ID(2, 1), 0, &sMauvilleRockSmashChapter}, // Mauville, county-story-index 7
-    {COUNTY_ID(2, 1), 1, &sMauvilleCoinCaseChapter},
-    {COUNTY_ID(2, 1), 2, &sMauvilleBikeChapter},
+    {COUNTY_ID(2, 2), 1, &sItemfinderChapter, .parallel = TRUE},
+    {COUNTY_ID(2, 1), 0, &sMauvilleRockSmashChapter, .parallel = TRUE}, // Mauville, county-story-index 7
+    {COUNTY_ID(2, 1), 1, &sMauvilleCoinCaseChapter, .parallel = TRUE},
+    {COUNTY_ID(2, 1), 2, &sMauvilleBikeChapter, .parallel = TRUE},
     {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sMauvilleBikeProxyChapter},
-    {COUNTY_ID(2, 3), 0, &sSlateportHarborMailChapter}, // Slateport
+    {COUNTY_ID(2, 3), 0, &sSlateportHarborMailChapter, .parallel = TRUE}, // Slateport
     {COUNTY_ID(0, 1), CHAPTER_SLOT_STATELESS, &sRustboroGymChapter},
     {COUNTY_ID(0, 3), CHAPTER_SLOT_STATELESS, &sDewfordGymChapter},
     {COUNTY_ID(2, 1), CHAPTER_SLOT_STATELESS, &sMauvilleGymChapter},

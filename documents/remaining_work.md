@@ -27,13 +27,9 @@
 - Story state storage (design_story.md, "Story state storage"): the first 32 vars are temp and object-GFX, so reservations are named regions in `0x4020`-`0x40FF`, not Var0-31.
   - Count authored-chapter stage vars (after Milestone 1a's bucketing) and the optional inter-county stories; the slice is 4 vars per county, 3 used by the main line (`Emerald.md`, "Per-county storage needs").
   - Migrate county storage to the packed var 0 (design_story.md, "Story state storage"); the code still has var 0 reserved and one whole var per chapter slot. Steps, in order:
-    - Today every stored chapter is mask-backed (`GetChapterMask`, host `bits`; 0 = just enough bits) and var 0 is only reset to 0 by `AdvanceMainStoryIndex()`. Still to do:
-    - Add ordered chapters: a per-host ordered/parallel choice (default ordered) and `GetChapterStage` branching on it:
-      - Parallel reads its mask; ordered returns 0 if its slot is not reached or it is later in the order, `numStages - 1` if the index is past it or it is earlier in the order, else the stage bits of var 0. Read the index with raw `VarGet(VAR_MAIN_STORY_INDEX)`, not `GetMainStoryIndex()`.
-      - `ResetHostPosition` (plot_stage.c) must write the order's first chapter, and `county_position.h` (start/advance with skip-ahead) gets wired in: hosts need a per-slot unsorted chapter list, required order and done-bit lookup.
-      - `IsCountyMainSlotDone` must mean "ordered chain finished and every parallel entry at its last stage".
-      - Chapter-count and stage-count asserts: at most 16 ordered chapters per slot and 16 stages.
-    - Once var 0 holds the position, replace the `SetChapterStage` done-transition hook (`AdvanceMainStoryIndexPast`) with `AdvanceCountyPosition`'s FALSE return and `DidChainJustFinishMainSlot`.
+    - Only Rival 3 is an ordered chapter so far (`ChapterHost::parallel`; the table comment gives the rule). Convert the rest by reworking each get so the slot cannot pass the chapter unfinished (a reported-only get, or one flipping before the chapter's last stage, falsely reads the chapter done once the index is past); Rival 4 needs its get to flip at stage 2.
+    - Ordered chapters play in declaration order (`GetIdentityChapterOrder`): add the per-slot order the generator picks, and the done mask for early-completable chapters (`AdvanceCountyPosition` is called with 0). Writing a non-current ordered chapter asserts; check that triggers cannot fire it early.
+    - Keep the `SetChapterStage` done-transition hook (`AdvanceMainStoryIndexPast`): a slot mixes ordered, parallel and stateless entries, so `AdvanceCountyPosition`'s FALSE alone cannot say it finished. `DidChainJustFinishMainSlot` stays unused until a chain position is stored.
     - Tests with synthetic hosts must use a slot hosted in `sEmeraldChapterHosts` (the mask comes from that table).
     - `COUNTY_MAX_CHAPTER_SLOTS` (3) is still a literal array bound; derive it from the mask bits once ordered chapters land and the slot count stops matching the var count.
   - Allocate the reserve's other named vars downward from `VAR_MAIN_STORY_INDEX` (the story-arc stage, the twelve rival-team vars (species in bits 10-0, rival story in bits 15-11); design_story.md, "Arc vars") once enough legacy vars are retired to free reserve addresses, and add them to `test/vars.c`.

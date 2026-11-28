@@ -1273,7 +1273,7 @@ TEST("Scene: Route 110's rival scenes say the challenge, fight the Route 110 riv
         const struct Scene *scene = GetScene(sceneIds[i]);
 
         LoadTestMap();
-        ResetCountyChapterStages(ROUTE110_COUNTY);
+        JumpToCountyMainSlot(ROUTE110_COUNTY, 0); // Rival 3 is an ordered chapter
         ASSUME(scene->numSteps == 3);
         EXPECT_EQ(scene->steps[1].kind, SCENE_STEP_BATTLE);
         EXPECT(scene->steps[1].rival);

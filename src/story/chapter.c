@@ -402,6 +402,139 @@ static u32 GetHostMaskWidth(const struct ChapterHost *host)
     return width;
 }
 
+bool32 IsChapterHostOrdered(const struct ChapterHost *host)
+{
+    return host->desc->backend == CHAPTER_STORED && !host->parallel;
+}
+
+static const struct ChapterHost *FindEmeraldStoredHost(u32 countyId, u32 slot)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sEmeraldChapterHosts); i++)
+    {
+        if (sEmeraldChapterHosts[i].county == countyId && sEmeraldChapterHosts[i].slot == slot)
+            return &sEmeraldChapterHosts[i];
+    }
+    return NULL;
+}
+
+// The county's ordered chapters of one main-story slot, in declaration order. That is also their play order until
+// generation picks one: GetIdentityChapterOrder is the order array handed to StartCountyPosition/AdvanceCountyPosition.
+static u32 GetOrderedHosts(u32 countyId, u32 mainSlot, const struct ChapterHost *out[COUNTY_POS_MAX_CHAPTERS])
+{
+    u32 i, n = 0;
+
+    for (i = 0; i < ARRAY_COUNT(sEmeraldChapterHosts); i++)
+    {
+        const struct ChapterHost *host = &sEmeraldChapterHosts[i];
+
+        if (host->county != countyId || !IsChapterHostOrdered(host) || host->mainSlot != mainSlot)
+            continue;
+        assertf(n < COUNTY_POS_MAX_CHAPTERS, "county %d slot %d has more than %d ordered chapters; did you mean to make some parallel?", countyId, mainSlot, COUNTY_POS_MAX_CHAPTERS)
+        {
+            return n;
+        }
+        assertf(host->desc->numStages <= COUNTY_POS_MAX_STAGES, "ordered chapter in county %d slot %d has %d stages (at most %d); did you mean to split it or make it parallel?", countyId, host->slot, host->desc->numStages, COUNTY_POS_MAX_STAGES)
+        {
+            return n;
+        }
+        out[n++] = host;
+    }
+    return n;
+}
+
+static void GetIdentityChapterOrder(u8 *order, u32 n)
+{
+    u32 i;
+
+    for (i = 0; i < n; i++)
+        order[i] = i;
+}
+
+static u32 GetCountyPositionVar(u32 countyId)
+{
+    return COUNTY_VARS_START + GetCountyVarSlice(countyId) * VARS_PER_COUNTY;
+}
+
+void StartCountyMainSlot(u32 countyId, u32 mainSlot)
+{
+    const struct ChapterHost *ordered[COUNTY_POS_MAX_CHAPTERS];
+    u8 order[COUNTY_POS_MAX_CHAPTERS];
+    u16 position = PackCountyPosition(0, 0, 0);
+    u32 n;
+
+    if (GetCountyVarSlice(countyId) >= COUNTY_VAR_SLICES_FREE) // overlaps legacy vars: no var 0 to write yet
+        return;
+    n = GetOrderedHosts(countyId, mainSlot, ordered);
+    GetIdentityChapterOrder(order, n);
+    StartCountyPosition(&position, order, n, 0);
+    VarSet(GetCountyPositionVar(countyId), position);
+}
+
+void JumpToCountyMainSlot(u32 countyId, u32 mainSlot)
+{
+    VarSet(VAR_MAIN_STORY_INDEX, GetMainStoryIndexOfSlot(countyId, mainSlot));
+    ResetCountyChapterStages(countyId);
+    StartCountyMainSlot(countyId, mainSlot);
+}
+
+static u32 GetOrderedChapterStage(u32 countyId, const struct ChapterHost *host)
+{
+    const struct ChapterHost *ordered[COUNTY_POS_MAX_CHAPTERS];
+    u32 n = GetOrderedHosts(countyId, host->mainSlot, ordered), mine = 0, index = GetMainStoryIndexOfSlot(countyId, host->mainSlot);
+    u32 now = VarGet(VAR_MAIN_STORY_INDEX), current, stage;
+    u16 position;
+
+    // Raw index: GetMainStoryIndex() reads chapter stages, so it would recurse.
+    if (now < index)
+        return 0;
+    if (now > index)
+        return host->desc->numStages - 1;
+    while (mine < n && ordered[mine] != host)
+        mine++;
+    position = VarGet(GetCountyPositionVar(countyId));
+    current = GetCountyPosChapter(position);
+    if (mine < current)
+        return host->desc->numStages - 1;
+    if (mine > current)
+        return 0;
+    stage = GetCountyPosStage(position);
+    assertf(stage < host->desc->numStages, "county %d slot %d holds stage %d but the chapter has %d", countyId, host->slot, stage, host->desc->numStages)
+    {
+        return 0;
+    }
+    return stage;
+}
+
+static void SetOrderedChapterStage(u32 countyId, const struct ChapterHost *host, u32 stage)
+{
+    const struct ChapterHost *ordered[COUNTY_POS_MAX_CHAPTERS];
+    u8 order[COUNTY_POS_MAX_CHAPTERS];
+    u32 n = GetOrderedHosts(countyId, host->mainSlot, ordered), mine = 0, var = GetCountyPositionVar(countyId);
+    u16 position;
+
+    GetMainStoryIndex(); // catch up first: the reset on advance is what makes this chapter current
+    assertf(VarGet(VAR_MAIN_STORY_INDEX) == GetMainStoryIndexOfSlot(countyId, host->mainSlot), "county %d slot %d is an ordered chapter of main-story slot %d, which is not the current one; did you mean to advance the story first, or to make the chapter parallel?", countyId, host->slot, host->mainSlot)
+    {
+        return;
+    }
+    while (mine < n && ordered[mine] != host)
+        mine++;
+    position = VarGet(var);
+    assertf(GetCountyPosChapter(position) == mine, "county %d slot %d is not the current ordered chapter (chapter %d is); did you mean to finish that one first?", countyId, host->slot, GetCountyPosChapter(position))
+    {
+        return;
+    }
+    position = SetCountyPosStage(position, stage);
+    if (stage == host->desc->numStages - 1)
+    {
+        GetIdentityChapterOrder(order, n);
+        AdvanceCountyPosition(&position, order, n, 0); // FALSE (last chapter): it keeps its last stage, which reads as done
+    }
+    VarSet(var, position);
+}
+
 bool32 GetChapterMask(u32 countyId, u32 slot, struct CountyBitMask *out)
 {
     u32 i, cursor = 0;
@@ -411,7 +544,7 @@ bool32 GetChapterMask(u32 countyId, u32 slot, struct CountyBitMask *out)
         const struct ChapterHost *host = &sEmeraldChapterHosts[i];
         u32 width;
 
-        if (host->county != countyId || host->desc->backend != CHAPTER_STORED)
+        if (host->county != countyId || host->desc->backend != CHAPTER_STORED || IsChapterHostOrdered(host))
             continue;
         width = GetHostMaskWidth(host);
         assertf(host->desc->numStages <= (1u << width), "county %d slot %d asks for %d bits but has %d stages; did you mean a wider mask?", countyId, host->slot, width, host->desc->numStages)
@@ -489,7 +622,10 @@ u32 GetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc)
     if (desc->backend == CHAPTER_STORED)
     {
         struct CountyBitMask mask;
+        const struct ChapterHost *host = FindEmeraldStoredHost(countyId, slot);
 
+        if (host != NULL && IsChapterHostOrdered(host))
+            return GetOrderedChapterStage(countyId, host);
         assertf(GetChapterMask(countyId, slot, &mask), "county %d slot %d has no mask", countyId, slot)
         {
             return 0;
@@ -512,6 +648,7 @@ u32 GetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc)
 void SetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc, u32 stage)
 {
     struct CountyBitMask mask;
+    const struct ChapterHost *host;
     u32 var, mainSlot;
     bool32 wasDone;
 
@@ -527,14 +664,24 @@ void SetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc, u32
     {
         return;
     }
-    assertf(GetChapterMask(countyId, slot, &mask), "county %d slot %d has no mask", countyId, slot)
+    host = FindEmeraldStoredHost(countyId, slot);
+    if (host != NULL && IsChapterHostOrdered(host))
     {
-        return;
+        mainSlot = GetCountyChapterMainSlot(countyId, slot);
+        wasDone = mainSlot != CHAPTER_MAIN_SLOT_OFF_CHAIN && IsCountyMainSlotDone(countyId, mainSlot);
+        SetOrderedChapterStage(countyId, host, stage);
     }
-    mainSlot = GetCountyChapterMainSlot(countyId, slot);
-    wasDone = mainSlot != CHAPTER_MAIN_SLOT_OFF_CHAIN && IsCountyMainSlotDone(countyId, mainSlot);
-    var = GetCountyMaskVar(countyId, &mask);
-    VarSet(var, SetCountyMaskedBits(VarGet(var), &mask, stage));
+    else
+    {
+        assertf(GetChapterMask(countyId, slot, &mask), "county %d slot %d has no mask", countyId, slot)
+        {
+            return;
+        }
+        mainSlot = GetCountyChapterMainSlot(countyId, slot);
+        wasDone = mainSlot != CHAPTER_MAIN_SLOT_OFF_CHAIN && IsCountyMainSlotDone(countyId, mainSlot);
+        var = GetCountyMaskVar(countyId, &mask);
+        VarSet(var, SetCountyMaskedBits(VarGet(var), &mask, stage));
+    }
     if (mainSlot != CHAPTER_MAIN_SLOT_OFF_CHAIN && !wasDone && IsCountyMainSlotDone(countyId, mainSlot))
         AdvanceMainStoryIndexPast(countyId, mainSlot);
 }

@@ -64,6 +64,9 @@ bool32 IsCountyMainSlotDone(u32 county, u32 mainSlot);
 // the chain or the county's plan fails.
 u32 GetCountyChapterMainSlot(u32 county, u32 chapterSlot);
 
+// The main-story-index of a chain's main-story slot or callback slot of `county` (never CHAPTER_MAIN_SLOT_OFF_CHAIN).
+u32 GetMainStoryIndexOfSlot(u32 county, u32 mainSlot);
+
 // Advances the main-story-index when `mainSlot` of `county` is the current slot, so a finished slot that is not current
 // (a chapter written early, or after GetMainStoryIndex() caught up) never skips one. SetChapterStage calls it when a write
 // finishes the slot; writers that bypass it are covered by GetMainStoryIndex()'s catch-up.
