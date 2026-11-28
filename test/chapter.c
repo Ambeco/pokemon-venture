@@ -1800,6 +1800,7 @@ TEST("Chapter: Every ordered host sits on its chain at its planned slot, within 
         EXPECT_EQ(planned[i].mainSlot == CHAPTER_MAIN_SLOT_OFF_CHAIN, FALSE);
         EXPECT_EQ(planned[i].mainSlot, hosts[i].mainSlot);
         EXPECT_EQ(hosts[i].bits, 0);
+        EXPECT(GetCountyVarSlice(hosts[i].county) < COUNTY_VAR_SLICES_FREE);
         EXPECT(hosts[i].desc->numStages <= COUNTY_POS_MAX_STAGES);
         for (j = 0; j < numHosts; j++)
             sameSlot += IsChapterHostOrdered(&hosts[j]) && hosts[j].county == hosts[i].county && hosts[j].mainSlot == hosts[i].mainSlot;

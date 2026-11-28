@@ -454,7 +454,13 @@ static void GetIdentityChapterOrder(u8 *order, u32 n)
 
 static u32 GetCountyPositionVar(u32 countyId)
 {
-    return COUNTY_VARS_START + GetCountyVarSlice(countyId) * VARS_PER_COUNTY;
+    u32 slice = GetCountyVarSlice(countyId);
+
+    assertf(slice < COUNTY_VAR_SLICES_FREE, "county %d uses var slice %d, which overlaps legacy vars (only slices 0-%d are free); retire legacy vars first", countyId, slice, COUNTY_VAR_SLICES_FREE - 1)
+    {
+        return 0; // VarGet(0)/VarSet(0) are inert; COUNTY_VARS_START would hit another county's position var
+    }
+    return COUNTY_VARS_START + slice * VARS_PER_COUNTY;
 }
 
 void StartCountyMainSlot(u32 countyId, u32 mainSlot)
