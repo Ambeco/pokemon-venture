@@ -3,7 +3,9 @@
 #include "constants/flags.h"
 #include "constants/vars.h"
 #include "event_data.h"
+#include "chapter.h"
 #include "plot_stage.h"
+#include "region_county.h"
 #include "region_city.h"
 #include "region_plot.h"
 
@@ -285,6 +287,21 @@ TEST("RegionPlotStage: Every vanilla slot has a descriptor")
     }
     // No descriptor is orphaned or duplicated: one per non-gym item.
     EXPECT_EQ(total, GetVanillaPlotGetEntryCount());
+}
+
+TEST("RegionPlotStage: Advancing into a county's block resets that county's var 0 and no other slice var")
+{
+    u32 host = GetCountyByStoryIdx(1);
+    u32 var0 = COUNTY_VARS_START + GetCountyVarSlice(host) * VARS_PER_COUNTY;
+
+    ASSUME(GetCountyVarSlice(host) < COUNTY_VAR_SLICES_FREE);
+    VarSet(VAR_MAIN_STORY_INDEX, 3);
+    VarSet(var0, 0x1234);
+    VarSet(var0 + 1, 0x4321);
+    AdvanceMainStoryIndex();
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), 4);
+    EXPECT_EQ(VarGet(var0), 0);
+    EXPECT_EQ(VarGet(var0 + 1), 0x4321);
 }
 
 TEST("RegionPlotStage: Predicate operators")

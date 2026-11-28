@@ -1205,23 +1205,25 @@ TEST("Chapter: A host-pool key resolves against the host, so a moved chapter mov
 
 TEST("Chapter: A key is produced once the producer reaches its production stage, not before")
 {
-    struct ChapterHost hosts[] = {{RUSTBORO, 0, &sGatedDesc}};
-    u32 key = GetCountyMcGuffinId(RUSTBORO, 1);
+    // Mauville slot 0 is hosted, so its mask exists (stages are stored through the real host table's mask).
+    // The mask is as wide as the hosted chapter's stages need, so the producing stage is 1 to fit any hosted chapter.
+    struct ChapterDesc desc = sGatedDesc;
+    struct ChapterHost hosts[] = {{MAUVILLE, 0, &desc}};
+    u32 key = GetCountyMcGuffinId(MAUVILLE, 1);
 
+    desc.producedKeyStage = 1;
     EXPECT(!IsMcGuffinProducedBy(hosts, 1, key));
-    SetChapterStage(RUSTBORO, 0, &sGatedDesc, 1);
-    EXPECT(!IsMcGuffinProducedBy(hosts, 1, key));
-    SetChapterStage(RUSTBORO, 0, &sGatedDesc, 2);
+    SetChapterStage(MAUVILLE, 0, &desc, 1);
     EXPECT(IsMcGuffinProducedBy(hosts, 1, key));
     EXPECT(!IsMcGuffinProducedBy(hosts, 1, GetCountyMcGuffinId(LILYCOVE, 1)));
 }
 
 TEST("Chapter: A consumer waits for a producer in another host")
 {
-    struct ChapterHost hosts[] = {{PETALBURG, 1, &sItemProducerDesc}, {RUSTBORO, 1, &sCrossConsumerDesc}};
+    struct ChapterHost hosts[] = {{MAUVILLE, 0, &sItemProducerDesc}, {RUSTBORO, 1, &sCrossConsumerDesc}};
 
     EXPECT(!IsChapterAvailable(&sCrossConsumerDesc, RUSTBORO, hosts, 2));
-    SetChapterStage(PETALBURG, 1, &sItemProducerDesc, 1);
+    SetChapterStage(MAUVILLE, 0, &sItemProducerDesc, 1);
     EXPECT(IsChapterAvailable(&sCrossConsumerDesc, RUSTBORO, hosts, 2));
 }
 

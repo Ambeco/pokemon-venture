@@ -390,6 +390,17 @@ const struct ChapterDesc *GetCountyStatelessChapter(u32 countyId, u32 index)
     return NULL;
 }
 
+static u32 GetHostMaskWidth(const struct ChapterHost *host)
+{
+    u32 width = 1;
+
+    if (host->bits != 0)
+        return host->bits;
+    while ((1u << width) < host->desc->numStages)
+        width++;
+    return width;
+}
+
 bool32 GetChapterMask(u32 countyId, u32 slot, struct CountyBitMask *out)
 {
     u32 i, cursor = 0;
@@ -397,14 +408,16 @@ bool32 GetChapterMask(u32 countyId, u32 slot, struct CountyBitMask *out)
     for (i = 0; i < ARRAY_COUNT(sEmeraldChapterHosts); i++)
     {
         const struct ChapterHost *host = &sEmeraldChapterHosts[i];
+        u32 width;
 
-        if (host->county != countyId || host->bits == 0)
+        if (host->county != countyId || host->desc->backend != CHAPTER_STORED)
             continue;
-        assertf(host->desc->numStages <= (1u << host->bits), "county %d slot %d asks for %d bits but has %d stages; did you mean a wider mask?", countyId, host->slot, host->bits, host->desc->numStages)
+        width = GetHostMaskWidth(host);
+        assertf(host->desc->numStages <= (1u << width), "county %d slot %d asks for %d bits but has %d stages; did you mean a wider mask?", countyId, host->slot, width, host->desc->numStages)
         {
             return FALSE;
         }
-        assertf(AllocCountyBits(&cursor, host->bits, out), "county %d runs out of mask bits at slot %d; did you mean to make a chapter ordered (bits 0)?", countyId, host->slot)
+        assertf(AllocCountyBits(&cursor, width, out), "county %d runs out of mask bits at slot %d; did you mean to make a chapter ordered?", countyId, host->slot)
         {
             return FALSE;
         }
@@ -433,6 +446,17 @@ u16 GetCountySlotVar(u32 countyId, u32 slot)
     return COUNTY_VARS_START + slice * VARS_PER_COUNTY + 1 + slot;
 }
 
+static u32 GetCountyMaskVar(u32 countyId, const struct CountyBitMask *mask)
+{
+    u32 slice = GetCountyVarSlice(countyId);
+
+    assertf(slice < COUNTY_VAR_SLICES_FREE, "county %d uses var slice %d, which overlaps legacy vars (only slices 0-%d are free); retire legacy vars first", countyId, slice, COUNTY_VAR_SLICES_FREE - 1)
+    {
+        return COUNTY_VARS_START;
+    }
+    return COUNTY_VARS_START + slice * VARS_PER_COUNTY + mask->var;
+}
+
 u32 GetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc)
 {
     u32 stage;
@@ -450,7 +474,13 @@ u32 GetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc)
     }
     if (desc->backend == CHAPTER_STORED)
     {
-        stage = VarGet(GetCountySlotVar(countyId, slot));
+        struct CountyBitMask mask;
+
+        assertf(GetChapterMask(countyId, slot, &mask), "county %d slot %d has no mask", countyId, slot)
+        {
+            return 0;
+        }
+        stage = GetCountyMaskedBits(VarGet(GetCountyMaskVar(countyId, &mask)), &mask);
         assertf(stage < desc->numStages, "county %d slot %d holds stage %d but the chapter has %d", countyId, slot, stage, desc->numStages)
         {
             return 0;
@@ -467,6 +497,9 @@ u32 GetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc)
 
 void SetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc, u32 stage)
 {
+    struct CountyBitMask mask;
+    u32 var;
+
     assertf(desc != NULL, "county %d hosts no chapter in slot %d", countyId, slot)
     {
         return;
@@ -479,7 +512,12 @@ void SetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc, u32
     {
         return;
     }
-    VarSet(GetCountySlotVar(countyId, slot), stage);
+    assertf(GetChapterMask(countyId, slot, &mask), "county %d slot %d has no mask", countyId, slot)
+    {
+        return;
+    }
+    var = GetCountyMaskVar(countyId, &mask);
+    VarSet(var, SetCountyMaskedBits(VarGet(var), &mask, stage));
 }
 
 u32 GetCountySlotStage(u32 countyId, u32 slot)

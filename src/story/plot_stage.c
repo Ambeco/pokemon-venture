@@ -2,8 +2,13 @@
 #include "constants/flags.h"
 #include "constants/vars.h"
 #include "event_data.h"
+#include "chapter.h"
+#include "county_chain.h"
+#include "county_position.h"
 #include "plot_stage.h"
 #include "region_city.h"
+#include "region_county.h"
+#include "region_plot.h"
 
 #include "data/region/emerald_plot_gets.h"
 
@@ -152,12 +157,28 @@ bool32 GetFirstUndonePlotSlot(u32 index, struct PlotSlot *out)
     return FALSE;
 }
 
+// A county whose slice overlaps legacy vars has no var 0 to reset yet.
+static void ResetHostPosition(u32 index)
+{
+    u32 block = index / COUNTY_MAIN_SLOTS, host = (index % COUNTY_MAIN_SLOTS) == 1 ? GetPlotCallbackHost(block) : block;
+    u32 slice;
+
+    if (index >= MAIN_STORY_INDEX_POSTGAME || host == PLOT_NO_CALLBACK)
+        return;
+    slice = GetCountyVarSlice(GetCountyByStoryIdx(host));
+    if (slice < COUNTY_VAR_SLICES_FREE)
+        VarSet(COUNTY_VARS_START + slice * VARS_PER_COUNTY, PackCountyPosition(0, 0, 0)); // no ordered chapter exists yet, so chapter 0 is the first
+}
+
 void AdvanceMainStoryIndex(void)
 {
     u32 index = VarGet(VAR_MAIN_STORY_INDEX);
 
     if (index < MAIN_STORY_INDEX_POSTGAME)
+    {
         VarSet(VAR_MAIN_STORY_INDEX, index + 1);
+        ResetHostPosition(index + 1);
+    }
 }
 
 u32 GetMainStoryIndex(void)

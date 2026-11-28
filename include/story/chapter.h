@@ -181,7 +181,7 @@ struct ChapterHost
     u8 slot;
     const struct ChapterDesc *desc;
     u8 mainSlot; // planned main-story slot (0-3), CHAPTER_MAIN_SLOT_CALLBACK(block) or CHAPTER_MAIN_SLOT_OFF_CHAIN; the static host tables leave it 0, GetPlannedChapterHosts fills it
-    u8 bits;     // 0 = ordered (stage in the county's var 0); else a parallel chapter's requested mask width in vars 1-3, handed out in host-table order (GetChapterMask)
+    u8 bits;     // mask width in vars 1-3 of a stored chapter, handed out in host-table order (GetChapterMask); 0 = just enough bits for numStages. Ordered chapters (var 0) do not exist yet
 };
 
 // Where the (county, slot) chapter's mask lies in its slice (var 1-3); asserts the chapter is hosted, is mask-backed and fits.

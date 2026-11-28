@@ -27,16 +27,14 @@
 - Story state storage (design_story.md, "Story state storage"): the first 32 vars are temp and object-GFX, so reservations are named regions in `0x4020`-`0x40FF`, not Var0-31.
   - Count authored-chapter stage vars (after Milestone 1a's bucketing) and the optional inter-county stories; the slice is 4 vars per county, 3 used by the main line (`Emerald.md`, "Per-county storage needs").
   - Migrate county storage to the packed var 0 (design_story.md, "Story state storage"); the code still has var 0 reserved and one whole var per chapter slot. Steps, in order:
-    - Give `AdvanceMainStoryIndex()` real callers: it is reached only through `GetMainStoryIndex()`'s catch-up over vanilla flags; a chain that finishes its main slot (`DidChainJustFinishMainSlot`) should call it and reset the new host's var 0.
-    - Wire `county_position.h` (pack/unpack, start/advance with skip-ahead, bit-mask cursor; done, tested) into the accessors: hosts need a per-slot unsorted chapter list, required order and done-bit lookup; assert each stored chapter has at most 16 stages.
-    - Replace `GetCountySlotVar` and `CHAPTERS_PER_COUNTY` with accessors, and move the `SCENE_*_BEAT_VAR` macros and `Scene::stageVar` behind them.
-    - `GetChapterMask` (host `bits`, tutorial chapters 16) now yields the tutorial vars but nothing reads it: make `GetChapterStage`/`SetChapterStage` use it for mask-backed hosts and drop their slot-var mapping.
-    - Add a per-host `parallel` flag (default ordered; parallel = mask-backed, sized by `numStages`) and have `GetChapterStage` branch on it:
-      - Parallel reads its mask; ordered returns 0 if its slot is not reached or it is later in the order, `numStages - 1` if the index is past it or it is earlier in the order, else the stage bits of var 0.
-      - `IsCountyMainSlotDone` must then mean "ordered chain finished and every parallel entry at its last stage".
-      - Existing Emerald slots that are played in any order (`county_plan.h`) become parallel until the flag is chosen by generation.
-      - Convert `test/scene.c`, `test/county_plan.c` and `test/chapter.c` (they set non-current slots directly) to a helper that sets the main-story-index and clears the slice.
-      - Read the index with raw `VarGet(VAR_MAIN_STORY_INDEX)` inside `GetChapterStage`, not `GetMainStoryIndex()`.
+    - Today every stored chapter is mask-backed (`GetChapterMask`, host `bits`; 0 = just enough bits) and var 0 is only reset to 0 by `AdvanceMainStoryIndex()`. Still to do:
+    - Add ordered chapters: a per-host ordered/parallel choice (default ordered) and `GetChapterStage` branching on it:
+      - Parallel reads its mask; ordered returns 0 if its slot is not reached or it is later in the order, `numStages - 1` if the index is past it or it is earlier in the order, else the stage bits of var 0. Read the index with raw `VarGet(VAR_MAIN_STORY_INDEX)`, not `GetMainStoryIndex()`.
+      - `ResetHostPosition` (plot_stage.c) must write the order's first chapter, and `county_position.h` (start/advance with skip-ahead) gets wired in: hosts need a per-slot unsorted chapter list, required order and done-bit lookup.
+      - `IsCountyMainSlotDone` must mean "ordered chain finished and every parallel entry at its last stage".
+      - Chapter-count and stage-count asserts: at most 16 ordered chapters per slot and 16 stages.
+    - A chain that finishes its main slot (`DidChainJustFinishMainSlot`) should call `AdvanceMainStoryIndex()`; today only `GetMainStoryIndex()`'s catch-up over vanilla flags does.
+    - Replace `GetCountySlotVar` and `CHAPTERS_PER_COUNTY` with accessors, and move the `SCENE_*_BEAT_VAR` macros and `Scene::stageVar` behind them; tests that write `GetCountySlotVar` directly (`test/scene.c`, `test/county_plan.c`, `test/chapter.c`) move to a helper that sets the main-story-index and clears the slice. Tests with synthetic hosts must use a slot hosted in `sEmeraldChapterHosts` (the mask comes from that table).
   - Allocate the reserve's other named vars downward from `VAR_MAIN_STORY_INDEX` (the story-arc stage, the twelve rival-team vars (species in bits 10-0, rival story in bits 15-11); design_story.md, "Arc vars") once enough legacy vars are retired to free reserve addresses, and add them to `test/vars.c`.
   - Retire Emerald vars as Milestones 1a, 2 and 3 land: the 43 legacy vars in `vars.h` shrink toward zero and county slices become usable; trim `test/vars.c`'s table as they go. A removed var leaves its address unused until the block is renumbered (as `LEGACY_VARS_COUNT` shrinks, renumber the remaining offsets).
 
