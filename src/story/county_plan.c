@@ -1,5 +1,7 @@
 #include "global.h"
+#include "constants/vars.h"
 #include "assertf.h"
+#include "event_data.h"
 #include "county_plan.h"
 #include "plot_stage.h"
 #include "region_county.h"
@@ -307,6 +309,36 @@ bool32 IsCountyChainEntryDone(u32 county, u32 chapterSlot)
         return FALSE;
     }
     return GetChapterStage(county, chapterSlot, desc) >= (u32)desc->numStages - 1;
+}
+
+u32 GetCountyChapterMainSlot(u32 county, u32 chapterSlot)
+{
+    struct CountyChainPlan plan;
+    u32 i;
+
+    if (!PlanEmeraldCountyChain(county, &plan))
+        return CHAPTER_MAIN_SLOT_OFF_CHAIN;
+    for (i = 0; i < plan.numEntries; i++)
+    {
+        if (plan.chain[i].chapterSlot == chapterSlot)
+            return plan.chain[i].mainSlot;
+    }
+    return CHAPTER_MAIN_SLOT_OFF_CHAIN;
+}
+
+void AdvanceMainStoryIndexPast(u32 county, u32 mainSlot)
+{
+    u32 index;
+
+    if (mainSlot == CHAPTER_MAIN_SLOT_OFF_CHAIN)
+        return;
+    if (mainSlot >= CHAPTER_MAIN_SLOT_CALLBACK_BASE)
+        index = (mainSlot - CHAPTER_MAIN_SLOT_CALLBACK_BASE) * COUNTY_MAIN_SLOTS + 1; // callbacks are step 1 of their block
+    else
+        index = GetCountyHeader(county)->storyIdx * COUNTY_MAIN_SLOTS + mainSlot;
+    // Raw read: GetMainStoryIndex()'s catch-up would advance first and then this would skip a slot.
+    if (VarGet(VAR_MAIN_STORY_INDEX) == index)
+        AdvanceMainStoryIndex();
 }
 
 bool32 IsCountyMainSlotDone(u32 county, u32 mainSlot)

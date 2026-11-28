@@ -1,6 +1,7 @@
 #include "global.h"
 #include "test/test.h"
 #include "constants/flags.h"
+#include "constants/vars.h"
 #include "event_data.h"
 #include "region_city.h"
 #include "chapter.h"
@@ -325,6 +326,34 @@ TEST("CountyPlan: Rock Smash alone does not finish Mauville's slot 2 while Rydel
 {
     SetCountySlotStage(MAUVILLE, 0, 1);
     EXPECT(!IsCountyMainSlotDone(MAUVILLE, 2));
+}
+
+TEST("CountyPlan: Finishing a county's current main-story slot through SetCountySlotStage advances the index once")
+{
+    u32 current = GetCountyHeader(MAUVILLE)->storyIdx * COUNTY_MAIN_SLOTS + 2;
+
+    VarSet(VAR_MAIN_STORY_INDEX, current);
+    FlagSet(FLAG_BADGE03_GET);
+    SetCountySlotStage(MAUVILLE, 2, 1);
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), current);
+    SetCountySlotStage(MAUVILLE, 0, 1);
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), current + 1);
+    SetCountySlotStage(MAUVILLE, 0, 1);
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), current + 1);
+}
+
+TEST("CountyPlan: Finishing a main-story slot that is not current, or an off-chain chapter, leaves the index alone")
+{
+    u32 later = GetCountyHeader(MAUVILLE)->storyIdx * COUNTY_MAIN_SLOTS;
+
+    VarSet(VAR_MAIN_STORY_INDEX, later);
+    FlagSet(FLAG_BADGE03_GET);
+    SetCountySlotStage(MAUVILLE, 2, 1);
+    SetCountySlotStage(MAUVILLE, 0, 1);
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), later);
+    EXPECT_EQ(GetCountyChapterMainSlot(MAUVILLE, 1), CHAPTER_MAIN_SLOT_OFF_CHAIN);
+    SetCountySlotStage(MAUVILLE, 1, 1);
+    EXPECT_EQ(VarGet(VAR_MAIN_STORY_INDEX), later);
 }
 
 TEST("CountyPlan: A slot with no chain entries is never done")

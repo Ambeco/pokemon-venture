@@ -33,8 +33,11 @@
       - `ResetHostPosition` (plot_stage.c) must write the order's first chapter, and `county_position.h` (start/advance with skip-ahead) gets wired in: hosts need a per-slot unsorted chapter list, required order and done-bit lookup.
       - `IsCountyMainSlotDone` must mean "ordered chain finished and every parallel entry at its last stage".
       - Chapter-count and stage-count asserts: at most 16 ordered chapters per slot and 16 stages.
-    - A chain that finishes its main slot (`DidChainJustFinishMainSlot`) should call `AdvanceMainStoryIndex()`; today only `GetMainStoryIndex()`'s catch-up over vanilla flags does.
-    - Replace `GetCountySlotVar` and `CHAPTERS_PER_COUNTY` with accessors, and move the `SCENE_*_BEAT_VAR` macros and `Scene::stageVar` behind them; tests that write `GetCountySlotVar` directly (`test/scene.c`, `test/county_plan.c`, `test/chapter.c`) move to a helper that sets the main-story-index and clears the slice. Tests with synthetic hosts must use a slot hosted in `sEmeraldChapterHosts` (the mask comes from that table).
+    - Once var 0 holds the position, replace the `SetChapterStage` done-transition hook (`AdvanceMainStoryIndexPast`) with `AdvanceCountyPosition`'s FALSE return and `DidChainJustFinishMainSlot`.
+    - Replace `GetCountySlotVar` and `CHAPTERS_PER_COUNTY` with accessors:
+      - Move the `SCENE_*_BEAT_VAR` macros and `Scene::stageVar` behind them.
+      - Tests that write `GetCountySlotVar` directly (`test/scene.c`, `test/county_plan.c`, `test/chapter.c`) move to a helper that sets the main-story-index and clears the slice.
+      - Tests with synthetic hosts must use a slot hosted in `sEmeraldChapterHosts` (the mask comes from that table).
   - Allocate the reserve's other named vars downward from `VAR_MAIN_STORY_INDEX` (the story-arc stage, the twelve rival-team vars (species in bits 10-0, rival story in bits 15-11); design_story.md, "Arc vars") once enough legacy vars are retired to free reserve addresses, and add them to `test/vars.c`.
   - Retire Emerald vars as Milestones 1a, 2 and 3 land: the 43 legacy vars in `vars.h` shrink toward zero and county slices become usable; trim `test/vars.c`'s table as they go. A removed var leaves its address unused until the block is renumbered (as `LEGACY_VARS_COUNT` shrinks, renumber the remaining offsets).
 
@@ -104,7 +107,6 @@
     - The Starter should read Save Birch's stage once the debug menu writes it.
   - Petalburg's gym (`sPetalburgGymChapter`) anchors its Surf stage on the gym: Emerald hands Surf over in Wally's house, so give Petalburg a house role and anchor stages 3-5 of `VAR_PETALBURG_CITY_STATE` there (design_chapters.md, "One chapter, several buildings"). A callback list has no slot rules, so a blocking callback get with no chapter does not underfill its host's plan.
   - A chapter that supplies a get (`mainGet`, `mainHm`) but whose get is in another county's block or a slot without room asserts (`SUBPLOT_PLAN_BOUND_ELSEWHERE`); untested, since an `assertf` makes a test invalid. The tutorial chapters (Moving in, Save Birch, Rival and Pokédex) still declare no get, so they are first-fit.
-  - Advance the global main-story-index when `DidChainJustFinishMainSlot` fires (no stored index exists until Milestone 3; `GetMainStoryIndex` is computed by the adapter).
 - County planning (design_chapters.md, "County planning and chapter placement"):
   - Add an attachment field (location, unique building or main beat) to the descriptor beside generic chapters.
   - Make slot 0 a county chain (stage position resolved to chapter and stage by cumulative stage counts).

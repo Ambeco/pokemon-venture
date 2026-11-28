@@ -8,6 +8,7 @@
 #include "region_city.h"
 #include "region_map.h"
 #include "county_chain.h"
+#include "county_plan.h"
 #include "plot_stage.h"
 #include "subplot.h"
 #include "region_county.h"
@@ -498,7 +499,8 @@ u32 GetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc)
 void SetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc, u32 stage)
 {
     struct CountyBitMask mask;
-    u32 var;
+    u32 var, mainSlot;
+    bool32 wasDone;
 
     assertf(desc != NULL, "county %d hosts no chapter in slot %d", countyId, slot)
     {
@@ -516,8 +518,12 @@ void SetChapterStage(u32 countyId, u32 slot, const struct ChapterDesc *desc, u32
     {
         return;
     }
+    mainSlot = GetCountyChapterMainSlot(countyId, slot);
+    wasDone = mainSlot != CHAPTER_MAIN_SLOT_OFF_CHAIN && IsCountyMainSlotDone(countyId, mainSlot);
     var = GetCountyMaskVar(countyId, &mask);
     VarSet(var, SetCountyMaskedBits(VarGet(var), &mask, stage));
+    if (mainSlot != CHAPTER_MAIN_SLOT_OFF_CHAIN && !wasDone && IsCountyMainSlotDone(countyId, mainSlot))
+        AdvanceMainStoryIndexPast(countyId, mainSlot);
 }
 
 u32 GetCountySlotStage(u32 countyId, u32 slot)

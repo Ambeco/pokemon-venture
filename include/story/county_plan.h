@@ -60,4 +60,13 @@ u32 GetPlannedChapterHosts(struct ChapterHost *out, u32 maxHosts);
 bool32 IsCountyChainEntryDone(u32 county, u32 chapterSlot);
 bool32 IsCountyMainSlotDone(u32 county, u32 mainSlot);
 
+// The main-story slot (or callback slot) a stored chapter's chain entry holds, CHAPTER_MAIN_SLOT_OFF_CHAIN when it is off
+// the chain or the county's plan fails.
+u32 GetCountyChapterMainSlot(u32 county, u32 chapterSlot);
+
+// Advances the main-story-index when `mainSlot` of `county` is the current slot, so a finished slot that is not current
+// (a chapter written early, or after GetMainStoryIndex() caught up) never skips one. SetChapterStage calls it when a write
+// finishes the slot; writers that bypass it are covered by GetMainStoryIndex()'s catch-up.
+void AdvanceMainStoryIndexPast(u32 county, u32 mainSlot);
+
 #endif // GUARD_COUNTY_PLAN_H

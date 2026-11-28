@@ -55,3 +55,4 @@ One line per item, roughly highest priority first. Delete an item when it is pai
 - `src/story/chapter.c` `WriteLandmarkName` asserts when a county has no landmark, detour or pitstop (a release build then writes an empty name); no test checks that every generated county has one, so a rare seed could hit it.
 - Route110/Route119 scripts: legacy var/flag/bag-check proxies for chapter stage (route scripts cannot read their county slot); Rival 3/Itemfinder/Rival 4 approach+exit still hand-written movement
 - test/scene.c: StepGiveScene, StepGiveSceneByHand, StepRivalScene and StepYesNoRivalScene are near-duplicate headless scene steppers
+- chapter.c SetChapterStage: plans the county chain three times per stage write (GetCountyChapterMainSlot, IsCountyMainSlotDone x2); move to AdvanceCountyPosition once var 0 holds the position
